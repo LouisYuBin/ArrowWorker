@@ -2,36 +2,36 @@
 /*
  * Author：Louis
  * Date：2015-11-17
- * update：2016-05-23
+ * update：2016-06-12
  * Email：1210077683@qq.com
  * */
 class daemonLouis
 {
-    // 进程pid文件存储位置
+    // Store path of pid file
     private $pid_Path = '/tmp';
-    // pid文件完整路径
+    // path for pid file
     private $pid_File  = '';
-    // pid文件名称
+    // Name of pid file
     private $pid_Name  = 'jobRunner';
-    // 运行用户
+    // user for the current process
     private $user       = 'root';
-    // 是否终止运行
+    // sign of exit for the monitor process
     private $terminate  = false;
-    // 提醒时间设置
+    // time Zone
     private $tipTimeZone     = 'UTC';
-    // 工作进程个数
+    // worker process number
     private $jobNum     = 0;
-    // 运行权限
+    // Running mask
     private $umask      = 0;
-    // 日志输出目录
+    // standard output file
     private $output     = '/dev/null';
-    // 是否以单例模式运行
+    // Single model or not
     private $isSingle   = true;
-    // 任务数组
+    // Job array
     private $jobs   = array();
-    // 进程名称
+    // Process name
     private $proName = 'ArrowRunner';
-    // 任务与进程映射表
+    // Map between job and process
     private $tmpPid = array();
 
     public function __construct($isSingle = true,$user = 'root',$pidName = '')
@@ -43,36 +43,32 @@ class daemonLouis
             $this -> pid_Name = $pidName;
         }
 
-        //相关环境检查函数
-        $this -> environmentCheck();
+        $this -> checkEnvironment();
     }
 
-    private function environmentCheck()
+    //Check program start model and functions needed
+    private function checkEnvironment()
     {
 
-        //是否通过命令行启动
+        //Check if the JobRunner is starting in command line
         if (php_sapi_name() != "cli")
         {
             die("only run in command line mode\n");
         }
             
-        //信号检测机制函数是否存在
+        //Check the exists of function pcntl_signal_dispatch
         if ( ! function_exists('pcntl_signal_dispatch'))
         {
-            //不存在时，每执行１０条ｏｐｃｏｄｅ检查一次信号
             declare(ticks = 10);
         }
-            
 
-        //检测注册信号处理函数是否存在
+        //Check the exists of function pcntl_signal
         if ( ! function_exists('pcntl_signal'))
         {
-            $message = 'php environment do not support pcntl_signal';
-            $this -> logWrite($message);
-            throw new Exception($message);
+            throw new Exception('php do not support pcntl_signal');
         }
 
-        //注册进程退出信号处理函数
+        //Register the signal handler for parent process's exit
         $this ->setSignalHandler('parentsQuit');
 
         if (function_exists('gc_enable'))
@@ -82,19 +78,17 @@ class daemonLouis
 
     }
 
-    public function daemonMake(){
+    // daemonize process
+    public function daemonize(){
 
-        global $stdin, $stdout, $stderr;
         set_time_limit(0);
 
         if ($this->isSingle == true)
         {
             $this -> pid_File = $this -> pid_Path . "/" . $this->pid_Name . ".pid";
-            //检查进程ｐｉｄ文件
             $this -> checkPidfile();
         }
 
-        //设定程序运行权限（相减关系）
         umask($this->umask);
 
         if (pcntl_fork() != 0)
@@ -102,7 +96,7 @@ class daemonLouis
             exit();
         }
         
-        //设置会话组长
+        //Set the new session group
         posix_setsid();
 
         if (pcntl_fork() != 0)
@@ -111,60 +105,74 @@ class daemonLouis
         }
 
 
-        //切换进程的工作目录
+        //Change the work directory for the JobRunner
         chdir("/");
 
+        $this -> redirectStd();
+
         $this -> userSet($this->user) or die("Setting process user failed！");
-
-        //关闭进程开启时ｐｈｐ默认打开的文件
-        fclose(STDIN);
-        fclose(STDOUT);
-        fclose(STDERR);
-
-        $stdin  = fopen($this->output, 'r');
-        $stdout = fopen($this->output, 'a');
-        $stderr = fopen($this->output, 'a');
 
         if ($this->isSingle==true)
         {
             $this -> createPidfile();
             $this -> setProcessName($this->proName);
-            
         }
 
     }
 
-    //创建进程pid文件
+    /*
+     * Redirect standard input 、output and error
+     * */
+    private function redirectStd()
+    {
+        global $stdin, $stdout, $stderr;
+        $handle = fopen(self::$stdoutFile, "a");
+        if($handle)
+        {
+            fclose(STDIN);
+            fclose(STDOUT);
+            fclose(STDERR);
+
+            $stdin  = fopen($this->output, 'r');
+            $stdout = fopen($this->output, 'a');
+            $stderr = fopen($this->output, 'a');
+        }
+        else
+        {
+            throw new \Exception('Can not open standard file '.$this->output);
+        }
+
+    }
+
+    //Create pid file for the JobRunner
     private function createPidfile()
     {
-
-        //Pid 文件存储路径不存在则创建
         if (!is_dir($this->pid_Path))
         {
             mkdir($this->pid_Path);
         }
 
-        //将进程ｉｄ文件保存在相应的ｐｉｄ文件中
+        //Save the process id to the pid file
         $fp = fopen($this->pid_File, 'w') or die("cannot create pid file");
-        fwrite($fp, posix_getpid());
-        fclose($fp);
+              fwrite($fp, posix_getpid());
+              fclose($fp);
         $this -> logWrite("create pid file " . $this->pid_File);
     }
 
-    //设置进程名称
+    //Set the JobRunner name
     private function setProcessName($proName)
     {
         if(function_exists('cli_set_process_title'))
         {
             @cli_set_process_title($proName);
         }
-	elseif(extension_loaded('proctitle')&&function_exists('setproctitle'))
-	{
-            @setproctitle($proName);
-	}
+        elseif(extension_loaded('proctitle')&&function_exists('setproctitle'))
+        {
+                @setproctitle($proName);
+        }
     }
 
-    //检测进程ｐｉｄ文件是否存在
+    //Check the pid file of the JobRunner
     public function checkPidfile()
     {
 
@@ -175,19 +183,21 @@ class daemonLouis
 
         $pid = intval(file_get_contents($this->pid_File));
 
+        //Send a empty signal to process to check if the process is exists
         if ($pid > 0 && posix_kill($pid, 0))
         {
             $this -> logWrite("Daemon process is already started");
         }
         else
         {
-            $this -> logWrite("Daemon process ended abnormally , Check your program." . $this->pid_File);
+            $this -> logWrite("Daemon process ended abnormally , Check your program " . $this->pid_File);
         }
 
         exit(1);
 
     }
 
+    //Signal handle function
     public function setSignalHandler($type = 'parentsQuit')
     {
         switch($type)
@@ -200,7 +210,7 @@ class daemonLouis
                 pcntl_signal(SIGCHLD, array(__CLASS__, "signalHandler"),false);
                 break;
             default:
-                //进程退出信号处理函数
+                //Handle the exit signal of parent process
                 pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGINT, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGQUIT, array(__CLASS__, "signalHandler"),false);
@@ -211,16 +221,16 @@ class daemonLouis
     {
         switch($signal)
         {
-            // 子进程结束时，父进程收到此信号
+            // Main process will catch the signal while the child process exit
             case SIGCHLD:
-                // pcntl_waitpid 返回退出的子进程的进程号，错误时返回-1
+                // pcntl_waitpid return the id of the child process exited，return -1 when abnormally
                 while(($pid=pcntl_waitpid(-1, $status, WNOHANG)) > 0)
                 {
-                    // 取得退出子进程最低的任务编号
+                    // get the id of the process exited
                     $jobNum = $this -> tmpPid['a'.$pid];
-                    // 将工作进程对应的任务的状态置为待执行状态
+                    // reset the worker exited to unhandled status
                     $this->jobs[$jobNum]['pid'] = 0;
-                    //消除上一次对应数据
+                    //unset the array element
                     unset($this -> tmpPid['a'.$pid]);
                 }
                 break;
@@ -233,7 +243,7 @@ class daemonLouis
             case SIGINT:
             //（上）进程终止信号，由（ctrl+c发出）
             case SIGQUIT:
-            //（上）程序终止信号，程序发生错误退出信号
+            //（上）程序终止信号(kill send it)，程序发生错误退出信号
                 $this->terminate = true;
                 break;
             default:
@@ -242,7 +252,7 @@ class daemonLouis
 
     }
 
-    // 设置运行进程的用户
+    // set user and group for the process
     public function userSet($name)
     {
 
@@ -252,23 +262,23 @@ class daemonLouis
             return true;
         }
 
-        //根据用户名获取对应的用户信息
+        //get information of user specified
         $user = posix_getpwnam($name);
 
         if ($user)
         {
             $uid = $user['uid'];
             $gid = $user['gid'];
-            //设置当前进程运行用户的ｉｄ
+            //set user for the process
             $result = posix_setuid($uid);
-            //设置当前用户运行的用户组ｉｄ
+            //set user group for the process
             posix_setgid($gid);
         }
         return $result;
 
     }
 
-    // 开始执行任务
+    // start daemon
     public function start($count=1){
 
         $this -> logWrite("Daemon process is working");
@@ -276,32 +286,32 @@ class daemonLouis
         //设置工作进程退出时，父（监控）进程处理
         $this ->setSignalHandler('startHandler');
 
-        //需要执行的任务数
+        //the number of the job added
         $this ->jobNum = count($this->jobs,0);
 
-        // 没有任务时提醒添加任务并退出
+        // exit if no job is added
         if($this ->jobNum == 0)
         {
             $this -> logWrite("please add some jobs");
             $this -> mainQuit();
         }
 
-        //进入任务分发和监控
+        //monitor the worker
         while (true)
         {
-            //如果pcntl_signal_dispatch函数可用，则使用等待信号处理器进行信号监测
+            //use the system signal handler to handle the process signal if ...
             if (function_exists('pcntl_signal_dispatch'))
             {
                 pcntl_signal_dispatch();
             }
 
-            //如果退出表示为true则退出
+            //exit the monitor process if exit signal is received
             if ($this->terminate)
             {
                 break;
             }
 
-            //循环读取任务并执行
+            //loop to fork the worker process
             for($i = 0; $i<$this ->jobNum; $i++)
             {
                 if($this -> jobs[$i]['pid']==0)
@@ -352,7 +362,7 @@ class daemonLouis
 
     }
 
-    //主（监控）进程退出
+    //monitor process exit
     public function mainQuit()
     {
         if (file_exists($this->pid_File))
@@ -366,7 +376,7 @@ class daemonLouis
 
     }
 
-    // 添加任务
+    // add job
     public function addJobs($jobs=array())
     {
         // 任务函数所带参数
@@ -429,7 +439,7 @@ function tmplog($msg)
 
 
 $daemon =  new daemonLouis();
-$daemon -> daemonMake();
+$daemon -> daemonize();
 //$daemon -> addJobs(['function' => 'ScanScreenIds','argv' => array(100,2)]);
 $daemon -> addJobs(['function' => 'ScanSceenStatus']);
 $daemon -> addJobs(['function' => 'tmpfunction']);
