@@ -12,7 +12,7 @@ class ArrowWorder
     // path for pid file
     private $pid_File  = '';
     // Name of pid file
-    private $pid_Name  = 'jobRunner';
+    private $pid_Name  = 'ArrowWorker';
     // user for the current process
     private $user       = 'root';
     // sign of exit for the monitor process
@@ -30,7 +30,7 @@ class ArrowWorder
     // Job array
     private $jobs   = array();
     // Process name
-    private $proName = 'ArrowRunner';
+    private $proName = 'ArrowWorker';
     // Map between job and process
     private $tmpPid = array();
 
