@@ -5,7 +5,7 @@
  * update：2016-06-12
  * Email：1210077683@qq.com
  * */
-class daemonLouis
+class ArrowWorder
 {
     // Store path of pid file
     private $pid_Path = '/tmp';
@@ -438,7 +438,7 @@ function tmplog($msg)
 }
 
 
-$daemon =  new daemonLouis();
+$daemon =  new ArrowWorder();
 $daemon -> daemonize();
 //$daemon -> addJobs(['function' => 'ScanScreenIds','argv' => array(100,2)]);
 $daemon -> addJobs(['function' => 'ScanSceenStatus']);
