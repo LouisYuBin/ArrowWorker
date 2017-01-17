@@ -7,7 +7,6 @@
 use ArrowWorker\ArrowWorker as arrow;
 define('APP_PATH',__DIR__.'/App');
 define('APP_TYPE','cli');
-define('APP_CONFIG_FILE','env_local');
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
 
 arrow::start();
