@@ -11,25 +11,39 @@ use ArrowWorker\Driver\Daemon AS daemon;
 
 class ArrowDaemon extends daemon
 {
+    //pid文件路径
     private static $pid_Path    = '/var/run';
-    private static $pid_File    = '';
+    //pid文件完整路径
+    private static $pid_File    = null;
+    //默认pid文件名称
     private static $pid_Name    = 'ArrowWorker';
-    private static $App_Name    = '';
+    //应用名称
+    private static $App_Name    = 'ArrowWorker';
+    //运行用户
     private static $user        = 'root';
+    //退出标识
     private static $terminate   = false;
+    //日志前缀时间时区
     private static $tipTimeZone = 'UTC';
+    //任务数量
     private static $jobNum      = 0;
+    //进程执行权限
     private static $umask       = 0;
+    //进程日志文件
     private static $output      = '/var/log/ArrowWorker.log';
+    //是否以单例模式运行
     private static $isSingle    = true;
+    //任务map
     private static $jobs        = [];
+    //进程 ID map
     private static $tmpPid      = [];
+    //进程运行状态：开始时间、任务执行次数、结束时间
     private static $workerStat  = ['start' => null, 'count' => 0, 'end' => null];
 
     public function __construct($config)
     {
         parent::__construct($config);
-
+        //设置运行日志级别
         error_reporting(self::$config['level']);
 
         self::$isSingle = true;
