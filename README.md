@@ -56,3 +56,4 @@ $method = $method -> MethodName();
 ```php
 $cache = self::getObj('cache');
 ```
+### 相关使用文档正在更新中。。。
