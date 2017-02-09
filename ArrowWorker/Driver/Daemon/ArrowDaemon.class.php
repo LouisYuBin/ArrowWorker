@@ -57,6 +57,7 @@ class ArrowDaemon extends daemon
         self::$user     = isset(self::$config['user']) ? self::$config['user'] : self::$user;
         self::$pid_Name = isset(self::$config['pid'])  ? self::$config['pid']  : self::$pid_Name;
         self::$output   = isset(self::$config['log'])  ? self::$config['log']  : self::$output;
+        self::$threadNum = isset(self::$config['thread'])  ? self::$config['thread']  : self::$threadNum;
         self::$App_Name = isset(self::$config['name']) ? self::$config['name'] : self::$App_Name;
         $this -> _environmentCheck();
         $this -> _daemonMake();
