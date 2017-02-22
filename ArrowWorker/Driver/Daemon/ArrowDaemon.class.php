@@ -3,39 +3,61 @@
  * User: Arrow
  * Date: 2016/8/1
  * Time: 19:52
+ * Modified by louis at 2017/02/03 23:58
  */
 
 namespace ArrowWorker\Driver\Daemon;
 use ArrowWorker\Driver\Daemon AS daemon;
-
+use ArrowWorker\Driver\Daemon\ArrowThread;
 
 class ArrowDaemon extends daemon
 {
+    //pid文件路径
     private static $pid_Path    = '/var/run';
-    private static $pid_File    = '';
+    //pid文件完整路径
+    private static $pid_File    = null;
+    //默认pid文件名称
     private static $pid_Name    = 'ArrowWorker';
-    private static $App_Name    = '';
+    //应用名称
+    private static $App_Name    = 'ArrowWorker';
+    //运行用户
     private static $user        = 'root';
+    //退出标识
     private static $terminate   = false;
+    //日志前缀时间时区
     private static $tipTimeZone = 'UTC';
+    //任务数量
     private static $jobNum      = 0;
+    //进程执行权限
     private static $umask       = 0;
+    //进程日志文件
     private static $output      = '/var/log/ArrowWorker.log';
+    //是否以单例模式运行
     private static $isSingle    = true;
+    //是否多线程模式
+    private static $isMultiThr  = false;
+    //任务map
     private static $jobs        = [];
+    //进程 ID map
     private static $tmpPid      = [];
+    //线程池
+    private static $threadMap   = [];
+    //线程数
+    private static $threadNum   = 6;
+    //进程运行状态：开始时间、任务执行次数、结束时间
     private static $workerStat  = ['start' => null, 'count' => 0, 'end' => null];
 
     public function __construct($config)
     {
         parent::__construct($config);
-
+        //设置运行日志级别
         error_reporting(self::$config['level']);
 
         self::$isSingle = true;
         self::$user     = isset(self::$config['user']) ? self::$config['user'] : self::$user;
         self::$pid_Name = isset(self::$config['pid'])  ? self::$config['pid']  : self::$pid_Name;
         self::$output   = isset(self::$config['log'])  ? self::$config['log']  : self::$output;
+        self::$threadNum = isset(self::$config['thread'])  ? self::$config['thread']  : self::$threadNum;
         self::$App_Name = isset(self::$config['name']) ? self::$config['name'] : self::$App_Name;
         $this -> _environmentCheck();
         $this -> _daemonMake();
@@ -76,6 +98,8 @@ class ArrowDaemon extends daemon
         {
             gc_enable();
         }
+        
+        self::$isMultiThr = extension_loaded('pthreads');
 
     }
 
@@ -309,7 +333,7 @@ class ArrowDaemon extends daemon
             {
                 $this -> _forkOneWork($i);
             }
-            usleep(100000);
+            usleep(10000);
         }
     }
 
@@ -317,27 +341,21 @@ class ArrowDaemon extends daemon
     {
         $pid = -1;
 
-        do  
-        {   
-            $pid = pcntl_fork();
+        $pid = pcntl_fork();
                
-            if($pid > 0)
-            {   
-                self::$jobs[$taskGroupId]['pidCount']++;
-                self::$tmpPid[$pid] = $taskGroupId;
-                break;
-            }
-            elseif($pid==0)
-            {   
-                $this -> _runWorker($taskGroupId,self::$jobs[$taskGroupId]['lifecycle']);
-            }
-            else
-            {   
-                sleep(2);
-            }
-           
-        }while(1);
-        usleep(10000);
+        if($pid > 0)
+        {   
+            self::$jobs[$taskGroupId]['pidCount']++;
+            self::$tmpPid[$pid] = $taskGroupId;
+        }
+        elseif($pid==0)
+        {   
+            $this -> _runWorker($taskGroupId,self::$jobs[$taskGroupId]['lifecycle']);
+        }
+        else
+        {   
+            sleep(2);
+        }
     }
 
     private function _runWorker($index,$lifecycle)
@@ -345,10 +363,70 @@ class ArrowDaemon extends daemon
         $this -> _setSignalHandler('workerHandler',$lifecycle);
         $this -> _setProcessName(self::$jobs[$index]['processName']);
         self::$workerStat['start'] = time();
-        while(true)
+        if( self::$isMultiThr )
         {
-            if(self::$terminate)
+            $this -> _threadRunTask( $index );
+        }
+        else
+        {
+            $this -> _processRunTask( $index );
+        }
+    }
+
+    //进程执行任务
+    private function _processRunTask($index)
+    {
+        while( 1 )
+        {
+            if( self::$terminate )
             {
+                self::$workerStat['end'] = time();
+                $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
+                $this -> _logWrite( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+                exit(0);
+            }
+
+            pcntl_signal_dispatch();
+            if( isset( self::$jobs[$index]['argv'] ) )
+            {
+                call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
+            }
+            else
+            {
+                call_user_func( self::$jobs[$index]['function'] );
+            }
+
+            self::$workerStat['count']++;
+        }
+    }
+
+    //线程执行任务
+    private function _threadRunTask($index)
+    {
+        //创建线程
+        for( $i = 1; $i <= self::$threadNum; $i++  )
+        {
+            self::$threadMap[] = new ArrowThread( self::$jobs[$index]['processName'].'_thread_'.$i );
+        }
+
+        //启动线程
+        foreach( self::$threadMap as $workerThread )
+        {
+            $workerThread -> start();
+        }
+
+        //循环给线程分发任务
+        while( 1 )
+        {
+            if( self::$terminate )
+            {
+                //退出所有线程
+                foreach( self::$threadMap as $key => $workerThread )
+                {
+                    $workerThread -> endThread();
+                    $workerThread -> join();
+                    unset( self::$threadMap[$key] );
+                }   
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
                 $this -> _logWrite(self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.');
@@ -356,16 +434,17 @@ class ArrowDaemon extends daemon
             }
 
             pcntl_signal_dispatch();
-            if(isset(self::$jobs[$index]['argv']))
-            {
-                call_user_func_array(self::$jobs[$index]['function'],self::$jobs[$index]['argv']);
-            }
-            else
-            {
-                call_user_func(self::$jobs[$index]['function']);
-            }
 
-            self::$workerStat['count']++;
+            foreach( self::$threadMap as $workerThread )
+            {
+                //线程空闲
+                if( !$workerThread -> hasTask )
+                {
+                    $workerThread -> pushTask( self::$jobs[$index] );
+                    self::$workerStat['count']++;
+                }
+            }
+            usleep(20);
         }
     }
 

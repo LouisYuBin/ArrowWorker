@@ -32,6 +32,7 @@ return[
         'name'   => 'Index',
         'pid'    => 'ArrowWorker',
         'user'   => 'root',
+        'thread' => 6,
         'log'    => '/var/log/daemon.log',
         'level'  => 30719
         //1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all

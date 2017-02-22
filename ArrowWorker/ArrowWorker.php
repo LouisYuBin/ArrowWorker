@@ -88,10 +88,9 @@ class ArrowWorker
            }
            else
            {
-               exit('Class do not exists');
+               exit($class.' : Class do not exists'.PHP_EOL);
            }
         }
-        echo $class.PHP_EOL;
         require $class;
     }
 
@@ -103,17 +102,18 @@ class ArrowWorker
             'ArrowWorker\Driver\Cache'  => ArrowWorker . '/Driver/' . 'Cache' . $classExt,
             'ArrowWorker\Driver\Db'     => ArrowWorker . '/Driver/' . 'Db' . $classExt,
             'ArrowWorker\Driver\Daemon' => ArrowWorker . '/Driver/' . 'Daemon' . $classExt,
-            'ArrowWorker\Driver\View' => ArrowWorker . '/Driver/View'.$classExt,
+            'ArrowWorker\Driver\View'   => ArrowWorker . '/Driver/View'.$classExt,
             'ArrowWorker\Driver\Cache\Redis' => ArrowWorker . '/Driver/Cache/Redis' . $classExt,
             'ArrowWorker\Driver\Db\Mysqli'   => ArrowWorker . '/Driver/Db/Mysqli' . $classExt,
             'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . $classExt,
+            'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . $classExt,
             'ArrowWorker\Driver\View\Smarty' => ArrowWorker . '/Driver/View/Smarty' . $classExt,
             'ArrowWorker\Driver\View\Smarty' => ArrowWorker . '/Driver/View/Smarty' . $classExt,
-            'ArrowWorker\Controller'   => ArrowWorker . '/Controller'.$classExt,
-            'ArrowWorker\Factory' => ArrowWorker . '/Factory'.$classExt,
-            'ArrowWorker\App'   => ArrowWorker . '/App'.$classExt,
-            'ArrowWorker\Model' => ArrowWorker . '/Model'.$classExt,
-            'ArrowWorker\Config' => ArrowWorker . '/Config'.$classExt
+            'ArrowWorker\Controller' => ArrowWorker . '/Controller'.$classExt,
+            'ArrowWorker\Factory'    => ArrowWorker . '/Factory'.$classExt,
+            'ArrowWorker\App'        => ArrowWorker . '/App'.$classExt,
+            'ArrowWorker\Model'      => ArrowWorker . '/Model'.$classExt,
+            'ArrowWorker\Config'     => ArrowWorker . '/Config'.$classExt
         ];
     }
 
