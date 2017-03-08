@@ -9,6 +9,7 @@
 namespace ArrowWorker\Driver\Daemon;
 use ArrowWorker\Driver\Daemon AS daemon;
 use ArrowWorker\Driver\Daemon\ArrowThread;
+use ArrowWorker\Driver\Daemon\GeneratorSchedule;
 
 class ArrowDaemon extends daemon
 {
@@ -46,6 +47,8 @@ class ArrowDaemon extends daemon
     private static $threadNum   = 6;
     //进程运行状态：开始时间、任务执行次数、结束时间
     private static $workerStat  = ['start' => null, 'count' => 0, 'end' => null];
+    //是否使用生成器,默认不使用
+    private static $enableGenerator = false;
 
     public function __construct($config)
     {
@@ -59,6 +62,7 @@ class ArrowDaemon extends daemon
         self::$output   = isset(self::$config['log'])  ? self::$config['log']  : self::$output;
         self::$threadNum = isset(self::$config['thread'])  ? self::$config['thread']  : self::$threadNum;
         self::$App_Name = isset(self::$config['name']) ? self::$config['name'] : self::$App_Name;
+        self::$enableGenerator = isset(self::$config['enableGenerator']) ? self::$config['enableGenerator'] : self::$enableGenerator;
         $this -> _environmentCheck();
         $this -> _daemonMake();
     }
@@ -369,7 +373,27 @@ class ArrowDaemon extends daemon
         }
         else
         {
-            $this -> _processRunTask( $index );
+            if( self::$config['enableGenerator'] )
+            {
+                $generator = new GeneratorSchedule;
+                $generatorCount = 0;
+                while( $generatorCount<20 )
+                {
+                    $generator -> newTask( $this->_generatorRunTask( $index ) );
+                }
+                $generator -> run();
+                self::$workerStat['count'] = $generator -> taskCount();
+                
+                self::$workerStat['end'] = time();
+                $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
+                $this -> _logWrite( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+                exit(0);
+
+            }
+            else
+            {
+                $this -> _processRunTask( $index );
+            }
         }
     }
 
@@ -397,6 +421,26 @@ class ArrowDaemon extends daemon
             }
 
             self::$workerStat['count']++;
+        }
+    }
+	
+	//协程执行任务
+    private function _generatorRunTask( $index )
+    {
+        while( 1 )
+        {
+
+            if( isset( self::$jobs[$index]['argv'] ) )
+            {
+                call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
+            }
+            else
+            {
+                call_user_func( self::$jobs[$index]['function'] );
+            }
+
+            yield 1;    
+
         }
     }
 

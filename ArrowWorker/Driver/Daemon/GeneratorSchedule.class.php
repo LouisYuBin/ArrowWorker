@@ -9,8 +9,10 @@ class GeneratorScheduler
     protected $taskMap = [];
     //是否退出
     protected $isExit  = false;
+    //任务执行计数
+    protected static $execCount = 0;
  
-    public function __construct()
+    public function __construct( $proName )
     {
         //Todo
     }
@@ -18,7 +20,7 @@ class GeneratorScheduler
     //添加任务
     public function newTask( Generator $coroutine )
     {
-         $task =  new GeneratorTask( $tid, $coroutine );
+         $task =  new GeneratorTask( $coroutine );
          $this -> taskMap[] = $task;
     }
   
@@ -34,14 +36,22 @@ class GeneratorScheduler
 
             foreach( $this -> taskMap as $taskId => $task )
             {
-                $task -> run();
+                $return = $task -> run();
+                //计数
+                self::$execCount += $return;
   
-               if ( $task->isFinished() )
+                if ( $task->isFinished() )
                 {
                     unset( $this->taskMap[$taskId] );
                 }
             }
         }
     }
+
+    public function taskCount()
+    {
+        return self::$execCount;
+    }
+
 }
 
