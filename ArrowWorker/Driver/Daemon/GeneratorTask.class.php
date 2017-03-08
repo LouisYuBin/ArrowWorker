@@ -7,42 +7,42 @@ namespace ArrowWorker\Driver\Daemon;
 
 class GeneratorTask
 {
-    protected $coroutine;
-    protected $sendValue = null;
-    protected $beforeFirstYield = true;
- 
-    //initialize generator and bind it to var
-    public function __construct( Generator $coroutine)
+    protected $coroutine;
+    protected $sendValue = null;
+    protected $beforeFirstYield = true;
+
+    public function __construct( \Generator $coroutine)
     {
-        $this -> coroutine = $coroutine;
-    }
-  
+        $this -> coroutine = $coroutine;
+    }
+   
     //set the value while will be sent to generator
-    public function setSendValue($sendValue)
+    public function setSendValue($sendValue)
     {
-        $this->sendValue = $sendValue;
-    }
-  
+        $this->sendValue = $sendValue;
+    }
+   
     // run generator and send information to generator
-    public function run()
+    public function run()
     {
-        if ( $this->beforeFirstYield )
+        if ( $this->beforeFirstYield )
         {
-             $this -> beforeFirstYield = false;
-             return $this -> coroutine -> current();
-        }
+            $this -> beforeFirstYield = false;
+            return $this -> coroutine -> current();
+        }
         else
         {
-            $retval = $this -> coroutine -> send( $this->sendValue );
-            $this -> sendValue = null;
-            return $retval;
-        }
-    }
+            $retval = $this -> coroutine -> send( $this->sendValue );
+            $this -> sendValue = null;
+            return $retval;
+        }
+    }
 
     //Check if the iterator has been closed 
     public function isFinished()
     {
-        return !$this -> coroutine -> valid();
-    }
+        return !$this -> coroutine -> valid();
+    }
 
 }
+

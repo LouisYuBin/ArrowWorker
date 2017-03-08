@@ -9,7 +9,7 @@
 namespace ArrowWorker\Driver\Daemon;
 use ArrowWorker\Driver\Daemon AS daemon;
 use ArrowWorker\Driver\Daemon\ArrowThread;
-use ArrowWorker\Driver\Daemon\GeneratorSchedule;
+use ArrowWorker\Driver\Daemon\GeneratorTask;
 
 class ArrowDaemon extends daemon
 {
@@ -43,6 +43,8 @@ class ArrowDaemon extends daemon
     private static $tmpPid      = [];
     //线程池
     private static $threadMap   = [];
+    //协程池
+    private static $scheduleMap = [];
     //线程数
     private static $threadNum   = 6;
     //进程运行状态：开始时间、任务执行次数、结束时间
@@ -373,16 +375,16 @@ class ArrowDaemon extends daemon
         }
         else
         {
-            if( self::$config['enableGenerator'] )
+            if( self::$enableGenerator )
             {
-                $generator = new GeneratorSchedule;
                 $generatorCount = 0;
-                while( $generatorCount<20 )
+                while( $generatorCount<50 )
                 {
-                    $generator -> newTask( $this->_generatorRunTask( $index ) );
+                    $this -> newScheduleTask( $this-> _generatorRunTask( $index ) );
+                    $generatorCount++;
                 }
-                $generator -> run();
-                self::$workerStat['count'] = $generator -> taskCount();
+
+                $this -> _scheduleRun();
                 
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
@@ -443,6 +445,39 @@ class ArrowDaemon extends daemon
 
         }
     }
+
+    //协程执行任务
+    private function _scheduleRun()
+    {
+        while( 1 )
+        {
+            if ( self::$terminate )
+            {
+                break;
+            }
+
+            pcntl_signal_dispatch();
+
+            foreach( self::$scheduleMap as $taskId => $task )
+            {
+                $return = $task -> run();
+                self::$workerStat['count'] += $return;
+
+                if ( $task->isFinished() )
+                {
+                    unset( self::$scheduleMap[$taskId] );
+                }
+            }
+        }
+
+    }
+
+    //添加协程任务
+    private function newScheduleTask( \Generator $coroutine )
+    {
+        self::$scheduleMap[] = new GeneratorTask( $coroutine );
+    }
+
 
     //线程执行任务
     private function _threadRunTask($index)
