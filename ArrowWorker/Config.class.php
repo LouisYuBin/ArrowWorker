@@ -10,34 +10,41 @@ namespace ArrowWorker;
 
 class Config
 {
+    private static $Path      = null;
+    private static $Config    = []
+    private static $ConfigMap = [];
+    private static $ConfigExt = '.php';
 
-    private static $configObj;
-    private static $Path;
-    private static $lang = ['zh-cn','en-us'];
-    private static $configMap = [];
-    private static $configExt = '.php';
-
-    private function __construct()
+    private function _Init()
     {
-        self::$Path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
+        if( is_null($Path) )
+        {
+            self::$Path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
+        }
     }
 
-    static function get( $fileName, $folder=0, $langIndex=0 )
+    public static function Get( $key=null, $entrance=APP_CONFIG_FILE )
     {
-        if( !self::$configObj )
+        self::_Init();
+        if( count( self::$Config ) == 0 )
         {
-            self::$configObj = new self;
+            //load main configuration
+            self::$Config = self::Load( $entrance );
+            //Load extra configuration
+            if( isset( self::$Config['user'] ) && count( self::$Config['user'] ) >0 )
+            {
+                foreach( self::$Config['user'] as $eachExtraConfig )
+                {
+                    $extraConfig = self::Load( $eachExtraConfig );
+                    self::$Config = array_merge( self::$Config, $extraConfig );
+                }
+            }
         }
-        if( $folder==1 )
-        {
 
-            self::$Path = APP_PATH . DIRECTORY_SEPARATOR . APP_LANG_FOLDER . DIRECTORY_SEPARATOR . self::$lang[$langIndex] . DIRECTORY_SEPARATOR;
-        }
-
-        return self::$configObj->load($fileName);
+        return ( !is_null[$key] && isset(self::$Config[$key]) ) ? self::$Config[$key] : self::$Config;
     }
 
-    private function load( $fileName )
+    private function Load( $fileName )
     {
         if( isset( self::$configMap[$fileName] ) )
         {
@@ -45,9 +52,8 @@ class Config
         }
         else
         {
-            $config = require( self::$Path.$fileName.self::$configExt );
-            self::$configMap[$fileName] = $config;
-            return $config;
+            self::$ConfigMap[$fileName] = require( self::$Path.$fileName.self::$ConfigExt );
+            return self::$ConfigMap[$fileName];
         }
 
     }

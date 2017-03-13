@@ -6,23 +6,53 @@
  */
 
 namespace ArrowWorker;
-
+use ArrowWorker\Factory;
+use ArrowWorker\Config;
 
 class Load
 {
-    protected static $classMap = [];
+    private static $Class  = [];
 
-    //加载Model
-    static function load($class)
+    //Load model created by user
+    public static function Model( $name )
     {
-        if(isset(self::$classMap[$class]))
+        $key = 'M'.$name.
+        return self::AppModule( $key );
+    }
+
+    //Load class created by user
+    public static function Lib( $name )
+    {
+        $key = 'C'.$name;
+        return self::AppModule( $key, APP_Class_FOLDER );
+    }
+
+    //return app module
+    private static function AppModule( $key, $type=APP_Model_FOLDER )
+    {
+        if( isset( self::$Class[$key] ) )
         {
-            return self::$classMap[$class];
+            return self::$Class[$key];
         }
         else
-        {
-            self::$classMap[$class] = new $class;
-            return self::$classMap[$class];
+        {   
+            $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.$name;
+            self::$Class[$key] = new $class( $config );
+            return self::$Class[$key];
         }
     }
+
+    //Load Frame Component
+    public static function Component( $componentName )
+    {
+        $componentName = ucfirst( $componentName );
+        $componentConf = Config::Get( $componentName );
+        Factory::$componentName( $componentConf );
+    }
+
+    public static function Lang()
+    {
+        
+    }
+
 }
