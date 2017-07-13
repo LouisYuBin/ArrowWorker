@@ -111,7 +111,7 @@ class ArrowDaemon extends daemon
         if (self::$isSingle == true)
         {
             self::$pid_File = self::$pid_Path . "/" . self::$pid_Name . ".pid";
-            $this -> _checkPidfile();
+            $this -> _checkPidFile();
         }
 
         umask(self::$umask);
@@ -135,7 +135,7 @@ class ArrowDaemon extends daemon
         $this -> _setProcessName("ArrowWorker V1.3 --By Louis --started at ".$proStartTime);
         if (self::$isSingle==true)
         {
-            $this -> _createPidfile();
+            $this -> _createPidFile();
         }
 
     }
@@ -158,7 +158,7 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _createPidfile()
+    private function _createPidFile()
     {
 
         if (!is_dir(self::$pid_Path))
@@ -173,7 +173,7 @@ class ArrowDaemon extends daemon
         $this -> _logWrite("create pid file " . self::$pid_File);
     }
 
-    private function _checkPidfile()
+    private function _checkPidFile()
     {
 
         if (!file_exists(self::$pid_File))
@@ -208,7 +208,7 @@ class ArrowDaemon extends daemon
             default:
                 pcntl_signal(SIGCHLD, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
-                pcntl_signal(SIGINT, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGINT,  array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGQUIT, array(__CLASS__, "signalHandler"),false);
         }
     }
@@ -280,7 +280,7 @@ class ArrowDaemon extends daemon
             $this -> _clearArrowInfo();
         }
         $this -> _setSignalHandler('monitorHandler');
-        $this -> _forkWorkders();
+        $this -> _forkWorkers();
         $this -> _startMonitor();
         $this -> _clearArrowInfo();
     }
@@ -325,7 +325,7 @@ class ArrowDaemon extends daemon
     }
     
 
-    private function _forkWorkders()
+    private function _forkWorkers()
     {
         for($i = 0; $i<self::$jobNum; $i++)
         {   
