@@ -48,7 +48,7 @@ class Controller
             {
                 $config = self::$userConfig[$configKey];
             }
-            $folder = ($type=='m') ? APP_Model_FOLDER : APP_Class_FOLDER;
+            $folder = ($type=='m') ? APP_Model_FOLDER : APP_ClASS_FOLDER;
             $class  = '\\'.APP_FOLDER.'\\'.$folder.'\\'.$class;
             //初始化并传入配置
             self::$objectMap[$key] = new $class( $config );

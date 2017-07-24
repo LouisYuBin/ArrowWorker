@@ -11,24 +11,27 @@ use ArrowWorker\Config;
 
 class Load
 {
+    const ModelPre = 'M_';
+    const LibPre = 'C_';
     private static $Class  = [];
+
 
     //Load model created by user
     public static function Model( $name )
     {
-        $key = 'M'.$name.
-        return self::AppModule( $key );
+        $key = ModelPre.$name;
+        return self::AppModule( $key, $name );
     }
 
     //Load class created by user
     public static function Lib( $name )
     {
-        $key = 'C'.$name;
-        return self::AppModule( $key, APP_Class_FOLDER );
+        $key = LibPre.$name;
+        return self::AppModule( $key, $name, APP_ClASS_FOLDER );
     }
 
     //return app module
-    private static function AppModule( $key, $type=APP_Model_FOLDER )
+    private static function AppModule( $key, $name, $type=APP_MODEL_FOLDER )
     {
         if( isset( self::$Class[$key] ) )
         {
@@ -37,7 +40,7 @@ class Load
         else
         {   
             $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.$name;
-            self::$Class[$key] = new $class( $config );
+            self::$Class[$key] = new $class;
             return self::$Class[$key];
         }
     }

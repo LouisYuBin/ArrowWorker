@@ -11,13 +11,13 @@ namespace ArrowWorker;
 class Config
 {
     private static $Path      = null;
-    private static $Config    = []
+    private static $Config    = [];
     private static $ConfigMap = [];
     private static $ConfigExt = '.php';
 
     private function _Init()
     {
-        if( is_null($Path) )
+        if( is_null(self::$Path) )
         {
             self::$Path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
         }
