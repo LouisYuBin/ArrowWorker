@@ -1,8 +1,9 @@
 <?php
 /**
- * User: Administrator
- * Date: 2016/8/3
- * Time: 12:02
+ * User: Louis
+ * Date: 2016/8/3 12:02
+ * Update Records:
+ *      2017-07-24 by Louis
  */
 
 namespace ArrowWorker;
@@ -10,41 +11,55 @@ namespace ArrowWorker;
 
 class Config
 {
-    private static $Path      = null;
-    private static $Config    = [];
-    private static $ConfigMap = [];
-    private static $ConfigExt = '.php';
+    //app class map file
+    public static $AppFileMap  = 'alias';
 
+    //configuration file pathy
+    private static $path        = null;
+    private static $frameConfig = [];
+    private static $appConfig   = [];
+    private static $configMap   = [];
+    private static $appConfKey  = 'user';
+    private static $configExt   = '.php';
+
+    //specify configuration file path
     private function _Init()
     {
-        if( is_null(self::$Path) )
+        if( is_null(self::$path) )
         {
-            self::$Path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
+            self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
         }
     }
 
-    public static function Get( $key=null, $entrance=APP_CONFIG_FILE )
+    //load frame work configuration
+    public static function Frame( $key=null, $frameConfig=APP_CONFIG_FILE )
     {
         self::_Init();
-        if( count( self::$Config ) == 0 )
+        if( count( self::$frameConfig ) == 0 )
         {
-            //load main configuration
-            self::$Config = self::Load( $entrance );
-            //Load extra configuration
-            if( isset( self::$Config['user'] ) && count( self::$Config['user'] ) >0 )
+            self::$frameConfig = self::Load( $frameConfig );
+        }
+
+        return ( isset(self::$frameConfig[$key]) && !is_null(self::$frameConfig[$key]) ) ? self::$frameConfig[$key] : self::$frameConfig;
+    }
+
+    //load app configuration
+    public static function App( $key=null )
+    {
+        //Load extra configuration
+        if( isset( self::$frameConfig[self::$appConfKey] ) && count( self::$frameConfig[self::$appConfKey] )>0 )
+        {
+            foreach( self::$frameConfig[self::$appConfKey] as $eachAppConfig )
             {
-                foreach( self::$Config['user'] as $eachExtraConfig )
-                {
-                    $extraConfig = self::Load( $eachExtraConfig );
-                    self::$Config = array_merge( self::$Config, $extraConfig );
-                }
+                self::$appConfig = array_merge( self::$appConfig, self::Load( $eachAppConfig ) );
             }
         }
 
-        return ( !is_null[$key] && isset(self::$Config[$key]) ) ? self::$Config[$key] : self::$Config;
+        return ( isset(self::$appConfig[$key]) && !is_null(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
     }
 
-    private function Load( $fileName )
+    //load specified configuration
+    public static function Load( $fileName )
     {
         if( isset( self::$configMap[$fileName] ) )
         {
@@ -52,8 +67,8 @@ class Config
         }
         else
         {
-            self::$ConfigMap[$fileName] = require( self::$Path.$fileName.self::$ConfigExt );
-            return self::$ConfigMap[$fileName];
+            self::$configMap[$fileName] = require( self::$path.$fileName.self::$configExt );
+            return self::$configMap[$fileName];
         }
 
     }

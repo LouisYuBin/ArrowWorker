@@ -1,47 +1,46 @@
 <?php
 /**
  * User: Louis
- * Date: 2016/8/3
- * Time: 15:51
+ * Date: 2016/8/3 15:51
+ * Update Record:
+ *      2017-07-24 By Louis
  */
 
 namespace ArrowWorker;
-use ArrowWorker\Factory;
-use ArrowWorker\Config;
 
 class Load
 {
-    const ModelPre = 'M_';
-    const LibPre = 'C_';
-    private static $Class  = [];
+    const ModelPre = 'm_';
+    const LibPre = 'c_';
+    private static $appClass  = [];
 
 
     //Load model created by user
     public static function Model( $name )
     {
-        $key = ModelPre.$name;
+        $key = self::ModelPre.$name;
         return self::AppModule( $key, $name );
     }
 
     //Load class created by user
     public static function Lib( $name )
     {
-        $key = LibPre.$name;
-        return self::AppModule( $key, $name, APP_ClASS_FOLDER );
+        $key = self::LibPre.$name;
+        return self::AppModule( $key, $name, APP_CLASS_FOLDER );
     }
 
     //return app module
     private static function AppModule( $key, $name, $type=APP_MODEL_FOLDER )
     {
-        if( isset( self::$Class[$key] ) )
+        if( isset( self::$appClass[$key] ) )
         {
-            return self::$Class[$key];
+            return self::$appClass[$key];
         }
         else
         {   
             $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.$name;
-            self::$Class[$key] = new $class;
-            return self::$Class[$key];
+            self::$appClass[$key] = new $class;
+            return self::$appClass[$key];
         }
     }
 
@@ -49,7 +48,7 @@ class Load
     public static function Component( $componentName )
     {
         $componentName = ucfirst( $componentName );
-        $componentConf = Config::Get( $componentName );
+        $componentConf = Config::Frame( $componentName );
         Factory::$componentName( $componentConf );
     }
 

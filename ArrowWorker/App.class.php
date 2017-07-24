@@ -1,8 +1,7 @@
 <?php
 /**
- * User: Arrow
- * Date: 2016/8/1
- * Time: 19:47
+ * User: Louis
+ * Date: 2016/8/1 19:47
  */
 
 namespace ArrowWorker;
@@ -14,28 +13,28 @@ class App
     //方法
     private static $method;
     //控制器和方法映射表
-    private static $userCam;
+    private static $appClassMap;
     //app实例
     private static $appInstance;
     //应用命名空间
-    private static $appCtlNamespace;
+    private static $appControllerNamespace;
 
     //单例模式自启动构造函数
-    private function __construct($appConfig)
+    private function __construct()
     {
-        if(!self::$userCam)
+        if(!self::$appClassMap)
         {
-            self::$userCam  = require APP_PATH.DIRECTORY_SEPARATOR.APP_CONFIG_FOLDER.DIRECTORY_SEPARATOR.APP_ALIAS.'.php';
+            self::$appClassMap  = require APP_PATH.DIRECTORY_SEPARATOR.APP_CONFIG_FOLDER.DIRECTORY_SEPARATOR.APP_ALIAS.'.php';
         }
-        self::$appCtlNamespace = '\\'.$appConfig['app'].'\\'.$appConfig['controller'].'\\';
+        self::$appControllerNamespace = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
     }
 
     //初始化app
-    static function initApp($userCam)
+    static function initApp()
     {
         if (!self::$appInstance)
         {
-            self::$appInstance = new self($userCam);
+            self::$appInstance = new self;
         }
         return self::$appInstance;
     }
@@ -51,9 +50,9 @@ class App
         {
             $this->WebApp();
         }
-        $this -> isDefaultCm();
+        $this -> isDefaultController();
 
-        $controller = self::$appCtlNamespace.self::$controller;
+        $controller = self::$appControllerNamespace.self::$controller;
         $method     = self::$method;
         $ctlObject  = new $controller;
         $ctlObject -> $method();
@@ -76,7 +75,7 @@ class App
     }
 
     //判断是否要应用默认控制器和方法
-    private function isDefaultCm()
+    private function isDefaultController()
     {
         self::$controller = is_null(self::$controller) ? DEFAULT_CONTROLLER : self::$controller;
         self::$method     = is_null(self::$method) ? DEFAULT_METHOD : self::$method;
