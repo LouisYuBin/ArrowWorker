@@ -7,7 +7,7 @@ namespace App\Classes;
  * Date: 17-8-24
  * Time: 下午4:40
  */
-class SystemLoad
+class SysMonitor
 {
 
     private $_return    = [
@@ -89,8 +89,6 @@ class SystemLoad
         }
         pclose($this -> _resource);
 
-        var_dump($sysLoad);
-
         $sysArray  = explode("\n",$sysLoad);
 
         if( count($sysArray)==1 )
@@ -134,8 +132,25 @@ class SystemLoad
     }
 
 }
+
+//使用方法
 /*
-使用方法
-$load = new SystemLoad();
-var_dump( $load->get(["/", "/dev/sda1"]) );
+$load = new SysMonitor();
+$proformance = $load->get(["/", "/dev/sda1"]);
+echo "系统负载如下：".PHP_EOL;
+echo "Cpu : ".$proformance["cpu"]["usrUsage"]."% (用户)  ".$proformance["cpu"]["sysUsage"]."% (系统)".PHP_EOL;
+echo "内存 : ".number_format($proformance["mem"]["total"]/1024/1024,1)."G (总内存)  ".number_format($proformance["mem"]["used"]/1024/1024,1)."G (已使用)".PHP_EOL;
+echo "进程 : ".$proformance["proc"]["total"]."(总数)  ".$proformance["proc"]["running"]."(running)  ".$proformance["proc"]["sleeping"]."(sleeping)  ".$proformance["proc"]["zombie"]."(zombie)".PHP_EOL;
 */
+
+
+/*'proc' => [
+    'total'    => 0,
+    'running'  => 0,
+    'sleeping' => 0,
+    'zombie'   => 0,
+]*/
+
+
+
+

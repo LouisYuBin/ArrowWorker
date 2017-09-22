@@ -30,7 +30,7 @@ class GeneratorSchedule
                 self::$execCount += $return;
                 if ( $task->isFinished() )
                 {
-                    unset( $this->taskMap[$taskId] );
+                    unset( self::$taskMap[$taskId] );
                 }
             }
         }
