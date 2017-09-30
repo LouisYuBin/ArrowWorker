@@ -69,6 +69,10 @@ class App
     //常驻服务
     private function CliApp()
     {
+        if(php_sapi_name() != 'cli')
+        {
+            throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
+        }
         $inputs = getopt('c:m:');
         @self::$controller = $inputs['c'];
         @self::$method     = $inputs['m'];

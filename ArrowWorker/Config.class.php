@@ -23,7 +23,7 @@ class Config
     private static $configExt   = '.php';
 
     //specify configuration file path
-    private function _Init()
+    private static function _Init()
     {
         if( is_null(self::$path) )
         {
@@ -61,6 +61,7 @@ class Config
     //load specified configuration
     public static function Load( $fileName )
     {
+        self::_Init();
         if( isset( self::$configMap[$fileName] ) )
         {
             return self::$configMap[$fileName];
