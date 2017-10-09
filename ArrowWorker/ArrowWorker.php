@@ -16,6 +16,8 @@ defined('APP_FOLDER') or define('APP_FOLDER','App');
 defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_FOLDER);
 //应用类型（命令行模式 or web应用）
 defined('APP_TYPE') or define('APP_TYPE','web');
+//状态：debug（开发） or online（上线）
+defined('APP_STATUS') or define('APP_STATUS','debug');
 //应用控制器目录名
 defined('APP_CONTROLLER_FOLDER') or define('APP_CONTROLLER_FOLDER','Controller');
 //应用模型目录名
@@ -74,14 +76,25 @@ class ArrowWorker
     //错误处理
     static function error()
     {
-        exit( json_encode( debug_backtrace() ) );
+        if(APP_TYPE=='web' && APP_STATUS=='debug')
+        {
+            ob_clean();
+            exit( json_encode( debug_backtrace() ) );
+        }
+        else if(APP_TYPE=='web' && APP_STATUS!='debug')
+        {
+            exit( json_encode( ['code' => 500, 'msg' => 'something is wrong with the server...'] ) );
+        }
+        else if(APP_TYPE=='cli')
+        {
+            var_dump(debug_backtrace());
+        }
     }
 
     //异常处理
     static function exception($msg = null)
     {
-        var_dump($msg);
-        exit();
+        exit(json_encode( (array)$msg) );
     }
 
     //加载类
@@ -109,9 +122,9 @@ class ArrowWorker
     static function classMap()
     {
         return [
-            'ArrowWorker\Driver\Cache'  => ArrowWorker . '/Driver/' . 'Cache' .  self::classExt,
-            'ArrowWorker\Driver\Db'     => ArrowWorker . '/Driver/' . 'Db' .     self::classExt,
-            'ArrowWorker\Driver\Daemon' => ArrowWorker . '/Driver/' . 'Daemon' . self::classExt,
+            'ArrowWorker\Driver\Cache'  => ArrowWorker . '/Driver/Cache' .  self::classExt,
+            'ArrowWorker\Driver\Db'     => ArrowWorker . '/Driver/Db' .     self::classExt,
+            'ArrowWorker\Driver\Daemon' => ArrowWorker . '/Driver/Daemon' . self::classExt,
             'ArrowWorker\Driver\View'   => ArrowWorker . '/Driver/View'.self::classExt,
             'ArrowWorker\Driver\Cache\Redis' => ArrowWorker . '/Driver/Cache/Redis' . self::classExt,
             'ArrowWorker\Driver\Db\Mysqli'   => ArrowWorker . '/Driver/Db/Mysqli' .   self::classExt,

@@ -61,8 +61,9 @@ class App
     //web应用
     private function WebApp()
     {
-        @self::$controller = $_REQUEST['c'];
-        @self::$method     = $_REQUEST['m'];
+        @self::$controller = isset($_REQUEST['c']) ? $_REQUEST['c'] : "Index";
+        //throw new \Exception("csdfsdf");
+        @self::$method     = isset($_REQUEST['m']) ? $_REQUEST['m'] : "Index";
 
     }
 
