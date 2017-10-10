@@ -57,33 +57,16 @@ class ArrowWorker
         spl_autoload_register(['self','loadClass']);
     }
 
-    static function exceptionHandle()
-    {
-        set_error_handler([__CLASS__ , 'error']);
-        set_exception_handler([__CLASS__,'exception']);
-    }
-
     //启动框架
     static function start(){
         if (!self::$Arrow)
         {
             self::$Arrow = new self;
+            //初始化异常和错误处理
+            exception::init();
         }
-        self::exceptionHandle();
         self::$app = app::initApp();
         self::$app -> runApp();
-    }
-
-    //错误处理
-    static function error($column = null,$msg = null, $file, $line)
-    {
-        exception::error($column, $msg, $file, $line);
-    }
-
-    //异常处理
-    static function exception($msg = null, $code)
-    {
-        self::error( (array)$msg );
     }
 
     //加载类

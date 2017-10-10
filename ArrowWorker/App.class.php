@@ -62,7 +62,7 @@ class App
     private function WebApp()
     {
         @self::$controller = isset($_REQUEST['c']) ? $_REQUEST['c'] : "Index";
-        //throw new \Exception("csdfsdf");
+        throw new \Exception("csdfsdf");
         @self::$method     = isset($_REQUEST['m']) ? $_REQUEST['m'] : "Index";
 
     }
