@@ -8,6 +8,7 @@
 namespace ArrowWorker;
 use ArrowWorker\App as app;
 use ArrowWorker\Config as config;
+use ArrowWorker\Exception as exception;
 //框架目录
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
 //应用目录名称
@@ -58,8 +59,8 @@ class ArrowWorker
 
     static function exceptionHandle()
     {
-        set_error_handler([self::$Arrow,'error']);
-        set_exception_handler([self::$Arrow,'exception']);
+        set_error_handler([__CLASS__ , 'error']);
+        set_exception_handler([__CLASS__,'exception']);
     }
 
     //启动框架
@@ -74,27 +75,15 @@ class ArrowWorker
     }
 
     //错误处理
-    static function error()
+    static function error($column = null,$msg = null, $file, $line)
     {
-        if(APP_TYPE=='web' && APP_STATUS=='debug')
-        {
-            ob_clean();
-            exit( json_encode( debug_backtrace() ) );
-        }
-        else if(APP_TYPE=='web' && APP_STATUS!='debug')
-        {
-            exit( json_encode( ['code' => 500, 'msg' => 'something is wrong with the server...'] ) );
-        }
-        else if(APP_TYPE=='cli')
-        {
-            var_dump(debug_backtrace());
-        }
+        exception::error($column, $msg, $file, $line);
     }
 
     //异常处理
-    static function exception($msg = null)
+    static function exception($msg = null, $code)
     {
-        exit(json_encode( (array)$msg) );
+        self::error( (array)$msg );
     }
 
     //加载类
