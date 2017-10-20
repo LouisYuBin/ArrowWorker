@@ -40,12 +40,13 @@ class Config
             self::$frameConfig = self::Load( $frameConfig );
         }
 
-        return ( isset(self::$frameConfig[$key]) && !is_null(self::$frameConfig[$key]) ) ? self::$frameConfig[$key] : self::$frameConfig;
+        return ( !is_null($key) && isset(self::$frameConfig[$key]) ) ? self::$frameConfig[$key] : self::$frameConfig;
     }
 
     //load app configuration
     public static function App( $key=null )
     {
+        self::_Init();
         //Load extra configuration
         if( isset( self::$frameConfig[self::$appConfKey] ) && count( self::$frameConfig[self::$appConfKey] )>0 )
         {
@@ -55,7 +56,7 @@ class Config
             }
         }
 
-        return ( isset(self::$appConfig[$key]) && !is_null(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
+        return ( !is_null($key) && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
     }
 
     //load specified configuration

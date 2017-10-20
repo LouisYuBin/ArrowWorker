@@ -94,22 +94,25 @@ class ArrowWorker
     static function classMap()
     {
         return [
-            'ArrowWorker\Driver\Cache'  => ArrowWorker . '/Driver/Cache' .  self::classExt,
-            'ArrowWorker\Driver\Db'     => ArrowWorker . '/Driver/Db' .     self::classExt,
-            'ArrowWorker\Driver\Daemon' => ArrowWorker . '/Driver/Daemon' . self::classExt,
-            'ArrowWorker\Driver\View'   => ArrowWorker . '/Driver/View'.self::classExt,
-            'ArrowWorker\Driver\Cache\Redis' => ArrowWorker . '/Driver/Cache/Redis' . self::classExt,
-            'ArrowWorker\Driver\Db\Mysqli'   => ArrowWorker . '/Driver/Db/Mysqli' .   self::classExt,
-            'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . self::classExt,
-            'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . self::classExt,
-            'ArrowWorker\Driver\View\Smarty' => ArrowWorker . '/Driver/View/Smarty' . self::classExt,
-            'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
-            'ArrowWorker\Factory'    => ArrowWorker . '/Factory' .    self::classExt,
             'ArrowWorker\App'        => ArrowWorker . '/App' .        self::classExt,
             'ArrowWorker\Model'      => ArrowWorker . '/Model' .      self::classExt,
-            'ArrowWorker\Config'     => ArrowWorker . '/Config' .     self::classExt,
             'ArrowWorker\Loader'     => ArrowWorker . '/Loader' .     self::classExt,
+            'ArrowWorker\Router'     => ArrowWorker . '/Router' .     self::classExt,
+            'ArrowWorker\Config'     => ArrowWorker . '/Config' .     self::classExt,
+            'ArrowWorker\Factory'    => ArrowWorker . '/Factory' .    self::classExt,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception' .  self::classExt,
+            'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
+
+            'ArrowWorker\Driver\Db'     => ArrowWorker . '/Driver/Db' .     self::classExt,
+            'ArrowWorker\Driver\View'   => ArrowWorker . '/Driver/View' .   self::classExt,
+            'ArrowWorker\Driver\Cache'  => ArrowWorker . '/Driver/Cache' .  self::classExt,
+            'ArrowWorker\Driver\Daemon' => ArrowWorker . '/Driver/Daemon' . self::classExt,
+
+            'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' .          self::classExt,
+            'ArrowWorker\Driver\Cache\Redis'        => ArrowWorker . '/Driver/Cache/Redis' .        self::classExt,
+            'ArrowWorker\Driver\View\Smarty'        => ArrowWorker . '/Driver/View/Smarty' .        self::classExt,
+            'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . self::classExt,
+            'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . self::classExt,
         ];
     }
 

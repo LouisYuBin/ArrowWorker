@@ -5,6 +5,7 @@
  */
 
 namespace ArrowWorker;
+use ArrowWorker\Router as router;
 
 class App
 {
@@ -61,10 +62,9 @@ class App
     //web应用
     private function WebApp()
     {
-        @self::$controller = isset($_REQUEST['c']) ? $_REQUEST['c'] : "Index";
-        throw new \Exception("csdfsdf");
-        @self::$method     = isset($_REQUEST['m']) ? $_REQUEST['m'] : "Index";
-
+        $router = router::Get();
+        @self::$controller = $router['c'];
+        @self::$method     = $router['m'];
     }
 
     //常驻服务
@@ -75,8 +75,8 @@ class App
             throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
         }
         $inputs = getopt('c:m:');
-        @self::$controller = $inputs['c'];
-        @self::$method     = $inputs['m'];
+        @self::$controller = isset($inputs['c']) ? $inputs['c'] : "Index";
+        @self::$method     = isset($inputs['m']) ? $inputs['m'] : "Index";
     }
 
     //判断是否要应用默认控制器和方法
