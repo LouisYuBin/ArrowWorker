@@ -1,5 +1,6 @@
 <?php
 return[
+    'RouterType' => 1,
     'db' => [
         'driver'      => 'Mysqli',
         'seperate'    => 0,
