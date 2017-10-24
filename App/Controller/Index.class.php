@@ -11,8 +11,8 @@ use ArrowWorker\Controller as controller;
 
 class Index extends controller
 {
-    function index($response)
-    {
+  //  function index($response)
+  //  {
         //echo "ArrowWorker";
         /*
         $class = self::load('Method','c');
@@ -22,20 +22,21 @@ class Index extends controller
         $daemon -> addTask(['function' => [$class,'worker2'],'argv' => [100],'concurrency' => 1 , 'lifecycle' => 15 ,'proName' => 'Life_2_3_240']);
         $daemon -> start();
         */
-        $this -> test();
+     //   $this -> test();
 
-    }
+    //}
 
-    function test($response)
+    function test()
     {
         echo "hello swoole server".mt_rand(1,199999).PHP_EOL;
     }
 
     function test2($response)
     {
-        $string ="------- swoole server".mt_rand(1,199999).PHP_EOL;
-        echo $string;
-        $response->end($string);
+        //$string = "------- swoole server".mt_rand(1,199999).PHP_EOL;
+        //echo $string;
+        $response->header("content-type", "application/json;charset=utf-8");
+        $response->end(json_encode(['a'=>1,'b'=>2]));
 
     }
 

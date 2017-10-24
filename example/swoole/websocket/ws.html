@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+<head>
         <meta charset="utf-8" />
-        <title>WebSocket Test</title>
-
-        <h2>WebSocket Test</h2>
+        <title>狂暴聊天室，聊天无底线。。。</title>
+</head>
+<body>
+        <h2>狂暴聊天室，聊天无底线。。。</h2>
         <div id="output"></div>
+</body>
 </html>
 <script language="javascript"type="text/javascript">
     var wsUri ="ws://127.0.0.1:9503/";
@@ -28,18 +31,18 @@
         };
     }
     function onOpen(evt) {
-        writeToScreen("CONNECTED");
-        //doSend("louis000");
-        setInterval("doLoopSend()",10);
+        setInterval("sendHeartBeat('heart')",2000)
     }
     function onClose(evt) {
-        writeToScreen("DISCONNECTED");
+        writeToScreen("注意，有逃兵！！！");
     }
     function onMessage(evt) {
+        console.log(evt);
         writeToScreen('<span style="color: blue;">RESPONSE: '+ evt.data+'</span>');
         //websocket.close();
     }
     function onError(evt) {
+        console.log(evt);
         writeToScreen('<span style="color: red;">ERROR:</span> '+ evt.data);
     }
     function doSend(message) {
@@ -55,11 +58,13 @@
         output.appendChild(pre);
     }
 
-    function doLoopSend(){
-        var timestamp = Date.parse(new Date());
-        message = "louis";
-        msg = message + "_" + timestamp;
+    function sendHeartBeat(msg){
         websocket.send(msg);
+    }
+
+    function getCurrentTime(){
+        var myDate = new Date();
+        return myDate.getHours()+"-"+ myDate.getMinutes()+"-"+myDate.getSeconds();
     }
     // window.addEventListener("load", init, false);
 </script>

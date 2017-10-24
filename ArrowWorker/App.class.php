@@ -9,10 +9,6 @@ use ArrowWorker\Router as router;
 
 class App
 {
-    //控制器
-    private static $controller;
-    //方法
-    private static $method;
     //控制器和方法映射表
     private static $appClassMap;
     //app实例
@@ -43,8 +39,20 @@ class App
     //运行控制器
     public function runApp()
     {
-        $serv = new \Swoole\Http\Server("127.0.0.1", 9502);
+        if(APP_TYPE=='cli')
+        {
+            $this->CliApp();
+        }
+        else
+        {
+            $this->WebApp();
+        }
+    }
 
+    //web应用
+    private function WebApp()
+    {
+        $serv = new \Swoole\Http\Server("127.0.0.1", 9502);
         $serv->on('Request', function($request, $response) {
             $_GET    = $request->get;
             $_POST   = $request->post;
@@ -64,30 +72,15 @@ class App
             }
             $_FILES = $request->files;
             $_SERVER = $request->server;
-            if(APP_TYPE=='cli')
-            {
-                $this->CliApp();
-            }
-            else
-            {
-                $this->WebApp();
-            }
-            $this -> isDefaultController();
-            $controller = self::$appControllerNamespace.self::$controller;
-            $method     = self::$method;
+            $router = router::Get();
+            $controller = self::$appControllerNamespace.$router['c'];
+            $method     = self::$router['m'];
             $ctlObject  = new $controller;
             $ctlObject -> $method($response);
+
         });
 
         $serv->start();
-    }
-
-    //web应用
-    private function WebApp()
-    {
-        $router = router::Get();
-        @self::$controller = $router['c'];
-        @self::$method     = $router['m'];
     }
 
     //常驻服务
@@ -98,15 +91,12 @@ class App
             throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
         }
         $inputs = getopt('c:m:');
-        @self::$controller = isset($inputs['c']) ? $inputs['c'] : "Index";
-        @self::$method     = isset($inputs['m']) ? $inputs['m'] : "Index";
-    }
-
-    //判断是否要应用默认控制器和方法
-    private function isDefaultController()
-    {
-        self::$controller = is_null(self::$controller) ? DEFAULT_CONTROLLER : self::$controller;
-        self::$method     = is_null(self::$method) ? DEFAULT_METHOD : self::$method;
+        $controller = isset($inputs['c']) ? $inputs['c'] : "Index";
+        $method     = isset($inputs['m']) ? $inputs['m'] : "Index";
+        $controller = self::$appControllerNamespace.$router['c'];
+        $method     = self::$router['m'];
+        $ctlObject  = new $controller;
+        $ctlObject -> $method($response);
     }
 
 }
