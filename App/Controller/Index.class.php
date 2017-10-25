@@ -11,8 +11,8 @@ use ArrowWorker\Controller as controller;
 
 class Index extends controller
 {
-  //  function index($response)
-  //  {
+    function index($response)
+    {
         //echo "ArrowWorker";
         /*
         $class = self::load('Method','c');
@@ -23,18 +23,17 @@ class Index extends controller
         $daemon -> start();
         */
      //   $this -> test();
+        echo "index_".mt_rand(1,199999).PHP_EOL;
 
-    //}
+    }
 
     function test()
     {
-        echo "hello swoole server".mt_rand(1,199999).PHP_EOL;
+        echo "test".mt_rand(1,199999).PHP_EOL;
     }
 
-    function test2($response)
+    function json($response)
     {
-        //$string = "------- swoole server".mt_rand(1,199999).PHP_EOL;
-        //echo $string;
         $response->header("content-type", "application/json;charset=utf-8");
         $response->end(json_encode(['a'=>1,'b'=>2]));
 

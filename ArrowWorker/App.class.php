@@ -41,19 +41,33 @@ class App
     {
         if(APP_TYPE=='cli')
         {
-            $this->CliApp();
+            $this -> CliApp();
         }
-        else
+        else if(APP_TYPE == 'swoole')
         {
-            $this->WebApp();
+            $this -> SwooleWebApp();
+        } else {
+            $this -> WebApp();
         }
     }
 
     //web应用
     private function WebApp()
     {
-        $serv = new \Swoole\Http\Server("127.0.0.1", 9502);
-        $serv->on('Request', function($request, $response) {
+        //读取路由
+        $router = router::Get();
+        $controller = self::$appControllerNamespace.$router['c'];
+        $method     = $router['m'];
+        $ctlObject  = new $controller;
+        $ctlObject -> $method();
+    }
+
+    //web应用
+    private function SwooleWebApp()
+    {
+        $swooleHttp = new \Swoole\Http\Server("0.0.0.0", 9502);
+        $swooleHttp->on('Request', function($request, $response) {
+            //兼容使用php-fpm的写法
             $_GET    = $request->get;
             $_POST   = $request->post;
             $_COOKIE = $request->cookie;
@@ -72,15 +86,16 @@ class App
             }
             $_FILES = $request->files;
             $_SERVER = $request->server;
+            //读取路由
             $router = router::Get();
             $controller = self::$appControllerNamespace.$router['c'];
-            $method     = self::$router['m'];
+            $method     = $router['m'];
             $ctlObject  = new $controller;
             $ctlObject -> $method($response);
 
         });
 
-        $serv->start();
+        $swooleHttp->start();
     }
 
     //常驻服务
@@ -93,10 +108,9 @@ class App
         $inputs = getopt('c:m:');
         $controller = isset($inputs['c']) ? $inputs['c'] : "Index";
         $method     = isset($inputs['m']) ? $inputs['m'] : "Index";
-        $controller = self::$appControllerNamespace.$router['c'];
-        $method     = self::$router['m'];
+        $controller = self::$appControllerNamespace.$controller;
         $ctlObject  = new $controller;
-        $ctlObject -> $method($response);
+        $ctlObject -> $method();
     }
 
 }
