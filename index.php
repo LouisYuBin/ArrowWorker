@@ -6,8 +6,8 @@
  */
 use ArrowWorker\ArrowWorker as arrow;
 define('APP_PATH',__DIR__.'/App');
-define('APP_TYPE','web');
+define('APP_TYPE','swoole');
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
-
 arrow::start();
+
 

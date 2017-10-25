@@ -9,10 +9,6 @@ use ArrowWorker\Router as router;
 
 class App
 {
-    //控制器
-    private static $controller;
-    //方法
-    private static $method;
     //控制器和方法映射表
     private static $appClassMap;
     //app实例
@@ -45,26 +41,61 @@ class App
     {
         if(APP_TYPE=='cli')
         {
-            $this->CliApp();
+            $this -> CliApp();
         }
-        else
+        else if(APP_TYPE == 'swoole')
         {
-            $this->WebApp();
+            $this -> SwooleWebApp();
+        } else {
+            $this -> WebApp();
         }
-        $this -> isDefaultController();
-
-        $controller = self::$appControllerNamespace.self::$controller;
-        $method     = self::$method;
-        $ctlObject  = new $controller;
-        $ctlObject -> $method();
     }
 
     //web应用
     private function WebApp()
     {
+        //读取路由
         $router = router::Get();
-        @self::$controller = $router['c'];
-        @self::$method     = $router['m'];
+        $controller = self::$appControllerNamespace.$router['c'];
+        $method     = $router['m'];
+        $ctlObject  = new $controller;
+        $ctlObject -> $method();
+    }
+
+    //web应用
+    private function SwooleWebApp()
+    {
+        $swooleHttp = new \Swoole\Http\Server("0.0.0.0", 9502);
+        $swooleHttp->on('Request', function($request, $response) {
+            //兼容使用php-fpm的写法
+            $_GET    = $request->get;
+            $_POST   = $request->post;
+            $_COOKIE = $request->cookie;
+            $_REQUEST = [];
+            if(is_array($_GET) && is_array($_POST))
+            {
+                $_REQUEST = array_merge($_GET,$_REQUEST);
+            }
+            else if(!is_array($_GET) && is_array($_POST))
+            {
+                $_REQUEST = $_POST;
+            }
+            else if (is_array($_GET) && !is_array($_POST))
+            {
+                $_REQUEST = $_GET;
+            }
+            $_FILES = $request->files;
+            $_SERVER = $request->server;
+            //读取路由
+            $router = router::Get();
+            $controller = self::$appControllerNamespace.$router['c'];
+            $method     = $router['m'];
+            $ctlObject  = new $controller;
+            $ctlObject -> $method($response);
+
+        });
+
+        $swooleHttp->start();
     }
 
     //常驻服务
@@ -75,15 +106,11 @@ class App
             throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
         }
         $inputs = getopt('c:m:');
-        @self::$controller = isset($inputs['c']) ? $inputs['c'] : "Index";
-        @self::$method     = isset($inputs['m']) ? $inputs['m'] : "Index";
-    }
-
-    //判断是否要应用默认控制器和方法
-    private function isDefaultController()
-    {
-        self::$controller = is_null(self::$controller) ? DEFAULT_CONTROLLER : self::$controller;
-        self::$method     = is_null(self::$method) ? DEFAULT_METHOD : self::$method;
+        $controller = isset($inputs['c']) ? $inputs['c'] : "Index";
+        $method     = isset($inputs['m']) ? $inputs['m'] : "Index";
+        $controller = self::$appControllerNamespace.$controller;
+        $ctlObject  = new $controller;
+        $ctlObject -> $method();
     }
 
 }

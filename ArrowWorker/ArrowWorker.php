@@ -15,7 +15,7 @@ defined('ArrowWorker') or define('ArrowWorker', __DIR__);
 defined('APP_FOLDER') or define('APP_FOLDER','App');
 //应用默认应用路径
 defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_FOLDER);
-//应用类型（命令行模式 or web应用）
+//应用类型（cli:命令行模式 swoole: 用swoole作为引擎的web的web，web：使用php-fpm做为引擎的web）
 defined('APP_TYPE') or define('APP_TYPE','web');
 //状态：debug（开发） or online（上线）
 defined('APP_STATUS') or define('APP_STATUS','debug');
