@@ -24,7 +24,7 @@ defined('APP_CONTROLLER_FOLDER') or define('APP_CONTROLLER_FOLDER','Controller')
 //应用模型目录名
 defined('APP_MODEL_FOLDER') or define('APP_MODEL_FOLDER','Model');
 //应用类目录名
-defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Class');
+defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Classes');
 //应用业务目录名
 defined('APP_SERVICE_FOLDER') or define('APP_SERVICE_FOLDER','Service');
 //应用配置文件夹

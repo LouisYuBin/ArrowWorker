@@ -18,8 +18,8 @@ class Exception
 
     static function init()
     {
-        set_error_handler([__CLASS__ , 'error']);
-        set_exception_handler([__CLASS__,'exception']);
+        //set_error_handler([__CLASS__ , 'error']);
+       // set_exception_handler([__CLASS__,'exception']);
     }
 
     //错误处理

@@ -32,9 +32,8 @@ class Config
     }
 
     //load frame work configuration
-    public static function Frame( $key=null, $frameConfig=APP_CONFIG_FILE )
+    public static function Arrow( $key=null, $frameConfig=APP_CONFIG_FILE )
     {
-        self::_Init();
         if( count( self::$frameConfig ) == 0 )
         {
             self::$frameConfig = self::Load( $frameConfig );
@@ -46,7 +45,6 @@ class Config
     //load app configuration
     public static function App( $key=null )
     {
-        self::_Init();
         //Load extra configuration
         if( isset( self::$frameConfig[self::$appConfKey] ) && count( self::$frameConfig[self::$appConfKey] )>0 )
         {

@@ -1,6 +1,11 @@
 <?php
 return [
+    //控制器
     'App\Controller\Index' => 'Controller/Index.class.php',
-    'App\Model\Index' => 'Model/Index.model.php',
-    'App\Classes\Method' => 'Classes/Method.class.php'
+    //model
+    'App\Model\Index'      => 'Model/Index.model.php',
+    //应用类
+    'App\Classes\Method'   => 'Classes/Method.class.php',
+    //service 业务逻辑
+    'App\Service\User' => 'Service/User.class.php'
 ];

@@ -7,11 +7,12 @@
 
 namespace App\Controller;
 use ArrowWorker\Controller as controller;
+use ArrowWorker\Loader;
 
 
 class Index extends controller
 {
-    function index($response)
+    function index()
     {
         //echo "ArrowWorker";
         /*
@@ -32,26 +33,15 @@ class Index extends controller
         echo "test".mt_rand(1,199999).PHP_EOL;
     }
 
-    function json($response)
+    public static function worker1()
     {
-        $response->header("content-type", "application/json;charset=utf-8");
-        $response->end(json_encode(['a'=>1,'b'=>2]));
-
-    }
-
-    public static function worker1($arg)
-    {
-        $class = self::load('Method','c');
+        //加载用户类
+        $class = Loader::Classes('Method');
         $class -> godDamIt();
 
+        $user = Loader::Service('User')->add();
+        //var_dump($user);
     }
-
-    public static function worker2($arg)
-    {
-        $class = self::load('Method','c');
-        $class -> godDamIt();
-    }
-
 
 
 }

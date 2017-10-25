@@ -22,7 +22,7 @@ class Router
 
     private static function getRouteType()
     {
-        self::$routerType = config::Frame(self::routeType);
+        self::$routerType = config::Arrow(self::routeType);
     }
 
     public static function Get()

@@ -65,7 +65,13 @@ class App
     //web应用
     private function SwooleWebApp()
     {
-        $swooleHttp = new \Swoole\Http\Server("0.0.0.0", 9502);
+        $config = Config::Arrow("swoole");
+        $swooleHttp = new \Swoole\Http\Server("0.0.0.0", $config['port']);
+        $swooleHttp->set([
+            'worker_num' => $config['workerNum'],
+            'daemonize'  => $config['daemonize'],
+            'backlog'    => $config['backlog'],
+        ]);
         $swooleHttp->on('Request', function($request, $response) {
             //兼容使用php-fpm的写法
             $_GET    = $request->get;

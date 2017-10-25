@@ -24,7 +24,7 @@ class Loader
     }
 
     //Load class created by user
-    public static function Lib( $name )
+    public static function Classes( $name )
     {
         $key = self::ClassPre.$name;
         return self::AppModule( $key, $name, APP_CLASS_FOLDER );
@@ -56,7 +56,7 @@ class Loader
     public static function Component( $componentName )
     {
         $componentName = ucfirst( $componentName );
-        $componentConf = Config::Frame( $componentName );
+        $componentConf = Config::Arrow( $componentName );
         Factory::$componentName( $componentConf );
     }
 

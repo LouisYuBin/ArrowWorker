@@ -2,14 +2,17 @@
 
 namespace App\Classes;
 
+use ArrowWorker\Config;
+
 class Method
 {
     
     private static $config;
 
-    public function __construct($config)
+    public function __construct()
     {
-        self::$config = $config;   
+        $config = Config::Arrow();
+        var_dump($config);
     }
     
     public function godDamIt()
@@ -18,11 +21,9 @@ class Method
         {
             for($j=1; $j<=$i; $j++)
             {
-                //echo $i."*".$j,'='.($i*$j).' ';
-                $k = $i*$j;
             }
-            //echo PHP_EOL;
         }
+        echo "godDamIt";
     }
 
 }
