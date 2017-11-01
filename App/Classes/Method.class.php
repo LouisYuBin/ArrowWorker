@@ -11,8 +11,7 @@ class Method
 
     public function __construct()
     {
-        $config = Config::Arrow();
-        var_dump($config);
+        $this -> config = Config::Arrow();
     }
     
     public function godDamIt()

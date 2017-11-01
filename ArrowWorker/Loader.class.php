@@ -55,9 +55,9 @@ class Loader
     //Load Frame Component
     public static function Component( $componentName )
     {
-        $componentName = ucfirst( $componentName );
         $componentConf = Config::Arrow( $componentName );
-        Factory::$componentName( $componentConf );
+        $componentName = ucfirst( $componentName );
+        return Factory::$componentName( $componentConf );
     }
 
     public static function Lang()

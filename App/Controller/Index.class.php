@@ -15,15 +15,14 @@ class Index extends controller
     function index()
     {
         //echo "ArrowWorker";
-        /*
-        $class = self::load('Method','c');
-        $daemon =  self::getObj('daemon');
+
+        $daemon =  Loader::Component('daemon');
+        var_dump($daemon);
         $class = __CLASS__;
         $daemon -> addTask(['function' => [$class,'worker1'],'argv' => [100],'concurrency' => 4 ,'lifecycle' => 10,'proName' => 'Life_1_3_300']);
-        $daemon -> addTask(['function' => [$class,'worker2'],'argv' => [100],'concurrency' => 1 , 'lifecycle' => 15 ,'proName' => 'Life_2_3_240']);
+        $daemon -> addTask(['function' => [$class,'worker1'],'argv' => [100],'concurrency' => 1 , 'lifecycle' => 15 ,'proName' => 'Life_2_3_240']);
         $daemon -> start();
-        */
-     //   $this -> test();
+
         echo "index_".mt_rand(1,199999).PHP_EOL;
 
     }

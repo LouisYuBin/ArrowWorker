@@ -11,6 +11,7 @@ namespace ArrowWorker\Driver\Message;
 use ArrowWorker\Driver\Message as Msg;
 
 
+
 class Pipe extends Msg
 {
     /**
@@ -43,6 +44,7 @@ class Pipe extends Msg
         if (!file_exists($filename) && !posix_mkfifo($filename, $mode)) {
             throw new \RuntimeException("create pipe failed");
         }
+
         if (filetype($filename) != "fifo") {
             throw new \RuntimeException("file exists and it is not a fifo file");
         }
@@ -79,14 +81,18 @@ class Pipe extends Msg
      */
     public function read($size = 1024)
     {
-        if (!is_resource($this->read)) {
+        if (!is_resource($this->read))
+        {
             $this->read = fopen($this->filename, 'r+');
-            if (!is_resource($this->read)) {
+            if (!is_resource($this->read))
+            {
                 throw new \RuntimeException("open file failed");
             }
-            if (!$this->block) {
+            if ( !$this->block )
+            {
                 $set = stream_set_blocking($this->read, false);
-                if (!$set) {
+                if (!$set)
+                {
                     throw new \RuntimeException("stream_set_blocking failed");
                 }
             }
@@ -101,14 +107,16 @@ class Pipe extends Msg
      */
     public function write($message)
     {
-        if (!is_resource($this->write)) {
+        if ( !is_resource($this->write) ) {
             $this->write = fopen($this->filename, 'w+');
-            if (!is_resource($this->write)) {
+            if ( !is_resource($this->write) ) {
                 throw new \RuntimeException("open file failed");
             }
-            if (!$this->block) {
+            if (!$this->block)
+            {
                 $set = stream_set_blocking($this->write, false);
-                if (!$set) {
+                if ( !$set )
+                {
                     throw new \RuntimeException("stream_set_blocking failed");
                 }
             }
@@ -122,17 +130,16 @@ class Pipe extends Msg
      */
     public function close()
     {
-        if (is_resource($this->read)) {
+        if (is_resource($this->read))
+        {
             fclose($this->read);
         }
-        if (is_resource($this->write)) {
+        if (is_resource($this->write))
+        {
             fclose($this->write);
         }
     }
 
-    /**
-     *
-     */
     public function __destruct()
     {
         $this->close();

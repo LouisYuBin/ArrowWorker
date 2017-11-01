@@ -1,5 +1,4 @@
 <?php
-$err = debug_backtrace();
 class Pipe
 {
     /**
@@ -38,6 +37,46 @@ class Pipe
 
         $this->filename = $filename;
         $this->block = $block;
+        $this -> _setSignalHandler('monitorHandler');
+    }
+
+    private function _setSignalHandler($type = 'parentsQuit',$lifecycle=0)
+    {
+        switch($type)
+        {
+            case 'workerHandler':
+                pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
+                pcntl_alarm($lifecycle);
+                break;
+            default:
+                pcntl_signal(SIGCHLD, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGINT, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGQUIT, array(__CLASS__, "signalHandler"),false);
+        }
+    }
+
+    public function signalHandler($signal)
+    {
+        echo "signalHandler";
+        echo $signal;
+        switch($signal)
+        {
+            case SIGUSR1:
+            case SIGALRM:
+                self::$terminate = true;
+            case SIGTERM:
+            case SIGHUP:
+            case SIGINT:
+            case SIGQUIT:
+                echo "quit";
+                //exit(0);
+                break;
+            default:
+                return false;
+        }
+
     }
 
     public function setBlock($block = true)
@@ -134,23 +173,54 @@ class Pipe
 }
 
 
-//$pid = pcntl_fork();
-$pid = 1;
+function signalHandler($signal)
+{
+    echo "signalHandler";
+    echo $signal;
+    switch($signal)
+    {
+        case SIGUSR1:
+        case SIGALRM:
+            echo "fuck";
+        case SIGTERM:
+        case SIGHUP:
+        case SIGINT:
+        case SIGQUIT:
+            echo "quit";
+            //exit(0);
+            break;
+        default:
+            return false;
+    }
+
+}
+
+$pipe = new Pipe();
+$pipe->write(str_pad("test1",1024));
+$pipe->write(str_pad("test2",1024));
+$pipe->write(str_pad("test3",1024));
+$pid = pcntl_fork();
+pcntl_signal(SIGCHLD,"signalHandler",false);
+pcntl_signal(SIGTERM, "signalHandler",false);
+pcntl_signal(SIGINT, "signalHandler",false);
+pcntl_signal(SIGQUIT,"signalHandler",false);
 
 if($pid == 0){
-    $pipe = new Pipe();
-    sleep(2);
-    $pipe->write("test");
-    sleep(1);
+    sleep(300);
+    //$pipe->write(str_pad("test1",1024));
+    //$pipe->write(str_pad("test2",1024));
+    //$pipe->write(str_pad("test3",1024));
+
 }else{
-    $pipe = new Pipe();
-    $pipe->write("test1");
-    $pipe->write("test2");
+
     $pipe->setBlock(true);
-    $result = $pipe->read(5);
+    $result = $pipe->read(1024);
     echo $result . PHP_EOL;
-    $result = $pipe->read(5);
+    $result = $pipe->read(1024);
     echo $result . PHP_EOL;
+
+
+    sleep(100);
 }
 
 

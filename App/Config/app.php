@@ -58,7 +58,7 @@ return[
         //线程数（在使用多线程模式下有效，依赖pthread扩展）
         'thread' => 6,
         //是否启用协成（不建议使用，调度损耗较大）
-        'enableGenerator' => true,
+        'enableGenerator' => false,
         //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
         'log'    => '/var/log/ArrowWorker.log',
         //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
