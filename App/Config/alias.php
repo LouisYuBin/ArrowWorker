@@ -7,5 +7,7 @@ return [
     //应用类
     'App\Classes\Method'   => 'Classes/Method.class.php',
     //service 业务逻辑
-    'App\Service\User' => 'Service/User.class.php'
+    'App\Service\User' => 'Service/User.class.php',
+     //demo controller
+    'App\Controller\Demo' => 'Controller/Demo.class.php'
 ];
