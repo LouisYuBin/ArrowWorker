@@ -11,7 +11,7 @@ class Method
 
     public function __construct()
     {
-        $this -> config = Config::Arrow();
+        self::$config = Config::Arrow();
     }
     
     public function godDamIt()
@@ -22,7 +22,7 @@ class Method
             {
             }
         }
-        echo "godDamIt";
+        //echo PHP_EOL."App\Classes\Method";
     }
 
 }

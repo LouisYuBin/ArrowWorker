@@ -10,31 +10,25 @@ namespace ArrowWorker;
 
 class Loader
 {
-    const ModelPre   = 'm_';
-    const ClassPre   = 'c_';
-    const ServicePre = 'c_';
     private static $appClass  = [];
 
 
     //Load model created by user
     public static function Model( $name )
     {
-        $key = self::ModelPre.$name;
-        return self::AppModule( $key, $name );
+        return self::AppModule( APP_MODEL_FOLDER.$name, $name, APP_MODEL_FOLDER );
     }
 
     //Load class created by user
     public static function Classes( $name )
     {
-        $key = self::ClassPre.$name;
-        return self::AppModule( $key, $name, APP_CLASS_FOLDER );
+        return self::AppModule( APP_CLASS_FOLDER.$name, $name, APP_CLASS_FOLDER );
     }
 
     //Load logical class
     public static function Service( $name )
     {
-        $key = self::ServicePre.$name;
-        return self::AppModule( $key, $name, APP_SERVICE_FOLDER );
+        return self::AppModule( APP_SERVICE_FOLDER.$name, $name, APP_SERVICE_FOLDER );
     }
 
     //return app module
@@ -45,8 +39,9 @@ class Loader
             return self::$appClass[$key];
         }
         else
-        {   
-            $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.$name;
+        {
+            $moduleName = ucfirst( $name );
+            $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.$moduleName;
             self::$appClass[$key] = new $class;
             return self::$appClass[$key];
         }

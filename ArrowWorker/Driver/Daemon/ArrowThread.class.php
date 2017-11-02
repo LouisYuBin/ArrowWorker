@@ -20,17 +20,21 @@ class ArrowThread extends \Thread
     //任务数组
     public $taskArray = '';
     //是否有任务
-    public $hasTask   = false;
+    public $hasTask   = true;
     //当前任务执行状态
     private $taskStat;
+
+    public $taskCount;
 
     //是否执行
     private $isRuning  = true;
 
-    public function __construct( $threadName )
+    public function __construct( $threadName, $task)
     {
         $this -> threadName = $threadName;
         $this -> taskStat   = self::STATUS_WAITING;
+        $this -> taskArray = $task;
+        $this -> taskCount = 0;
     }
 
     //执行任务
@@ -38,22 +42,19 @@ class ArrowThread extends \Thread
     {
         while( $this -> isRuning )
         {
-
             if( $this -> hasTask )
             {
-
-                $taskArray = json_decode( $this -> taskArray, true );
                 $this -> taskStat = self::STATUS_RUNNING;
-                if( isset( $taskArray['argv'] ) )
+                if( isset( $this -> taskArray['argv'] ) )
                 {
-                    call_user_func_array( $taskArray['function'], $taskArray['argv'] );
+                    call_user_func_array( (array)$this -> taskArray['function'], (array)$this -> taskArray['argv'] );
                 }
                 else
                 {
-                    call_user_func($taskArray['function']);
+                    call_user_func($this -> taskArray['function']);
                 }
+                $this -> taskCount++;
                 $this -> taskStat = self::STATUS_FINISHED;
-                $this -> hasTask  = false;   
             }
             else
             {
@@ -61,15 +62,15 @@ class ArrowThread extends \Thread
                 usleep(5);
             }
         }
+        echo $this -> threadName .' ended!'.PHP_EOL;
     }
 
     //分发任务
     public function pushTask( $task )
     {
-        if( empty( $this -> taskArray ) )
+        if( empty( $task ) )
         {
-            $taskString = json_encode(['function' => $task['function'], 'argv' => $task['argv'] ]);
-            $this -> taskArray  = $taskString;
+            $this -> taskArray  = $task;
         }
         $this -> hasTask = true;
     }

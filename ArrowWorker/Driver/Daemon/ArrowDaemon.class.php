@@ -209,6 +209,7 @@ class ArrowDaemon extends daemon
             case 'workerHandler':
                 pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGUSR1, array(__CLASS__, "signalHandler"),false);
                 pcntl_alarm($lifecycle);
                 break;
             default:
@@ -288,7 +289,6 @@ class ArrowDaemon extends daemon
         $this -> _setSignalHandler('monitorHandler');
         $this -> _forkWorkders();
         $this -> _startMonitor();
-        $this -> _clearArrowInfo();
     }
 
     private function _exitWorkers()
@@ -298,8 +298,9 @@ class ArrowDaemon extends daemon
             $result = posix_kill($key,SIGUSR1);
             if(!$result)
             {
-                 posix_kill($key,SIGUSR1);
+                 $result1 = posix_kill($key,SIGUSR1);
             }
+            sleep(1);
         }
     }
 
@@ -309,7 +310,19 @@ class ArrowDaemon extends daemon
         {
             if(self::$terminate)
             {
-                break;
+                $unExitedCount = 0;
+                for($i = 0; $i<self::$jobNum; $i++)
+                {
+                    $unExitedCount += self::$jobs[$i]['pidCount'];
+                }
+
+                for ($i=0; $i<$unExitedCount; $i++)
+                {
+                    $status = 0;
+                    $pid    = pcntl_wait($status, WUNTRACED);
+                    $this -> _handleExited( $pid, $status );
+                }
+                $this -> _clearArrowInfo();
             }
 
             pcntl_signal_dispatch();
@@ -318,18 +331,25 @@ class ArrowDaemon extends daemon
             //returns the process ID of the child which exited, -1 on error or zero if WNOHANG was provided as an option (on wait3-available systems) and no child was available
             $pid    = pcntl_wait($status, WUNTRACED);
             pcntl_signal_dispatch();
+            $this -> _handleExited( $pid, $status, false );
 
-            if ($pid > 0) 
-            {
-                $taskGroupId = self::$tmpPid[$pid];
-                self::$jobs[$taskGroupId]['pidCount']--;
-                unset(self::$tmpPid[$pid]);
-                $this -> _forkOneWork($taskGroupId);
-                $this -> _logWrite("Task process(".self::$jobs[$taskGroupId]["processName"]."-".$pid.":".$status.") exited.");
-            }
         }
     }
-    
+
+    private function _handleExited($pid, $status, $isExit=true)
+    {
+        if ($pid > 0)
+        {
+            $taskGroupId = self::$tmpPid[$pid];
+            self::$jobs[$taskGroupId]['pidCount']--;
+            unset(self::$tmpPid[$pid]);
+            if( !$isExit )
+            {
+                $this -> _forkOneWork($taskGroupId);
+            }
+            $this -> _logWrite("Task process(".self::$jobs[$taskGroupId]["processName"]."-".$pid.":".$status.") exited.");
+        }
+    }
 
     private function _forkWorkders()
     {
@@ -356,7 +376,7 @@ class ArrowDaemon extends daemon
         }
         elseif($pid==0)
         {   
-            $this -> _runWorker($taskGroupId,self::$jobs[$taskGroupId]['lifecycle']);
+            $this -> _runWorker($taskGroupId, self::$jobs[$taskGroupId]['lifecycle']);
         }
         else
         {   
@@ -364,11 +384,10 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _runWorker($index,$lifecycle)
+    private function _runWorker($index, $lifecycle)
     {
-        $this -> _setSignalHandler('workerHandler',$lifecycle);
-        $this -> _setProcessName(self::$jobs[$index]['processName']);
-        self::$workerStat['start'] = time();
+        $this -> _setSignalHandler('workerHandler', $lifecycle );
+        $this -> _setProcessName( self::$jobs[$index]['processName'] );
         if( self::$isMultiThr )
         {
             $this -> _threadRunTask( $index );
@@ -402,6 +421,8 @@ class ArrowDaemon extends daemon
     //进程执行任务
     private function _processRunTask($index)
     {
+        self::$workerStat['start'] = time();
+        $this -> _logWrite( self::$jobs[$index]['processName'].' started.');
         while( 1 )
         {
             if( self::$terminate )
@@ -411,7 +432,6 @@ class ArrowDaemon extends daemon
                 $this -> _logWrite( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
                 exit(0);
             }
-
             pcntl_signal_dispatch();
             if( isset( self::$jobs[$index]['argv'] ) )
             {
@@ -485,7 +505,7 @@ class ArrowDaemon extends daemon
         //创建线程
         for( $i = 1; $i <= self::$threadNum; $i++  )
         {
-            self::$threadMap[] = new ArrowThread( self::$jobs[$index]['processName'].'_thread_'.$i );
+            self::$threadMap[] = new ArrowThread( self::$jobs[$index]['processName'].'_thread_'.$i, self::$jobs[$index] );
         }
 
         //启动线程
@@ -494,26 +514,31 @@ class ArrowDaemon extends daemon
             $workerThread -> start();
         }
 
+        self::$workerStat['start'] = time();
+
         //循环给线程分发任务
         while( 1 )
         {
             if( self::$terminate )
             {
+                $threadsTaskCount = 0;
                 //退出所有线程
                 foreach( self::$threadMap as $key => $workerThread )
                 {
+                    $threadsTaskCount +=  $workerThread->taskCount;
                     $workerThread -> endThread();
                     $workerThread -> join();
                     unset( self::$threadMap[$key] );
                 }   
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                $this -> _logWrite(self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.');
-                exit(0);
+                $this -> _logWrite(self::$jobs[$index]['processName'].' finished '.$threadsTaskCount.' times of its work in '.$proWorkerTimeSum.' seconds.');
+                break;
             }
 
             pcntl_signal_dispatch();
 
+           /*
             foreach( self::$threadMap as $workerThread )
             {
                 //线程空闲
@@ -523,6 +548,7 @@ class ArrowDaemon extends daemon
                     self::$workerStat['count']++;
                 }
             }
+           */
             usleep(20);
         }
     }
@@ -539,7 +565,7 @@ class ArrowDaemon extends daemon
 
     }
 
-    public function addTask($job=array())
+    public function addTask( $job = [] )
     {
         
         if(!isset($job['function'])||empty($job['function']))
@@ -559,7 +585,7 @@ class ArrowDaemon extends daemon
     private  function _logWrite($message)
     {
         date_default_timezone_set(self::$tipTimeZone);
-        @printf("%s\t%d\t%d\t%s\n", date("c"), posix_getpid(), posix_getppid(), $message);
+        @printf("%s\tpid:%d\tppid:%d\t%s\n", date("Y-m-d H:i:s"), posix_getpid(), posix_getppid(), $message);
     }
 
 }

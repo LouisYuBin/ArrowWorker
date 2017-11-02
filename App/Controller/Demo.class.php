@@ -13,7 +13,6 @@ use ArrowWorker\Loader;
 class Demo extends controller
 {
 
-
     public static function testWorker_1()
     {
         //加载用户类
