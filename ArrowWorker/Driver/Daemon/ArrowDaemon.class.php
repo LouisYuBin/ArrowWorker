@@ -298,9 +298,8 @@ class ArrowDaemon extends daemon
             $result = posix_kill($key,SIGUSR1);
             if(!$result)
             {
-                 $result1 = posix_kill($key,SIGUSR1);
+                 posix_kill($key,SIGUSR1);
             }
-            sleep(1);
         }
     }
 
