@@ -440,7 +440,7 @@ class ArrowDaemon extends daemon
             {
                 call_user_func( self::$jobs[$index]['function'] );
             }
-
+            pcntl_signal_dispatch();
             self::$workerStat['count']++;
         }
     }

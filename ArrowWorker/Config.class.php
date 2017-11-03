@@ -16,8 +16,8 @@ class Config
 
     //configuration file pathy
     private static $path        = null;
-    private static $frameConfig = [];
-    private static $appConfig   = [];
+    private static $AppConfig   = [];
+    private static $ExtraConfig = [];
     private static $configMap   = [];
     private static $appConfKey  = 'user';
     private static $configExt   = '.php';
@@ -32,25 +32,25 @@ class Config
     }
 
     //load frame work configuration
-    public static function Arrow( $key=null, $frameConfig=APP_CONFIG_FILE )
+    public static function App( $key=null, $AppConfig=APP_CONFIG_FILE )
     {
-        if( count( self::$frameConfig ) == 0 )
+        if( count( self::$AppConfig ) == 0 )
         {
-            self::$frameConfig = self::Load( $frameConfig );
+            self::$AppConfig = self::Load( $AppConfig );
         }
 
-        return ( !is_null($key) && isset(self::$frameConfig[$key]) ) ? self::$frameConfig[$key] : self::$frameConfig;
+        return ( !is_null($key) && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
     }
 
     //load app configuration
-    public static function App( $key=null )
+    public static function Extra( $key=null )
     {
         //Load extra configuration
-        if( isset( self::$frameConfig[self::$appConfKey] ) && count( self::$frameConfig[self::$appConfKey] )>0 )
+        if( isset( self::$AppConfig[self::$appConfKey] ) && count( self::$AppConfig[self::$appConfKey] )>0 )
         {
-            foreach( self::$frameConfig[self::$appConfKey] as $eachAppConfig )
+            foreach( self::$AppConfig[self::$appConfKey] as $eachExtraConfig )
             {
-                self::$appConfig = array_merge( self::$appConfig, self::Load( $eachAppConfig ) );
+                self::$ExtraConfig = array_merge( self::$ExtraConfig, self::Load( $eachExtraConfig ) );
             }
         }
 

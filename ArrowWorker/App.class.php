@@ -65,7 +65,7 @@ class App
     //web应用
     private function SwooleWebApp()
     {
-        $config = Config::Arrow("swoole");
+        $config = Config::App("swoole");
         $swooleHttp = new \Swoole\Http\Server("0.0.0.0", $config['port']);
         $swooleHttp->set([
             'worker_num' => $config['workerNum'],

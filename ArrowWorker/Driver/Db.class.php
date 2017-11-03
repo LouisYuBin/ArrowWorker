@@ -17,7 +17,7 @@ class Db
     //数据库配置
     protected static $config = [];
     //数据库连接对象
-    protected static $dbConn;
+    protected static $dbConn = [];
 
     protected function __construct($config)
     {

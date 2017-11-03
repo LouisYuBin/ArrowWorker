@@ -171,21 +171,28 @@ class Pipe
         return unlink($this->filename);
     }
 }
+global $terminal;
+$terminal = false;
+global  $isWorking;
+$isWorking = false;
 
 
 function signalHandler($signal)
 {
-    echo "signalHandler";
+    global $terminal;
     echo $signal;
     switch($signal)
     {
         case SIGUSR1:
         case SIGALRM:
             echo "fuck";
+         $terminal = true;
+         break;
         case SIGTERM:
         case SIGHUP:
         case SIGINT:
         case SIGQUIT:
+            $isWorking=false;
             echo "quit";
             //exit(0);
             break;
@@ -204,23 +211,53 @@ pcntl_signal(SIGCHLD,"signalHandler",false);
 pcntl_signal(SIGTERM, "signalHandler",false);
 pcntl_signal(SIGINT, "signalHandler",false);
 pcntl_signal(SIGQUIT,"signalHandler",false);
+pcntl_signal(SIGUSR1,"signalHandler",false);
+pcntl_signal_dispatch();
+
+$redis = new \Redis();
+$redis ->connect("127.0.0.1",6379);
+$redis ->auth("carlt_louis_2017_03_17");
 
 if($pid == 0){
-    sleep(300);
+    pcntl_signal_dispatch();
+    sleep(10);
     //$pipe->write(str_pad("test1",1024));
     //$pipe->write(str_pad("test2",1024));
     //$pipe->write(str_pad("test3",1024));
-
+    $result = $redis->lPush("louis","1");
+    $result = $redis->lPush("louis","2");
+    $result = $redis->lPush("louis","3");
+    $result = $redis->lPush("louis","4");
+    sleep(10);
+    $result = $redis->lPush("louis","5");
+    $result = $redis->lPush("louis","6");
+    $result = $redis->lPush("louis","7");
+    $result = $redis->lPush("louis","8");
+    sleep(5);
+    $result = $redis->lPush("louis","9");
+    $result = $redis->lPush("louis","10");
+    pcntl_signal_dispatch();
+    echo PHP_EOL."child".PHP_EOL;
 }else{
+    pcntl_signal_dispatch();
+    //$pipe->setBlock(true);
+    while(1) {
+        if($terminal == true){
+            break;
+        }
+        global $isWorking;
+        $isWorking = true;
+        pcntl_signal_dispatch();
+        //$result = $pipe->read(1024);
+        //var_dump($result);
+        //echo $result . PHP_EOL;
+        $result = $redis->brPop(["louis"],5);
+        var_dump($result);
 
-    $pipe->setBlock(true);
-    $result = $pipe->read(1024);
-    echo $result . PHP_EOL;
-    $result = $pipe->read(1024);
-    echo $result . PHP_EOL;
-
-
-    sleep(100);
+        pcntl_signal_dispatch();
+        echo "extra work".PHP_EOL;
+    }
+    echo PHP_EOL."parent".PHP_EOL;
 }
 
 
