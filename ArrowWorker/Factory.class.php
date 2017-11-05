@@ -11,29 +11,41 @@ namespace ArrowWorker;
 
 class Factory
 {
-    private static $driverDir = 'ArrowWorker\\Driver';
+    private static $driverDir   = 'ArrowWorker\\Driver';
 
-    public static function Db( $config )
+    public static function Db( $alias )
     {
-        $class = self::$driverDir.'\\Db\\'.$config['driver'];
-        return $class::initDb( $config );
+        return self::_init(self::$driverDir.'\\Db', $alias, 'db');
     }
 
-    public static function Cache( $config )
+    public static function Cache( $alias )
     {
-        $class = self::$driverDir.'\\Cache\\'.$config['driver'];
-        return $class::initCache( $config );
+        return self::_init(self::$driverDir.'\\Cache', $alias, 'cache');
     }
 
-    public static function Daemon( $config )
+    public static function Daemon( $alias )
     {
-        $class = self::$driverDir.'\\Daemon\\'. $config['driver'];
-        return $class::initDaemon( $config );
+        return self::_init(self::$driverDir.'\\Daemon', $alias, 'daemon');
     }
 
-    public static function View( $config )
+    public static function View( $alias )
     {
-        $class = self::$driverDir.'\\View';
-        return $class::initView( $config );
+        $config = Config::App('view');
+        $class  = self::$driverDir.'\\View';
+        return $class::_init( $config );
+    }
+
+    private static function _init($namespace, $alias, $configKey)
+    {
+        $config = Config::App($configKey);
+        foreach ($config as $eachConfig)
+        {
+            if( $alias==$eachConfig['alias'] )
+            {
+                $class = $namespace.'\\'.$eachConfig['driver'];
+                return $class::init( $eachConfig );
+            }
+        }
+        return null;
     }
 }

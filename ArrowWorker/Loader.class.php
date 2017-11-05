@@ -8,31 +8,34 @@
 
 namespace ArrowWorker;
 
+use function PHPSTORM_META\elementType;
+
 class Loader
 {
-    private static $appClass  = [];
+    private static $appClass    = [];
+    private static $ArrowDriver = [];
 
 
     //Load model created by user
     public static function Model( $name )
     {
-        return self::AppModule( APP_MODEL_FOLDER.$name, $name, APP_MODEL_FOLDER );
+        return self::_appModule( APP_MODEL_FOLDER.$name, $name, APP_MODEL_FOLDER );
     }
 
     //Load class created by user
     public static function Classes( $name )
     {
-        return self::AppModule( APP_CLASS_FOLDER.$name, $name, APP_CLASS_FOLDER );
+        return self::_appModule( APP_CLASS_FOLDER.$name, $name, APP_CLASS_FOLDER );
     }
 
     //Load logical class
     public static function Service( $name )
     {
-        return self::AppModule( APP_SERVICE_FOLDER.$name, $name, APP_SERVICE_FOLDER );
+        return self::_appModule( APP_SERVICE_FOLDER.$name, $name, APP_SERVICE_FOLDER );
     }
 
     //return app module
-    private static function AppModule( $key, $name, $type=APP_MODEL_FOLDER )
+    private static function _appModule( $key, $name, $type=APP_MODEL_FOLDER )
     {
         if( isset( self::$appClass[$key] ) )
         {
@@ -47,12 +50,43 @@ class Loader
         }
     }
 
-    //Load Frame Component
-    public static function Component( $componentName )
+    public static function Db( $alias )
     {
-        $componentConf = Config::Arrow( $componentName );
-        $componentName = ucfirst( $componentName );
-        return Factory::$componentName( $componentConf );
+        $type = "Db";
+        $key  = $type.$alias;
+        self::_arrowDriver( $type, $alias, $key);
+    }
+
+    public static function Cache( $alias )
+    {
+        $type = "Cache";
+        $key  = $type.$alias;
+        self::_arrowDriver( $type, $alias, $key);
+    }
+
+    public static function Daemon( $alias )
+    {
+        $type = "Daemon";
+        $key  = $type.$alias;
+        self::_arrowDriver( $type, $alias, $key);
+    }
+
+    private static function _arrowDriver($driverType, $alias, $key)
+    {
+        if( isset( self::$ArrowDriver[$key] ) )
+        {
+            return self::$ArrowDriver[$key];
+        }
+        else
+        {
+            $driver = self::$ArrowDriver[$key] = Factory::$driverType( $alias );
+            if( $driver == null )
+            {
+                throw new \Exception("driver {$driverType}::$alias does not exists.");
+                exit;
+            }
+        }
+        return self::$ArrowDriver[$key];
     }
 
     public static function Lang()

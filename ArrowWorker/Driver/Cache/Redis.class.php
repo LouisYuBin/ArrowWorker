@@ -12,7 +12,7 @@ use ArrowWorker\Driver\Cache as cache;
 class Redis extends cache
 {
     //初始化数据库连接类
-    static function initCache($config)
+    static function init($config)
     {
         if(!self::$cacheObj)
         {

@@ -13,7 +13,7 @@ class Mysqli extends db
 {
 
     //初始化数据库连接类
-    static function initDb($config)
+    static function init($config)
     {
         if(!self::$dbObj)
         {

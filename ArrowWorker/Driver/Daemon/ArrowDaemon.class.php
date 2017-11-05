@@ -69,7 +69,7 @@ class ArrowDaemon extends daemon
         $this -> _daemonMake();
     }
 
-    static function initDaemon($config)
+    static function init($config)
     {
         if(!self::$daemonObj)
         {
