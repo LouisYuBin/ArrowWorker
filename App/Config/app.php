@@ -120,22 +120,25 @@ $app['view'] = [
 
 //常驻服务配置
 $app['daemon'] = [
-    //驱动类型
-    'driver' => 'ArrowDaemon',
-    //进程名称
-    'name'   => 'Index',
-    //进程id文件名称
-    'pid'    => 'ArrowWorker',
-    //用户名
-    'user'   => 'root',
-    //线程数（在使用多线程模式下有效，依赖pthread扩展）
-    'thread' => 4,
-    //是否启用协成（不建议使用，调度损耗较大）
-    'enableGenerator' => false,
-    //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
-    'log'    => '/var/log/ArrowWorker.log',
-    //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-    'level'  => 30719
+    [
+        'alias' => 'arrow',
+        //驱动类型
+        'driver' => 'ArrowDaemon',
+        //进程名称
+        'name'   => 'Index',
+        //进程id文件名称
+        'pid'    => 'ArrowWorker',
+        //用户名
+        'user'   => 'root',
+        //线程数（在使用多线程模式下有效，依赖pthread扩展）
+        'thread' => 4,
+        //是否启用协成（不建议使用，调度损耗较大）
+        'enableGenerator' => false,
+        //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
+        'log'    => '/var/log/ArrowWorker.log',
+        //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
+        'level'  => 30719
+    ]
 ];
 
 //swoole引擎
