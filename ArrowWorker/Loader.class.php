@@ -53,26 +53,24 @@ class Loader
     public static function Db( $alias )
     {
         $type = "Db";
-        $key  = $type.$alias;
-        self::_arrowDriver( $type, $alias, $key);
+        return self::_arrowDriver( $type, $alias);
     }
 
     public static function Cache( $alias )
     {
         $type = "Cache";
-        $key  = $type.$alias;
-        self::_arrowDriver( $type, $alias, $key);
+        return self::_arrowDriver( $type, $alias);
     }
 
     public static function Daemon( $alias )
     {
         $type = "Daemon";
-        $key  = $type.$alias;
-        self::_arrowDriver( $type, $alias, $key);
+        return self::_arrowDriver( $type, $alias);
     }
 
-    private static function _arrowDriver($driverType, $alias, $key)
+    private static function _arrowDriver($driverType, $alias)
     {
+        $key  = $driverType.$alias;
         if( isset( self::$ArrowDriver[$key] ) )
         {
             return self::$ArrowDriver[$key];
