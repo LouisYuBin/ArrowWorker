@@ -167,4 +167,12 @@ class Mysqli extends db
         self::$dbConnection['master'] -> autocommit($flag);
     }
 
+    //启动sql组合
+    static function table($table)
+    {
+        $sqlBuilder = new SqlBuilder( self::$dbObj );
+        $sqlBuilder -> table($table);
+        return $sqlBuilder;
+    }
+
 }
