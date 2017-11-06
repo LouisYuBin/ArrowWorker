@@ -8,8 +8,6 @@
 
 namespace ArrowWorker;
 
-use function PHPSTORM_META\elementType;
-
 class Loader
 {
     private static $appClass    = [];
@@ -52,20 +50,17 @@ class Loader
 
     public static function Db( $alias )
     {
-        $type = "Db";
-        return self::_arrowDriver( $type, $alias);
+        return self::_arrowDriver( "Db", $alias);
     }
 
     public static function Cache( $alias )
     {
-        $type = "Cache";
-        return self::_arrowDriver( $type, $alias);
+        return self::_arrowDriver( "Cache", $alias);
     }
 
     public static function Daemon( $alias )
     {
-        $type = "Daemon";
-        return self::_arrowDriver( $type, $alias);
+        return self::_arrowDriver( "Daemon", $alias);
     }
 
     private static function _arrowDriver($driverType, $alias)
