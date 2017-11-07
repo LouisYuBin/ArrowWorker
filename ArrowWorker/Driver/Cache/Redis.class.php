@@ -14,66 +14,73 @@ class Redis extends cache
     //初始化数据库连接类
     static function init($config)
     {
-        if(!self::$cacheObj)
+        if( !isset( self::$config[$config['alias']] ))
         {
-            self::$cacheObj = new self($config);
+            self::$config[$config['alias']] = $config;
         }
-        return self::$cacheObj;
+        self::$cacheCurrent = $config['alias'];
+
+        if(!self::$instance)
+        {
+            self::$instance = new self($config);
+        }
+
+        return self::$instance;
     }
 
     //连接缓存
-    private function connect()
+    private function getConnection()
     {
-        if(!self::$CacheConn)
+        if( !isset( self::$connPool[self::$cacheCurrent] ) )
         {
-            self::$CacheConn = new \Redis();
-            self::$CacheConn -> connect(self::$config['host'],self::$config['port']);
-            //缓存库
-            if(isset(self::$config['db']))
-            {
-                self::$CacheConn -> select(self::$config['db']);
-            }
+            $currentConfig = self::$config[self::$cacheCurrent];
+            $conn = new \Redis();
+            $conn -> connect($currentConfig['host'],$currentConfig['port']);
+
             //连接密码
-            if(isset(self::$config['password']))
+            if(isset($currentConfig['password']))
             {
-                self::$CacheConn -> auth(self::$config['password']);
+                $conn -> auth($currentConfig['password']);
             }
+
+            //缓存库
+            if(isset($currentConfig['db']))
+            {
+                $conn -> select($currentConfig['db']);
+            }
+            self::$connPool[self::$cacheCurrent] = $conn;
         }
+        return self::$connPool[self::$cacheCurrent];
     }
 
     //写入
     public function set($key,$val)
     {
-        $this -> connect();
-        return self::$CacheConn ->set($key,$val);
+        return $this -> getConnection() -> set( $key, $val );
     }
 
     //读取
     public function get($key)
     {
-        $this -> connect();
-        return self::$CacheConn ->get($key);
+        return $this -> getConnection() -> get($key);
     }
 
     //写队列
     public function push($queue,$val)
     {
-        $this -> connect();
-        return self::$CacheConn ->lPush($queue,$val);
+        return $this -> getConnection() ->lPush($queue,$val);
     }
 
     //读队列
     public function pop($queue)
     {
-        $this -> connect();
-        return self::$CacheConn ->rPop($queue);
+        return $this -> getConnection() ->rPop($queue);
     }
 
     //读队列
     public function close()
     {
-        $this -> connect();
-        return self::$CacheConn ->close();
+        return $this -> getConnection() ->close();
     }
 
 }

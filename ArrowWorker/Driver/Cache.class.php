@@ -10,11 +10,15 @@ namespace ArrowWorker\Driver;
 
 class Cache
 {
-    protected static $cacheObj;
+    protected static $instance;
     //缓存配置
     protected static $config = [];
     //缓存连接对象
-    protected static $CacheConn;
+    protected static $cacheConn = [];
+    //缓存连接池
+    protected static $connPool = [];
+    //缓存连接对象
+    protected static $cacheCurrent;
 
     protected function __construct($config)
     {

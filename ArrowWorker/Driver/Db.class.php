@@ -11,7 +11,7 @@ namespace ArrowWorker\Driver;
 class Db
 {
     //数据库连接池
-    protected static $dbConnection = [];
+    protected static $connPool = [];
     //单例模式对象
     protected static $instance;
     //数据库配置
