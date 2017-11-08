@@ -12,13 +12,13 @@ use ArrowWorker\Driver\Cache as cache;
 class Redis extends cache
 {
     //初始化数据库连接类
-    static function init($config)
+    static function init($config, $alias)
     {
-        if( !isset( self::$config[$config['alias']] ))
+        if( !isset( self::$config[$alias] ))
         {
-            self::$config[$config['alias']] = $config;
+            self::$config[$alias] = $config;
         }
-        self::$cacheCurrent = $config['alias'];
+        self::$cacheCurrent = $alias;
 
         if(!self::$instance)
         {

@@ -13,16 +13,16 @@ class Mysqli extends db
 {
 
     //初始化数据库连接类
-    static function init($config)
+    static function init($config, $alias)
     {
         //存储配置
-        if ( !isset( self::$config[$config['alias']] ) )
+        if ( !isset( self::$config[$alias] ) )
         {
-            self::$config[$config['alias']] = $config['alias'];
+            self::$config[$alias] = $config;
         }
 
         //设置当前
-        self::$dbCurrent = $config['alias'];
+        self::$dbCurrent = $alias;
 
         if(!self::$instance)
         {

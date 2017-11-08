@@ -6,8 +6,7 @@ $app = [
 
 //数据库连接
 $app['db'] = [
-     [
-        'alias' => 'default',
+    'app' => [
         //驱动类型
         'driver'      => 'Mysqli',
         //是否进行主从分离 1支持，2不支持
@@ -42,8 +41,7 @@ $app['db'] = [
 
 //缓存设置
 $app['cache'] = [
-     [
-        'alias' => 'default',
+    'app' => [
         //驱动类型
         'driver'   => 'Redis',
         //地址
@@ -57,8 +55,7 @@ $app['cache'] = [
 
 //mongodb配置
 $app['mongo'] = [
-    [
-        'alias' => 'default',
+    'app' => [
         //用户名
         'username' => 'admin',
         //密码
@@ -83,8 +80,7 @@ $app['mongo'] = [
 
 //rabbitMq配置
 $app['rabbitmq'] = [
-    [
-        'alias' => 'default',
+    'app' => [
         //地址
         'host'     => '127.0.0.1',
         //端口
@@ -112,16 +108,17 @@ $app['web'] = [
 
 //渲染器
 $app['view'] = [
-    //驱动类型
-    'driver' => 'Smarty',
-    //模板文件后缀
-    'tplExt' => '.tpl'
+    'app' => [
+        //驱动类型
+        'driver' => 'Smarty',
+        //模板文件后缀
+        'tplExt' => '.tpl'
+    ]
 ];
 
 //常驻服务配置
 $app['daemon'] = [
-    [
-        'alias' => 'arrow',
+    'app' => [
         //驱动类型
         'driver' => 'ArrowDaemon',
         //进程名称

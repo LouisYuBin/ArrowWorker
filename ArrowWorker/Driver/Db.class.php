@@ -16,8 +16,6 @@ class Db
     protected static $instance;
     //数据库配置
     protected static $config = [];
-    //数据库连接对象
-    protected static $dbConn = [];
     //当前选择的数据库连接
     protected static $dbCurrent = null;
 
