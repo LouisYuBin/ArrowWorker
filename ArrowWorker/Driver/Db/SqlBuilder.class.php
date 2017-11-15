@@ -70,16 +70,23 @@ class SqlBuilder
 
     public function Find()
     {
-        return $this->Instance->query( $this->parseSelect() );
+        $result =  $this->Instance->query( $this->parseSelect() );
+        return [
+            'sql'  => $this->parseSelect(),
+            'data' => $result
+        ];
     }
 
     public function Get()
     {
         $result = $this->Instance->query( $this->parseSelect() );
-        return count($result)>0 ? $result[0] : false;
+        return [
+            'sql'  => $this->parseSelect(),
+            'data' => $result ? $result[0] : $result
+        ];
     }
 
-    public function insert($data)
+    public function Insert($data)
     {
         if ( !is_array() && count($data)>0 )
         {
@@ -97,7 +104,7 @@ class SqlBuilder
         return $this->Instance->execute("insert into {$this->table}({$column}) values({$values})");
     }
 
-    public function update($data)
+    public function Update($data)
     {
         if ( !is_array() && count($data)>0 )
         {
@@ -123,12 +130,12 @@ class SqlBuilder
         {
             throw new \Exception("please specify the table you wanna query.");
         }
-        return "select  {$this->column} from {$this->table} {$this->where} {$this->groupBy} {$this->having} {$this->limit}";
+        return trim("select  {$this->column} from {$this->table} {$this->where} {$this->groupBy} {$this->having} {$this->limit}");
     }
 
-    private function __destruct()
+    public function __destruct()
     {
-        unset($Instance);
+        unset($this->Instance);
     }
 
 }

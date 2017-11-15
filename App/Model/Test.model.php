@@ -16,6 +16,6 @@ class Test
     public function test()
     {
         $db = Driver::Db();
-        return $db->Table("test")->Where('id=1')->get();
+        return $db->Table("test")->Where('id=1')->Col('alias')->Find();
     }
 }
