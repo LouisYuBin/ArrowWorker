@@ -42,7 +42,7 @@ class Mysqli extends db
             exit($Conn->connect_error);
         }
         //初始化字符集
-        $Conn -> query("set names '".self::$config['charset']."'");
+        $Conn -> query("set names '".self::$config[self::$dbCurrent]['charset']."'");
         return $Conn;
     }
 
@@ -155,7 +155,7 @@ class Mysqli extends db
     //启动sql组合
     static function table($table)
     {
-        $sqlBuilder = new SqlBuilder( self::$dbObj );
+        $sqlBuilder = new SqlBuilder( self::$instance );
         return $sqlBuilder -> table($table);
     }
 

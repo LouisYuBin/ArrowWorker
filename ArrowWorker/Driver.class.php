@@ -7,6 +7,7 @@
  *     2017-03-13 By Louis
  *     2017-10-30 By Louis
  *     2017-11-08 By Louis
+ *     2017-11-15 By Louis
  */
 
 namespace ArrowWorker;
@@ -15,39 +16,38 @@ class Driver
 {
     private static $driverDir   = 'ArrowWorker\\Driver';
 
-    public static function Db( $alias )
+    public static function Db( $alias='app' )
     {
-        return self::_init(self::$driverDir.'\\Db', $alias, 'db');
+        return self::_init(__FUNCTION__, $alias);
     }
 
-    public static function Cache( $alias )
+    public static function Cache( $alias='app' )
     {
-        return self::_init(self::$driverDir.'\\Cache', $alias, 'cache');
+        return self::_init(__FUNCTION__, $alias);
     }
 
-    public static function Daemon( $alias )
+    public static function Daemon( $alias='app' )
     {
-        return self::_init(self::$driverDir.'\\Daemon', $alias, 'daemon');
+        return self::_init(__FUNCTION__, $alias);
     }
 
-    public static function View( $alias )
+    public static function View( $alias='app' )
     {
-        $config = Config::App('view');
         $class  = self::$driverDir.'\\View';
-        return $class::_init( $config );
+        return $class::init( Config::App('view') );
     }
 
-    private static function _init($namespace, $alias, $configKey)
+    private static function _init($driverType, $alias)
     {
-        $config = Config::App($configKey);
+        $config = Config::App($driverType);
         if ( isset( $config[$alias] ) )
         {
-            $class = $namespace.'\\'.$config[$alias]['driver'];
-            return $class::init( $config[$alias], $alias );
+            $driver = self::$driverDir.'\\'.$driverType."\\".$config[$alias]['driver'];
+            return $driver::init( $config[$alias], $alias );
         }
         else
         {
-            throw new \Exception("driver {$configKey}::{$alias} does not exists.");
+            throw new \Exception("driver {$driverType}->{$alias} does not exists.");
         }
 
     }

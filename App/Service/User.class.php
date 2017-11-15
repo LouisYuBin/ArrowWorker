@@ -22,5 +22,11 @@ class User
         return "app -> service -> user -> add";
     }
 
+    public function test()
+    {
+        $test = Loader::Model('Test');
+        return $test->test();
+    }
+
 }
 

@@ -21,7 +21,7 @@ class Db
 
     protected function __construct($config)
     {
-        self::$config[$config['alias']] = $config;
+        //Todo
     }
 
 }

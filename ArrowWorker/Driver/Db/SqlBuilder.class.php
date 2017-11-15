@@ -26,54 +26,54 @@ class SqlBuilder
         $this->Instance = $instance;
     }
 
-    public function where($where)
+    public function Where($where)
     {
-        $where  = ($where != '') ? " where {$this->where} " : '';
+        $this->where  = ($where != '') ? " where {$where} " : '';
         return $this;
     }
 
-    public function table($table)
+    public function Table($table)
     {
         $this->table = $table;
         return $this;
     }
 
-    public function col($column)
+    public function Col($column)
     {
         $this->column  = ( $column=="" ) ? "*" : $column;
         return $this;
     }
 
-    public function limit($start, $num)
+    public function Limit($start, $num)
     {
         $this->limit = " limit {$start},{$num} ";
         return $this;
     }
 
-    public function orderBy($orderBy)
+    public function OrderBy($orderBy)
     {
         $this->orderBy = $orderBy;
         return $this;
     }
 
-    public function groupBy($groupBy)
+    public function GroupBy($groupBy)
     {
         $this->groupBy = ($groupBy != "") ? " group by {$groupBy} " : '' ;
         return $this;
     }
 
-    public function having($having)
+    public function Having($having)
     {
         $this->having  = ($having != "") ? " having {$having} " : '';
         return $this;
     }
 
-    public function find()
+    public function Find()
     {
         return $this->Instance->query( $this->parseSelect() );
     }
 
-    public function get()
+    public function Get()
     {
         $result = $this->Instance->query( $this->parseSelect() );
         return count($result)>0 ? $result[0] : false;
@@ -123,7 +123,12 @@ class SqlBuilder
         {
             throw new \Exception("please specify the table you wanna query.");
         }
-        return "select  {$this->column} from {$this->table} where {$this->where} {$this->groupBy} {$this->having} {$this->limit}";
+        return "select  {$this->column} from {$this->table} {$this->where} {$this->groupBy} {$this->having} {$this->limit}";
+    }
+
+    private function __destruct()
+    {
+        unset($Instance);
     }
 
 }

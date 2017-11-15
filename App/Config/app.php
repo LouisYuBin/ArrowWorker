@@ -5,7 +5,7 @@ $app = [
 ];
 
 //数据库连接
-$app['db'] = [
+$app['Db'] = [
     'app' => [
         //驱动类型
         'driver'      => 'Mysqli',
@@ -22,7 +22,7 @@ $app['db'] = [
             //密码
             'password' => 'louis',
             //数据库名
-            'dbName'   => 'erp',
+            'dbName'   => 'test',
             //端口
             'port'     => 3306,
         ],
@@ -32,7 +32,7 @@ $app['db'] = [
                 'host'     => '127.0.0.1',
                 'userName' => 'root',
                 'password' => 'louis',
-                'dbName'   => 'erp',
+                'dbName'   => 'test',
                 'port'     => 3306,
             ]
         ],
@@ -40,7 +40,7 @@ $app['db'] = [
 ];
 
 //缓存设置
-$app['cache'] = [
+$app['Cache'] = [
     'app' => [
         //驱动类型
         'driver'   => 'Redis',
@@ -54,7 +54,7 @@ $app['cache'] = [
 ];
 
 //mongodb配置
-$app['mongo'] = [
+$app['Mongo'] = [
     'app' => [
         //用户名
         'username' => 'admin',
@@ -79,7 +79,7 @@ $app['mongo'] = [
 ];
 
 //rabbitMq配置
-$app['rabbitmq'] = [
+$app['Rabbitmq'] = [
     'app' => [
         //地址
         'host'     => '127.0.0.1',
@@ -100,14 +100,11 @@ $app['rabbitmq'] = [
     ]
 ];
 
-//rabbitMq配置
-$app['web'] = [
-    //web应用路由类型 1:get 2:uri
-    'RouterType' => 1,
-];
+//web应用路由类型 1:get 2:uri
+$app['RouterType'] = 1;
 
 //渲染器
-$app['view'] = [
+$app['View'] = [
     'app' => [
         //驱动类型
         'driver' => 'Smarty',
@@ -117,7 +114,7 @@ $app['view'] = [
 ];
 
 //常驻服务配置
-$app['daemon'] = [
+$app['Daemon'] = [
     'app' => [
         //驱动类型
         'driver' => 'ArrowDaemon',
