@@ -99,7 +99,7 @@ class ArrowWorker
             'ArrowWorker\Loader'     => ArrowWorker . '/Loader' .     self::classExt,
             'ArrowWorker\Router'     => ArrowWorker . '/Router' .     self::classExt,
             'ArrowWorker\Config'     => ArrowWorker . '/Config' .     self::classExt,
-            'ArrowWorker\Factory'    => ArrowWorker . '/Factory' .    self::classExt,
+            'ArrowWorker\Driver'     => ArrowWorker . '/Driver' .    self::classExt,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception' .  self::classExt,
             'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
 

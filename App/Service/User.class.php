@@ -12,7 +12,7 @@ class User
 
     public function __construct()
     {
-        self::$config = Config::Arrow();
+        self::$config = Config::App();
     }
     
     public function add()

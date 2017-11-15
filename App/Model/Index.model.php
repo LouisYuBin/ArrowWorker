@@ -14,8 +14,7 @@ class Index extends model
     //示例
     public function example($para)
     {
-        $sql    = 'select '.$para.' from tableName';
-        return $this -> db -> query($sql);
+
     }
 
 }

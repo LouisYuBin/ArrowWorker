@@ -15,21 +15,22 @@ class Exception
     private static $msg;
     private static $file;
     private static $line;
+    private static $trace;
 
     static function init()
     {
-        //set_error_handler([__CLASS__ , 'error']);
-       // set_exception_handler([__CLASS__,'exception']);
+        set_error_handler([__CLASS__ , 'error']);
+        set_exception_handler([__CLASS__,'exception']);
     }
 
     //错误处理
-    static function error( $column=null,$msg = null, $file=null, $line=null )
+    static function error( $code=null, $msg=null, $file=null, $line =null )
     {
         //ob_clean();
         header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
         if( APP_TYPE=='web' && APP_STATUS=='debug' )
         {
-            exit("<b>Error:</b><br />File : {$file}<br />Line : {$line}<br />Message : {$msg}<br />");
+            exit("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
         }
         else if( APP_TYPE=='web' && APP_STATUS!='debug' )
         {
@@ -38,35 +39,34 @@ class Exception
         else if( APP_TYPE=='cli')
         {
             exit(PHP_EOL."Error:".PHP_EOL."File:".PHP_EOL."{$file}".PHP_EOL."Line:".PHP_EOL."{$line}".PHP_EOL."Message:".PHP_EOL."{$msg}".PHP_EOL."");
-            exit();
         }
     }
 
     //异常处理
     static function exception($msg = null, $code=null)
     {
-       // var_dump($code);
         $exception = (array)$msg;
-        //var_dump();
+        $elemetNum = 0;
         foreach ($exception as $key => $val)
         {
-            //echo "|".json_encode($key)."|";
-            switch ($key)
+            switch ($elemetNum)
             {
-                case " *message":
+                case 0:
                     self::$msg = $val;
-                    echo json_encode($val);
                     break;
-                case '*file':
+                case 3:
                     self::$file = $val;
                     break;
-                case '*line':
+                case 4:
                     self::$line = $val;
                     break;
-                case '*code':
+                case 2:
                     self::$code = $val;
                     break;
+                case 5:
+                    self::$trace = json_encode($val);
             }
+            $elemetNum++;
         }
         self::error( self::$code, self::$msg, self::$file, self::$line );
     }
