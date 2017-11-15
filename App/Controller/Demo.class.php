@@ -33,5 +33,12 @@ class Demo extends controller
         $user = Loader::Service('User')->add();
     }
 
+    public function dbDemo(){
+        $user = Loader::Service('User');
+        $result = $user->test();
+        //var_dump($result);
+    }
+
+
 
 }
