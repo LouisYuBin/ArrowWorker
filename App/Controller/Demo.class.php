@@ -35,7 +35,7 @@ class Demo extends controller
 
     public function dbDemo(){
         $user = Loader::Service('User');
-        $result = $user->test();
+        $result = $user->testDb();
         //var_dump($result);
     }
 

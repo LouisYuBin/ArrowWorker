@@ -5,7 +5,7 @@ return [
     //model
     'App\Model\Index'      => 'Model/Index.model.php',
     //model
-    'App\Model\Test'      => 'Model/Test.model.php',
+    'App\Model\User'      => 'Model/User.model.php',
     //应用类
     'App\Classes\Method'   => 'Classes/Method.class.php',
     //service 业务逻辑

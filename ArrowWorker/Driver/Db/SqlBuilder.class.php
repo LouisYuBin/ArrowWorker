@@ -88,7 +88,7 @@ class SqlBuilder
 
     public function Insert($data)
     {
-        if ( !is_array() && count($data)>0 )
+        if ( !is_array($data) )
         {
             throw new \Exception("inert data must be an array,just like ['name'=>'Louis']");
         }
@@ -106,7 +106,7 @@ class SqlBuilder
 
     public function Update($data)
     {
-        if ( !is_array() && count($data)>0 )
+        if ( !is_array($data) )
         {
             throw new \Exception("update data must be an array,just like ['name'=>'Louis']");
         }

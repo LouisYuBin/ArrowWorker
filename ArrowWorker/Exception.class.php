@@ -27,18 +27,19 @@ class Exception
     static function error( $code=null, $msg=null, $file=null, $line =null )
     {
         //ob_clean();
-        header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
         if( APP_TYPE=='web' && APP_STATUS=='debug' )
         {
+            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
             exit("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
         }
         else if( APP_TYPE=='web' && APP_STATUS!='debug' )
         {
+            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
             exit( json_encode( ['code' => 500, 'msg' => 'something is wrong with the server...'] ) );
         }
         else if( APP_TYPE=='cli')
         {
-            exit(PHP_EOL."Error:".PHP_EOL."File:".PHP_EOL."{$file}".PHP_EOL."Line:".PHP_EOL."{$line}".PHP_EOL."Message:".PHP_EOL."{$msg}".PHP_EOL."");
+            exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);
         }
     }
 

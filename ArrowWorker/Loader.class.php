@@ -33,7 +33,7 @@ class Loader
     //return app module
     private static function _appModule( $name, $type=APP_MODEL_FOLDER )
     {
-        $key = APP_MODEL_FOLDER.$name;
+        $key = $type.$name;
         if( isset( self::$appClass[$key] ) )
         {
             return self::$appClass[$key];
