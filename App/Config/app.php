@@ -119,7 +119,7 @@ $app['Daemon'] = [
         //驱动类型
         'driver' => 'ArrowDaemon',
         //进程名称
-        'name'   => 'Index',
+        'name'   => 'demo',
         //进程id文件名称
         'pid'    => 'ArrowWorker',
         //用户名

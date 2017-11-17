@@ -138,4 +138,10 @@ class SqlBuilder
         unset($this->Instance);
     }
 
+    public function __call($name, $arguments)
+    {
+        $this->Instance->$name($arguments);
+        // TODO: Implement __call() method.
+    }
+
 }

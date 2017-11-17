@@ -123,7 +123,7 @@ class Mysqli extends db
     }
 
     //开始事务
-    public function begin()
+    public function Begin()
     {
 
         $this -> autocommit(false);
@@ -131,7 +131,7 @@ class Mysqli extends db
     }
 
     //提交事务
-    public function commit()
+    public function Commit()
     {
         $conn = $this -> getConnection(true);
         $conn -> commit();
@@ -139,7 +139,7 @@ class Mysqli extends db
     }
 
     //回滚
-    public function rollback()
+    public function Rollback()
     {
         $conn = $this -> getConnection(true);
         $conn -> rollback();
@@ -147,16 +147,16 @@ class Mysqli extends db
     }
 
     //是否自动提交
-    public function autocommit($flag)
+    public function Autocommit($flag)
     {
         $this -> getConnection(true) -> autocommit($flag);
     }
 
     //启动sql组合
-    static function table($table)
+    static function Table($table)
     {
         $sqlBuilder = new SqlBuilder( self::$instance );
-        return $sqlBuilder -> table($table);
+        return $sqlBuilder -> Table($table);
     }
 
 }

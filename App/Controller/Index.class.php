@@ -18,8 +18,8 @@ class Index extends controller
 
         $daemon =  Driver::Daemon('app');
         $workerCtl = new Demo();
-        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 4 , 'lifecycle' => 30, 'proName' => 'dbDemo_1']);
-        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 4 , 'lifecycle' => 30, 'proName' => 'dbDemo_2']);
+        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 1 , 'lifecycle' => 30, 'proName' => 'dbDemo_1']);
+        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 1 , 'lifecycle' => 30, 'proName' => 'dbDemo_2']);
         $daemon -> start();
     }
 

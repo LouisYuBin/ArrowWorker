@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use ArrowWorker\Config;
+use ArrowWorker\Driver;
 use ArrowWorker\Loader;
 
 class User
@@ -25,11 +26,14 @@ class User
     public function testDb()
     {
         $userModel = Loader::Model('User');
+        $ins = Driver::Db();
+        $ins -> Begin();
         $oneUser    =  $userModel->GetOne();
         $userList   =  $userModel->GetList();
         $insertUser =  $userModel->Insert();
         $updateUser =  $userModel->UpdateById( 1 );
-        $deleteUser =  $userModel->DeleteById( 100);
+        $deleteUser =  $userModel->DeleteById( 100 );
+        $ins -> Rollback();
         return [
             'oneUser'    => $oneUser,
             'userList'   => $userList,
