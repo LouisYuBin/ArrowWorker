@@ -22,7 +22,7 @@ $app['Db'] = [
             //密码
             'password' => 'louis',
             //数据库名
-            'dbName'   => 'test',
+            'dbName'   => 'ArrowWorker',
             //端口
             'port'     => 3306,
         ],

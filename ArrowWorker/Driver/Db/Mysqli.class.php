@@ -153,10 +153,11 @@ class Mysqli extends db
     }
 
     //启动sql组合
-    static function Table($table)
+    public static function Table($table)
     {
-        $sqlBuilder = new SqlBuilder( self::$instance );
+        $sqlBuilder = new SqlBuilder();
         return $sqlBuilder -> Table($table);
     }
+
 
 }

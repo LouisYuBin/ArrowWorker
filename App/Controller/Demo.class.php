@@ -6,6 +6,7 @@
  */
 
 namespace App\Controller;
+
 use ArrowWorker\Controller as controller;
 use ArrowWorker\Loader;
 
@@ -20,7 +21,7 @@ class Demo extends controller
         $class -> godDamIt();
 
         //加载service
-        $user = Loader::Service('User')->add();
+        $user = Loader::Service('Project')->add();
     }
 
     public static function testWorker_2()
@@ -30,11 +31,11 @@ class Demo extends controller
         $class -> godDamIt();
 
         //加载service
-        $user = Loader::Service('User')->add();
+        $user = Loader::Service('Project')->add();
     }
 
     public function dbDemo(){
-        $user = Loader::Service('User');
+        $user = Loader::Service('Project');
         $result = $user->testDb();
         //var_dump($result);
     }

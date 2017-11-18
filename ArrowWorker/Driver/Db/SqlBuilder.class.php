@@ -9,6 +9,9 @@
 namespace ArrowWorker\Driver\Db;
 
 
+
+use ArrowWorker\Driver\Db;
+
 class SqlBuilder
 {
     private $where  = "";
@@ -19,12 +22,11 @@ class SqlBuilder
     private $groupBy = "";
     private $having  = "";
 
-    private $Instance = null;
-
-    public function __construct($instance)
+    public function __construct($instance=null)
     {
-        $this->Instance = $instance;
+        //todo
     }
+
 
     public function Where($where)
     {
@@ -40,7 +42,7 @@ class SqlBuilder
 
     public function Col($column)
     {
-        $this->column  = ( $column=="" ) ? "*" : $column;
+        $this->column  = ( $column=="" ) ? "*" : implode(',', $column);
         return $this;
     }
 
@@ -70,7 +72,7 @@ class SqlBuilder
 
     public function Find()
     {
-        $result =  $this->Instance->query( $this->parseSelect() );
+        $result =  Db::getDb()->query( $this->parseSelect() );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result
@@ -79,7 +81,7 @@ class SqlBuilder
 
     public function Get()
     {
-        $result = $this->Instance->query( $this->parseSelect() );
+        $result = Db::getDb()->query( $this->parseSelect() );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result ? $result[0] : $result
@@ -101,7 +103,7 @@ class SqlBuilder
         }
         $column = substr($column,0,-1);
         $values = substr($values,0,-1);
-        return $this->Instance->execute("insert into {$this->table}({$column}) values({$values})");
+        return Db::getDb()->execute("insert into {$this->table}({$column}) values({$values})");
     }
 
     public function Update($data)
@@ -116,12 +118,12 @@ class SqlBuilder
             $update = $update.$key."='".$val."',";
         }
         $update = substr($update,0,-1);
-        return $this->Instance->execute("update {$this->table} set {$update} {$this->where}");
+        return Db::getDb()->execute("update {$this->table} set {$update} {$this->where}");
     }
 
     public function delete()
     {
-        return $this->Instance->execute("delete from {$this->table} {$this->where}");
+        return Db::getDb()->execute("delete from {$this->table} {$this->where}");
     }
 
     public function parseSelect()
@@ -133,15 +135,5 @@ class SqlBuilder
         return trim("select  {$this->column} from {$this->table} {$this->where} {$this->groupBy} {$this->having} {$this->limit}");
     }
 
-    public function __destruct()
-    {
-        unset($this->Instance);
-    }
-
-    public function __call($name, $arguments)
-    {
-        $this->Instance->$name($arguments);
-        // TODO: Implement __call() method.
-    }
 
 }

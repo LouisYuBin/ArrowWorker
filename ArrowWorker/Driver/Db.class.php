@@ -24,4 +24,9 @@ class Db
         //Todo
     }
 
+    public static function getDb()
+    {
+        return self::$instance;
+    }
+
 }
