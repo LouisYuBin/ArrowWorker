@@ -8,16 +8,14 @@
 
 namespace ArrowWorker\Driver\Db;
 
-
-
 use ArrowWorker\Driver\Db;
 
 class SqlBuilder
 {
-    private $where  = "";
-    private $column = "*";
-    private $table  = "";
-    private $limit  = "";
+    private $where   = "";
+    private $column  = "*";
+    private $table   = "";
+    private $limit   = "";
     private $orderBy = "";
     private $groupBy = "";
     private $having  = "";
@@ -25,6 +23,11 @@ class SqlBuilder
     public function __construct($instance=null)
     {
         //todo
+    }
+
+    private function getDb()
+    {
+        return Db::GetDb();
     }
 
 
@@ -70,18 +73,18 @@ class SqlBuilder
         return $this;
     }
 
-    public function Find()
+    public function Find( $Master=false, $slaveIndex=0)
     {
-        $result =  Db::getDb()->query( $this->parseSelect() );
+        $result =  $this->getDb()->query( $this->parseSelect(), $Master, $slaveIndex );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result
         ];
     }
 
-    public function Get()
+    public function Get( $Master=false, $slaveIndex=0 )
     {
-        $result = Db::getDb()->query( $this->parseSelect() );
+        $result = $this->getDb()->query( $this->parseSelect() ,$Master, $slaveIndex );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result ? $result[0] : $result
@@ -103,7 +106,7 @@ class SqlBuilder
         }
         $column = substr($column,0,-1);
         $values = substr($values,0,-1);
-        return Db::getDb()->execute("insert into {$this->table}({$column}) values({$values})");
+        return $this->getDb()->execute("insert into {$this->table}({$column}) values({$values})");
     }
 
     public function Update($data)
@@ -118,12 +121,12 @@ class SqlBuilder
             $update = $update.$key."='".$val."',";
         }
         $update = substr($update,0,-1);
-        return Db::getDb()->execute("update {$this->table} set {$update} {$this->where}");
+        return $this->getDb()->execute("update {$this->table} set {$update} {$this->where}");
     }
 
     public function delete()
     {
-        return Db::getDb()->execute("delete from {$this->table} {$this->where}");
+        return $this->getDb()->execute("delete from {$this->table} {$this->where}");
     }
 
     public function parseSelect()

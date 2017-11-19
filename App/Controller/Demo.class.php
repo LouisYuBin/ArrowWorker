@@ -34,10 +34,12 @@ class Demo extends controller
         $user = Loader::Service('Project')->add();
     }
 
-    public function dbDemo(){
+    public function dbDemo()
+    {
         $user = Loader::Service('Project');
         $result = $user->testDb();
         //var_dump($result);
+        //sleep(1);
     }
 
 

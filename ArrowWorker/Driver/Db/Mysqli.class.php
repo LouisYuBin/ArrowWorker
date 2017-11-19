@@ -49,22 +49,11 @@ class Mysqli extends db
     //连接数据库
     protected function getConnection($isMaster=false,$connectNum=0)
     {
-        if(self::$config[self::$dbCurrent]['seperate']==0)
+        if( $isMaster==true || self::$config[self::$dbCurrent]['seperate']==0 )
         {
             return $this -> connectMaster();
         }
-        else
-        {
-            if($isMaster==true)
-            {
-                return $this -> connectMaster();
-            }
-            else
-            {
-                return $this -> connectSlave($connectNum);
-            }
-        }
-        return false;
+        return $this -> connectSlave($connectNum);
     }
 
     //检测并连接主库
@@ -125,9 +114,9 @@ class Mysqli extends db
     //开始事务
     public function Begin()
     {
-
-        $this -> autocommit(false);
-        $this -> getConnection(true) -> begin_transaction();
+        $conn = $this -> getConnection(true);
+        $conn -> autocommit(false);
+        $conn -> begin_transaction();
     }
 
     //提交事务
@@ -156,7 +145,7 @@ class Mysqli extends db
     public static function Table($table)
     {
         $sqlBuilder = new SqlBuilder();
-        return $sqlBuilder -> Table($table);
+        return $sqlBuilder -> Table($table, self::$config[self::$dbCurrent]['driver']);
     }
 
 
