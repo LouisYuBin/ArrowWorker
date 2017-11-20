@@ -32,7 +32,7 @@ class Project
     {
         $data = [
             'itemName' => 'ArrowWorker',
-            'itemIntro' => "An efficient and "
+            'itemIntro' => "An efficient and easy-using php daemon framework."
         ];
         return Driver::Db()->Table("project")->Where('id>0')->Insert($data);
     }

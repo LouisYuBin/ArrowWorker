@@ -26,14 +26,21 @@ class Project
     public function testDb()
     {
         $userModel = Loader::Model('Project');
-        $ins = Driver::Db();
-        $ins -> Begin();
+        $db = Driver::Db();
+        $db -> Begin();
         $oneProject    =  $userModel->GetOne();
         $projectList   =  $userModel->GetList();
         $insertProject =  $userModel->Insert();
+        $db -> Rollback();
+        $insertProject =  $userModel->Insert();
+        $insertProject =  $userModel->Insert();
+        $insertProject =  $userModel->Insert();
+        $insertProject =  $userModel->Insert();
+        $insertProject =  $userModel->Insert();
+        $insertProject =  $userModel->Insert();
         $updateProject =  $userModel->UpdateById( 1 );
         $deleteProject =  $userModel->DeleteById( 100 );
-        $ins -> Commit();
+        $db -> Commit();
         return [
             'oneUser'    => $oneProject,
             'userList'   => $projectList,
