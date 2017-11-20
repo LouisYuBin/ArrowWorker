@@ -34,16 +34,12 @@ class Loader
     private static function _appModule( $name, $type=APP_MODEL_FOLDER )
     {
         $key = $type.$name;
-        if( isset( self::$appClass[$key] ) )
-        {
-            return self::$appClass[$key];
-        }
-        else
+        if( !isset( self::$appClass[$key] ) )
         {
             $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.ucfirst( $name );
             self::$appClass[$key] = new $class;
-            return self::$appClass[$key];
         }
+        return self::$appClass[$key];
     }
 
     public static function Lang()
