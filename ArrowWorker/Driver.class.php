@@ -16,27 +16,53 @@ class Driver
 {
     private static $driverDir   = 'ArrowWorker\\Driver';
 
+    /**
+     * 数据库驱动
+     * @param string $alias
+     * @return \ArrowWorker\Driver\Db\Mysqli
+     */
     public static function Db( $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
 
+    /**
+     * 缓存驱动
+     * @param string $alias
+     * @return \ArrowWorker\Driver\Cache\Redis
+     */
     public static function Cache( $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
 
+    /**
+     * ArrowWorker驱动
+     * @param string $alias
+     * @return \ArrowWorker\Driver\Daemon\ArrowDaemon
+     */
     public static function Daemon( $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
 
+    /**
+     * 加载view驱动
+     * @param string $alias
+     * @return \ArrowWorker\Driver\View
+     */
     public static function View( $alias='app' )
     {
         $class  = self::$driverDir.'\\View';
         return $class::init( Config::App('view') );
     }
 
+    /**
+     * @param $driverType
+     * @param $alias
+     * @return mixed
+     * @throws \Exception
+     */
     private static function _init($driverType, $alias)
     {
         $config = Config::App($driverType);

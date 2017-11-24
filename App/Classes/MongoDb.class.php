@@ -165,12 +165,11 @@ class MongoDb
 
     public function objId($filter)
     {
-        $newFilter = $filter;
-        if(isset($newFilter['_id']))
+        if(isset($filter['_id']))
         {
-           $newFilter['_id'] = new \MongoDB\BSON\ObjectID($newFilter['_id']);
+            $filter['_id'] = new \MongoDB\BSON\ObjectID($filter['_id']);
         }
-        return $newFilter;
+        return $filter;
     }
 	
 }
