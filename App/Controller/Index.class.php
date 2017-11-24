@@ -16,11 +16,15 @@ class Index extends controller
     function index()
     {
 
-        $daemon =  Driver::Daemon('app');
-        $workerCtl = new Demo();
-        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 2 , 'lifecycle' => 30, 'proName' => 'dbDemo_1']);
-        $daemon -> addTask(['function' => [$workerCtl,'dbDemo'], 'argv' => [100],'concurrency' => 2 , 'lifecycle' => 30, 'proName' => 'dbDemo_2']);
-        $daemon -> start();
+        $daemonDriver = Driver::Daemon('app');
+        $cacheService = Loader::Service('CacheDemo');
+        $dbService    = Loader::Service('DbDemo');
+        $classService = Loader::Service('ClassDemo');
+        $daemonDriver -> addTask(['function' => [$cacheService,'testRedisLpush'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisLpush']);
+        $daemonDriver -> addTask(['function' => [$cacheService,'testRedisBrpop'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisBrpop']);
+        $daemonDriver -> addTask(['function' => [$dbService,   'testDb'],         'argv' => [100],'concurrency' => 50 , 'lifecycle' => 30, 'proName' => 'dbService -> testDb']);
+        $daemonDriver -> addTask(['function' => [$classService,'testMethod'],     'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'classService -> testMethod']);
+        $daemonDriver -> start();
     }
 
 

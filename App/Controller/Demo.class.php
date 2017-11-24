@@ -36,12 +36,32 @@ class Demo extends controller
 
     public function dbDemo()
     {
-        $user = Loader::Service('Project');
-        $result = $user->testDb();
+        $project = Loader::Service('Project');
+        $result = $project->testDb();
         //var_dump($result);
         //sleep(1);
     }
 
+    public function cacheSetDemo()
+    {
+        $project = Loader::Service('Project');
+        $return = $project ->testRedisGet();
+        //var_dump($return);
+    }
+
+    public function cacheGetDemo()
+    {
+        $project = Loader::Service('Project');
+        $return = $project ->testRedisGet();
+        //var_dump($return);
+    }
+
+    public function cacheLpushDemo()
+    {
+        $cache = Loader::Service('CacheDemo');
+        $cache -> testRedisLpush();
+        $cache -> testRedisBrpop();
+    }
 
 
 }

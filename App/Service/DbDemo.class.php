@@ -6,7 +6,7 @@ use ArrowWorker\Config;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
 
-class Project
+class DbDemo
 {
     
     private static $config;
@@ -15,17 +15,10 @@ class Project
     {
         self::$config = Config::App();
     }
-    
-    public function add()
-    {
-        $method = Loader::Classes("Method");
-        $method -> godDamIt();
-        return "app -> service -> user -> add";
-    }
 
     public function testDb()
     {
-        $userModel = Loader::Model('Project');
+        $userModel = Loader::Model('ArrowWorker');
         $db = Driver::Db();
         $db -> Begin();
         $oneProject    =  $userModel->GetOne();
@@ -50,15 +43,6 @@ class Project
         ];
     }
 
-    public function testRedisSet()
-    {
-        return Driver::Cache() -> Set("louis","good");
-    }
-
-    public function testRedisGet()
-    {
-        return  Driver::Cache() -> Get('louis');
-    }
 
 }
 

@@ -11,7 +11,7 @@ namespace App\Model;
 
 use ArrowWorker\Driver;
 
-class Project
+class ArrowWorker
 {
     //查询单条记录
     public function GetOne()

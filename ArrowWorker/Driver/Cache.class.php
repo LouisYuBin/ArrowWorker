@@ -22,7 +22,7 @@ class Cache
 
     protected function __construct($config)
     {
-        self::$config = $config;
+        //todo
     }
 
 }
