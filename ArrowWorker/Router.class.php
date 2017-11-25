@@ -59,8 +59,8 @@ class Router
 	 */
 	public static function Get()
     {
-        self::getRouteType();
-        switch (self::$routerType){
+		$routerType = self::getRouteType();
+        switch ($routerType){
             case self::get;
                 // "get" 形式路由
                 self::getRouter();

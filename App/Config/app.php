@@ -49,7 +49,7 @@ $app['Cache'] = [
         //端口
         'port'     => 6379,
         //密码
-        'password' => 'carlt_louis_2017_03_17'
+        'password' => 'louis'
     ]
 ];
 

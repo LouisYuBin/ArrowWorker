@@ -108,7 +108,7 @@ class Redis extends cache
 	 * @param mixed $val
 	 * @return mixed
 	 */
-	public function Lpush(string $queue, mixed $val)
+	public function Lpush(string $queue, string $val)
     {
         return $this -> getConnection() ->lPush( $queue, $val );
     }

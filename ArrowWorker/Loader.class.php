@@ -26,7 +26,7 @@ class Loader
 
 	/**
 	 * @param $name
-	 * @return \App\Service\*
+	 * @return \App\Service\DbService
 	 */
     public static function Service( $name )
     {
