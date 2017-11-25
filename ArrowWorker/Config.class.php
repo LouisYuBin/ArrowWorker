@@ -8,44 +8,60 @@
 
 namespace ArrowWorker;
 
-
+/**
+ * Class Config
+ * @package ArrowWorker
+ */
 class Config
 {
     //app class map file
     public static $AppFileMap  = 'alias';
 
     //configuration file pathy
-    private static $path        = null;
+    private static $path        = '';
     private static $AppConfig   = [];
     private static $ExtraConfig = [];
     private static $configMap   = [];
     private static $appConfKey  = 'user';
     private static $configExt   = '.php';
 
-    //specify configuration file path
-    private static function _Init()
+
+	/**
+	 * _init 初始化(配置文件路径)
+	 */
+	private static function _init()
     {
-        if( is_null(self::$path) )
+        if( self::$path == '' )
         {
             self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
         }
     }
 
-    //load frame work configuration
-    public static function App( $key=null, $AppConfig=APP_CONFIG_FILE )
+
+	/**
+	 * App
+	 * @param string $key
+	 * @param string $AppConfig
+	 * @return array|mixed
+	 */
+	public static function App(string $key='', string $AppConfig=APP_CONFIG_FILE )
     {
         if( count( self::$AppConfig ) == 0 )
         {
             self::$AppConfig = self::Load( $AppConfig );
         }
 
-        return ( !is_null($key) && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
+        return ( $key != '' && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
     }
 
-    //load app configuration
-    public static function Extra( $key=null )
+
+	/**
+	 * Extra 加载除默认配置文件以外的配置文件
+	 * @param string $key
+	 * @return mixed
+	 */
+	public static function Extra(string $key='' )
     {
-        //Load extra configuration
         if( isset( self::$AppConfig[self::$appConfKey] ) && count( self::$AppConfig[self::$appConfKey] )>0 )
         {
             foreach( self::$AppConfig[self::$appConfKey] as $eachExtraConfig )
@@ -54,11 +70,15 @@ class Config
             }
         }
 
-        return ( !is_null($key) && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
+        return ( $key != '' && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
     }
 
-    //load specified configuration
-    public static function Load( $fileName )
+	/**
+	 * Load 加载特定的配置文件
+	 * @param string $fileName
+	 * @return mixed
+	 */
+	public static function Load(string $fileName )
     {
         self::_Init();
         if( isset( self::$configMap[$fileName] ) )

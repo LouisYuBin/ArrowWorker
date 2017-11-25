@@ -9,11 +9,21 @@ namespace ArrowWorker\Driver\Db;
 use ArrowWorker\Driver\Db AS db;
 
 
+/**
+ * Class Mysqli
+ * @package ArrowWorker\Driver\Db
+ */
 class Mysqli extends db
 {
 
-    //初始化数据库连接类
-    static function init($config, $alias)
+
+	/**
+	 * 初始化数据库连接类
+	 * @param array $config
+	 * @param string $alias
+	 * @return Mysqli
+	 */
+	static function init(array $config, string $alias)
     {
         //存储配置
         if ( !isset( self::$config[$alias] ) )
@@ -32,7 +42,11 @@ class Mysqli extends db
         return self::$instance;
     }
 
-    private function connectInit($config)
+	/**
+	 * @param array $config
+	 * @return \mysqli
+	 */
+	private function connectInit(array $config)
     {
         //建立连接
         @$Conn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
@@ -46,8 +60,13 @@ class Mysqli extends db
         return $Conn;
     }
 
-    //连接数据库
-    protected function getConnection($isMaster=false,$connectNum=0)
+	/**
+	 * 连接数据库
+	 * @param bool $isMaster
+	 * @param int $connectNum
+	 * @return mixed
+	 */
+	protected function getConnection(bool $isMaster=false, int $connectNum=0)
     {
         if( $isMaster==true || self::$config[self::$dbCurrent]['seperate']==0 )
         {
@@ -56,8 +75,12 @@ class Mysqli extends db
         return $this -> connectSlave($connectNum);
     }
 
-    //检测并连接主库
-    private function connectMaster()
+
+	/**
+	 * 检测并连接主库
+	 * @return mixed
+	 */
+	private function connectMaster()
     {
         if( !isset( self::$connPool[self::$dbCurrent]['master'] ) )
         {
@@ -66,8 +89,13 @@ class Mysqli extends db
         return self::$connPool[self::$dbCurrent]['master'];
     }
 
-    //检测并连接从库
-    private function connectSlave($slaveIndex=0)
+
+	/**
+	 * 检测并连接从库
+	 * @param int $slaveIndex
+	 * @return mixed
+	 */
+	private function connectSlave(int $slaveIndex=0)
     {
         $slaveCount = count(self::$config[self::$dbCurrent]['slave']);
         $slave = ( $slaveIndex==0 || $slaveIndex>=$slaveCount || $slaveIndex<0 ) ? mt_rand( 0, $slaveCount-1 ) : $slaveIndex;
@@ -79,8 +107,15 @@ class Mysqli extends db
         return self::$connPool[self::$dbCurrent]['slave'][$slave];
     }
 
-    //查询
-    public function query($sql,$isMaster=false,$connectNum=0)
+
+	/**
+	 * 查询
+	 * @param string $sql
+	 * @param bool $isMaster
+	 * @param int $connectNum
+	 * @return array|bool
+	 */
+	public function query(string $sql, bool $isMaster=false, int $connectNum=0)
     {
 
         $result = $this -> getConnection($isMaster,$connectNum) -> query($sql);
@@ -100,8 +135,13 @@ class Mysqli extends db
 
     }
 
-    //写入或更新
-    public function execute($sql)
+
+	/**
+	 * execute 写入或更新
+	 * @param string $sql
+	 * @return array
+	 */
+	public function execute(string $sql)
     {
         $conn = $this -> getConnection(true);
         return [
@@ -111,38 +151,57 @@ class Mysqli extends db
         ];
     }
 
-    //开始事务
-    public function Begin()
+
+	/**
+	 * Begin 开始事务
+	 */
+	public function Begin()
     {
         $conn = $this -> getConnection(true);
         $conn -> autocommit(false);
         $conn -> begin_transaction();
     }
 
-    //提交事务
-    public function Commit()
+
+
+	/**
+	 * Commit 提交事务
+	 */
+	public function Commit()
     {
         $conn = $this -> getConnection(true);
         $conn -> commit();
         $conn -> autocommit(true);
     }
 
-    //回滚
-    public function Rollback()
+
+	/**
+	 * Rollback 事务回滚
+	 */
+	public function Rollback()
     {
         $conn = $this -> getConnection(true);
         $conn -> rollback();
         $conn -> autocommit(true);
     }
 
-    //是否自动提交
-    public function Autocommit($flag)
+
+	/**
+	 * Autocommit 是否自动提交
+	 * @param bool $flag
+	 */
+	public function Autocommit(bool $flag)
     {
         $this -> getConnection(true) -> autocommit($flag);
     }
 
-    //启动sql组合
-    public static function Table($table)
+
+	/**
+	 * Table 启动sql组合
+	 * @param string $table
+	 * @return $this
+	 */
+	public static function Table(string $table)
     {
         $sqlBuilder = new SqlBuilder();
         return $sqlBuilder -> Table($table, self::$config[self::$dbCurrent]['driver']);

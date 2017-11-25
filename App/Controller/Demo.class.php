@@ -20,7 +20,8 @@ class Demo extends controller
         $dbService    = Loader::Service('DbDemo');
         $classService = Loader::Service('ClassDemo');
 
-        $dbService    -> testDb();
+        $dbService    -> test();
+        $dbService->
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();

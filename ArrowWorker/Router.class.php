@@ -9,23 +9,55 @@ namespace ArrowWorker;
 use ArrowWorker\Config as config;
 
 
+/**
+ * Class Router
+ * @package ArrowWorker
+ */
 class Router
 {
-    const defaults  = 'Index';
-    const routeType = "RouterType";
+	/**
+	 * 默认控制器/方法
+	 */
+	const defaults  = 'Index';
 
+	/**
+	 * 配置文件中路由配置key
+	 */
+	const routeType = "RouterType";
+
+	/**
+	 * get类型路由
+	 */
     const get = 1;
+
+	/**
+	 * uri类型路由
+	 */
     const uri = 2;
 
-    private static $routerType;
-    private static $return = ['c'=> self::defaults, 'm' => self::defaults];
 
-    private static function getRouteType()
+	/**
+	 * 路由返回格式
+	 * @var array
+	 */
+	private static $return = ['c'=> self::defaults, 'm' => self::defaults];
+
+
+	/**
+	 * getRouteType
+	 * @return array|mixed
+	 */
+	private static function getRouteType()
     {
-        self::$routerType = config::App(self::routeType);
+        return config::App(self::routeType);
     }
 
-    public static function Get()
+
+	/**
+	 * Get 返回要调用的控制器和方法
+	 * @return array
+	 */
+	public static function Get()
     {
         self::getRouteType();
         switch (self::$routerType){
@@ -43,14 +75,20 @@ class Router
         return self::$return;
     }
 
-    public static function getRouter()
+	/**
+	 * getRouter get类型路由获取
+	 */
+	public static function getRouter()
     {
         @self::$return['c'] = isset($_REQUEST['c']) ? $_REQUEST['c'] : self::defaults;
         @self::$return['m'] = isset($_REQUEST['m']) ? $_REQUEST['m'] : self::defaults;
     }
 
+	/**
+	 * uriRouter uri类型路由获取
+	 */
     public static function uriRouter()
     {
-
+		//todo
     }
 }

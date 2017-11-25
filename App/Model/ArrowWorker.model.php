@@ -11,10 +11,18 @@ namespace App\Model;
 
 use ArrowWorker\Driver;
 
+/**
+ * Class ArrowWorker
+ * @package App\Model
+ */
 class ArrowWorker
 {
-    //查询单条记录
-    public function GetOne()
+
+	/**
+	 * 查询单条记录
+	 * @return mixed
+	 */
+	public function GetOne()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
         return Driver::Db()->Table("project")->Where('id=1')->Col($column)->Get();

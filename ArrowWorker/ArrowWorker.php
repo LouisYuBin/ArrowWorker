@@ -63,7 +63,7 @@ class ArrowWorker
         {
             self::$Arrow = new self;
             //初始化异常和错误处理
-            exception::init();
+            exception::Init();
         }
         self::$app = app::initApp();
         self::$app -> runApp();

@@ -9,22 +9,55 @@
 namespace ArrowWorker;
 
 
+/**
+ * Class Exception
+ * @package ArrowWorker
+ */
 class Exception
 {
-    private static $code;
-    private static $msg;
-    private static $file;
-    private static $line;
-    private static $trace;
+	/**
+	 * @var int 错误/异常码
+	 */
+	private static $code  = 0;
 
-    static function init()
+	/**
+	 * @var string 错误/异常消息
+	 */
+    private static $msg   = '';
+
+	/**
+	 * @var int 错误/异常发生所在文件
+	 */
+    private static $file  = '';
+
+	/**
+	 * @var int 错误/异常行数
+	 */
+    private static $line  = 0;
+
+	/**
+	 * @var int 文件追踪
+	 */
+    private static $trace = '';
+
+	/**
+	 * init 初始化错误处理和异常助理
+	 */
+	static function Init()
     {
         set_error_handler([__CLASS__ , 'error']);
         set_exception_handler([__CLASS__,'exception']);
     }
 
-    //错误处理
-    static function error( $code=null, $msg=null, $file=null, $line =null )
+
+	/**
+	 * error
+	 * @param int $code
+	 * @param string $msg
+	 * @param string $file
+	 * @param int $line
+	 */
+	static function error(int $code=0, string $msg='', string $file='', int $line=0 )
     {
         //ob_clean();
         if( APP_TYPE=='web' && APP_STATUS=='debug' )
@@ -43,8 +76,13 @@ class Exception
         }
     }
 
-    //异常处理
-    static function exception($msg = null, $code=null)
+
+	/**
+	 * exception 异常处理
+	 * @param string $msg
+	 * @param int $code
+	 */
+	static function exception(string $msg = '', int $code=0)
     {
         $exception = (array)$msg;
         $elemetNum = 0;
