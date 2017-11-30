@@ -9,9 +9,16 @@
 namespace ArrowWorker;
 
 
+/**
+ * Class Config
+ * @package ArrowWorker
+ */
 class Config
 {
-    //app class map file
+    /**
+     * app class map file
+     * @var string
+     */
     public static $AppFileMap  = 'alias';
 
     //configuration file pathy
@@ -32,18 +39,26 @@ class Config
     }
 
     //load frame work configuration
-    public static function App( $key=null, $AppConfig=APP_CONFIG_FILE )
+
+    /**
+     * App
+     * @author Louis
+     * @param string $key
+     * @param string $AppConfig
+     * @return array|mixed
+     */
+    public static function App(string $key='',string $AppConfig=APP_CONFIG_FILE ) : mixed
     {
         if( count( self::$AppConfig ) == 0 )
         {
             self::$AppConfig = self::Load( $AppConfig );
         }
 
-        return ( !is_null($key) && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
+        return ( !empty($key) && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
     }
 
     //load app configuration
-    public static function Extra( $key=null )
+    public static function Extra(string $key='' ) : mixed
     {
         //Load extra configuration
         if( isset( self::$AppConfig[self::$appConfKey] ) && count( self::$AppConfig[self::$appConfKey] )>0 )
@@ -54,23 +69,31 @@ class Config
             }
         }
 
-        return ( !is_null($key) && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
+        return ( !empty($key) && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
     }
 
-    //load specified configuration
-    public static function Load( $fileName )
+    /**
+     * Load  load specified configuration file
+     * @auth Louis
+     * @param string $fileName
+     * @return mixed
+     * @throws \Exception
+     */
+    public static function Load(string $fileName ) : mixed
     {
         self::_Init();
         if( isset( self::$configMap[$fileName] ) )
         {
             return self::$configMap[$fileName];
         }
-        else
-        {
-            self::$configMap[$fileName] = require( self::$path.$fileName.self::$configExt );
-            return self::$configMap[$fileName];
-        }
 
+        $configPath = self::$path.$fileName.self::$configExt;
+        if( !file_exists($configPath) )
+        {
+            throw new \Exception( "Config File : {$configPath} does not exists.");
+        }
+        self::$configMap[$fileName] = require( $configPath );
+        return self::$configMap[$fileName];
     }
 
 }
