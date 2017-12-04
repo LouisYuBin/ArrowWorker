@@ -12,16 +12,23 @@
 
 namespace ArrowWorker;
 
+/**
+ * Class Driver
+ * @package ArrowWorker
+ */
 class Driver
 {
-    private static $driverDir   = 'ArrowWorker\\Driver';
+	/**
+	 * @var string 驱动器所在目录
+	 */
+	private static $driverDir   = 'ArrowWorker\\Driver';
 
     /**
      * 数据库驱动
      * @param string $alias
      * @return \ArrowWorker\Driver\Db\Mysqli
      */
-    public static function Db( $alias='app' )
+    public static function Db(string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -31,7 +38,7 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\Cache\Redis
      */
-    public static function Cache( $alias='app' )
+    public static function Cache(string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -41,7 +48,7 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\Daemon\ArrowDaemon
      */
-    public static function Daemon( $alias='app' )
+    public static function Daemon(string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -51,19 +58,21 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\View
      */
-    public static function View( $alias='app' )
+    public static function View(string $alias='app' )
     {
         $class  = self::$driverDir.'\\View';
         return $class::init( Config::App('view') );
     }
 
-    /**
-     * @param $driverType
-     * @param $alias
-     * @return mixed
-     * @throws \Exception
-     */
-    private static function _init($driverType, $alias)
+
+	/**
+	 * _init
+	 * @param string $driverType
+	 * @param string $alias
+	 * @return mixed
+	 * @throws \Exception
+	 */
+	private static function _init(string $driverType, string $alias)
     {
         $config = Config::App($driverType);
         if ( isset( $config[$alias] ) )

@@ -24,10 +24,10 @@ class Loader
         return self::_appModule( $name, APP_CLASS_FOLDER );
     }
 
-    /**
-     * @param $name
-     * @return \App\Service\
-     */
+	/**
+	 * @param $name
+	 * @return \App\Service\DbService
+	 */
     public static function Service( $name )
     {
         return self::_appModule( $name, APP_SERVICE_FOLDER );

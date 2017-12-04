@@ -10,70 +10,150 @@ namespace ArrowWorker\Driver\Db;
 
 use ArrowWorker\Driver\Db;
 
+/**
+ * Class SqlBuilder
+ * @package ArrowWorker\Driver\Db
+ */
 class SqlBuilder
 {
-    private $where   = "";
-    private $column  = "*";
-    private $table   = "";
-    private $limit   = "";
-    private $orderBy = "";
-    private $groupBy = "";
-    private $having  = "";
 
-    public function __construct($instance=null)
+	/**
+	 * @var string
+	 */
+	private $where   = "";
+
+	/**
+	 * @var string
+	 */
+	private $column  = "*";
+
+	/**
+	 * @var string
+	 */
+	private $table   = "";
+
+	/**
+	 * @var string
+	 */
+	private $limit   = "";
+
+	/**
+	 * @var string
+	 */
+	private $orderBy = "";
+
+	/**
+	 * @var string
+	 */
+	private $groupBy = "";
+
+	/**
+	 * @var string
+	 */
+	private $having  = "";
+
+	/**
+	 * SqlBuilder constructor.
+	 * @param null $instance
+	 */
+	public function __construct($instance=null)
     {
         //todo
     }
 
+	/**
+	 * @return \ArrowWorker\Driver\Db\Mysqli
+	 */
     private function getDb()
     {
         return Db::GetDb();
     }
 
 
-    public function Where($where)
+	/**
+	 * @param string $where
+	 * @return $this
+	 */
+	public function Where(string $where)
     {
         $this->where  = ($where != '') ? " where {$where} " : '';
         return $this;
     }
 
-    public function Table($table)
+
+	/**
+	 * @param string $table
+	 * @return $this
+	 */
+	public function Table(string $table)
     {
         $this->table = $table;
         return $this;
     }
 
-    public function Col($column)
+
+	/**
+	 * @param array $column
+	 * @return $this
+	 */
+	public function Col(array $column)
     {
         $this->column  = ( $column=="" ) ? "*" : implode(',', $column);
         return $this;
     }
 
-    public function Limit($start, $num)
+
+	/**
+	 * @param int $start
+	 * @param int $num
+	 * @return $this
+	 */
+	public function Limit(int $start, int $num)
     {
         $this->limit = " limit {$start},{$num} ";
         return $this;
     }
 
-    public function OrderBy($orderBy)
+
+	/**
+	 * @param string $orderBy
+	 * @return $this
+	 */
+	public function OrderBy(string $orderBy)
     {
         $this->orderBy = $orderBy;
         return $this;
     }
 
-    public function GroupBy($groupBy)
+
+	/**
+	 * @param  string $groupBy
+	 * @return $this
+	 */
+	public function GroupBy(string $groupBy)
     {
         $this->groupBy = ($groupBy != "") ? " group by {$groupBy} " : '' ;
         return $this;
     }
 
-    public function Having($having)
+
+	/**
+	 * @param string $having
+	 * @return $this
+	 */
+	public function Having(string $having)
     {
         $this->having  = ($having != "") ? " having {$having} " : '';
         return $this;
     }
 
-    public function Find( $Master=false, $slaveIndex=0)
+
+	/**
+	 * @param bool $Master
+	 * @param int $slaveIndex
+	 * @return array
+	 */
+	public function Find(bool $Master=false, int $slaveIndex=0)
     {
         $result =  $this->getDb()->query( $this->parseSelect(), $Master, $slaveIndex );
         return [
@@ -82,7 +162,13 @@ class SqlBuilder
         ];
     }
 
-    public function Get( $Master=false, $slaveIndex=0 )
+
+	/**
+	 * @param bool $Master
+	 * @param int $slaveIndex
+	 * @return array
+	 */
+	public function Get(bool $Master=false, int $slaveIndex=0 )
     {
         $result = $this->getDb()->query( $this->parseSelect() ,$Master, $slaveIndex );
         return [
@@ -91,25 +177,29 @@ class SqlBuilder
         ];
     }
 
-    public function Insert($data)
+	/**
+	 * @param array $data
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function Insert(array $data)
     {
         if ( !is_array($data) )
         {
             throw new \Exception("inert data must be an array,just like ['name'=>'Louis']");
         }
-        $column = '';
-        $values = '';
-        foreach ($data as $key=>$val)
-        {
-            $column = $column.$key.",";
-            $values = $values."'".$val."',";
-        }
-        $column = substr($column,0,-1);
-        $values = substr($values,0,-1);
+        $column = implode(',', array_keys($data));
+        $values = implode("','", $data);
         return $this->getDb()->execute("insert into {$this->table}({$column}) values({$values})");
     }
 
-    public function Update($data)
+
+	/**
+	 * @param array $data
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function Update(array $data)
     {
         if ( !is_array($data) )
         {
@@ -124,12 +214,21 @@ class SqlBuilder
         return $this->getDb()->execute("update {$this->table} set {$update} {$this->where}");
     }
 
-    public function delete()
+
+	/**
+	 * @return array
+	 */
+	public function delete()
     {
         return $this->getDb()->execute("delete from {$this->table} {$this->where}");
     }
 
-    public function parseSelect()
+
+	/**
+	 * @return string
+	 * @throws \Exception
+	 */
+	public function parseSelect()
     {
         if ( $this->table=="" )
         {

@@ -28,7 +28,7 @@ class CacheDemo
 
     public function testRedisLpush()
     {
-        $result = Driver::Cache() -> Lpush('ArrowWorker','An efficient php deamon Framework.');
+        $result = Driver::Cache() -> Lpush('ArrowWorker',100);
         //var_dump($result);
     }
 

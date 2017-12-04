@@ -8,7 +8,6 @@
 
 namespace ArrowWorker;
 
-
 /**
  * Class Config
  * @package ArrowWorker
@@ -21,24 +20,69 @@ class Config
      */
     public static $AppFileMap  = 'alias';
 
-    //configuration file pathy
-    private static $path        = '';
-    private static $AppConfig   = [];
-    private static $ExtraConfig = [];
-    private static $configMap   = [];
-    private static $appConfKey  = 'user';
-    private static $configExt   = '.php';
+    /**
+     * 配置文件路径
+     * @var string
+     */
+    private static $path          = '';
 
-    //specify configuration file path
-    private static function _Init()
+    /**
+     * 框架默认配置
+     * @var array
+     */
+    private static $AppConfig     = [];
+
+    /**
+     * 用户自定义配置
+     * @var array
+     */
+    private static $ExtraConfig   = [];
+
+    /**
+     * 配置文件记录
+     * @var array
+     */
+    private static $configFileMap = [];
+
+    /**
+     * 框架配置文件中用户配置文件数据对应key
+     * @var string
+     */
+    private static $extraConfKey  = 'user';
+
+    /**
+     * 配置文件后缀
+     * @var array
+     */
+    private static $configExt     = '.php';
+
+    /**
+     * 框架配置文件是否加载
+     * @var bool
+     */
+    private static $AppConfigLoaded   = false;
+
+    /**
+     * 用户自定义配置文件是否加载
+     * @var bool
+     */
+    private static $ExtraConfigLoaded = false;
+
+
+	/**
+	 * _init 初始化(配置文件路径)
+	 */
+	public static function Init(string $configFilePath='') : void
     {
-        if( empty(self::$path) )
+        if( empty(self::$path) && empty($configFilePath) )
         {
             self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
         }
+        else if( !empty($configFilePath) )
+        {
+            self::$path = $configFilePath;
+        }
     }
-
-    //load frame work configuration
 
     /**
      * App
@@ -49,51 +93,58 @@ class Config
      */
     public static function App(string $key='',string $AppConfig=APP_CONFIG_FILE ) : mixed
     {
-        if( count( self::$AppConfig ) == 0 )
+        if( !static::$AppConfigLoaded )
         {
-            self::$AppConfig = self::Load( $AppConfig );
+            static::$AppConfig = self::Load( $AppConfig );
+            static::$AppConfigLoaded = true;
         }
 
-        return ( !empty($key) && isset(self::$AppConfig[$key]) ) ? self::$AppConfig[$key] : self::$AppConfig;
+        return ( !empty($key) && isset(static::$AppConfig[$key]) ) ? static::$AppConfig[$key] : static::$AppConfig;
     }
 
-    //load app configuration
-    public static function Extra(string $key='' ) : mixed
+
+	/**
+	 * Extra 加载除默认配置文件以外的配置文件
+	 * @param string $key
+	 * @return mixed
+	 */
+	public static function Extra(string $key='' ) : mixed
     {
-        //Load extra configuration
-        if( isset( self::$AppConfig[self::$appConfKey] ) && count( self::$AppConfig[self::$appConfKey] )>0 )
+        if( !static::$ExtraConfigLoaded )
         {
-            foreach( self::$AppConfig[self::$appConfKey] as $eachExtraConfig )
+            if( isset( static::$AppConfig[static::$extraConfKey] ) && count( static::$AppConfig[static::$extraConfKey] )>0 )
             {
-                self::$ExtraConfig = array_merge( self::$ExtraConfig, self::Load( $eachExtraConfig ) );
+                foreach( static::$AppConfig[static::$extraConfKey] as $eachExtraConfig )
+                {
+                    static::$ExtraConfig = array_merge( static::$ExtraConfig, static::Load( $eachExtraConfig ) );
+                }
             }
+            static::$ExtraConfigLoaded = true;
         }
 
-        return ( !empty($key) && isset(self::$appConfig[$key]) ) ? self::$appConfig[$key] : self::$appConfig;
+        return ( !empty($key) && isset(static::$ExtraConfig[$key]) ) ? static::$ExtraConfig[$key] : static::$ExtraConfig;
     }
 
-    /**
-     * Load  load specified configuration file
-     * @auth Louis
-     * @param string $fileName
-     * @return mixed
-     * @throws \Exception
-     */
-    public static function Load(string $fileName ) : mixed
+	/**
+	 * Load 加载特定的配置文件
+	 * @param string $fileName
+	 * @return mixed
+	 */
+	public static function Load(string $fileName ) : mixed
     {
-        self::_Init();
-        if( isset( self::$configMap[$fileName] ) )
+        static::Init();
+        if( isset( self::$configFileMap[$fileName] ) )
         {
-            return self::$configMap[$fileName];
+            return self::$configFileMap[$fileName];
         }
 
-        $configPath = self::$path.$fileName.self::$configExt;
-        if( !file_exists($configPath) )
+        $configFilePath = self::$path.$fileName.self::$configExt;
+        if( !file_exists($configFilePath) )
         {
-            throw new \Exception( "Config File : {$configPath} does not exists.");
+            throw new \Exception( "Config File : {$configFilePath} does not exists.");
         }
-        self::$configMap[$fileName] = require( $configPath );
-        return self::$configMap[$fileName];
+        self::$configFileMap[$fileName] = require( $configFilePath );
+        return self::$configFileMap[$fileName];
     }
 
 }
