@@ -13,6 +13,7 @@
 namespace ArrowWorker;
 
 /**
+ * 框架驱动加载类
  * Class Driver
  * @package ArrowWorker
  */
@@ -38,7 +39,7 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\Cache\Redis
      */
-    public static function Cache(string $alias='app' )
+    public static function Cache( string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -48,7 +49,7 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\Daemon\ArrowDaemon
      */
-    public static function Daemon(string $alias='app' )
+    public static function Daemon( string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -58,33 +59,29 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\View
      */
-    public static function View(string $alias='app' )
+    public static function View( string $alias='app' )
     {
         $class  = self::$driverDir.'\\View';
         return $class::init( Config::App('view') );
     }
 
 
-	/**
-	 * _init
-	 * @param string $driverType
-	 * @param string $alias
-	 * @return mixed
-	 * @throws \Exception
-	 */
-	private static function _init(string $driverType, string $alias)
+    /**
+     * _init 加载框架驱动器
+     * @author Louis
+     * @param string $driverType
+     * @param string $alias
+     * @return mixed
+     * @throws \Exception
+     */private static function _init(string $driverType, string $alias)
     {
         $config = Config::App($driverType);
-        if ( isset( $config[$alias] ) )
+        if ( !isset( $config[$alias] ) )
         {
-            $driver = self::$driverDir.'\\'.$driverType."\\".$config[$alias]['driver'];
-            return $driver::init( $config[$alias], $alias );
+            throw new \Exception("driver {$driverType}->{$alias} config does not exists.");
         }
-        else
-        {
-            throw new \Exception("driver {$driverType}->{$alias} does not exists.");
-        }
-
+        $driver = self::$driverDir.'\\'.$driverType."\\".$config[$alias]['driver'];
+        return $driver::init( $config[$alias], $alias );
     }
 
 }
