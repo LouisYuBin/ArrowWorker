@@ -11,47 +11,131 @@ use ArrowWorker\Driver\Daemon AS daemon;
 use ArrowWorker\Driver\Daemon\ArrowThread;
 use ArrowWorker\Driver\Daemon\GeneratorTask;
 
+/**
+ * Class ArrowDaemon
+ * @package ArrowWorker\Driver\Daemon
+ */
 class ArrowDaemon extends daemon
 {
-    //pid文件路径
+    /**
+     * pid文件路径
+     * @var string
+     */
     private static $pid_Path    = '/var/run';
-    //pid文件完整路径
-    private static $pid_File    = null;
-    //默认pid文件名称
+
+    /**
+     * pid文件完整路径
+     * @var string
+     */
+    private static $pid_File    = '';
+
+    /**
+     * 默认pid文件名
+     * @var string
+     */
     private static $pid_Name    = 'ArrowWorker';
-    //应用名称
+
+    /**
+     * 应用名称
+     * @var string
+     */
     private static $App_Name    = 'ArrowWorker';
-    //运行用户
+
+    /**
+     * 运行用户
+     * @var string
+     */
     private static $user        = 'root';
-    //退出标识
+
+    /**
+     * 是否退出 标识
+     * @var bool
+     */
     private static $terminate   = false;
-    //日志前缀时间时区
+
+    /**
+     * 日志前缀时间时区
+     * @var string
+     */
     private static $tipTimeZone = 'UTC';
-    //任务数量
+
+    /**
+     * 任务数量
+     * @var int
+     */
     private static $jobNum      = 0;
-    //进程执行权限
+
+    /**
+     * 进程执行权限
+     * @var int
+     */
     private static $umask       = 0;
-    //进程日志文件
+
+    /**
+     * 进程日志文件
+     * @var string
+     */
     private static $output      = '/var/log/ArrowWorker.log';
-    //是否以单例模式运行
+
+    /**
+     * 是否以单例模式运行
+     * @var bool
+     */
     private static $isSingle    = true;
-    //是否多线程模式
+
+    /**
+     * 是否是用多线程模式运行
+     * @var bool
+     */
     private static $isMultiThr  = false;
-    //任务map
+
+    /**
+     * 任务map
+     * @var bool
+     */
     private static $jobs        = [];
-    //进程 ID map
+
+    /**
+     * 任务进程 ID map
+     * @var Array
+     */
     private static $tmpPid      = [];
-    //线程池
+
+    /**
+     * 线程池
+     * @var Array
+     */
     private static $threadMap   = [];
-    //协程池
+
+    /**
+     * 协程池（即将废弃）
+     * @var Array
+     */
     private static $scheduleMap = [];
-    //线程数
+
+    /**
+     * 单个进程开启的线程数
+     * @var Array
+     */
     private static $threadNum   = 6;
-    //进程运行状态：开始时间、任务执行次数、结束时间
+
+    /**
+     * 进程内任务执行状态 开始时间、运行次数、结束时间
+     * @var Array
+     */
     private static $workerStat  = ['start' => null, 'count' => 0, 'end' => null];
-    //是否使用生成器,默认不使用
+
+    /**
+     * 是否使用协程,默认不使用
+     * @var bool
+     */
     private static $enableGenerator = false;
 
+
+    /**
+     * ArrowDaemon constructor.
+     * @param array $config
+     */
     public function __construct($config)
     {
         parent::__construct($config);
@@ -69,7 +153,13 @@ class ArrowDaemon extends daemon
         $this -> _daemonMake();
     }
 
-    static function init($config)
+    /**
+     * init 单例模式初始化类
+     * @author Louis
+     * @param $config
+     * @return ArrowDaemon
+     */
+    static function init($config) : self
     {
         if(!self::$daemonObj)
         {
@@ -78,11 +168,15 @@ class ArrowDaemon extends daemon
         return self::$daemonObj;
     }
 
+    /**
+     * _environmentCheck 运行环境/扩展检测
+     * @author Louis
+     */
     private function _environmentCheck()
     {
         if (php_sapi_name() != "cli")
         {
-            die("only run in command line mode\n");
+            die("ArrowWorker hint : only run in command line mode\n");
         }
 
         if ( ! function_exists('pcntl_signal_dispatch'))
@@ -93,11 +187,11 @@ class ArrowDaemon extends daemon
         if ( ! function_exists('pcntl_signal'))
         {
             $message = 'php environment do not support pcntl_signal';
-            $this -> _logWrite($message);
+            $this -> _writeLog($message);
             throw new Exception($message);
         }
 
-        $fl = fopen(self::$output, 'w') or die("cannot create log file");
+        $fl = fopen(self::$output, 'w') or die("ArrowWorker hint : cannot create log file");
               fclose($fl);
 
         if (function_exists('gc_enable'))
@@ -109,6 +203,10 @@ class ArrowDaemon extends daemon
 
     }
 
+    /**
+     * _daemonMake  进程脱离终端
+     * @author Louis
+     */
     private function _daemonMake()
     {
         
@@ -136,9 +234,9 @@ class ArrowDaemon extends daemon
 
         chdir("/");
         $proStartTime = date("Y-m-d H:i:s");
-        $this -> _userSet(self::$user) or die("Setting process user failed！");
+        $this -> _userSet(self::$user) or die("ArrowWorker hint : Setting process user failed！");
         $this -> _resetStd();
-        $this -> _setProcessName("ArrowWorker V1.3 --By Louis --started at ".$proStartTime);
+        $this -> _setProcessName("ArrowWorker V1.5 --By Louis --started at ".$proStartTime);
         if (self::$isSingle==true)
         {
             $this -> _createPidfile();
@@ -146,6 +244,10 @@ class ArrowDaemon extends daemon
 
     }
 
+    /**
+     * _resetStd 重置标准输入输出
+     * @author Louis
+     */
     private function _resetStd()
     {
         global $STDOUT, $STDERR;
@@ -160,10 +262,14 @@ class ArrowDaemon extends daemon
         }
         else
         {
-            $this -> _logWrite("can not open stdoutFile");       
+            $this -> _writeLog("ArrowWorker hint : can not open stdoutFile");
         }
     }
 
+    /**
+     * _createPidfile 创建进程pid文件
+     * @author Louis
+     */
     private function _createPidfile()
     {
 
@@ -176,9 +282,13 @@ class ArrowDaemon extends daemon
         fwrite($fp, posix_getpid());
         fclose($fp);
 
-        $this -> _logWrite("create pid file " . self::$pid_File);
+        $this -> _writeLog("create pid file " . self::$pid_File);
     }
 
+    /**
+     * _checkPidfile 检测进程pid文件
+     * @author Louis
+     */
     private function _checkPidfile()
     {
 
@@ -191,18 +301,25 @@ class ArrowDaemon extends daemon
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
-            $this -> _logWrite("Daemon process is already started");
+            $this -> _writeLog("ArrowWorker hint : Daemon process is already started");
         }
         else
         {
-            $this -> _logWrite("Daemon process ended abnormally , Check your program." . self::$pid_File);
+            $this -> _writeLog("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid_File);
         }
 
         exit(1);
 
     }
 
-    private function _setSignalHandler($type = 'parentsQuit',$lifecycle=0)
+
+    /**
+     * _setSignalHandler 进程信号处理设置
+     * @author Louis
+     * @param string $type 设置信号类型（子进程/监控进程）
+     * @param int $lifecycle 闹钟周期
+     */
+    private function _setSignalHandler(string $type = 'parentsQuit', int $lifecycle=0)
     {
         switch($type)
         {
@@ -220,7 +337,14 @@ class ArrowDaemon extends daemon
         }
     }
 
-    public function signalHandler($signal)
+
+    /**
+     * signalHandler 进程信号处理
+     * @author Louis
+     * @param int $signal
+     * @return bool
+     */
+    public function signalHandler(int $signal)
     {
         switch($signal)
         {
@@ -241,7 +365,14 @@ class ArrowDaemon extends daemon
 
     }
 
-    private function _userSet($name)
+
+    /**
+     * _userSet 运行用户设置
+     * @author Louis
+     * @param string $name
+     * @return bool
+     */
+    private function _userSet(string $name) : bool
     {
 
         $result = false;
@@ -263,7 +394,13 @@ class ArrowDaemon extends daemon
 
     }
 
-    private function _setProcessName($proName)
+
+    /**
+     * _setProcessName  进程名称设置
+     * @author Louis
+     * @param string $proName
+     */
+    private function _setProcessName(string $proName)
     {
         $proName = self::$App_Name.' -- '.$proName;
         if(function_exists('cli_set_process_title'))
@@ -276,21 +413,30 @@ class ArrowDaemon extends daemon
         }
     }
 
-    public function start()
+
+    /**
+     * start 挂载信号处理、生成任务worker、开始worker监控
+     * @author Louis
+     */
+    public function Start()
     {
 
         self::$jobNum = count(self::$jobs,0);
 
         if(self::$jobNum == 0)
         {
-            $this -> _logWrite("please add some jobs");
-            $this -> _clearArrowInfo();
+            $this -> _writeLog("ArrowWorker hint : please add one task at least.");
+            $this -> _deletePidAndLogExit();
         }
         $this -> _setSignalHandler('monitorHandler');
         $this -> _forkWorkders();
         $this -> _startMonitor();
     }
 
+    /**
+     * _exitWorkers 循环退出所有worker
+     * @author Louis
+     */
     private function _exitWorkers()
     {
         foreach(self::$tmpPid as $key => $val)
@@ -303,6 +449,10 @@ class ArrowDaemon extends daemon
         }
     }
 
+    /**
+     * _exitWorkers 开启worker监控
+     * @author Louis
+     */
     private function _startMonitor()
     {
         while (1)
@@ -321,7 +471,7 @@ class ArrowDaemon extends daemon
                     $pid    = pcntl_wait($status, WUNTRACED);
                     $this -> _handleExited( $pid, $status );
                 }
-                $this -> _clearArrowInfo();
+                $this -> _deletePidAndLogExit();
             }
 
             pcntl_signal_dispatch();
@@ -335,7 +485,15 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _handleExited($pid, $status, $isExit=true)
+
+    /**
+     * _handleExited 处理退出的进程
+     * @author Louis
+     * @param int $pid
+     * @param int $status
+     * @param bool $isExit
+     */
+    private function _handleExited(int $pid, int $status, bool $isExit=true)
     {
         if ($pid > 0)
         {
@@ -346,10 +504,15 @@ class ArrowDaemon extends daemon
             {
                 $this -> _forkOneWork($taskGroupId);
             }
-            $this -> _logWrite("Task process(".self::$jobs[$taskGroupId]["processName"]."-".$pid.":".$status.") exited.");
+            $this -> _writeLog("Task process(".self::$jobs[$taskGroupId]["processName"]."-".$pid.":".$status.") exited.");
         }
     }
 
+
+    /**
+     * _forkWorkders 给多有任务开启对应任务执行worker组
+     * @author Louis
+     */
     private function _forkWorkders()
     {
         for($i = 0; $i<self::$jobNum; $i++)
@@ -362,7 +525,13 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _forkOneWork($taskGroupId)
+
+    /**
+     * _forkOneWork 生成一个任务worker
+     * @author Louis
+     * @param int $taskGroupId
+     */
+    private function _forkOneWork(int $taskGroupId)
     {
         $pid = -1;
 
@@ -383,7 +552,14 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _runWorker($index, $lifecycle)
+
+    /**
+     * _runWorker 常驻执行任务
+     * @author Louis
+     * @param int $index
+     * @param int $lifecycle
+     */
+    private function _runWorker(int $index, int $lifecycle)
     {
         $this -> _setSignalHandler('workerHandler', $lifecycle );
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
@@ -406,7 +582,7 @@ class ArrowDaemon extends daemon
                 
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                $this -> _logWrite( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+                $this -> _writeLog( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
                 exit(0);
 
             }
@@ -417,18 +593,23 @@ class ArrowDaemon extends daemon
         }
     }
 
-    //进程执行任务
-    private function _processRunTask($index)
+
+    /**
+     * _processRunTask 进程形式执行任务
+     * @author Louis
+     * @param int $index
+     */
+    private function _processRunTask(int $index)
     {
         self::$workerStat['start'] = time();
-        $this -> _logWrite( self::$jobs[$index]['processName'].' started.');
+        $this -> _writeLog( self::$jobs[$index]['processName'].' started.');
         while( 1 )
         {
             if( self::$terminate )
             {
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                $this -> _logWrite( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+                $this -> _writeLog( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
                 exit(0);
             }
             pcntl_signal_dispatch();
@@ -444,9 +625,15 @@ class ArrowDaemon extends daemon
             self::$workerStat['count']++;
         }
     }
-	
-	//协程执行任务
-    private function _generatorRunTask( $index )
+
+
+    /**
+     * _generatorRunTask 协程执行任务
+     * @author Louis
+     * @param int $index
+     * @return \Generator
+     */
+    private function _generatorRunTask( int $index )
     {
         while( 1 )
         {
@@ -466,6 +653,11 @@ class ArrowDaemon extends daemon
     }
 
     //协程执行任务
+
+    /**
+     * _scheduleRun
+     * @author Louis
+     */
     private function _scheduleRun()
     {
         while( 1 )
@@ -491,15 +683,22 @@ class ArrowDaemon extends daemon
 
     }
 
-    //添加协程任务
+    /**
+     * newScheduleTask 添加协程任务
+     * @author Louis
+     * @param \Generator $coroutine
+     */
     private function newScheduleTask( \Generator $coroutine )
     {
         self::$scheduleMap[] = new GeneratorTask( $coroutine );
     }
 
-
-    //线程执行任务
-    private function _threadRunTask($index)
+    /**
+     * _threadRunTask 线程执行任务
+     * @author Louis
+     * @param int $index
+     */
+    private function _threadRunTask(int $index)
     {
         //创建线程
         for( $i = 1; $i <= self::$threadNum; $i++  )
@@ -531,7 +730,7 @@ class ArrowDaemon extends daemon
                 }   
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                $this -> _logWrite(self::$jobs[$index]['processName'].' finished '.$threadsTaskCount.' times of its work in '.$proWorkerTimeSum.' seconds.');
+                $this -> _writeLog(self::$jobs[$index]['processName'].' finished '.$threadsTaskCount.' times of its work in '.$proWorkerTimeSum.' seconds.');
                 break;
             }
 
@@ -552,24 +751,33 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _clearArrowInfo()
+    /**
+     * _deletePidAndLogExit 删除进程pid文件、记录退出信息后正常退出粗
+     * @author Louis
+     */
+    private function _deletePidAndLogExit()
     {
         if (file_exists(self::$pid_File))
         {
             unlink(self::$pid_File);
-            $this -> _logWrite("delete pid file " . self::$pid_File);
+            $this -> _writeLog("delete pid file " . self::$pid_File);
         }
-        $this -> _logWrite("ArrowWorker exits.");
+        $this -> _writeLog("ArrowWork  hint ：monitor exits.");
         exit(0);
 
     }
 
-    public function addTask( $job = [] )
+    /**
+     * addTask 添加任务及相关属性
+     * @author Louis
+     * @param array $job
+     */
+    public function AddTask( $job = [] )
     {
         
         if(!isset($job['function'])||empty($job['function']))
         {
-            $this -> _logWrite("Task is needed,Sir");
+            $this -> _writeLog("ArrowWork  hint ： one Task at least is needed.");
             exit(0);
         }
 
@@ -581,7 +789,12 @@ class ArrowDaemon extends daemon
         self::$jobs[] = $job;
     }
 
-    private  function _logWrite($message)
+    /**
+     * _writeLog 标准输出日志
+     * @author Louis
+     * @param string $message
+     */
+    private  function _writeLog(string $message)
     {
         date_default_timezone_set(self::$tipTimeZone);
         @printf("%s\tpid:%d\tppid:%d\t%s\n", date("Y-m-d H:i:s"), posix_getpid(), posix_getppid(), $message);

@@ -22,11 +22,11 @@ class Index extends controller
         $cacheService = Loader::Service('CacheDemo');
         $dbService    = Loader::Service('DbDemo');
         $classService = Loader::Service('ClassDemo');
-        $daemonDriver -> addTask(['function' => [$cacheService,'testRedisLpush'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisLpush']);
-        $daemonDriver -> addTask(['function' => [$cacheService,'testRedisBrpop'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisBrpop']);
-        $daemonDriver -> addTask(['function' => [$dbService,   'testDb'],         'argv' => [100],'concurrency' => 50 , 'lifecycle' => 30, 'proName' => 'dbService -> testDb']);
-        $daemonDriver -> addTask(['function' => [$classService,'testMethod'],     'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'classService -> testMethod']);
-        $daemonDriver -> start();
+        $daemonDriver -> AddTask(['function' => [$cacheService,'testRedisLpush'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisLpush']);
+        $daemonDriver -> AddTask(['function' => [$cacheService,'testRedisBrpop'], 'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'cacheService -> testRedisBrpop']);
+        $daemonDriver -> AddTask(['function' => [$dbService,   'testDb'],         'argv' => [100],'concurrency' => 50 , 'lifecycle' => 30, 'proName' => 'dbService -> testDb']);
+        $daemonDriver -> AddTask(['function' => [$classService,'testMethod'],     'argv' => [100],'concurrency' => 5 , 'lifecycle' => 30, 'proName' => 'classService -> testMethod']);
+        $daemonDriver -> Start();
     }
 
     /*
@@ -36,11 +36,11 @@ class Index extends controller
     {
         $daemonDriver = Driver::Daemon('app');
         $demo = new Demo();
-        $daemonDriver -> addTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_1']);
-        $daemonDriver -> addTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_2']);
-        $daemonDriver -> addTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_3']);
-        $daemonDriver -> addTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_4']);
-        $daemonDriver -> start();
+        $daemonDriver -> AddTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_1']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_2']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_3']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_4']);
+        $daemonDriver -> Start();
     }
 
 

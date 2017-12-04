@@ -15,7 +15,7 @@ class Daemon
     //服务对象
     protected static $daemonObj;
 
-    protected function __construct($config)
+    protected function __construct(array $config)
     {
         self::$config = $config;
     }
