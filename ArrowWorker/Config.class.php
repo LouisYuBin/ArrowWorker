@@ -73,7 +73,7 @@ class Config
 	 * _init 初始化(配置文件路径)
      * @return void
 	 */
-	public static function Init(string $configFilePath='') : void
+	public static function Init(string $configFilePath='')
     {
         if( empty(self::$path) && empty($configFilePath) )
         {
