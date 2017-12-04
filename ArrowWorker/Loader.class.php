@@ -8,33 +8,59 @@
 
 namespace ArrowWorker;
 
+/**
+ * 用户类加载器
+ * Class Loader
+ * @package ArrowWorker
+ */
 class Loader
 {
+    /**
+     * 用户定义类加载map
+     * @var array
+     */
     private static $appClass    = [];
 
-    //Load model created by user
-    public static function Model( $name )
+
+    /**
+     * Model 加载用户model
+     * @author Louis
+     * @param string $name
+     * @return mixed
+     */
+    public static function Model( string $name )
     {
         return self::_appModule( $name, APP_MODEL_FOLDER );
     }
 
-    //Load class created by user
-    public static function Classes( $name )
+
+    /**
+     * Classes 加载用户定义类
+     * @author Louis
+     * @param string $name
+     * @return mixed
+     */
+    public static function Classes( string $name )
     {
         return self::_appModule( $name, APP_CLASS_FOLDER );
     }
 
 	/**
-	 * @param $name
+     * Service 加载用户 service
+	 * @param string $name
 	 * @return \App\Service\DbService
 	 */
-    public static function Service( $name )
+    public static function Service( string $name )
     {
         return self::_appModule( $name, APP_SERVICE_FOLDER );
     }
 
-    //return app module
-    private static function _appModule( $name, $type=APP_MODEL_FOLDER )
+    /**
+     * _appModule 加载用户模块
+     * @param $name
+     * @return \App\Service\DbService
+     */
+    private static function _appModule(string $name, string $type=APP_MODEL_FOLDER )
     {
         $key = $type.$name;
         if( !isset( self::$appClass[$key] ) )
@@ -43,11 +69,6 @@ class Loader
             self::$appClass[$key] = new $class;
         }
         return self::$appClass[$key];
-    }
-
-    public static function Lang()
-    {
-        
     }
 
 }
