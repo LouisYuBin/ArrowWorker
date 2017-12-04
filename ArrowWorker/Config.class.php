@@ -22,7 +22,7 @@ class Config
     public static $AppFileMap  = 'alias';
 
     //configuration file pathy
-    private static $path        = null;
+    private static $path        = '';
     private static $AppConfig   = [];
     private static $ExtraConfig = [];
     private static $configMap   = [];
@@ -32,7 +32,7 @@ class Config
     //specify configuration file path
     private static function _Init()
     {
-        if( is_null(self::$path) )
+        if( empty(self::$path) )
         {
             self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
         }
