@@ -16,13 +16,15 @@ use ArrowWorker\Driver\Cache as cache;
 class Redis extends cache
 {
 
-	/**
-	 * init 初始化数据库连接类
-	 * @param $config
-	 * @param $alias
-	 * @return Redis
-	 */
-	static function init($config, $alias)
+
+    /**
+     * init 类初始化
+     * @author Louis
+     * @param $config
+     * @param $alias
+     * @return Redis
+     */
+    static function init($config, $alias) : self
     {
         if( !isset( self::$config[$alias] ))
         {
@@ -39,11 +41,11 @@ class Redis extends cache
     }
 
 
-	/**
-	 * getConnection 连接缓存
-	 * @return mixed
-	 */
-	private function getConnection()
+    /**
+     * getConnection 获取redis连接
+     * @author Louis
+     * @return \Redis
+     */private function getConnection() : \Redis
     {
         if( !isset( self::$connPool[self::$cacheCurrent] ) )
         {

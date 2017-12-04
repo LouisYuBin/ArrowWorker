@@ -71,6 +71,7 @@ class Config
 
 	/**
 	 * _init 初始化(配置文件路径)
+     * @return void
 	 */
 	public static function Init(string $configFilePath='') : void
     {
@@ -91,7 +92,7 @@ class Config
      * @param string $AppConfig
      * @return array|mixed
      */
-    public static function App(string $key='',string $AppConfig=APP_CONFIG_FILE ) : mixed
+    public static function App(string $key='',string $AppConfig=APP_CONFIG_FILE )
     {
         if( !static::$AppConfigLoaded )
         {
@@ -130,7 +131,7 @@ class Config
 	 * @param string $fileName
 	 * @return mixed
 	 */
-	public static function Load(string $fileName ) : mixed
+	public static function Load(string $fileName )
     {
         static::Init();
         if( isset( self::$configFileMap[$fileName] ) )
