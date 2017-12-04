@@ -5,8 +5,13 @@
  */
 
 namespace ArrowWorker;
-use ArrowWorker\Router as router;
+use ArrowWorker\Router;
 
+/**
+ * 应用加载/启动类
+ * Class App
+ * @package ArrowWorker
+ */
 class App
 {
     //控制器和方法映射表
@@ -27,7 +32,13 @@ class App
     }
 
     //初始化app
-    static function initApp()
+
+    /**
+     * initApp 单例模式初始化app类
+     * @author Louis
+     * @return App
+     */
+    static function InitApp()
     {
         if (!self::$appInstance)
         {
@@ -36,34 +47,44 @@ class App
         return self::$appInstance;
     }
 
-    //运行控制器
-    public function runApp()
+
+    /**
+     * RunApp 执行应用
+     * @author Louis
+     */
+    public function RunApp()
     {
         if(APP_TYPE=='cli')
         {
-            $this -> CliApp();
+            $this -> _cliApp();
         }
         else if(APP_TYPE == 'swoole')
         {
-            $this -> SwooleWebApp();
+            $this -> _swooleWebApp();
         } else {
-            $this -> WebApp();
+            $this -> _webApp();
         }
     }
 
-    //web应用
-    private function WebApp()
+    /**
+     * _webApp web应用（nginx+fpm）
+     * @author Louis
+     */
+    private function _webApp()
     {
         //读取路由
-        $router = router::Get();
+        $router = Router::Get();
         $controller = self::$appControllerNamespace.$router['c'];
         $method     = $router['m'];
         $ctlObject  = new $controller;
         $ctlObject -> $method();
     }
 
-    //web应用
-    private function SwooleWebApp()
+    /**
+     * _swooleWebApp web应用（swoole web）
+     * @author Louis
+     */
+    private function _swooleWebApp()
     {
         $config = Config::App("swoole");
         $swooleHttp = new \Swoole\Http\Server("0.0.0.0", $config['port']);
@@ -93,7 +114,7 @@ class App
             $_FILES = $request->files;
             $_SERVER = $request->server;
             //读取路由
-            $router = router::Get();
+            $router = Router::Get();
             $controller = self::$appControllerNamespace.$router['c'];
             $method     = $router['m'];
             $ctlObject  = new $controller;
@@ -104,8 +125,11 @@ class App
         $swooleHttp->start();
     }
 
-    //常驻服务
-    private function CliApp()
+    /**
+     * _cliApp 常驻服务应用
+     * @author Louis
+     */
+    private function _cliApp()
     {
         if(php_sapi_name() != 'cli')
         {

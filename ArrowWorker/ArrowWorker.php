@@ -65,8 +65,8 @@ class ArrowWorker
             //初始化异常和错误处理
             exception::Init();
         }
-        self::$app = app::initApp();
-        self::$app -> runApp();
+        self::$app = app::InitApp();
+        self::$app -> RunApp();
     }
 
     //加载类
