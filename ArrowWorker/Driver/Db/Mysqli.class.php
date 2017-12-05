@@ -64,7 +64,7 @@ class Mysqli extends db
 	 * 连接数据库
 	 * @param bool $isMaster
 	 * @param int $connectNum
-	 * @return mixed
+	 * @return \mysqli
 	 */
 	protected function getConnection(bool $isMaster=false, int $connectNum=0)
     {
@@ -78,7 +78,7 @@ class Mysqli extends db
 
 	/**
 	 * 检测并连接主库
-	 * @return mixed
+     * @return \mysqli
 	 */
 	private function connectMaster()
     {
@@ -93,7 +93,7 @@ class Mysqli extends db
 	/**
 	 * 检测并连接从库
 	 * @param int $slaveIndex
-	 * @return mixed
+	 * @return \mysqli
 	 */
 	private function connectSlave(int $slaveIndex=0)
     {
@@ -199,7 +199,7 @@ class Mysqli extends db
 	/**
 	 * Table 启动sql组合
 	 * @param string $table
-	 * @return $this
+	 * @return SqlBuilder
 	 */
 	public static function Table(string $table)
     {

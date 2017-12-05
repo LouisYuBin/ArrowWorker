@@ -6,9 +6,9 @@
  */
 
 namespace ArrowWorker;
-use ArrowWorker\App as app;
-use ArrowWorker\Config as config;
-use ArrowWorker\Exception as exception;
+use ArrowWorker\App;
+use ArrowWorker\Config;
+use ArrowWorker\Exception;
 //框架目录
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
 //应用目录名称
@@ -43,36 +43,54 @@ defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','app');
 defined('APP_ALIAS') or define('APP_ALIAS','cam');
 
 
-
+/**
+ * Class ArrowWorker 框架入口类
+ * @package ArrowWorker
+ */
 class ArrowWorker
 {
+    /**
+     * 框架类文件后缀
+     */
     const classExt = '.class.php';
+
+    /**
+     * @var 入口类实例对象
+     */
     private static $Arrow;
-    private static $app;
 
-
+    /**
+     * ArrowWorker constructor.
+     */
     private function __construct()
     {
-        //class auto-load
         spl_autoload_register(['self','loadClass']);
     }
 
-    //启动框架
-    static function start(){
-        if (!self::$Arrow)
+
+    /**
+     * Start 启动框架
+     * @author Louis
+     */
+    static function Start(){
+        if (!static::$Arrow)
         {
-            self::$Arrow = new self;
+            static::$Arrow = new self;
             //初始化异常和错误处理
-            exception::Init();
+            Exception::Init();
         }
-        self::$app = app::InitApp();
-        self::$app -> RunApp();
+        App::InitApp() -> RunApp();
     }
 
-    //加载类
-    static function loadClass($class)
+
+    /**
+     * loadClass 加载框架/用户类
+     * @author Louis
+     * @param string $class
+     */
+    static function loadClass(string $class)
     {
-        $ArrowClass = self::classMap();
+        $ArrowClass = static::classMap();
         if(isset($ArrowClass[$class]))
         {
             //系统类映射
@@ -81,7 +99,7 @@ class ArrowWorker
         else
         {
            //用户类映射
-            $appClass  = config::Load(config::$AppFileMap);
+            $appClass  = Config::Load(Config::$AppFileMap);
            if(isset($appClass[$class]))
            {
                $class = APP_PATH.DIRECTORY_SEPARATOR.$appClass[$class];
@@ -90,7 +108,12 @@ class ArrowWorker
         require $class;
     }
 
-    //框架命名空间和文件路径映射
+
+    /**
+     * classMap 框架命名空间和文件路径映射
+     * @author Louis
+     * @return array
+     */
     static function classMap()
     {
         return [
@@ -99,7 +122,7 @@ class ArrowWorker
             'ArrowWorker\Loader'     => ArrowWorker . '/Loader' .     self::classExt,
             'ArrowWorker\Router'     => ArrowWorker . '/Router' .     self::classExt,
             'ArrowWorker\Config'     => ArrowWorker . '/Config' .     self::classExt,
-            'ArrowWorker\Driver'     => ArrowWorker . '/Driver' .    self::classExt,
+            'ArrowWorker\Driver'     => ArrowWorker . '/Driver' .     self::classExt,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception' .  self::classExt,
             'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
 

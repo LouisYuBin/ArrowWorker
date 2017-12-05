@@ -14,13 +14,13 @@ use ArrowWorker\Loader;
 class Demo extends controller
 {
 
-    public function demo()
+    public function Demo()
     {
         $cacheService = Loader::Service('CacheDemo');
         $dbService    = Loader::Service('DbDemo');
         $classService = Loader::Service('ClassDemo');
 
-        $dbService  ->testDb();
+        $dbService    -> testDb();
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();

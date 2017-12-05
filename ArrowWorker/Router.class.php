@@ -6,7 +6,7 @@
  */
 
 namespace ArrowWorker;
-use ArrowWorker\Config as config;
+use ArrowWorker\Config;
 
 
 /**
@@ -49,7 +49,7 @@ class Router
 	 */
 	private static function getRouteType()
     {
-        return config::App(self::routeType);
+        return Config::App(static::routeType);
     }
 
 
@@ -59,15 +59,15 @@ class Router
 	 */
 	public static function Get()
     {
-		$routerType = self::getRouteType();
+		$routerType = static::getRouteType();
         switch ($routerType){
-            case self::get;
+            case static::get;
                 // "get" 形式路由
-                self::getRouter();
+                static::getRouter();
             break;
-            case self::uri;
+            case static::uri;
                 // "?/类/方法" 形式路由
-                self::uriRouter();
+                static::uriRouter();
             break;
             default:
                 //Todo

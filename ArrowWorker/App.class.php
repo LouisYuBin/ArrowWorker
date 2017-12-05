@@ -14,14 +14,26 @@ use ArrowWorker\Router;
  */
 class App
 {
-    //控制器和方法映射表
+
+    /**
+     * @var mixed  控制器和方法映射表
+     */
     private static $appClassMap;
-    //app实例
+
+    /**
+     * @var App实例
+     */
     private static $appInstance;
-    //应用命名空间
+
+    /**
+     * @var string  应用命名空间
+     */
     private static $appControllerNamespace;
 
-    //单例模式自启动构造函数
+
+    /**
+     * App constructor. 单例模式自启动构造函数
+     */
     private function __construct()
     {
         if(!self::$appClassMap)
@@ -74,8 +86,8 @@ class App
     {
         //读取路由
         $router = Router::Get();
-        $controller = self::$appControllerNamespace.$router['c'];
-        $method     = $router['m'];
+        $controller = self::$appControllerNamespace.ucfirst($router['c']);
+        $method     = ucfirst($router['m']);
         $ctlObject  = new $controller;
         $ctlObject -> $method();
     }
@@ -115,8 +127,8 @@ class App
             $_SERVER = $request->server;
             //读取路由
             $router = Router::Get();
-            $controller = self::$appControllerNamespace.$router['c'];
-            $method     = $router['m'];
+            $controller = self::$appControllerNamespace.ucfirst($router['c']);
+            $method     = ucfirst($router['m']);
             $ctlObject  = new $controller;
             $ctlObject -> $method($response);
 
@@ -136,8 +148,8 @@ class App
             throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
         }
         $inputs = getopt('c:m:');
-        $controller = isset($inputs['c']) ? $inputs['c'] : "Index";
-        $method     = isset($inputs['m']) ? $inputs['m'] : "Index";
+        $controller = isset($inputs['c']) ? ucfirst($inputs['c']) : "Index";
+        $method     = isset($inputs['m']) ? ucfirst($inputs['m']) : "Index";
         $controller = self::$appControllerNamespace.$controller;
         $ctlObject  = new $controller;
         $ctlObject -> $method();

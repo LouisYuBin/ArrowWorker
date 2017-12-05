@@ -28,7 +28,7 @@ class Message
 	/**
 	 * @var string
 	 */
-	protected static $MsgCurrent = '';
+	protected static $msgCurrent = '';
 
 	/**
 	 * Message constructor.

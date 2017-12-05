@@ -11,7 +11,7 @@ namespace ArrowWorker\Driver\Db;
 use ArrowWorker\Driver\Db;
 
 /**
- * Class SqlBuilder
+ * Class SqlBuilder sql语句组合、执行类
  * @package ArrowWorker\Driver\Db
  */
 class SqlBuilder
@@ -228,7 +228,7 @@ class SqlBuilder
 	 * @return string
 	 * @throws \Exception
 	 */
-	public function parseSelect()
+	public function parseSelect() :string
     {
         if ( $this->table=="" )
         {
