@@ -19,6 +19,8 @@ class Pipe extends Message
 {
 
     const mode = 066;
+    const readProperty  = "r+";
+    const writeProperty = "w+";
     /**
      * @var
      */
@@ -31,23 +33,11 @@ class Pipe extends Message
 
     /**
      * Pipe constructor.
-     * @param string $filename
-     * @param int $mode
-     * @param bool $block
+     * @param array $config
      */
-    public function __construct($fileName = '/tmp/simple-fork.pipe', $mode = 0666)
+    public function __construct(array $config)
     {
-        if (!file_exists($fileName) && !posix_mkfifo($fileName, $mode))
-        {
-            throw new \RuntimeException("create pipe failed");
-        }
-
-        if (filetype($fileName) != "fifo")
-        {
-            throw new \RuntimeException("file exists and it is not a fifo file");
-        }
-
-        $this->filename = $fileName;
+       //todo
     }
 
     /**
@@ -77,20 +67,21 @@ class Pipe extends Message
     }
 
     /**
-     * _initHandle 创建管道文件爱呢
+     * _initHandle 创建管道文件
      * @author Louis
-     * @param array $config
+     * @param string $alias
      * @throws \Exception
      */
-    private function _initHandle(array $config)
+    private function _initHandle(string $alias = '')
     {
-        if (!file_exists($config['name']) && !posix_mkfifo($config['name'], self::mode))
+        $fifoName = empty($alias) ? self::$pool[self::$current]['path'] : self::$pool[$alias]['path'];
+        if (!file_exists(self::$config[self::$current]) && !posix_mkfifo($fifoName, self::mode))
         {
-            throw new \Exception("create pipe:{$config['name']} failed");
+            throw new \Exception("create pipe:{$fifoName} failed");
         }
-        if (filetype($config['name']) != "fifo")
+        if (filetype($fifoName) != "fifo")
         {
-            throw new \Exception("pipe:{$config['name']} is not a fifo file");
+            throw new \Exception("pipe:{$fifoName} is not a fifo file");
         }
     }
 
@@ -100,13 +91,30 @@ class Pipe extends Message
      * @param array $config
      * @throws \Exception
      */
-    public function GetHandle()
+    public function GetWriteHandle(bool $isBlock=false, string $alias='' )
     {
-        if( !isset( self::$pool[self::$current] ) )
+        $current = empty($alias) ? self::$current : $alias;
+        $current = $current.__FUNCTION__;
+
+        if( !isset( self::$pool[$current] ) )
         {
-            self::$pool[self::$current] = $this -> _initHandle( self::$config[self::$current] );
+            $this->_initHandle( self::$config[$current] );
+            $fifoPath = self::$config[$current]['path'];
+
+            self::$pool[$current] = fopen( $fifoPath, static::writeProperty );
+            if (!is_resource(self::$pool[$current]))
+            {
+                throw new \Exception("open fifo:{$fifoPath} file failed");
+            }
+
+            //是否阻塞
+            if (!stream_set_blocking(self::$pool[$current], $isBlock))
+            {
+                throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
+            }
+
         }
-        return self::$pool[self::$current]['name'];
+        return self::$pool[$current];
     }
 
     /**
@@ -118,24 +126,7 @@ class Pipe extends Message
      */
     public function Read(bool $isBlock=false)
     {
-        $fifo = $this -> GetHandle();
-        if ( !is_resource($fifo) )
-        {
-            $this->read = fopen($fifo['name'], 'r+');
-            if (!is_resource($this->read))
-            {
-                throw new \Exception("open fifo:{$fifo['name']} file failed");
-            }
-
-            //是否阻塞
-            $setBlock = stream_set_blocking($this->read, $isBlock);
-            if (!$setBlock)
-            {
-                throw new \RuntimeException("stream_set_blocking failed");
-            }
-        }
-
-        return fread($this->read, $fifo['size']);
+        return fread( $this -> GetWriteHandle(), $fifo['size'] );
     }
 
     /**
@@ -149,7 +140,7 @@ class Pipe extends Message
     {
         if ( !is_resource($this->write) )
         {
-            $this->write = fopen($this->filename, 'w+');
+            $this->write = fopen($this->filename, static::writeProperty);
             if ( !is_resource($this->write) )
             {
                 throw new \RuntimeException("open file failed");
