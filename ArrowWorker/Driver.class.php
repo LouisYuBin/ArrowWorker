@@ -62,7 +62,7 @@ class Driver
     public static function View( string $alias='app' )
     {
         $class  = self::$driverDir.'\\View';
-        return $class::init( Config::App('view') );
+        return $class::Init( Config::App('view') );
     }
 
 
@@ -81,7 +81,7 @@ class Driver
             throw new \Exception("driver {$driverType}->{$alias} config does not exists.");
         }
         $driver = self::$driverDir.'\\'.$driverType."\\".$config[$alias]['driver'];
-        return $driver::init( $config[$alias], $alias );
+        return $driver::Init( $config[$alias], $alias );
     }
 
 }

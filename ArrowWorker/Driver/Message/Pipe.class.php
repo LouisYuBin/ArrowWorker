@@ -18,6 +18,7 @@ use ArrowWorker\Driver\Message;
 class Pipe extends Message
 {
 
+    const mode = 066;
     /**
      * @var
      */
@@ -29,22 +30,12 @@ class Pipe extends Message
     protected $write;
 
     /**
-     * @var string
-     */
-    protected $filename;
-
-    /**
-     * @var
-     */
-    protected $block;
-
-    /**
      * Pipe constructor.
      * @param string $filename
      * @param int $mode
      * @param bool $block
      */
-    public function __construct($fileName = '/tmp/simple-fork.pipe', $mode = 0666, $block = false)
+    public function __construct($fileName = '/tmp/simple-fork.pipe', $mode = 0666)
     {
         if (!file_exists($fileName) && !posix_mkfifo($fileName, $mode))
         {
@@ -59,26 +50,63 @@ class Pipe extends Message
         $this->filename = $fileName;
     }
 
-    private function pipeInit(array $config)
+    /**
+     * Init 初始化 对外提供
+     * @author Louis
+     * @param array $config
+     * @param string $alias
+     * @return Pipe
+     */
+    public function Init(array $config, string $alias)
     {
-        if (!file_exists($config['fileName']) && !posix_mkfifo($config['fileName'], $config['mode']))
+        //存储配置
+        if ( !isset( self::$config[$alias] ) )
         {
-            throw new \RuntimeException("create pipe failed");
+            self::$config[$alias] = $config;
         }
 
-        if (filetype($config['fileName']) != "fifo")
+        //设置当前
+        self::$current = $alias;
+
+        if(!self::$instance)
         {
-            throw new \RuntimeException("file exists and it is not a fifo file");
+            self::$instance = new self($config);
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * _initHandle 创建管道文件爱呢
+     * @author Louis
+     * @param array $config
+     * @throws \Exception
+     */
+    private function _initHandle(array $config)
+    {
+        if (!file_exists($config['name']) && !posix_mkfifo($config['name'], self::mode))
+        {
+            throw new \Exception("create pipe:{$config['name']} failed");
+        }
+        if (filetype($config['name']) != "fifo")
+        {
+            throw new \Exception("pipe:{$config['name']} is not a fifo file");
         }
     }
 
-    public function GetMsgConnection()
+    /**
+     * _initHandle 获取当前管道
+     * @author Louis
+     * @param array $config
+     * @throws \Exception
+     */
+    public function GetHandle()
     {
-        if( !isset( self::$msgPool[self::$msgCurrent] ) )
+        if( !isset( self::$pool[self::$current] ) )
         {
-            self::$msgPool[self::$msgCurrent] = $this -> pipeInit( self::$config[self::$dbCurrent] );
+            self::$pool[self::$current] = $this -> _initHandle( self::$config[self::$current] );
         }
-        return self::$msgPool[self::$msgCurrent];
+        return self::$pool[self::$current]['name'];
     }
 
     /**
@@ -88,14 +116,15 @@ class Pipe extends Message
      * @param bool $isBlock
      * @return bool|string
      */
-    public function Read(int $size = 1024, bool $isBlock=false)
+    public function Read(bool $isBlock=false)
     {
-        if ( !is_resource($this->read) )
+        $fifo = $this -> GetHandle();
+        if ( !is_resource($fifo) )
         {
-            $this->read = fopen($this->filename, 'r+');
+            $this->read = fopen($fifo['name'], 'r+');
             if (!is_resource($this->read))
             {
-                throw new \RuntimeException("open file failed");
+                throw new \Exception("open fifo:{$fifo['name']} file failed");
             }
 
             //是否阻塞
@@ -106,7 +135,7 @@ class Pipe extends Message
             }
         }
 
-        return fread($this->read, $size);
+        return fread($this->read, $fifo['size']);
     }
 
     /**

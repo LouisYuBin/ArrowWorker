@@ -159,7 +159,7 @@ class ArrowDaemon extends daemon
      * @param $config
      * @return ArrowDaemon
      */
-    static function init($config) : self
+    static function Init($config) : self
     {
         if(!self::$daemonObj)
         {

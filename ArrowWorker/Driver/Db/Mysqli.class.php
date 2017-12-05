@@ -23,7 +23,7 @@ class Mysqli extends db
 	 * @param string $alias
 	 * @return Mysqli
 	 */
-	static function init(array $config, string $alias)
+	static function Init(array $config, string $alias)
     {
         //存储配置
         if ( !isset( self::$config[$alias] ) )

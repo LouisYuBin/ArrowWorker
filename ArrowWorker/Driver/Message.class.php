@@ -11,7 +11,7 @@ class Message
 	 * 消息实例连接池
 	 * @var array
 	 */
-	protected static $msgPool = [];
+	protected static $pool = [];
 
 	/**
 	 * 单例模式对象
@@ -28,7 +28,7 @@ class Message
 	/**
 	 * @var string
 	 */
-	protected static $msgCurrent = '';
+	protected static $current = '';
 
 	/**
 	 * Message constructor.

@@ -24,7 +24,7 @@ class Redis extends cache
      * @param $alias
      * @return Redis
      */
-    static function init($config, $alias) : self
+    static function Init($config, $alias) : self
     {
         if( !isset( self::$config[$alias] ))
         {
