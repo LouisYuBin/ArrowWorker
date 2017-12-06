@@ -21,15 +21,9 @@ class Pipe extends Message
     const mode = 066;
     const readProperty  = "r+";
     const writeProperty = "w+";
-    /**
-     * @var
-     */
-    protected $read;
 
-    /**
-     * @var
-     */
-    protected $write;
+    private static $fifoMap = [];
+
 
     /**
      * Pipe constructor.
@@ -66,15 +60,20 @@ class Pipe extends Message
         return self::$instance;
     }
 
+
     /**
-     * _initHandle 创建管道文件
+     * _initHandle  创建管道文件
      * @author Louis
-     * @param string $alias
      * @throws \Exception
      */
-    private function _initHandle(string $alias = '')
+    private function _initHandle()
     {
-        $fifoName = empty($alias) ? self::$pool[self::$current]['path'] : self::$pool[$alias]['path'];
+        //如果已经创建并做了相关检测则直接跳过
+        if( isset( static::$fifoMap[self::$current] ) )
+        {
+            return;
+        }
+        $fifoName = self::$pool[self::$current]['path'];
         if (!file_exists(self::$config[self::$current]) && !posix_mkfifo($fifoName, self::mode))
         {
             throw new \Exception("create pipe:{$fifoName} failed");
@@ -83,78 +82,88 @@ class Pipe extends Message
         {
             throw new \Exception("pipe:{$fifoName} is not a fifo file");
         }
+        static::$fifoMap[self::$current] = $fifoName;
     }
 
     /**
-     * _initHandle 获取当前管道
+     * _getHandle 获取当前读/写管道 实例
      * @author Louis
-     * @param array $config
+     * @param string $alias  实例别名
+     * @param bool $isBlock  是否阻塞
+     * @param string $property 文件打开读/写属性
+     * @return mixed
      * @throws \Exception
      */
-    public function GetWriteHandle(bool $isBlock=false, string $alias='' )
+    public function _getHandle(string $handleAlias, bool $isBlock, string $property)
     {
-        $current = empty($alias) ? self::$current : $alias;
-        $current = $current.__FUNCTION__;
-
-        if( !isset( self::$pool[$current] ) )
+        $alias = self::$current.$handleAlias;
+        if( !isset( self::$pool[$alias] ) )
         {
-            $this->_initHandle( self::$config[$current] );
-            $fifoPath = self::$config[$current]['path'];
+            $this->_initHandle( );
+            $fifoPath = self::$config[$alias]['path'];
 
-            self::$pool[$current] = fopen( $fifoPath, static::writeProperty );
-            if (!is_resource(self::$pool[$current]))
+            self::$pool[$alias] = fopen( $fifoPath, $property );
+            if (!is_resource(self::$pool[$alias]))
             {
                 throw new \Exception("open fifo:{$fifoPath} file failed");
             }
 
             //是否阻塞
-            if (!stream_set_blocking(self::$pool[$current], $isBlock))
+            if (!stream_set_blocking(self::$pool[$alias], $isBlock))
             {
                 throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
             }
 
         }
-        return self::$pool[$current];
+        return self::$pool[$alias];
     }
 
     /**
-     * Read
+     * GetWriteHandle 获取当前管道 写操作
      * @author Louis
-     * @param int $size
      * @param bool $isBlock
+     * @throws \Exception
+     */
+    public function GetWriteHandle(bool $isBlock=false )
+    {
+        $current = self::$current.__FUNCTION__;
+        return $this->_getHandle($current, $isBlock, static::writeProperty);
+    }
+
+    /**
+     * GetReadHandle 获取当前管道 写操作
+     * @author Louis
+     * @param bool $isBlock
+     * @throws \Exception
+     */
+    public function GetReadHandle(bool $isBlock=false )
+    {
+
+    }
+
+    /**
+     * Write  写入消息
+     * @author Louis
+     * @param bool $isBlock 是否阻塞
      * @return bool|string
      */
-    public function Read(bool $isBlock=false)
+    public function Write(string $message, bool $isBlock=false )
     {
-        return fread( $this -> GetWriteHandle(), $fifo['size'] );
+        $handle = $this->_getHandle(__FUNCTION__, $isBlock, static::writeProperty);
+        return fwrite( $handle, $message);
     }
 
     /**
-     * Write
+     * Write 写消息
      * @author Louis
      * @param string $message
      * @param bool $isBlock
      * @return bool|int
      */
-    public function Write(string $message, bool $isBlock=false)
+    public function Read(bool $isBlock=false)
     {
-        if ( !is_resource($this->write) )
-        {
-            $this->write = fopen($this->filename, static::writeProperty);
-            if ( !is_resource($this->write) )
-            {
-                throw new \RuntimeException("open file failed");
-            }
-
-            //
-            $setBlock = stream_set_blocking($this->write, $isBlock);
-            if ( !$setBlock )
-            {
-                throw new \RuntimeException("stream_set_blocking failed");
-            }
-        }
-
-        return fwrite($this->write, $message);
+        $handle = $this->_getHandle(__FUNCTION__, $isBlock, static::readProperty);
+        return fread( $handle, $message);
     }
 
     /**
