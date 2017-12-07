@@ -6,16 +6,16 @@
  * Time: 12:51
  */
 
-namespace ArrowWorker\Driver\Message;
+namespace ArrowWorker\Driver\Channel;
 
-use ArrowWorker\Driver\Message;
+use ArrowWorker\Driver\Channel;
 
 
 /**
  * Class Pipe  管道类
- * @package ArrowWorker\Driver\Message
+ * @package ArrowWorker\Driver\Channel
  */
-class Pipe extends Message
+class Pipe extends Channel
 {
 
     const mode = 066;
@@ -41,7 +41,7 @@ class Pipe extends Message
      * @param string $alias
      * @return Pipe
      */
-    public function Init(array $config, string $alias)
+    public static function Init(array $config, string $alias)
     {
         //存储配置
         if ( !isset( self::$config[$alias] ) )
@@ -66,15 +66,16 @@ class Pipe extends Message
      * @author Louis
      * @throws \Exception
      */
-    private function _initHandle()
+    private function _init()
     {
         //如果已经创建并做了相关检测则直接跳过
         if( isset( static::$fifoMap[self::$current] ) )
         {
             return;
         }
-        $fifoName = self::$pool[self::$current]['path'];
-        if (!file_exists(self::$config[self::$current]) && !posix_mkfifo($fifoName, self::mode))
+
+        $fifoName = self::$config[self::$current]['path'];
+        if (!file_exists($fifoName) && !posix_mkfifo($fifoName, self::mode))
         {
             throw new \Exception("create pipe:{$fifoName} failed");
         }
@@ -99,9 +100,8 @@ class Pipe extends Message
         $alias = self::$current.$handleAlias;
         if( !isset( self::$pool[$alias] ) )
         {
-            $this->_initHandle( );
-            $fifoPath = self::$config[$alias]['path'];
-
+            $this->_init();
+            $fifoPath = self::$config[static::$current]['path'];
             self::$pool[$alias] = fopen( $fifoPath, $property );
             if (!is_resource(self::$pool[$alias]))
             {
@@ -113,81 +113,56 @@ class Pipe extends Message
             {
                 throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
             }
-
         }
         return self::$pool[$alias];
     }
 
     /**
-     * GetWriteHandle 获取当前管道 写操作
-     * @author Louis
-     * @param bool $isBlock
-     * @throws \Exception
-     */
-    public function GetWriteHandle(bool $isBlock=false )
-    {
-        $current = self::$current.__FUNCTION__;
-        return $this->_getHandle($current, $isBlock, static::writeProperty);
-    }
-
-    /**
-     * GetReadHandle 获取当前管道 写操作
-     * @author Louis
-     * @param bool $isBlock
-     * @throws \Exception
-     */
-    public function GetReadHandle(bool $isBlock=false )
-    {
-
-    }
-
-    /**
      * Write  写入消息
      * @author Louis
+     * @param string $message 要写如的消息
      * @param bool $isBlock 是否阻塞
-     * @return bool|string
+     * @return bool|int
      */
-    public function Write(string $message, bool $isBlock=false )
+    public function Write(string $message )
     {
-        $handle = $this->_getHandle(__FUNCTION__, $isBlock, static::writeProperty);
-        return fwrite( $handle, $message);
+        $specifiedMsg = str_pad($message,static::$config[ static::$current ]['size']);
+        $handle = $this->_getHandle(__FUNCTION__,false, static::writeProperty);
+        return fwrite( $handle, $specifiedMsg);
     }
 
     /**
      * Write 写消息
      * @author Louis
-     * @param string $message
-     * @param bool $isBlock
-     * @return bool|int
+     * @param bool $isBlock 是否以阻塞模式读取
+     * @return bool|string
      */
     public function Read(bool $isBlock=false)
     {
         $handle = $this->_getHandle(__FUNCTION__, $isBlock, static::readProperty);
-        return fread( $handle, $message);
+        $result = fread( $handle, static::$config[ static::$current ]['size'] );
+        return $result ? trim($result) : $result;
     }
 
     /**
-     * Close
+     * Close 关闭打开的管道
      * @author Louis
      */
     public function Close()
     {
-        if ( is_resource( $this->read ) )
+        foreach (self::$pool as $eachPipe)
         {
-            fclose( $this->read );
-        }
-        if ( is_resource($this->write) )
-        {
-            fclose( $this->write );
+            fclose($eachPipe);
         }
     }
 
     /**
-     *
+     *__destruct
      */
     public function __destruct()
     {
-        $this->close();
+        $this->Close();
+        $this->Remove();
     }
 
     /**
@@ -197,7 +172,13 @@ class Pipe extends Message
      */
     public function Remove()
     {
-        return unlink( $this->filename );
+        foreach (self::$config as $eachConfig)
+        {
+            if( file_exists( $eachConfig['path'] ) )
+            {
+                @unlink( $eachConfig['path'] );
+            }
+        }
     }
 }
 

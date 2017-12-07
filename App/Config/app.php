@@ -53,6 +53,18 @@ $app['Cache'] = [
     ]
 ];
 
+//消息通信
+$app['Channel'] = [
+    'app' => [
+        //驱动类型
+        'driver' => 'Pipe',
+        //管道路径
+        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.pipe',
+        //密码
+        'size'   => 128
+    ]
+];
+
 //mongodb配置
 $app['Mongo'] = [
     'app' => [

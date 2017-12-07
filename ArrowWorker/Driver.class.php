@@ -55,6 +55,16 @@ class Driver
     }
 
     /**
+     * channel 驱动
+     * @param string $alias
+     * @return \ArrowWorker\Driver\Channel\Pipe
+     */
+    public static function Channel( string $alias='app' )
+    {
+        return self::_init(__FUNCTION__, $alias);
+    }
+
+    /**
      * 加载view驱动
      * @param string $alias
      * @return \ArrowWorker\Driver\View
@@ -73,7 +83,8 @@ class Driver
      * @param string $alias
      * @return mixed
      * @throws \Exception
-     */private static function _init(string $driverType, string $alias)
+     */
+    private static function _init(string $driverType, string $alias)
     {
         $config = Config::App($driverType);
         if ( !isset( $config[$alias] ) )

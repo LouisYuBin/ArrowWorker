@@ -1,10 +1,10 @@
 <?php
-
+namespace ArrowWorker\Driver;
 
 /**
  * Class Message
  */
-class Message
+class Channel
 {
 
 	/**
