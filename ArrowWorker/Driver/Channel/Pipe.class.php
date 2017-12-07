@@ -56,6 +56,8 @@ class Pipe extends Channel
         {
             self::$instance = new self($config);
         }
+        //初始化（创建管道等）
+        static::_init();
 
         return self::$instance;
     }
@@ -66,7 +68,7 @@ class Pipe extends Channel
      * @author Louis
      * @throws \Exception
      */
-    private function _init()
+    private static function _init()
     {
         //如果已经创建并做了相关检测则直接跳过
         if( isset( static::$fifoMap[self::$current] ) )
@@ -100,7 +102,6 @@ class Pipe extends Channel
         $alias = self::$current.$handleAlias;
         if( !isset( self::$pool[$alias] ) )
         {
-            $this->_init();
             $fifoPath = self::$config[static::$current]['path'];
             self::$pool[$alias] = fopen( $fifoPath, $property );
             if (!is_resource(self::$pool[$alias]))
@@ -161,7 +162,6 @@ class Pipe extends Channel
     public function __destruct()
     {
         $this->Close();
-        $this->Remove();
     }
 
     /**

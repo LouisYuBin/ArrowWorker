@@ -35,11 +35,12 @@ class Index extends controller
     function Ctl()
     {
         $daemonDriver = Driver::Daemon('app');
+        $channel = Driver::Channel();
         $demo = new Demo();
-        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_1']);
-        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_2']);
-        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_3']);
-        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [100],'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_4']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [100], 'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_1']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [90],  'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_2']);
+        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'], 'argv' => [80],  'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_3', 'channel' => $channel]);
+        $daemonDriver -> AddTask(['function' => [$demo, 'Demo'],  'concurrency' => 10 , 'lifecycle' => 30, 'proName' => 'demo -> demo_4']);
         $daemonDriver -> Start();
     }
 

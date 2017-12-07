@@ -17,6 +17,28 @@ use ArrowWorker\Driver\Daemon\GeneratorTask;
  */
 class ArrowDaemon extends daemon
 {
+
+
+    /**
+     *进程生命周期
+     */
+    const lifeCycle = 30;
+
+    /**
+     * 单个任务默认并进程/线程数
+     */
+    const concurrency = 30;
+
+    /**
+     * 默认工作进程名
+     */
+    const processName = 'untitled';
+
+    /**
+     * 进程关联channel
+     */
+    const processChannel = null;
+
     /**
      * pid文件路径
      * @var string
@@ -658,7 +680,7 @@ class ArrowDaemon extends daemon
      * _scheduleRun
      * @author Louis
      */
-    private function _scheduleRun()
+    private function  _scheduleRun()
     {
         while( 1 )
         {
@@ -781,9 +803,10 @@ class ArrowDaemon extends daemon
         }
 
         $job['pidCount']    = 0;
-        $job['lifecycle']   = (isset($job['lifecycle']) && is_int($job['lifecycle']))   ? $job['lifecycle']   : 0 ;
-        $job['concurrency'] = (isset($job['concurrency']) && is_int($job['concurrency'])) ? $job['concurrency'] : 0 ;
-        $job['processName'] = (!isset($job['proName'])||empty($job['proName'])) ? 'unnamed process' : $job['proName'];
+        $job['lifecycle']   = (isset($job['lifecycle'])   && (int)$job['lifecycle']>0)   ? $job['lifecycle']   : static::lifeCycle ;
+        $job['concurrency'] = (isset($job['concurrency']) && (int)$job['concurrency']>0) ? $job['concurrency'] : static::concurrency ;
+        $job['processName'] = (isset($job['proName'])     && !empty($job['proName']))    ?  $job['proName']    : static::processName;
+        $job['channel']     = isset($job['channel']) ? $job['channel'] : static::processChannel;
 
         self::$jobs[] = $job;
     }

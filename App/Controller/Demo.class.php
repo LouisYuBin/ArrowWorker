@@ -15,7 +15,7 @@ use ArrowWorker\Loader;
 class Demo extends controller
 {
 
-    public function Demo()
+    public function Demo($argv=0)
     {
         $cacheService = Loader::Service('CacheDemo');
         $dbService    = Loader::Service('DbDemo');
@@ -25,6 +25,8 @@ class Demo extends controller
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();
+        var_dump($argv);
+        sleep(1);
     }
 
     public function pipe()
