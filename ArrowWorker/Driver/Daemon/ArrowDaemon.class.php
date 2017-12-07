@@ -99,7 +99,7 @@ class ArrowDaemon extends daemon
      * 任务进程 ID map
      * @var Array
      */
-    private static $tmpPid      = [];
+    private static $pidMap      = [];
 
     /**
      * 线程池
@@ -146,7 +146,7 @@ class ArrowDaemon extends daemon
         self::$user     = isset(self::$config['user']) ? self::$config['user'] : self::$user;
         self::$pid_Name = isset(self::$config['pid'])  ? self::$config['pid']  : self::$pid_Name;
         self::$output   = isset(self::$config['log'])  ? self::$config['log']  : self::$output;
-        self::$threadNum = isset(self::$config['thread'])  ? self::$config['thread']  : self::$threadNum;
+        self::$threadNum = isset(self::$config['thread'])  ? self::$config['thread'] : self::$threadNum;
         self::$App_Name = isset(self::$config['name']) ? self::$config['name'] : self::$App_Name;
         self::$enableGenerator = isset(self::$config['enableGenerator']) ? self::$config['enableGenerator'] : self::$enableGenerator;
         $this -> _environmentCheck();
@@ -186,7 +186,7 @@ class ArrowDaemon extends daemon
 
         if ( ! function_exists('pcntl_signal'))
         {
-            $message = 'php environment do not support pcntl_signal';
+            $message = 'ArrowWorker hint : php environment do not support pcntl_signal';
             $this -> _writeLog($message);
             throw new Exception($message);
         }
@@ -297,7 +297,7 @@ class ArrowDaemon extends daemon
             return true;
         }
 
-        $pid = intval(file_get_contents(self::$pid_File));
+        $pid = (int)file_get_contents(self::$pid_File);
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
@@ -439,7 +439,7 @@ class ArrowDaemon extends daemon
      */
     private function _exitWorkers()
     {
-        foreach(self::$tmpPid as $key => $val)
+        foreach(self::$pidMap as $key => $val)
         {
             $result = posix_kill($key,SIGUSR1);
             if(!$result)
@@ -497,9 +497,9 @@ class ArrowDaemon extends daemon
     {
         if ($pid > 0)
         {
-            $taskGroupId = self::$tmpPid[$pid];
+            $taskGroupId = self::$pidMap[$pid];
             self::$jobs[$taskGroupId]['pidCount']--;
-            unset(self::$tmpPid[$pid]);
+            unset(self::$pidMap[$pid]);
             if( !$isExit )
             {
                 $this -> _forkOneWork($taskGroupId);
@@ -540,7 +540,7 @@ class ArrowDaemon extends daemon
         if($pid > 0)
         {   
             self::$jobs[$taskGroupId]['pidCount']++;
-            self::$tmpPid[$pid] = $taskGroupId;
+            self::$pidMap[$pid] = $taskGroupId;
         }
         elseif($pid==0)
         {   
@@ -764,7 +764,6 @@ class ArrowDaemon extends daemon
         }
         $this -> _writeLog("ArrowWork  hint ：monitor exits.");
         exit(0);
-
     }
 
     /**

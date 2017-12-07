@@ -107,12 +107,11 @@ class Pipe extends Channel
             {
                 throw new \Exception("open fifo:{$fifoPath} file failed");
             }
-
-            //是否阻塞
-            if (!stream_set_blocking(self::$pool[$alias], $isBlock))
-            {
-                throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
-            }
+        }
+        //是否阻塞
+        if (!stream_set_blocking(self::$pool[$alias], $isBlock))
+        {
+            throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
         }
         return self::$pool[$alias];
     }
@@ -124,7 +123,7 @@ class Pipe extends Channel
      * @param bool $isBlock 是否阻塞
      * @return bool|int
      */
-    public function Write(string $message )
+    public function Write( string $message )
     {
         $specifiedMsg = str_pad($message,static::$config[ static::$current ]['size']);
         $handle = $this->_getHandle(__FUNCTION__,false, static::writeProperty);

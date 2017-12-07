@@ -40,6 +40,9 @@ class Demo extends controller
         var_dump($writeResult);
         $readResult  = $channel->Read(false);
         var_dump($readResult );
+
+        $readResult  = $channel->Read(true);
+        var_dump($readResult );
     }
 
 }

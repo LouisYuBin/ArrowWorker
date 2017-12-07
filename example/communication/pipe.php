@@ -193,6 +193,7 @@ function signalHandler($signal)
         case SIGINT:
         case SIGQUIT:
             $isWorking=false;
+        $terminal = true;
             echo "quit";
             //exit(0);
             break;
@@ -216,15 +217,15 @@ pcntl_signal_dispatch();
 
 $redis = new \Redis();
 $redis ->connect("127.0.0.1",6379);
-$redis ->auth("carlt_louis_2017_03_17");
+$redis ->auth("louis");
 
 if($pid == 0){
     pcntl_signal_dispatch();
     sleep(10);
-    //$pipe->write(str_pad("test1",1024));
-    //$pipe->write(str_pad("test2",1024));
-    //$pipe->write(str_pad("test3",1024));
-    $result = $redis->lPush("louis","1");
+    $pipe->write(str_pad("test1",1024));
+    $pipe->write(str_pad("test2",1024));
+    $pipe->write(str_pad("test3",1024));
+/*    $result = $redis->lPush("louis","1");
     $result = $redis->lPush("louis","2");
     $result = $redis->lPush("louis","3");
     $result = $redis->lPush("louis","4");
@@ -235,7 +236,7 @@ if($pid == 0){
     $result = $redis->lPush("louis","8");
     sleep(5);
     $result = $redis->lPush("louis","9");
-    $result = $redis->lPush("louis","10");
+    $result = $redis->lPush("louis","10");*/
     pcntl_signal_dispatch();
     echo PHP_EOL."child".PHP_EOL;
 }else{
@@ -248,11 +249,12 @@ if($pid == 0){
         global $isWorking;
         $isWorking = true;
         pcntl_signal_dispatch();
-        //$result = $pipe->read(1024);
-        //var_dump($result);
-        //echo $result . PHP_EOL;
-        $result = $redis->brPop(["louis"],5);
+        $pipe->setBlock(true);
+        $result = $pipe->read(1024);
         var_dump($result);
+        //echo $result . PHP_EOL;
+        //$result = $redis->brPop(["louis"],5);
+        //var_dump($result);
 
         pcntl_signal_dispatch();
         echo "extra work".PHP_EOL;
