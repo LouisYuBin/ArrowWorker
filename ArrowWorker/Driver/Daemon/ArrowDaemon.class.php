@@ -719,6 +719,40 @@ class ArrowDaemon extends daemon
         }
     }
 
+    private function _startChannelFinishProcess()
+    {
+        for($i = 0; $i<self::$jobNum; $i++)
+        {
+            if( !is_null(self::$jobs[$i]['channel']) )
+            {
+                while(self::$jobs[$i]['pidCount'] < self::$jobs[$i]['concurrency'])
+                {
+                    $pid = pcntl_fork();
+
+                    if($pid > 0)
+                    {
+                        self::$jobs[$i]['pidCount']++;
+                        self::$pidMap[$pid] = $i;
+                        if( is_null(self::$jobs[$i]['channel']) )
+                        {
+                            static::$normalPidMap[$pid] = $pid;
+                        }
+                        else
+                        {
+                            static::$channelPidMap[$pid] = $pid;
+                        }
+                    }
+                    elseif($pid==0)
+                    {
+                        $this -> _finishChannelTask($i);
+                    }
+                }
+            }
+
+            usleep(10000);
+        }
+    }
+
     /**
      * _processRunTask 进程形式执行任务
      * @author Louis
@@ -726,6 +760,7 @@ class ArrowDaemon extends daemon
      */
     private function _finishChannelTask(int $index)
     {
+        $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
         $this -> _writeLog( self::$jobs[$index]['processName'].' ###finish Channel### started.');
         while( 1 )
@@ -776,10 +811,9 @@ class ArrowDaemon extends daemon
         }
     }
 
-    //协程执行任务
 
     /**
-     * _scheduleRun
+     * _scheduleRun 协程执行任务
      * @author Louis
      */
     private function  _scheduleRun()
