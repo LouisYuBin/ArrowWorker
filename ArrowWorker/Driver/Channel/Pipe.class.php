@@ -169,7 +169,7 @@ class Pipe extends Channel
      * @author Louis
      * @return bool
      */
-    public function Remove()
+    public function Quit()
     {
         foreach (self::$config as $eachConfig)
         {

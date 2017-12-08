@@ -7,6 +7,7 @@
  */
 
 namespace ArrowWorker\Driver\Daemon;
+use ArrowWorker\Driver;
 use ArrowWorker\Driver\Daemon AS daemon;
 use ArrowWorker\Driver\Daemon\ArrowThread;
 use ArrowWorker\Driver\Daemon\GeneratorTask;
@@ -118,10 +119,22 @@ class ArrowDaemon extends daemon
     private static $jobs        = [];
 
     /**
-     * 任务进程 ID map
+     * 任务进程 ID map(不带管道消费的进程)
      * @var Array
      */
     private static $pidMap      = [];
+
+    /**
+     * 管道消费任务进程 ID map
+     * @var Array
+     */
+    private static $channelPidMap = [];
+
+    /**
+     * 非管道消费任务进程 ID map
+     * @var Array
+     */
+    private static $normalPidMap = [];
 
     /**
      * 线程池
@@ -152,6 +165,12 @@ class ArrowDaemon extends daemon
      * @var bool
      */
     private static $enableGenerator = false;
+
+    /**
+     * 是否使用队列
+     * @var bool
+     */
+    private static $isChannelUsed = false;
 
 
     /**
@@ -196,17 +215,17 @@ class ArrowDaemon extends daemon
      */
     private function _environmentCheck()
     {
-        if (php_sapi_name() != "cli")
+        if ( php_sapi_name() != "cli" )
         {
             die("ArrowWorker hint : only run in command line mode\n");
         }
 
-        if ( ! function_exists('pcntl_signal_dispatch'))
+        if ( !function_exists('pcntl_signal_dispatch') )
         {
             declare(ticks = 10);
         }
 
-        if ( ! function_exists('pcntl_signal'))
+        if ( !function_exists('pcntl_signal') )
         {
             $message = 'ArrowWorker hint : php environment do not support pcntl_signal';
             $this -> _writeLog($message);
@@ -216,7 +235,7 @@ class ArrowDaemon extends daemon
         $fl = fopen(self::$output, 'w') or die("ArrowWorker hint : cannot create log file");
               fclose($fl);
 
-        if (function_exists('gc_enable'))
+        if ( function_exists('gc_enable') )
         {
             gc_enable();
         }
@@ -255,10 +274,9 @@ class ArrowDaemon extends daemon
         }
 
         chdir("/");
-        $proStartTime = date("Y-m-d H:i:s");
         $this -> _userSet(self::$user) or die("ArrowWorker hint : Setting process user failed！");
         $this -> _resetStd();
-        $this -> _setProcessName("ArrowWorker V1.5 --By Louis --started at ".$proStartTime);
+        $this -> _setProcessName("ArrowWorker V1.5 --By Louis --started at ".date("Y-m-d H:i:s"));
         if (self::$isSingle==true)
         {
             $this -> _createPidfile();
@@ -424,7 +442,7 @@ class ArrowDaemon extends daemon
      */
     private function _setProcessName(string $proName)
     {
-        $proName = self::$App_Name.' -- '.$proName;
+        $proName = self::$App_Name.' : '.$proName;
         if(function_exists('cli_set_process_title'))
         {
             @cli_set_process_title($proName);
@@ -451,7 +469,7 @@ class ArrowDaemon extends daemon
             $this -> _deletePidAndLogExit();
         }
         $this -> _setSignalHandler('monitorHandler');
-        $this -> _forkWorkders();
+        $this -> _forkWorkers();
         $this -> _startMonitor();
     }
 
@@ -461,12 +479,48 @@ class ArrowDaemon extends daemon
      */
     private function _exitWorkers()
     {
-        foreach(self::$pidMap as $key => $val)
+        $this->_exitNormalWorkers();
+
+        while ( 1 )
         {
-            $result = posix_kill($key,SIGUSR1);
+            if( count( self::$normalPidMap )==0 )
+            {
+                $this->_exitChannelWorkers();
+                break;
+            }
+            usleep(10000);
+        }
+
+    }
+
+    /**
+     * _exitNormalWorkers  退出不带管道小费的进程
+     * @author Louis
+     */
+    private function _exitNormalWorkers()
+    {
+        foreach(self::$normalPidMap as $val)
+        {
+            $result = posix_kill($val,SIGUSR1);
             if(!$result)
             {
-                 posix_kill($key,SIGUSR1);
+                posix_kill($val,SIGUSR1);
+            }
+        }
+    }
+
+    /**
+     * _exitChannelWorkers  退出带管道消费的进程
+     * @author Louis
+     */
+    private function _exitChannelWorkers()
+    {
+        foreach(self::$channelPidMap as  $val)
+        {
+            $result = posix_kill($val,SIGUSR1);
+            if(!$result)
+            {
+                posix_kill($val,SIGUSR1);
             }
         }
     }
@@ -522,6 +576,15 @@ class ArrowDaemon extends daemon
             $taskGroupId = self::$pidMap[$pid];
             self::$jobs[$taskGroupId]['pidCount']--;
             unset(self::$pidMap[$pid]);
+            if ( is_null(self::$jobs[$taskGroupId]['channel']) )
+            {
+                unset(static::$normalPidMap[$pid]);
+            }
+            else
+            {
+                unset(static::$channelPidMap[$pid]);
+            }
+            //监控进程收到退出信号时则无需开启新的worker
             if( !$isExit )
             {
                 $this -> _forkOneWork($taskGroupId);
@@ -532,10 +595,10 @@ class ArrowDaemon extends daemon
 
 
     /**
-     * _forkWorkders 给多有任务开启对应任务执行worker组
+     * _forkWorkers 给多有任务开启对应任务执行worker组
      * @author Louis
      */
-    private function _forkWorkders()
+    private function _forkWorkers()
     {
         for($i = 0; $i<self::$jobNum; $i++)
         {   
@@ -563,6 +626,14 @@ class ArrowDaemon extends daemon
         {   
             self::$jobs[$taskGroupId]['pidCount']++;
             self::$pidMap[$pid] = $taskGroupId;
+            if( is_null(self::$jobs[$taskGroupId]['channel']) )
+            {
+                static::$normalPidMap[$pid] = $pid;
+            }
+            else
+            {
+                static::$channelPidMap[$pid] = $pid;
+            }
         }
         elseif($pid==0)
         {   
@@ -646,6 +717,37 @@ class ArrowDaemon extends daemon
             pcntl_signal_dispatch();
             self::$workerStat['count']++;
         }
+    }
+
+    /**
+     * _processRunTask 进程形式执行任务
+     * @author Louis
+     * @param int $index
+     */
+    private function _finishChannelTask(int $index)
+    {
+        self::$workerStat['start'] = time();
+        $this -> _writeLog( self::$jobs[$index]['processName'].' ###finish Channel### started.');
+        while( 1 )
+        {
+            $channelStatus = 1;
+            if( isset( self::$jobs[$index]['argv'] ) )
+            {
+                $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
+            }
+            else
+            {
+                $channelStatus = call_user_func( self::$jobs[$index]['function'] );
+            }
+            self::$workerStat['count']++;
+            if ($channelStatus==0)
+            {
+                break;
+            }
+        }
+        self::$workerStat['end'] = time();
+        $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
+        $this -> _writeLog( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
     }
 
 
@@ -784,6 +886,11 @@ class ArrowDaemon extends daemon
             unlink(self::$pid_File);
             $this -> _writeLog("delete pid file " . self::$pid_File);
         }
+        //删除管道文件
+        if ( static::$isChannelUsed )
+        {
+            Driver::Channel()->Quit();
+        }
         $this -> _writeLog("ArrowWork  hint ：monitor exits.");
         exit(0);
     }
@@ -806,7 +913,16 @@ class ArrowDaemon extends daemon
         $job['lifecycle']   = (isset($job['lifecycle'])   && (int)$job['lifecycle']>0)   ? $job['lifecycle']   : static::lifeCycle ;
         $job['concurrency'] = (isset($job['concurrency']) && (int)$job['concurrency']>0) ? $job['concurrency'] : static::concurrency ;
         $job['processName'] = (isset($job['proName'])     && !empty($job['proName']))    ?  $job['proName']    : static::processName;
-        $job['channel']     = isset($job['channel']) ? $job['channel'] : static::processChannel;
+
+        if(isset($job['channel']))
+        {
+            $job['channel'] = $job['channel'];
+            static::$isChannelUsed = true;
+        }
+        else
+        {
+            $job['channel'] = static::processChannel;
+        }
 
         self::$jobs[] = $job;
     }
