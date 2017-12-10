@@ -130,6 +130,13 @@ class ArrowDaemon extends daemon
      */
     private static $channelPidMap = [];
 
+
+	/**
+	 * 最后队列消费map
+	 * @var bool
+	 */
+	private static $consumePidMap = [];
+
     /**
      * 非管道消费任务进程 ID map
      * @var Array
@@ -397,7 +404,6 @@ class ArrowDaemon extends daemon
             case SIGINT:
             case SIGQUIT:
                 self::$terminate = true;
-                $this -> _exitWorkers();
                 break;
             default:
                 return false;
@@ -466,7 +472,7 @@ class ArrowDaemon extends daemon
         if(self::$jobNum == 0)
         {
             $this -> _writeLog("ArrowWorker hint : please add one task at least.");
-            $this -> _deletePidAndLogExit();
+            $this -> _finishMonitorExit()();
         }
         $this -> _setSignalHandler('monitorHandler');
         $this -> _forkWorkers();
@@ -479,51 +485,16 @@ class ArrowDaemon extends daemon
      */
     private function _exitWorkers()
     {
-        $this->_exitNormalWorkers();
-
-        while ( 1 )
-        {
-            if( count( self::$normalPidMap )==0 )
-            {
-                $this->_exitChannelWorkers();
-                break;
-            }
-            usleep(10000);
-        }
-
+        foreach ( static::$pidMap as $pid => $groupId)
+		{
+			if( !posix_kill($pid,SIGUSR1) )
+			{
+				posix_kill($pid,SIGUSR1);
+			}
+			usleep(10000);
+		}
     }
 
-    /**
-     * _exitNormalWorkers  退出不带管道小费的进程
-     * @author Louis
-     */
-    private function _exitNormalWorkers()
-    {
-        foreach(self::$normalPidMap as $val)
-        {
-            $result = posix_kill($val,SIGUSR1);
-            if(!$result)
-            {
-                posix_kill($val,SIGUSR1);
-            }
-        }
-    }
-
-    /**
-     * _exitChannelWorkers  退出带管道消费的进程
-     * @author Louis
-     */
-    private function _exitChannelWorkers()
-    {
-        foreach(self::$channelPidMap as  $val)
-        {
-            $result = posix_kill($val,SIGUSR1);
-            if(!$result)
-            {
-                posix_kill($val,SIGUSR1);
-            }
-        }
-    }
 
     /**
      * _exitWorkers 开启worker监控
@@ -535,19 +506,12 @@ class ArrowDaemon extends daemon
         {
             if(self::$terminate)
             {
-                $unExitedCount = 0;
-                for($i = 0; $i<self::$jobNum; $i++)
-                {
-                    $unExitedCount += self::$jobs[$i]['pidCount'];
-                }
-
-                for ($i=0; $i<$unExitedCount; $i++)
-                {
-                    $status = 0;
-                    $pid    = pcntl_wait($status, WUNTRACED);
-                    $this -> _handleExited( $pid, $status );
-                }
-                $this -> _deletePidAndLogExit();
+            	//给工作进程发送退出信号
+				$this -> _exitWorkers();
+				//等待进程退出
+            	$this->_waitUnexitedProcess();
+				//退出监控进程相关操作
+				$this -> _finishMonitorExit()();
             }
 
             pcntl_signal_dispatch();
@@ -560,6 +524,34 @@ class ArrowDaemon extends daemon
 
         }
     }
+    
+    private function _waitUnexitedProcess()
+	{
+		//统计未退出进程数
+		$unExitedCount = count(static::$pidMap);
+
+		//等待未退出进程退出
+		for ($i=0; $i<$unExitedCount; $i++)
+		{
+			$status = 0;
+			$pid    = pcntl_wait($status, WUNTRACED);
+			$this -> _handleExited( $pid, $status );
+		}
+
+		//开启最终队列消费进程
+		$this -> _startChannelFinishProcess();
+		//等待未退出进程退出
+		$consumeProcessNum = count(static::$consumePidMap);
+		for ($i=0; $i<$consumeProcessNum; $i++)
+		{
+			$status  = 0;
+			$pid     = pcntl_wait($status, WUNTRACED);
+			$groupId = static::$consumePidMap[$pid];
+			$this -> _writeLog("Task process(".self::$jobs[ $groupId ]["processName"]."-".$pid." : ".$status.") exited.");
+
+		}
+
+	}
 
 
     /**
@@ -571,26 +563,22 @@ class ArrowDaemon extends daemon
      */
     private function _handleExited(int $pid, int $status, bool $isExit=true)
     {
-        if ($pid > 0)
+        if ($pid < 0)
         {
-            $taskGroupId = self::$pidMap[$pid];
-            self::$jobs[$taskGroupId]['pidCount']--;
-            unset(self::$pidMap[$pid]);
-            if ( is_null(self::$jobs[$taskGroupId]['channel']) )
-            {
-                unset(static::$normalPidMap[$pid]);
-            }
-            else
-            {
-                unset(static::$channelPidMap[$pid]);
-            }
-            //监控进程收到退出信号时则无需开启新的worker
-            if( !$isExit )
-            {
-                $this -> _forkOneWork($taskGroupId);
-            }
-            $this -> _writeLog("Task process(".self::$jobs[$taskGroupId]["processName"]."-".$pid.":".$status.") exited.");
-        }
+        	return;
+		}
+
+		$processGroupId = self::$pidMap[$pid];
+		unset(self::$pidMap[$pid]);
+		//组进程数处理
+		self::$jobs[$processGroupId]['pidCount']--;
+		
+		//监控进程收到退出信号时则无需开启新的worker
+		if( !$isExit )
+		{
+			$this -> _forkOneWorker($processGroupId);
+		}
+		$this -> _writeLog("Task process(".self::$jobs[$processGroupId]["processName"]."-".$pid.":".$status.") exited.");
     }
 
 
@@ -604,7 +592,7 @@ class ArrowDaemon extends daemon
         {   
             while(self::$jobs[$i]['pidCount'] < self::$jobs[$i]['concurrency'])
             {
-                $this -> _forkOneWork($i);
+                $this -> _forkOneWorker($i);
             }
             usleep(10000);
         }
@@ -616,24 +604,14 @@ class ArrowDaemon extends daemon
      * @author Louis
      * @param int $taskGroupId
      */
-    private function _forkOneWork(int $taskGroupId)
+    private function _forkOneWorker(int $taskGroupId)
     {
-        $pid = -1;
-
         $pid = pcntl_fork();
                
         if($pid > 0)
         {   
             self::$jobs[$taskGroupId]['pidCount']++;
             self::$pidMap[$pid] = $taskGroupId;
-            if( is_null(self::$jobs[$taskGroupId]['channel']) )
-            {
-                static::$normalPidMap[$pid] = $pid;
-            }
-            else
-            {
-                static::$channelPidMap[$pid] = $pid;
-            }
         }
         elseif($pid==0)
         {   
@@ -641,7 +619,7 @@ class ArrowDaemon extends daemon
         }
         else
         {   
-            sleep(2);
+            sleep(1);
         }
     }
 
@@ -719,36 +697,32 @@ class ArrowDaemon extends daemon
         }
     }
 
-    private function _startChannelFinishProcess()
+	/**
+	 * _startChannelFinishProcess 开启最终队列消费进程组
+	 */
+	private function _startChannelFinishProcess()
     {
         for($i = 0; $i<self::$jobNum; $i++)
         {
-            if( !is_null(self::$jobs[$i]['channel']) )
+            if( is_null(self::$jobs[$i]['channel']) )
             {
-                while(self::$jobs[$i]['pidCount'] < self::$jobs[$i]['concurrency'])
-                {
-                    $pid = pcntl_fork();
+            	continue;
+			}
 
-                    if($pid > 0)
-                    {
-                        self::$jobs[$i]['pidCount']++;
-                        self::$pidMap[$pid] = $i;
-                        if( is_null(self::$jobs[$i]['channel']) )
-                        {
-                            static::$normalPidMap[$pid] = $pid;
-                        }
-                        else
-                        {
-                            static::$channelPidMap[$pid] = $pid;
-                        }
-                    }
-                    elseif($pid==0)
-                    {
-                        $this -> _finishChannelTask($i);
-                    }
-                }
-            }
+			while(self::$jobs[$i]['pidCount'] < self::$jobs[$i]['concurrency'])
+			{
+				$pid = pcntl_fork();
 
+				if($pid > 0)
+				{
+					static::$consumePidMap[$pid] = $i;
+				}
+				elseif($pid==0)
+				{
+					self::$jobs[$i]['pidCount']++;
+					$this -> _consumeChannelTask($i);
+				}
+			}
             usleep(10000);
         }
     }
@@ -758,11 +732,11 @@ class ArrowDaemon extends daemon
      * @author Louis
      * @param int $index
      */
-    private function _finishChannelTask(int $index)
+    private function _consumeChannelTask(int $index)
     {
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
-        $this -> _writeLog( self::$jobs[$index]['processName'].' ###finish Channel### started.');
+        $this -> _writeLog( self::$jobs[$index]['processName'].' ###last consuming-channel### started.');
         while( 1 )
         {
             $channelStatus = 1;
@@ -910,10 +884,10 @@ class ArrowDaemon extends daemon
     }
 
     /**
-     * _deletePidAndLogExit 删除进程pid文件、记录退出信息后正常退出粗
+     * _finishMonitorExit() 删除进程pid文件、记录退出信息后正常退出粗
      * @author Louis
      */
-    private function _deletePidAndLogExit()
+    private function _finishMonitorExit()
     {
         if (file_exists(self::$pid_File))
         {

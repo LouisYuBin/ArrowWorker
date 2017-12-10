@@ -59,7 +59,7 @@ $app['Channel'] = [
         //驱动类型
         'driver' => 'Pipe',
         //管道路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.pipe',
+        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.pipe',
         //密码
         'size'   => 128
     ]

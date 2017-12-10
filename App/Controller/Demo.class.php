@@ -25,7 +25,6 @@ class Demo extends controller
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();
-        var_dump($argv);
         sleep(1);
     }
 
@@ -45,6 +44,7 @@ class Demo extends controller
 
         $readResult  = $channel->Read(true);
         var_dump($readResult );
+        return 0;
     }
 
 }
