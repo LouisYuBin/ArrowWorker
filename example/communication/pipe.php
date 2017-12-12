@@ -26,14 +26,14 @@ class Pipe
      * @param int $mode
      * @param bool $block if blocking
      */
-    public function __construct($filename = '/tmp/simple-fork.pipe', $mode = 0666, $block = false)
+    public function __construct($filename = '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.pipe', $mode = 0666, $block = false)
     {
-        if (!file_exists($filename) && !posix_mkfifo($filename, $mode)) {
+       /* if (!file_exists($filename) && !posix_mkfifo($filename, $mode)) {
             throw new \RuntimeException("create pipe failed");
         }
         if (filetype($filename) != "fifo") {
             throw new \RuntimeException("file exists and it is not a fifo file");
-        }
+        }*/
 
         $this->filename = $filename;
         $this->block = $block;
@@ -222,9 +222,9 @@ $redis ->auth("louis");
 if($pid == 0){
     pcntl_signal_dispatch();
     sleep(10);
-    $pipe->write(str_pad("test1",1024));
-    $pipe->write(str_pad("test2",1024));
-    $pipe->write(str_pad("test3",1024));
+    $pipe->write(str_pad("test1",128));
+    $pipe->write(str_pad("test2",128));
+    $pipe->write(str_pad("test3",128));
 /*    $result = $redis->lPush("louis","1");
     $result = $redis->lPush("louis","2");
     $result = $redis->lPush("louis","3");
@@ -250,7 +250,7 @@ if($pid == 0){
         $isWorking = true;
         pcntl_signal_dispatch();
         $pipe->setBlock(true);
-        $result = $pipe->read(1024);
+        $result = $pipe->read(128);
         var_dump($result);
         //echo $result . PHP_EOL;
         //$result = $redis->brPop(["louis"],5);

@@ -25,26 +25,27 @@ class Demo extends controller
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();
+        $channel = Driver::Channel();
+        $randamNum = mt_rand(0,10000000);
         sleep(1);
+        $writeResult = $channel->Write("louis".$randamNum);
+        //var_dump($writeResult);
     }
 
     public function pipe()
     {
 
         $channel = Driver::Channel();
-        $writeResult = $channel->Write("louis");
-        var_dump($writeResult);
         $readResult  = $channel->Read(false);
-        var_dump($readResult );
-
-        $writeResult = $channel->Write("加油");
-        var_dump($writeResult);
-        $readResult  = $channel->Read(false);
-        var_dump($readResult );
-
-        $readResult  = $channel->Read(true);
-        var_dump($readResult );
-        return 0;
+        //var_dump($readResult);
+        //var_dump($readResult );
+        sleep(1);
+        //var_dump($readResult);
+        if( empty($readResult) )
+        {
+            return 0;
+        }
+        return 1;
     }
 
 }

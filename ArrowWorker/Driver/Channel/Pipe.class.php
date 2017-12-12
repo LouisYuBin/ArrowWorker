@@ -152,7 +152,7 @@ class Pipe extends Channel
     {
         foreach (self::$pool as $eachPipe)
         {
-            fclose($eachPipe);
+            //fclose($eachPipe);
         }
     }
 
@@ -161,7 +161,7 @@ class Pipe extends Channel
      */
     public function __destruct()
     {
-        $this->Close();
+        //$this->Close();
     }
 
     /**
@@ -175,7 +175,7 @@ class Pipe extends Channel
         {
             if( file_exists( $eachConfig['path'] ) )
             {
-                @unlink( $eachConfig['path'] );
+                //@unlink( $eachConfig['path'] );
             }
         }
     }
