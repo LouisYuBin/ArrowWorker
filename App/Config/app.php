@@ -57,8 +57,8 @@ $app['Cache'] = [
 $app['Channel'] = [
     'app' => [
         //驱动类型
-        'driver' => 'Pipe',
-        //管道路径
+        'driver' => 'Queue',
+        //路径
         'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.pipe',
         //密码
         'size'   => 128

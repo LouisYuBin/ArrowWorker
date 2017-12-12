@@ -152,8 +152,15 @@ class Pipe extends Channel
     {
         foreach (self::$pool as $eachPipe)
         {
-            //fclose($eachPipe);
+            fclose($eachPipe);
         }
+		foreach (self::$config as $eachConfig)
+		{
+			if( file_exists( $eachConfig['path'] ) )
+			{
+				@unlink( $eachConfig['path'] );
+			}
+		}
     }
 
     /**
@@ -161,23 +168,9 @@ class Pipe extends Channel
      */
     public function __destruct()
     {
-        //$this->Close();
+        //todo
     }
 
-    /**
-     * Remove
-     * @author Louis
-     * @return bool
-     */
-    public function Quit()
-    {
-        foreach (self::$config as $eachConfig)
-        {
-            if( file_exists( $eachConfig['path'] ) )
-            {
-                //@unlink( $eachConfig['path'] );
-            }
-        }
-    }
+
 }
 

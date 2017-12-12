@@ -909,10 +909,10 @@ class ArrowDaemon extends daemon
             unlink(self::$pid_File);
             $this -> _writeLog("delete pid file " . self::$pid_File);
         }
-        //删除管道文件
+        //关闭通道
         if ( static::$isChannelUsed )
         {
-            Driver::Channel()->Quit();
+            Driver::Channel()->Close();
         }
         $this -> _writeLog("ArrowWork  hint ：monitor exits.");
         exit(0);
