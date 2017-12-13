@@ -14,11 +14,30 @@ use ArrowWorker\Loader;
 
 class Demo extends controller
 {
+    public function __construct()
+    {
+        /**
+         * @var $dbService \App\Service\DbDemo
+         * @var $classService \App\Service\ClassDemo
+         * @var $cacheService \App\Service\CacheDemo
+         */
+    }
 
     public function Demo($argv=0)
     {
+        /**
+         * @var $cacheService \App\Service\CacheDemo
+         */
         $cacheService = Loader::Service('CacheDemo');
+
+        /**
+         * @var $dbService \App\Service\DbDemo
+         */
         $dbService    = Loader::Service('DbDemo');
+
+        /**
+         * @var $classService \App\Service\ClassDemo
+         */
         $classService = Loader::Service('ClassDemo');
 
         $dbService    -> testDb();
@@ -35,7 +54,7 @@ class Demo extends controller
         $arrowChannel = Driver::Channel('arrow');
         $writeResult = $arrowChannel->Write("Arrow".$randamNum);
         //var_dump($writeResult);
-        sleep(1);
+        //sleep(1);
     }
 
     public function channelApp()
@@ -46,7 +65,7 @@ class Demo extends controller
         //var_dump($result);
         if( !$result )
         {
-            sleep(1);
+            usleep(1000);
             return false;
         }
         return true;
@@ -60,7 +79,7 @@ class Demo extends controller
         //var_dump($result);
         if( !$result )
         {
-            sleep(1);
+            usleep(1000);
             return false;
         }
         return true;
