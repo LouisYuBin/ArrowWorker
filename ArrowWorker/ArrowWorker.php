@@ -139,6 +139,7 @@ class ArrowWorker
             'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . self::classExt,
             'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . self::classExt,
             'ArrowWorker\Driver\Channel\Pipe'       => ArrowWorker . '/Driver/Channel/Pipe' .       self::classExt,
+            'ArrowWorker\Driver\Channel\Queue'      => ArrowWorker . '/Driver/Channel/Queue' .      self::classExt,
         ];
     }
 

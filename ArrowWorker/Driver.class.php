@@ -57,7 +57,7 @@ class Driver
     /**
      * channel 驱动
      * @param string $alias
-     * @return \ArrowWorker\Driver\Channel\Pipe
+     * @return \ArrowWorker\Driver\Channel\Queue
      */
     public static function Channel( string $alias='app' )
     {

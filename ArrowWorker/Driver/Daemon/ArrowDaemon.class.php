@@ -36,11 +36,6 @@ class ArrowDaemon extends daemon
     const processName = 'untitled';
 
     /**
-     * 进程关联channel
-     */
-    const processChannel = null;
-
-    /**
      * pid文件路径
      * @var string
      */
@@ -172,12 +167,6 @@ class ArrowDaemon extends daemon
      * @var bool
      */
     private static $enableGenerator = false;
-
-    /**
-     * 是否使用队列
-     * @var bool
-     */
-    private static $isChannelUsed = false;
 
 
     /**
@@ -371,7 +360,11 @@ class ArrowDaemon extends daemon
         switch($type)
         {
             case 'workerHandler':
-                pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGCHLD, SIG_IGN,false);
+                pcntl_signal(SIGTERM, SIG_IGN,false);
+                pcntl_signal(SIGINT,  SIG_IGN,false);
+                pcntl_signal(SIGQUIT, SIG_IGN,false);
+
                 pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGUSR1, array(__CLASS__, "signalHandler"),false);
                 pcntl_alarm($lifecycle);
@@ -713,11 +706,11 @@ class ArrowDaemon extends daemon
 	 */
 	private function _startChannelFinishProcess()
     {
-        static::_writeLog("called : _startChannelFinishProcess");
+        static::_writeLog("start channel-finish Process");
 
         for($i = 0; $i<self::$jobNum; $i++)
         {
-            if( is_null(self::$jobs[$i]['channel']) )
+            if( !self::$jobs[$i]['channel'] )
             {
             	continue;
 			}
@@ -749,10 +742,10 @@ class ArrowDaemon extends daemon
     {
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
-        $this -> _writeLog( self::$jobs[$index]['processName'].' ###last consuming-channel### started.');
+        $this -> _writeLog( self::$jobs[$index]['processName'].'--- channel-finish started.');
         while( 1 )
         {
-            $channelStatus = 1;
+            $channelStatus = true;
             if( isset( self::$jobs[$index]['argv'] ) )
             {
                 $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
@@ -762,7 +755,7 @@ class ArrowDaemon extends daemon
                 $channelStatus = call_user_func( self::$jobs[$index]['function'] );
             }
             self::$workerStat['count']++;
-            if ($channelStatus==0)
+            if ( !$channelStatus )
             {
                 break;
             }
@@ -909,11 +902,6 @@ class ArrowDaemon extends daemon
             unlink(self::$pid_File);
             $this -> _writeLog("delete pid file " . self::$pid_File);
         }
-        //关闭通道
-        if ( static::$isChannelUsed )
-        {
-            Driver::Channel()->Close();
-        }
         $this -> _writeLog("ArrowWork  hint ：monitor exits.");
         exit(0);
     }
@@ -936,17 +924,7 @@ class ArrowDaemon extends daemon
         $job['lifecycle']   = (isset($job['lifecycle'])   && (int)$job['lifecycle']>0)   ? $job['lifecycle']   : static::lifeCycle ;
         $job['concurrency'] = (isset($job['concurrency']) && (int)$job['concurrency']>0) ? $job['concurrency'] : static::concurrency ;
         $job['processName'] = (isset($job['proName'])     && !empty($job['proName']))    ?  $job['proName']    : static::processName;
-
-        if(isset($job['channel']))
-        {
-            $job['channel'] = $job['channel'];
-            static::$isChannelUsed = true;
-        }
-        else
-        {
-            $job['channel'] = static::processChannel;
-        }
-
+        $job['channel']     = isset($job['channel']) ? true : false;
         self::$jobs[] = $job;
     }
 

@@ -59,7 +59,15 @@ $app['Channel'] = [
         //驱动类型
         'driver' => 'Queue',
         //路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.pipe',
+        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/app.queue',
+        //密码
+        'size'   => 128
+    ],
+    'arrow' => [
+        //驱动类型
+        'driver' => 'Queue',
+        //路径
+        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
         //密码
         'size'   => 128
     ]

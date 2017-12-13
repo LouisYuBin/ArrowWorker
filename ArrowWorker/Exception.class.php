@@ -72,7 +72,25 @@ class Exception
         }
         else if( APP_TYPE=='cli')
         {
+            static::_removePidFile();
             exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);
+        }
+    }
+
+    /**
+     * _removePidFile 删除pid文件
+     * @author Louis
+     */
+    static function _removePidFile()
+    {
+        $daemonArray = Config::App('Daemon');
+        foreach ($daemonArray as $daemonConfig)
+        {
+            $pidPath = '/var/run'.$daemonConfig['pid'].'.pid';
+            if(file_exists($pidPath))
+            {
+                @unlink($pidPath);
+            }
         }
     }
 

@@ -18,6 +18,9 @@ use ArrowWorker\Driver\Channel;
 class Queue extends Channel
 {
 
+    /**
+     * 打开方式
+     */
     const mode = 0666;
 
     /**
@@ -51,7 +54,7 @@ class Queue extends Channel
         {
             self::$instance = new self($config);
         }
-        //初始化（创建管道等）
+        //初始化（创建队列等）
         static::_init();
 
         return self::$instance;
@@ -77,41 +80,61 @@ class Queue extends Channel
 			throw new \Exception("path : {$pathName} does not exists.");
 		}
 		$key = ftok($pathName, 'A');
-        static::$pool[self::$current] = msg_get_queue($key, static::mode);;
+        static::$pool[self::$current] = msg_get_queue($key, static::mode);
     }
 
-    private function _getQueue()
+    /**
+     * _getQueue 获取队列
+     * @author Louis
+     * @param string $alias
+     * @return mixed
+     */
+    private function _getQueue(string $alias='')
 	{
+	    if( !empty($alias) && isset(static::$pool[$alias]) )
+        {
+            return static::$pool[$alias];
+        }
 		return static::$pool[self::$current];
 	}
-
 
     /**
      * Write  写入消息
      * @author Louis
-     * @param string $message 要写如的消息
-     * @param bool $isBlock 是否阻塞
-     * @return bool|int
+     * @param string $message 要写入的消息
+     * @param int $msgType 消息类型
+     * @return bool
      */
-    public function Write( string $message )
+    public function Write( string $message, int $msgType=1 )
     {
-		return msg_send( static::_getQueue(), 1, $message);
+        return msg_send( static::_getQueue(), $msgType, $message,true, true, $errorCode);
 	}
+
+    /**
+     * Status  获取队列状态
+     * @author Louis
+     * @param string $alias 队列配置名
+     * @return bool
+     */
+    public function Status( string $alias='' )
+    {
+        return msg_stat_queue( static::_getQueue($alias) );
+    }
 
     /**
      * Read 写消息
      * @author Louis
-     * @param int $sequence 从队列什么位置开始读取消息
+     * @param int $sequence 从队列什么位置开始读取消息  1:先进先出读取，0则为先进后出读取
      * @return bool|string
      */
-    public function Read(int $sequence)
+    public function Read(int $readPostion=1)
     {
-		$result = msg_receive(static::_getQueue(), 0, $message_type, 1024, $message, true, MSG_IPC_NOWAIT);
+		$result = msg_receive( static::_getQueue(), $readPostion, $messageType, self::$config[self::$current]['size'], $message, true, MSG_IPC_NOWAIT);
     	return $result ? $message : $result;
     }
 
     /**
-     * Close 关闭打开的管道
+     * Close 关闭管道
      * @author Louis
      */
     public function Close()
