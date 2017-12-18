@@ -743,6 +743,7 @@ class ArrowDaemon extends daemon
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
         $this -> _writeLog( self::$jobs[$index]['processName'].'--- channel-finish started.');
+        $retryTimes = 0;
         while( 1 )
         {
             $channelStatus = true;
@@ -755,19 +756,35 @@ class ArrowDaemon extends daemon
                 $channelStatus = call_user_func( self::$jobs[$index]['function'] );
             }
             self::$workerStat['count']++;
+
             if ( !$channelStatus )
             {
+                //写入进程未退出
                 foreach (static::$consumePidMap as $pid => $groupId)
                 {
-                    if( posix_kill($pid,SIGUSR1) )
+                    if( posix_kill($pid,SIGUSR2) )
                     {
                         $channelStatus = true;
                     }
                 }
+
+                //写入进程退出了，重试测试+1
+                if ( !$channelStatus )
+                {
+                    $retryTimes++;
+                }
+
+                //未重试
+                if ( $retryTimes > 1 )
+                {
+                    $channelStatus = true;
+                }
+
                 if ( !$channelStatus )
                 {
                     break;
                 }
+
             }
 
         }
