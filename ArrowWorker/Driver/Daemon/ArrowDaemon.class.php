@@ -757,7 +757,17 @@ class ArrowDaemon extends daemon
             self::$workerStat['count']++;
             if ( !$channelStatus )
             {
-                break;
+                foreach (static::$consumePidMap as $pid => $groupId)
+                {
+                    if( posix_kill($pid,SIGUSR1) )
+                    {
+                        $channelStatus = true;
+                    }
+                }
+                if ( !$channelStatus )
+                {
+                    break;
+                }
             }
 
         }
