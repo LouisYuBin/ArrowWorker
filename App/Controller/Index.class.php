@@ -41,6 +41,7 @@ class Index extends controller
 
         $daemonDriver -> AddTask(['function' => [$demo, 'channelApp'],   'argv' => [80],  'concurrency' => 4 , 'lifecycle' => 10, 'proName' => 'demo -> channelApp',   'channel' => true]);
         $daemonDriver -> AddTask(['function' => [$demo, 'channelArrow'], 'argv' => [80],  'concurrency' => 4 , 'lifecycle' => 10, 'proName' => 'demo -> channelArrow', 'channel' => true]);
+		$daemonDriver -> AddTask(['function' => [$demo, 'channeltest'], 'argv' => [80],  'concurrency' => 4 , 'lifecycle' => 10, 'proName' => 'demo -> channelArrow', 'channel' => true]);
 
         $daemonDriver -> Start();
     }

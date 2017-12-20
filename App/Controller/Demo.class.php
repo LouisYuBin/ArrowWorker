@@ -51,10 +51,6 @@ class Demo extends controller
         $writeResult = $appChannel->Write("app".$randamNum);
         //var_dump($writeResult);
 
-        $arrowChannel = Driver::Channel('arrow');
-        $writeResult = $arrowChannel->Write("Arrow".$randamNum);
-        //var_dump($writeResult);
-        //sleep(1);
     }
 
     public function channelApp()
@@ -62,12 +58,12 @@ class Demo extends controller
 
         $channel = Driver::Channel();
         $result  = $channel->Read(false);
-        //var_dump($result);
         if( !$result )
         {
             usleep(1000);
             return false;
         }
+		Driver::Channel('arrow')->Write($result);
         return true;
     }
 
@@ -82,7 +78,22 @@ class Demo extends controller
             usleep(1000);
             return false;
         }
+		Driver::Channel('test')->Write($result);
         return true;
     }
+
+	public function channelTest()
+	{
+
+		$channel = Driver::Channel('test');
+		$result  = $channel->Read(false);
+		//var_dump($result);
+		if( !$result )
+		{
+			usleep(1000);
+			return false;
+		}
+		return true;
+	}
 
 }

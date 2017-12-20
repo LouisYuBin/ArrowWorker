@@ -53,24 +53,38 @@ $app['Cache'] = [
     ]
 ];
 
-//消息通信
+//消息通信（管道）
 $app['Channel'] = [
     'app' => [
         //驱动类型
         'driver' => 'Queue',
-        //路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/app.queue',
-        //密码
-        'size'   => 128
+        //映射路径
+        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/app.queue',
+        //最大读取长度
+        'size'   => 128,
+		//队列占用byte大小设置
+		'length' => 10240000
     ],
     'arrow' => [
         //驱动类型
         'driver' => 'Queue',
         //路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
-        //密码
-        'size'   => 128
-    ]
+        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
+		//最大读取长度
+		'size'   => 128,
+		//队列占用byte大小设置
+		'length' => 10240000
+    ],
+	'test' => [
+		//驱动类型
+		'driver' => 'Queue',
+		//路径
+		'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/test.queue',
+		//最大读取长度
+		'size'   => 128,
+		//队列占用byte大小设置
+		'length' => 10240000
+	]
 ];
 
 //mongodb配置

@@ -81,6 +81,7 @@ class Queue extends Channel
 		}
 		$key = ftok($pathName, 'A');
         static::$pool[self::$current] = msg_get_queue($key, static::mode);
+        msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['length']]);
     }
 
     /**
