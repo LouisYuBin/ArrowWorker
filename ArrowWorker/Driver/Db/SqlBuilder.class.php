@@ -189,7 +189,7 @@ class SqlBuilder
             throw new \Exception("inert data must be an array,just like ['name'=>'Louis']");
         }
         $column = implode(',', array_keys($data));
-        $values = implode("','", $data);
+        $values = "'".implode("','", $data)."'";
         return $this->getDb()->execute("insert into {$this->table}({$column}) values({$values})");
     }
 
