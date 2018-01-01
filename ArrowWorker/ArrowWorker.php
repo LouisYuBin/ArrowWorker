@@ -125,6 +125,7 @@ class ArrowWorker
             'ArrowWorker\Driver'     => ArrowWorker . '/Driver' .     self::classExt,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception' .  self::classExt,
             'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
+			'ArrowWorker\Session'    => ArrowWorker . '/Session' . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
@@ -140,6 +141,8 @@ class ArrowWorker
             'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . self::classExt,
             'ArrowWorker\Driver\Channel\Pipe'       => ArrowWorker . '/Driver/Channel/Pipe' .       self::classExt,
             'ArrowWorker\Driver\Channel\Queue'      => ArrowWorker . '/Driver/Channel/Queue' .      self::classExt,
+			'ArrowWorker\Driver\Session\RedisSession' => ArrowWorker . '/Driver/Session/RedisSession' . self::classExt,
+
         ];
     }
 

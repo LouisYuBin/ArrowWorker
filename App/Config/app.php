@@ -181,4 +181,20 @@ $app['swoole'] = [
     'backlog'   => 2000
 ];
 
+//session相关配置
+$app['Session'] = [
+	//files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+	'handler'  => 'files',
+	//session文件储存路径,handler为files使用
+	'savePath' => '/tmp',
+	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
+	'host'	   => '127.0.0.1',
+	//redis/memcache端口，handler为RedisSession或MemcacheSession时使用
+	'port'	   => 6379,
+	//redis密码，handler为RedisSession时使用
+	'password' => 'louis',
+	//session超时时间
+	'timeout'  => 3600,
+];
+
 return $app;

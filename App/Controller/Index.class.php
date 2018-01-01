@@ -6,17 +6,29 @@
  */
 
 namespace App\Controller;
-use ArrowWorker\Controller as controller;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
+use ArrowWorker\Session;
 
 
-class Index extends controller
+class Index
 {
+
+	function index()
+	{
+		//phpinfo();
+		//exit();
+		var_dump( Session::Get('louis') );
+		var_dump( Session::Set('louis','2018') );
+		var_dump( Session::Get('louis') );
+		var_dump( Session::Id() );
+
+	}
+
     /*
     * （不建议使用）在常驻服务中调用service，然后直接常驻，这种方式当service、model、class等代码发生变更后需要重启服务，才能加载最新代码
     * */
-    function Index()
+    function daemonNoneUpdate()
     {
         $daemonDriver = Driver::Daemon('app');
         $cacheService = Loader::Service('CacheDemo');
@@ -32,7 +44,7 @@ class Index extends controller
     /*
      * （建议使用）在常驻服务中调用controller，然后在controller中调用service，这种方式当service、model、class等代码发生变更后不需要重启服务，工作进程重启以后会自动加载最新代码
      * */
-    function Ctl()
+    function demonAutoUpdate()
     {
         $daemonDriver = Driver::Daemon('app');
         $demo = new Demo();

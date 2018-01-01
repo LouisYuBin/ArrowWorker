@@ -100,7 +100,7 @@ class Config
             static::$AppConfigLoaded = true;
         }
 
-        return ( !empty($key) && isset(static::$AppConfig[$key]) ) ? static::$AppConfig[$key] : static::$AppConfig;
+        return ( !empty($key) && isset(static::$AppConfig[$key]) ) ? static::$AppConfig[$key] : false;
     }
 
 
@@ -123,7 +123,7 @@ class Config
             static::$ExtraConfigLoaded = true;
         }
 
-        return ( !empty($key) && isset(static::$ExtraConfig[$key]) ) ? static::$ExtraConfig[$key] : static::$ExtraConfig;
+        return ( !empty($key) && isset(static::$ExtraConfig[$key]) ) ? static::$ExtraConfig[$key] : false;
     }
 
 	/**

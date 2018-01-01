@@ -7,12 +7,11 @@
 
 namespace App\Controller;
 
-use ArrowWorker\Controller as controller;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
 
 
-class Demo extends controller
+class Demo
 {
     public function __construct()
     {

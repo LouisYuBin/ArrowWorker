@@ -6,9 +6,8 @@
  */
 
 namespace App\Model;
-use ArrowWorker\Model as model;
 
-class Index extends model
+class Index
 {
 
     //示例
