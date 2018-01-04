@@ -197,4 +197,10 @@ $app['Session'] = [
 	'timeout'  => 3600,
 ];
 
+//session相关配置
+$app['Cookie'] = [
+	//files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+	'prefix'  => 'ArrowWorker',
+];
+
 return $app;
