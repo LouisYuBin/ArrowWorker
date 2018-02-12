@@ -100,10 +100,15 @@ class ArrowWorker
         {
            //用户类映射
             $appClass  = Config::Load(Config::$AppFileMap);
-           if(isset($appClass[$class]))
+           if( !isset($appClass[$class]) )
            {
-               $class = APP_PATH.DIRECTORY_SEPARATOR.$appClass[$class];
+               throw new \Exception("Auto load class error : ".$class." is not added to user class map.");
            }
+           $class = APP_PATH.DIRECTORY_SEPARATOR.$appClass[$class];
+            if( !file_exists($class) )
+            {
+                throw new \Exception("Auto load class error : ".$class." does not exists.");
+            }
         }
         require $class;
     }

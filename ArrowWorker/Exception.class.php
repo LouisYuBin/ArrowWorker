@@ -98,15 +98,14 @@ class Exception
 	/**
 	 * exception 异常处理
 	 * @param string $msg
-	 * @param int $code
 	 */
-	static function exception(string $msg = '', int $code=0)
+	static function exception(string $msg = '')
     {
         $exception = (array)$msg;
-        $elemetNum = 0;
+        $elementNum = 0;
         foreach ($exception as $key => $val)
         {
-            switch ($elemetNum)
+            switch ($elementNum)
             {
                 case 0:
                     self::$msg = $val;
@@ -123,7 +122,7 @@ class Exception
                 case 5:
                     self::$trace = json_encode($val);
             }
-            $elemetNum++;
+            $elementNum++;
         }
         self::error( self::$code, self::$msg, self::$file, self::$line );
     }

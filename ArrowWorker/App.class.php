@@ -90,6 +90,10 @@ class App
         $method     = ucfirst($router['m']);
         $ctlObject  = new $controller;
         $ctlObject -> $method();
+        if( !method_exists($ctlObject, $method) )
+        {
+            throw new \Exception("controller : function:".$controller."->".$method."does not exists",500);
+        }
     }
 
     /**
