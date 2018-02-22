@@ -10,6 +10,13 @@ namespace ArrowWorker;
 
 class Response
 {
+    private static $response;
+
+    public static function Init(swoole_http_response $response)
+    {
+        static::$response = $response;
+    }
+
     public static function Json(int $code, array $data=[], string $msg='')
     {
         static::jsonFormat([
@@ -23,6 +30,11 @@ class Response
     {
         header("content-type:application/json;charset=utf-8");
         exit(json_encode($data));
+    }
+
+    public static function Response(string $msg)
+    {
+
     }
 
 }

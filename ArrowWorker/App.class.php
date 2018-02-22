@@ -103,42 +103,30 @@ class App
     private function _swooleWebApp()
     {
         $config = Config::App("swoole");
-        $swooleHttp = new \Swoole\Http\Server("0.0.0.0", $config['port']);
-        $swooleHttp->set([
+        $server = new \swoole_http_server("0.0.0.0", $config['port']);
+        $server->set([
             'worker_num' => $config['workerNum'],
             'daemonize'  => $config['daemonize'],
             'backlog'    => $config['backlog'],
         ]);
-        $swooleHttp->on('Request', function($request, $response) {
-            //兼容使用php-fpm的写法
-            $_GET    = $request->get;
-            $_POST   = $request->post;
-            $_COOKIE = $request->cookie;
-            $_REQUEST = [];
-            if(is_array($_GET) && is_array($_POST))
-            {
-                $_REQUEST = array_merge($_GET,$_REQUEST);
-            }
-            else if(!is_array($_GET) && is_array($_POST))
-            {
-                $_REQUEST = $_POST;
-            }
-            else if (is_array($_GET) && !is_array($_POST))
-            {
-                $_REQUEST = $_GET;
-            }
-            $_FILES = $request->files;
-            $_SERVER = $request->server;
-            //读取路由
-            $router = Router::Get();
-            $controller = self::$appControllerNamespace.ucfirst($router['c']);
-            $method     = ucfirst($router['m']);
-            $ctlObject  = new $controller;
-            $ctlObject -> $method($response);
+        $server->on('Request', function($req, $response) {
+            Cookie::Init($req->cookie ?? [] );
+            Request::Init(
+                $req->get ?? [],
+                $req->post ?? [],
+                $req->server ?? [],
+                $req->files ?? []
+            );
+            Response::Init($response);
 
+            $router = Router::Get();
+            $class  = self::$appControllerNamespace.ucfirst($router['c']);
+            $method = ucfirst($router['m']);
+            $controller = new $class;
+            $controller -> $method();
         });
 
-        $swooleHttp->start();
+        $server->start();
     }
 
     /**

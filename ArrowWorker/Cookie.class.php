@@ -12,10 +12,14 @@ use ArrowWorker\Utilities\Crypto;
 
 class Cookie
 {
+    public static function Init(array $cookies)
+    {
+        $_COOKIE = $cookies;
+    }
 
-	static function Get(string $name)
+    public static function Get(string $name)
 	{
-		$name   = static::getCookieKey($name);
+		$name   = static::getEncryptKey($name);
 		if( isset($_COOKIE[$name]) )
 		{
 			return Crypto::Decrypt($_COOKIE[$name]);
@@ -23,20 +27,20 @@ class Cookie
 		return false;
 	}
 
-	static function Set(string $name, string $val, int $expireSeconds=0, string $path='/',$domain=null)
+    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/',$domain=null)
 	{
 		$expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
-		$name   = static::getCookieKey($name);
+		$name   = static::getEncryptKey($name);
 		$val    = Crypto::Encrypt($val);
 		return setcookie($name, $val, $expire, $path, $domain);
 	}
 
-	static function GetAll()
+    public static function GetAll()
 	{
 		return $_COOKIE;
 	}
 
-	static function getCookieKey(string $name) : string
+    public static function getEncryptKey(string $name) : string
 	{
 		$config = Config::App('Cookie');
 		if( $config )

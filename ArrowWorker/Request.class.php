@@ -10,6 +10,15 @@ namespace ArrowWorker;
 
 class Request
 {
+
+    public static function Init(array $get, array $post, array $server, array $files)
+    {
+        $_GET    = $get;
+        $_POST   = $post;
+        $_FILES  = $files;
+        $_SERVER = $server;
+    }
+
     public static function Method()
     {
         return $_SERVER['REQUEST_METHOD'];
@@ -25,10 +34,5 @@ class Request
         return ( !isset($_POST[$key]) ) ? false : $_POST[$key];
     }
 
-    public static function File($file)
-    {
-        //move_uploaded_file()
-
-    }
 
 }

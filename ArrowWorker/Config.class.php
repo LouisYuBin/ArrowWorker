@@ -69,11 +69,12 @@ class Config
     private static $ExtraConfigLoaded = false;
 
 
-	/**
-	 * _init 初始化(配置文件路径)
-     * @return void
-	 */
-	public static function Init(string $configFilePath='')
+    /**
+     * Init
+     * @author Louis
+     * @param string $configFilePath
+     */
+    public static function Init(string $configFilePath='')
     {
         if( empty(self::$path) && empty($configFilePath) )
         {
@@ -92,7 +93,7 @@ class Config
      * @param string $AppConfig
      * @return array|mixed
      */
-    public static function App(string $key='',string $AppConfig=APP_CONFIG_FILE )
+    public static function App(string $key='', string $AppConfig=APP_CONFIG_FILE )
     {
         if( !static::$AppConfigLoaded )
         {
@@ -126,12 +127,15 @@ class Config
         return ( !empty($key) && isset(static::$ExtraConfig[$key]) ) ? static::$ExtraConfig[$key] : false;
     }
 
-	/**
-	 * Load 加载特定的配置文件
-	 * @param string $fileName
-	 * @return mixed
-	 */
-	public static function Load(string $fileName )
+
+    /**
+     * Load
+     * @author Louis
+     * @param string $fileName
+     * @return mixed
+     * @throws \Exception
+     */
+    public static function Load(string $fileName )
     {
         static::Init();
         if( isset( self::$configFileMap[$fileName] ) )
