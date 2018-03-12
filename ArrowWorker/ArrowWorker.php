@@ -130,7 +130,11 @@ class ArrowWorker
             'ArrowWorker\Driver'     => ArrowWorker . '/Driver' .     self::classExt,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception' .  self::classExt,
             'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::classExt,
-			'ArrowWorker\Session'    => ArrowWorker . '/Session' . self::classExt,
+			'ArrowWorker\Session'    => ArrowWorker . '/Session'  . self::classExt,
+            'ArrowWorker\Cookie'     => ArrowWorker . '/Cookie'   . self::classExt,
+            'ArrowWorker\Response'   => ArrowWorker . '/Response' . self::classExt,
+            'ArrowWorker\Request'   => ArrowWorker  . '/Request'  . self::classExt,
+            'ArrowWorker\Utilities\Crypto'  => ArrowWorker  . '/Utilities/Crypto'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

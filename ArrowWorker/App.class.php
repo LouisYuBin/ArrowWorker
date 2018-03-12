@@ -70,9 +70,9 @@ class App
         {
             $this -> _cliApp();
         }
-        else if(APP_TYPE == 'swoole')
+        else if(APP_TYPE == 'swooleWeb')
         {
-            $this -> _swooleWebApp();
+            $this -> _swooleWeb();
         } else {
             $this -> _webApp();
         }
@@ -100,7 +100,7 @@ class App
      * _swooleWebApp web应用（swoole web）
      * @author Louis
      */
-    private function _swooleWebApp()
+    private function _swooleWeb()
     {
         $config = Config::App("swoole");
         $server = new \swoole_http_server("0.0.0.0", $config['port']);
@@ -109,13 +109,13 @@ class App
             'daemonize'  => $config['daemonize'],
             'backlog'    => $config['backlog'],
         ]);
-        $server->on('Request', function($req, $response) {
-            Cookie::Init($req->cookie ?? [] );
+        $server->on('Request', function($request, $response) {
+            Cookie::Init($request->cookie ?? [], $response);
             Request::Init(
-                $req->get ?? [],
-                $req->post ?? [],
-                $req->server ?? [],
-                $req->files ?? []
+                $request->get ?? [],
+                $request->post ?? [],
+                $request->server ?? [],
+                $request->files ?? []
             );
             Response::Init($response);
 

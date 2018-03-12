@@ -203,4 +203,10 @@ $app['Cookie'] = [
 	'prefix'  => 'ArrowWorker',
 ];
 
+//session相关配置
+$app['Cryto'] = [
+    //files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+    'factor'  => 'ArrowWorker',
+];
+
 return $app;

@@ -6,8 +6,10 @@
  */
 
 namespace App\Controller;
+use ArrowWorker\Cookie;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
+use ArrowWorker\Response;
 use ArrowWorker\Session;
 
 
@@ -22,6 +24,11 @@ class Index
 		var_dump( Session::Set('louis','2018') );
 		var_dump( Session::Get('louis') );
 		var_dump( Session::Id() );
+		Cookie::Set("louis","yubin");
+        Cookie::Set("yubin","louis");
+		var_dump(Cookie::Get("louis"));
+		Response::Json(200,Cookie::GetAll());
+		Response::Write(Session::Id());
 
 	}
 

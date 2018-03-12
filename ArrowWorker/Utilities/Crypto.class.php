@@ -8,21 +8,58 @@
 
 namespace ArrowWorker\Utilities;
 
+use ArrowWorker\Config;
+
 class Crypto
 {
-	static $randam = 6;
-	static function Encrypt(string $plaintext, string $encryptionFactor) : string
+	static $factor = "";
+	static $defaultFactor = "Louis";
+
+	static function Init(string $factor="")
+    {
+        if( !empty($factor))
+        {
+            static::$factor = $factor;
+            return ;
+        }
+
+	    if( !empty(static::$factor) )
+        {
+            return ;
+        }
+
+        $config = Config::App("Cryto");
+        if( !$config )
+        {
+            static::$factor = static::$defaultFactor;
+            return ;
+        }
+
+        if( !isset($config['factor']) )
+        {
+            static::$factor = static::$defaultFactor;
+            return ;
+        }
+        static::$factor = $config['factor'];
+
+    }
+
+	static function Encrypt(string $plaintext, string $factor="") : string
 	{
-		//$len = strlen($plaintext);
-		//$dividePostion = $len+static::$randam;
-		return base64_encode($plaintext.$encryptionFactor);
+	    static::Init($factor);
+        $plaintext = $plaintext ^ static::$factor;
+		return base64_encode($plaintext);
 	}
 
-	static function Decrypt(string $ciphertext,  string $encryptionFactor) : string
+	static function Decrypt(string $ciphertext,  string $factor="") : string
 	{
-		$plaintext = base64_decode($ciphertext);
-		$realLen = strlen($plaintext) - strlen($encryptionFactor);
-		return substr($plaintext,0,$realLen-1);
+        static::Init($factor);
+        $plaintext = base64_decode($ciphertext);
+		if( $plaintext )
+        {
+            return $plaintext ^ static::$factor;
+        }
+        return false;
 	}
 
 }
