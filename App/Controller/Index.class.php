@@ -27,7 +27,7 @@ class Index
 		Cookie::Set("louis","yubin");
         Cookie::Set("yubin","louis");
 		var_dump(Cookie::Get("louis"));
-		Response::Json(200,Cookie::GetAll());
+		Response::Json(200,Cookie::All());
 		Response::Write(Session::Id());
 
 	}
