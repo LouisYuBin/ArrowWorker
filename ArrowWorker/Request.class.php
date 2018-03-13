@@ -46,7 +46,7 @@ class Request
      */
     public static function Get(string $key)
     {
-        return ( !isset($_GET[$key]) ) ? false : $_GET[$key];
+        return isset($_GET[$key]) ? $_GET[$key] : false;
     }
 
     /**

@@ -26,12 +26,6 @@ class App
     private static $appInstance;
 
     /**
-     * @var string  应用命名空间
-     */
-    private static $appControllerNamespace;
-
-
-    /**
      * App constructor. 单例模式自启动构造函数
      */
     private function __construct()
@@ -40,7 +34,6 @@ class App
         {
             self::$appClassMap  = require APP_PATH.DIRECTORY_SEPARATOR.APP_CONFIG_FOLDER.DIRECTORY_SEPARATOR.APP_ALIAS.'.php';
         }
-        self::$appControllerNamespace = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
     }
 
     //初始化app
@@ -84,16 +77,7 @@ class App
      */
     private function _webApp()
     {
-        //读取路由
-        $router = Router::Get();
-        $controller = self::$appControllerNamespace.ucfirst($router['c']);
-        $method     = ucfirst($router['m']);
-        $ctlObject  = new $controller;
-        $ctlObject -> $method();
-        if( !method_exists($ctlObject, $method) )
-        {
-            throw new \Exception("controller : function:".$controller."->".$method."does not exists",500);
-        }
+        Router::Start();
     }
 
     /**
@@ -110,20 +94,15 @@ class App
             'backlog'    => $config['backlog'],
         ]);
         $server->on('Request', function($request, $response) {
-            Cookie::Init($request->cookie ?? [], $response);
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);
             Request::Init(
-                $request->get ?? [],
-                $request->post ?? [],
-                $request->server ?? [],
-                $request->files ?? []
+                is_array($request->get)   ? $request->get : [],
+                is_array($request->post) ? $request->post : [],
+                is_array($request->server) ? $request->server : [],
+                is_array($request->files) ? $request->files : []
             );
             Response::Init($response);
-
-            $router = Router::Get();
-            $class  = self::$appControllerNamespace.ucfirst($router['c']);
-            $method = ucfirst($router['m']);
-            $controller = new $class;
-            $controller -> $method();
+            Router::Start();
         });
 
         $server->start();
@@ -142,7 +121,7 @@ class App
         $inputs = getopt('c:m:');
         $controller = isset($inputs['c']) ? ucfirst($inputs['c']) : "Index";
         $method     = isset($inputs['m']) ? ucfirst($inputs['m']) : "Index";
-        $controller = self::$appControllerNamespace.$controller;
+        $controller = self::$appController.$controller;
         $ctlObject  = new $controller;
         $ctlObject -> $method();
     }

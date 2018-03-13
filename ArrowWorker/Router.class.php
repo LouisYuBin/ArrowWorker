@@ -18,7 +18,9 @@ class Router
 	/**
 	 * 默认控制器/方法
 	 */
-	const defaults  = 'Index';
+	const defaultController  = 'Index';
+
+	const defaultMethod = 'index';
 
 	/**
 	 * 配置文件中路由配置key
@@ -35,12 +37,17 @@ class Router
 	 */
     const uri = 2;
 
+    /**
+     * @var string  应用命名空间
+     */
+    private static $appController;
+
 
 	/**
 	 * 路由返回格式
 	 * @var array
 	 */
-	private static $return = ['c'=> self::defaults, 'm' => self::defaults];
+	private static $return = ['c'=> self::defaultController, 'm' => self::defaultMethod];
 
 
 	/**
@@ -49,45 +56,73 @@ class Router
 	 */
 	private static function getRouteType()
     {
-        return Config::App(static::routeType);
+        $routerConfig = Config::App(static::routeType);
+        if( !$routerConfig )
+        {
+            return static::get;
+        }
+        $routerConfig = (int)$routerConfig;
+        if ( $routerConfig<static::get|| $routerConfig>static::uri )
+        {
+            return static::get;
+        }
+        return $routerConfig;
     }
 
 
 	/**
-	 * Get 返回要调用的控制器和方法
+	 * Exec 返回要调用的控制器和方法
 	 * @return array
 	 */
-	public static function Get()
+	public static function Start()
     {
-		$routerType = static::getRouteType();
-        switch ($routerType){
+        switch ( static::getRouteType() )
+        {
             case static::get;
-                // "get" 形式路由
                 static::getRouter();
-            break;
+                break;
             case static::uri;
-                // "?/类/方法" 形式路由
                 static::uriRouter();
-            break;
+                break;
             default:
                 //Todo
+                throw new \Exception("router type does not exists",500);
         }
-        return self::$return;
+        static::exec();
+    }
+
+    private static function exec()
+    {
+        self::$appController = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
+
+        $router = Router::Get();
+        $controller = self::$appController.ucfirst($router['c']);
+        $method     = ucfirst($router['m']);
+
+        $controllerIns = new $controller;
+        if( !method_exists($controllerIns, $method) )
+        {
+            throw new \Exception("controller : function:".$controller."->".$method."does not exists",500);
+        }
+
+        $controllerIns -> $method();
     }
 
 	/**
 	 * getRouter get类型路由获取
 	 */
-	public static function getRouter()
+	private static function getRouter()
     {
-        @self::$return['c'] = isset($_REQUEST['c']) ? $_REQUEST['c'] : self::defaults;
-        @self::$return['m'] = isset($_REQUEST['m']) ? $_REQUEST['m'] : self::defaults;
+        $c = Request::Get('c');
+        $m = Request::Get('m');
+        @self::$return['c'] =  $c ? $c : self::defaultController;
+        @self::$return['m'] =  $m ? $m : self::defaultMethod;
     }
 
 	/**
 	 * uriRouter uri类型路由获取
 	 */
-    public static function uriRouter()
+    private static function uriRouter()
     {
 		//todo
     }

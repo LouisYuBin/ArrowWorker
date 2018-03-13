@@ -52,7 +52,7 @@ class Cookie
      */
     public static function Get(string $key)
 	{
-		$name = static::getKey($key);
+        $key = static::getKey($key);
 		if( isset($_COOKIE[$key]) )
 		{
 			return Crypto::Decrypt($_COOKIE[$key]);
@@ -126,7 +126,7 @@ class Cookie
         {
             return setcookie($name, $val, $expire, $path, $domain);
         }
-        return static::$repsonse->cookie($name, $val);
+        return static::$repsonse->cookie($name, $val, $expire, $path, $domain);
     }
 
 }

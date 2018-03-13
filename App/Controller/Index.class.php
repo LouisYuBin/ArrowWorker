@@ -16,21 +16,30 @@ use ArrowWorker\Session;
 class Index
 {
 
-	function index()
-	{
-		//phpinfo();
-		//exit();
-		var_dump( Session::Get('louis') );
-		var_dump( Session::Set('louis','2018') );
-		var_dump( Session::Get('louis') );
-		var_dump( Session::Id() );
-		Cookie::Set("louis","yubin");
-        Cookie::Set("yubin","louis");
-		var_dump(Cookie::Get("louis"));
-		Response::Json(200,Cookie::All());
-		Response::Write(Session::Id());
+    function Index()
+    {
+        //Response::Write('default index');
+        Response::Write( Session::Id() );
+    }
 
+	function session()
+	{
+	    if( !Session::Get('louis') )
+        {
+            Session::Set('louis','2018');
+        }
+		var_dump( Session::Get('louis') );
+		var_dump( Session::Get('louis') );
+		Response::Write(Session::Id());
 	}
+
+    function cookie()
+    {
+        Cookie::Set("louis","yubin");
+        Cookie::Set("yubin","louis");
+        var_dump(Cookie::Get("louis"));
+        Response::Write(Cookie::Get("louis"));
+    }
 
     /*
     * （不建议使用）在常驻服务中调用service，然后直接常驻，这种方式当service、model、class等代码发生变更后需要重启服务，才能加载最新代码
