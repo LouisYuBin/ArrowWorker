@@ -47,7 +47,7 @@ class Router
 	 * 路由返回格式
 	 * @var array
 	 */
-	private static $return = ['c'=> self::defaultController, 'm' => self::defaultMethod];
+	private static $func = ['c'=> self::defaultController, 'm' => self::defaultMethod];
 
 
 	/**
@@ -95,17 +95,16 @@ class Router
     {
         self::$appController = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
 
-        $router = Router::Get();
-        $controller = self::$appController.ucfirst($router['c']);
-        $method     = ucfirst($router['m']);
+        $class  = self::$appController.ucfirst( static::$func['c'] );
+        $method = ucfirst( static::$func['m'] );
 
-        $controllerIns = new $controller;
-        if( !method_exists($controllerIns, $method) )
+        $controller = new $class;
+        if( !method_exists($controller, static::$func['m']) )
         {
-            throw new \Exception("controller : function:".$controller."->".$method."does not exists",500);
+            throw new \Exception($class.'->'.$method.' does not exists',500);
         }
 
-        $controllerIns -> $method();
+        $controller -> $method();
     }
 
 	/**
@@ -115,8 +114,8 @@ class Router
     {
         $c = Request::Get('c');
         $m = Request::Get('m');
-        @self::$return['c'] =  $c ? $c : self::defaultController;
-        @self::$return['m'] =  $m ? $m : self::defaultMethod;
+        @self::$func['c'] =  $c ? $c : self::defaultController;
+        @self::$func['m'] =  $m ? $m : self::defaultMethod;
     }
 
 	/**

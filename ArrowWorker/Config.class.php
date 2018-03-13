@@ -48,7 +48,7 @@ class Config
      * 框架配置文件中用户配置文件数据对应key
      * @var string
      */
-    private static $extraConfKey  = 'user';
+    private static $extraConfKey  = 'Extra';
 
     /**
      * 配置文件后缀
@@ -60,13 +60,13 @@ class Config
      * 框架配置文件是否加载
      * @var bool
      */
-    private static $AppConfigLoaded   = false;
+    private static $IsAppConfigLoaded   = false;
 
     /**
      * 用户自定义配置文件是否加载
      * @var bool
      */
-    private static $ExtraConfigLoaded = false;
+    private static $IsExtraConfigLoaded = false;
 
 
     /**
@@ -95,10 +95,10 @@ class Config
      */
     public static function App(string $key='', string $AppConfig=APP_CONFIG_FILE )
     {
-        if( !static::$AppConfigLoaded )
+        if( !static::$IsAppConfigLoaded )
         {
             static::$AppConfig = self::Load( $AppConfig );
-            static::$AppConfigLoaded = true;
+            static::$IsAppConfigLoaded = true;
         }
 
         return ( !empty($key) && isset(static::$AppConfig[$key]) ) ? static::$AppConfig[$key] : false;
@@ -112,7 +112,7 @@ class Config
 	 */
 	public static function Extra(string $key='' ) : mixed
     {
-        if( !static::$ExtraConfigLoaded )
+        if( !static::$IsExtraConfigLoaded )
         {
             if( isset( static::$AppConfig[static::$extraConfKey] ) && count( static::$AppConfig[static::$extraConfKey] )>0 )
             {
@@ -121,7 +121,7 @@ class Config
                     static::$ExtraConfig = array_merge( static::$ExtraConfig, static::Load( $eachExtraConfig ) );
                 }
             }
-            static::$ExtraConfigLoaded = true;
+            static::$IsExtraConfigLoaded = true;
         }
 
         return ( !empty($key) && isset(static::$ExtraConfig[$key]) ) ? static::$ExtraConfig[$key] : false;
