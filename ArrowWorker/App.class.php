@@ -16,11 +16,6 @@ class App
 {
 
     /**
-     * @var mixed  控制器和方法映射表
-     */
-    private static $appClassMap;
-
-    /**
      * @var App实例
      */
     private static $appInstance;
@@ -30,10 +25,7 @@ class App
      */
     private function __construct()
     {
-        if(!self::$appClassMap)
-        {
-            self::$appClassMap  = require APP_PATH.DIRECTORY_SEPARATOR.APP_CONFIG_FOLDER.DIRECTORY_SEPARATOR.APP_ALIAS.'.php';
-        }
+        //todo
     }
 
     //初始化app

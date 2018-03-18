@@ -91,20 +91,14 @@ class ArrowWorker
     static function loadClass(string $class)
     {
         $ArrowClass = static::classMap();
-        if(isset($ArrowClass[$class]))
+        if( isset($ArrowClass[$class]) )
         {
             //系统类映射
             $class = $ArrowClass[$class];
         }
         else
         {
-           //用户类映射
-            $appClass  = Config::Load(Config::$AppFileMap);
-           if( !isset($appClass[$class]) )
-           {
-               throw new \Exception("Auto load class error : ".$class." is not added to user class map.");
-           }
-           $class = APP_PATH.DIRECTORY_SEPARATOR.$appClass[$class];
+            $class = APP_PATH.DIRECTORY_SEPARATOR.str_replace(['\\',explode('\\', $class)[0]],"/",$class).static::classExt;
             if( !file_exists($class) )
             {
                 throw new \Exception("Auto load class error : ".$class." does not exists.");
@@ -140,7 +134,7 @@ class ArrowWorker
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
             'ArrowWorker\Driver\Cache'   => ArrowWorker . '/Driver/Cache' .   self::classExt,
             'ArrowWorker\Driver\Daemon'  => ArrowWorker . '/Driver/Daemon' .  self::classExt,
-            'ArrowWorker\Driver\Channel' => ArrowWorker . '/Driver/Channel'. self::classExt,
+            'ArrowWorker\Driver\Channel' => ArrowWorker . '/Driver/Channel'.  self::classExt,
 
             'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' .          self::classExt,
             'ArrowWorker\Driver\Db\SqlBuilder'      => ArrowWorker . '/Driver/Db/SqlBuilder' .      self::classExt,
