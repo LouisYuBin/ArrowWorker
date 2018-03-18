@@ -1,5 +1,6 @@
 ## 项目介绍
-ArrowWorker 是一个简单高效的php框架。框架兼容php7，可在web模式和cli模式下运行。框架封装了常驻服务相关操作，主要擅长在cli下做为常驻服务来使用。
+ArrowWorker 是一个组件化的web/worker框架，支持php-fpm+nginx和swoole-web。
+要求php版本7+
 ## 运行介绍
 ArrowWorker 已在公司的项目中使用一年多，使用模型为一个监控进程+多个工作进程配合使用，使用期间运行非常稳定。
 ## 项目程序版本介绍
@@ -43,18 +44,4 @@ arrow::start();
 >Lang:多语言文件目录<br />
 >Tpl:模板文件目录<br />
 
-### 控制器中初始化Model方法
-```php
-$model  = self::load("ModelName");
-$method = $model -> ModelMethod();
-```
-### 控制器初始化Classes
-```php
-$method  = self::load("MethodName",'c');
-$method = $method -> MethodName();
-```
-### 控制器初始化缓存
-```php
-$cache = self::getObj('cache');
-```
 ### 相关使用文档正在更新中。。。
