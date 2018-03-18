@@ -25,7 +25,7 @@ class View
     }
 
     //初始化smarty
-    public static function initView($config)
+    public static function init($config)
     {
 
         if(!self::$ViewObj)

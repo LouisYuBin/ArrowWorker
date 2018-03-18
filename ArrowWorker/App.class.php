@@ -1,85 +1,121 @@
 <?php
 /**
- * User: Arrow
- * Date: 2016/8/1
- * Time: 19:47
+ * User: Louis
+ * Date: 2016/8/1 19:47
  */
 
 namespace ArrowWorker;
+use ArrowWorker\Router;
 
+/**
+ * 应用加载/启动类
+ * Class App
+ * @package ArrowWorker
+ */
 class App
 {
-    //控制器
-    private static $controller;
-    //方法
-    private static $method;
-    //控制器和方法映射表
-    private static $userCam;
-    //app实例
-    private static $appInstance;
-    //应用命名空间
-    private static $appCtlNamespace;
 
-    //单例模式自启动构造函数
-    private function __construct($appConfig)
+    /**
+     * @var App实例
+     */
+    private static $appInstance;
+
+    /**
+     * App constructor. 单例模式自启动构造函数
+     */
+    private function __construct()
     {
-        if(!self::$userCam)
-        {
-            self::$userCam  = require APP_PATH.DIRECTORY_SEPARATOR.APP_CONFIG_FOLDER.DIRECTORY_SEPARATOR.APP_ALIAS.'.php';
-        }
-        self::$appCtlNamespace = '\\'.$appConfig['app'].'\\'.$appConfig['controller'].'\\';
+        //todo
     }
 
     //初始化app
-    static function initApp($userCam)
+
+    /**
+     * initApp 单例模式初始化app类
+     * @author Louis
+     * @return App
+     */
+    static function InitApp()
     {
         if (!self::$appInstance)
         {
-            self::$appInstance = new self($userCam);
+            self::$appInstance = new self;
         }
         return self::$appInstance;
     }
 
-    //运行控制器
-    public function runApp()
+
+    /**
+     * RunApp 执行应用
+     * @author Louis
+     */
+    public function RunApp()
     {
         if(APP_TYPE=='cli')
         {
-            $this->CliApp();
+            $this -> _cliApp();
         }
-        else
+        else if(APP_TYPE == 'swooleWeb')
         {
-            $this->WebApp();
+            $this -> _swooleWeb();
+        } else {
+            $this -> _webApp();
         }
-        $this -> isDefaultCm();
+    }
 
-        $controller = self::$appCtlNamespace.self::$controller;
-        $method     = self::$method;
+    /**
+     * _webApp web应用（nginx+fpm）
+     * @author Louis
+     */
+    private function _webApp()
+    {
+        Router::Start();
+    }
+
+    /**
+     * _swooleWebApp web应用（swoole web）
+     * @author Louis
+     */
+    private function _swooleWeb()
+    {
+        $config = Config::App("swoole");
+        $server = new \swoole_http_server("0.0.0.0", $config['port']);
+        $server->set([
+            'worker_num' => $config['workerNum'],
+            'daemonize'  => $config['daemonize'],
+            'backlog'    => $config['backlog'],
+        ]);
+        $server->on('Request', function($request, $response) {
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);
+            Request::Init(
+                is_array($request->get)   ? $request->get : [],
+                is_array($request->post) ? $request->post : [],
+                is_array($request->server) ? $request->server : [],
+                is_array($request->files) ? $request->files : []
+            );
+            Response::Init($response);
+            Router::Start();
+        });
+
+        $server->start();
+    }
+
+    /**
+     * _cliApp 常驻服务应用
+     * @author Louis
+     */
+    private function _cliApp()
+    {
+        if(php_sapi_name() != 'cli')
+        {
+            throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
+        }
+        $inputs = getopt('c:m:');
+        $controller = isset($inputs['c']) ? ucfirst($inputs['c']) : "Index";
+        $method     = isset($inputs['m']) ? ucfirst($inputs['m']) : "Index";
+        $controller = self::$appController.$controller;
         $ctlObject  = new $controller;
         $ctlObject -> $method();
-    }
-
-    //web应用
-    private function WebApp()
-    {
-        @self::$controller = $_REQUEST['c'];
-        @self::$method     = $_REQUEST['m'];
-
-    }
-
-    //常驻服务
-    private function CliApp()
-    {
-        $inputs = getopt('c:m:');
-        @self::$controller = $inputs['c'];
-        @self::$method     = $inputs['m'];
-    }
-
-    //判断是否要应用默认控制器和方法
-    private function isDefaultCm()
-    {
-        self::$controller = is_null(self::$controller) ? DEFAULT_CONTROLLER : self::$controller;
-        self::$method     = is_null(self::$method) ? DEFAULT_METHOD : self::$method;
     }
 
 }

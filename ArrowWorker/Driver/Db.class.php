@@ -11,17 +11,22 @@ namespace ArrowWorker\Driver;
 class Db
 {
     //数据库连接池
-    protected static $dbConnection = [];
+    protected static $connPool = [];
     //单例模式对象
-    protected static $dbObj;
+    protected static $instance;
     //数据库配置
     protected static $config = [];
-    //数据库连接对象
-    protected static $dbConn;
+    //当前选择的数据库连接
+    protected static $dbCurrent = null;
 
     protected function __construct($config)
     {
-        self::$config = $config;
+        //Todo
+    }
+
+    public static function GetDb()
+    {
+        return self::$instance;
     }
 
 }

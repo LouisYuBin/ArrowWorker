@@ -7,53 +7,97 @@
 
 namespace ArrowWorker\Driver\Daemon;
 
+/**
+ * Class ArrowThread
+ * @package ArrowWorker\Driver\Daemon
+ */
 class ArrowThread extends \Thread
 {
-    //执行中
+    /**
+     * 任务执行状态 - 执行中
+     */
     const STATUS_RUNNING  = 1;
-    //执行完成
+
+    /**
+     * 任务执行状态 - 执行完成
+     */
     const STATUS_FINISHED = 2;
-    //等待中
+
+    /**
+     * 任务执行状态 - 等待中
+     */
     const STATUS_WAITING  = 0;
-    //线程名称
+
+    /**
+     * 线程名称
+     * @var string
+     */
     public $threadName;
-    //任务数组
-    public $taskArray = '';
-    //是否有任务
-    public $hasTask   = false;
-    //当前任务执行状态
+
+    /**
+     * 线程任务组
+     * @var Array
+     */
+    public $taskArray = [];
+
+    /**
+     * 当前是否有任务
+     * @var Array
+     */
+    public $hasTask   = true;
+
+    /**
+     * 当前任务执行状态
+     * @var Array
+     */
     private $taskStat;
 
-    //是否执行
+    /**
+     * 任务执行次数统计
+     * @var int
+     */
+    public $taskCount;
+
+    /**
+     * 线程是否继续执行任务
+     * @var bool
+     */
     private $isRuning  = true;
 
-    public function __construct( $threadName )
+    /**
+     * ArrowThread constructor.
+     * @param string $threadName
+     * @param array $task
+     */
+    public function __construct(string $threadName, array $task)
     {
         $this -> threadName = $threadName;
         $this -> taskStat   = self::STATUS_WAITING;
+        $this -> taskArray = $task;
+        $this -> taskCount = 0;
     }
 
-    //执行任务
+    /**
+     * run 执行任务
+     * @author Louis
+     */
     public function run()
     {
         while( $this -> isRuning )
         {
-
             if( $this -> hasTask )
             {
-
-                $taskArray = json_decode( $this -> taskArray, true );
                 $this -> taskStat = self::STATUS_RUNNING;
-                if( isset( $taskArray['argv'] ) )
+                if( isset( $this -> taskArray['argv'] ) )
                 {
-                    call_user_func_array( $taskArray['function'], $taskArray['argv'] );
+                    call_user_func_array( (array)$this -> taskArray['function'], (array)$this -> taskArray['argv'] );
                 }
                 else
                 {
-                    call_user_func($taskArray['function']);
+                    call_user_func($this -> taskArray['function']);
                 }
+                $this -> taskCount++;
                 $this -> taskStat = self::STATUS_FINISHED;
-                $this -> hasTask  = false;   
             }
             else
             {
@@ -61,26 +105,38 @@ class ArrowThread extends \Thread
                 usleep(5);
             }
         }
+        echo $this -> threadName .' ended!'.PHP_EOL;
     }
 
-    //分发任务
-    public function pushTask( $task )
+
+    /**
+     * PushTask  压入任务（已废弃）
+     * @author Louis
+     * @param array $task
+     */
+    public function PushTask( array $task )
     {
-        if( empty( $this -> taskArray ) )
+        if( empty( $task ) )
         {
-            $taskString = json_encode(['function' => $task['function'], 'argv' => $task['argv'] ]);
-            $this -> taskArray  = $taskString;
+            $this -> taskArray  = $task;
         }
         $this -> hasTask = true;
     }
 
-    //结束线程工作
-    public function endThread()
+    /**
+     * EndThread 结束线程任务（已废弃）
+     * @author Louis
+     */
+    public function EndThread()
     {
         $this -> isRuning = false;
     }
 
-    public function threadStatus()
+    /**
+     * ThreadStatus 任务执行状态
+     * @author Louis
+     */
+    public function ThreadStatus()
     {
         return $this -> taskStat;
     }

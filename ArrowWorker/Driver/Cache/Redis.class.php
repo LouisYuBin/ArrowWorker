@@ -9,71 +9,229 @@ namespace ArrowWorker\Driver\Cache;
 use ArrowWorker\Driver\Cache as cache;
 
 
+/**
+ * Class Redis
+ * @package ArrowWorker\Driver\Cache
+ */
 class Redis extends cache
 {
-    //初始化数据库连接类
-    static function initCache($config)
+
+
+    /**
+     * init 类初始化
+     * @author Louis
+     * @param $config
+     * @param $alias
+     * @return Redis
+     */
+    static function Init($config, $alias) : self
     {
-        if(!self::$cacheObj)
+        if( !isset( self::$config[$alias] ))
         {
-            self::$cacheObj = new self($config);
+            self::$config[$alias] = $config;
         }
-        return self::$cacheObj;
+        self::$cacheCurrent = $alias;
+
+        if(!self::$instance)
+        {
+            self::$instance = new self($config);
+        }
+
+        return self::$instance;
     }
 
-    //连接缓存
-    private function connect()
+
+    /**
+     * getConnection 获取redis连接
+     * @author Louis
+     * @return \Redis
+     */private function getConnection() : \Redis
     {
-        if(!self::$CacheConn)
+        if( !isset( self::$connPool[self::$cacheCurrent] ) )
         {
-            self::$CacheConn = new \Redis();
-            self::$CacheConn -> connect(self::$config['host'],self::$config['port']);
-            //缓存库
-            if(isset(self::$config['db']))
-            {
-                self::$CacheConn -> select(self::$config['db']);
-            }
+            $currentConfig = self::$config[self::$cacheCurrent];
+            $conn = new \Redis();
+            $conn -> connect($currentConfig['host'],$currentConfig['port']);
+
             //连接密码
-            if(isset(self::$config['password']))
+            if(isset($currentConfig['password']))
             {
-                self::$CacheConn -> auth(self::$config['password']);
+                $conn -> auth($currentConfig['password']);
             }
+
+            //缓存库
+            if(isset($currentConfig['db']))
+            {
+                $conn -> select($currentConfig['db']);
+            }
+            self::$connPool[self::$cacheCurrent] = $conn;
         }
+        return self::$connPool[self::$cacheCurrent];
     }
 
-    //写入
-    public function set($key,$val)
+
+	/**
+	 * Db 选择数据库
+	 * @param int $dbName
+	 * @return mixed
+	 */
+	public function Db(int $dbName)
     {
-        $this -> connect();
-        return self::$CacheConn ->set($key,$val);
+        return $this -> getConnection() -> select( $dbName );
     }
 
-    //读取
-    public function get($key)
+
+	/**
+	 * Set 写入key
+	 * @param $key
+	 * @param $val
+	 * @return mixed
+	 */
+	public function Set(string $key, mixed $val)
     {
-        $this -> connect();
-        return self::$CacheConn ->get($key);
+        return $this -> getConnection() -> set( $key, $val );
     }
 
-    //写队列
-    public function push($queue,$val)
+
+	/**
+	 * Get 读取key
+	 * @param string $key
+	 * @return mixed
+	 */
+	public function Get(string $key)
     {
-        $this -> connect();
-        return self::$CacheConn ->lPush($queue,$val);
+        return $this -> getConnection() -> get($key);
     }
 
-    //读队列
-    public function pop($queue)
+
+	/**
+	 * Lpush 左入队列
+	 * @param string $queue
+	 * @param mixed $val
+	 * @return mixed
+	 */
+	public function Lpush(string $queue, string $val)
     {
-        $this -> connect();
-        return self::$CacheConn ->rPop($queue);
+        return $this -> getConnection() ->lPush( $queue, $val );
     }
 
-    //读队列
-    public function close()
+
+	/**
+	 * Rpush 写队列(右)
+	 * @param string $queue
+	 * @param mixed $val
+	 * @return mixed
+	 */
+	public function Rpush(string $queue, mixed $val)
     {
-        $this -> connect();
-        return self::$CacheConn ->close();
+        return $this -> getConnection() ->rPush( $queue, $val );
+    }
+
+
+	/**
+	 * Rpop 读队列(右)
+	 * @param  string $queue
+	 * @return mixed
+	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
+	 */
+	public function Rpop(string $queue)
+    {
+        return $this -> getConnection() ->rPop( $queue);
+    }
+
+	/**
+	 * Lpop 左出队列
+	 * @param string $queue
+	 * @return mixed
+	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
+	 */
+	public function Lpop(string $queue)
+    {
+        return $this -> getConnection() ->lPop( $queue);
+    }
+
+
+	/**
+	 * BrPop 读队列(右)(阻塞模式)
+	 * @param string $queue
+	 * @param int $timeout
+	 * @return mixed
+	 *  Return value ：ARRAY array('listName', 'element')
+	 */
+	public function BrPop(string $queue, int $timeout )
+    {
+        return $this -> getConnection() ->brPop ( $queue, $timeout );
+    }
+
+	/**
+	 * BlPop 读队列(左)(阻塞模式)
+	 * @param string|array $queue
+	 *    Parameters：ARRAY Array containing the keys of the lists INTEGER Timeout Or STRING Key1 STRING Key2 STRING Key3 ... STRING Keyn INTEGER Timeout
+	 * @param int $timeout
+	 * @return mixed
+	 * 	  ARRAY array('listName', 'element')
+	 */
+	public function BlPop(mixed $queue, int $timeout)
+    {
+        return $this -> getConnection() ->blPop ( $queue, $timeout );
+    }
+
+	/**
+	 * Hset hash table 写入
+	 * @param string $key
+	 * @param string $hashKey
+	 * @param mixed $value
+	 * @return mixed
+	 *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
+	 */
+	public function Hset(sting $key, string $hashKey, mixed $value)
+    {
+        return $this -> getConnection() ->Hset ( $key, $hashKey, $value);
+    }
+
+	/**
+	 * Hget hashTable 读取
+	 * @param $key
+	 * @param $hashKey
+	 * @return mixed
+	 * 		STRING The value, if the command executed successfully BOOL FALSE in case of failure
+	 */
+	public function Hget(string $key, string $hashKey)
+    {
+        return $this -> getConnection() ->hGet ( $key, $hashKey );
+    }
+
+
+	/**
+	 * Hlen hashTable 长度
+	 * @param string $key
+	 * @return mixed
+	 *     LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
+	 */
+	public function Hlen(string $key)
+    {
+        return $this -> getConnection() ->hGet ( $key );
+    }
+
+
+	/**
+	 * Ping
+	 * @return mixed
+	 * 		STRING: +PONG on success. Throws a RedisException object on connectivity error, as described above.
+	 */
+	public function Ping()
+    {
+        return $this -> getConnection() ->ping ();
+    }
+
+
+	/**
+	 * close 关闭连接
+	 * @return mixed
+	 */
+	public function close()
+    {
+        return $this -> getConnection() ->close();
     }
 
 }

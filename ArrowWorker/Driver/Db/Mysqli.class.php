@@ -9,101 +9,116 @@ namespace ArrowWorker\Driver\Db;
 use ArrowWorker\Driver\Db AS db;
 
 
+/**
+ * Class Mysqli
+ * @package ArrowWorker\Driver\Db
+ */
 class Mysqli extends db
 {
 
-    //初始化数据库连接类
-    static function initDb($config)
+
+	/**
+	 * 初始化数据库连接类
+	 * @param array $config
+	 * @param string $alias
+	 * @return Mysqli
+	 */
+	static function Init(array $config, string $alias)
     {
-        if(!self::$dbObj)
+        //存储配置
+        if ( !isset( self::$config[$alias] ) )
         {
-            self::$dbObj = new self($config);
+            self::$config[$alias] = $config;
         }
-        return self::$dbObj;
+
+        //设置当前
+        self::$dbCurrent = $alias;
+
+        if(!self::$instance)
+        {
+            self::$instance = new self($config);
+        }
+
+        return self::$instance;
     }
 
-    private function connectDb($config)
+	/**
+	 * @param array $config
+	 * @return \mysqli
+	 */
+	private function connectInit(array $config)
     {
         //建立连接
-        @self::$dbConn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
+        @$Conn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
         //捕捉错误
-        if(self::$dbConn->connect_errno)
+        if($Conn->connect_errno)
         {
-            exit(self::$dbConn->connect_error);
+            exit($Conn->connect_error);
         }
         //初始化字符集
-        self::$dbConn ->query("set names '".self::$config['charset']."'");
+        $Conn -> query("set names '".self::$config[self::$dbCurrent]['charset']."'");
+        return $Conn;
     }
 
-    //连接数据库
-    protected function connect($isMaster=false,$connectNum=0)
+	/**
+	 * 连接数据库
+	 * @param bool $isMaster
+	 * @param int $connectNum
+	 * @return \mysqli
+	 */
+	protected function getConnection(bool $isMaster=false, int $connectNum=0)
     {
-        if(self::$config['seperate']==0)
+        if( $isMaster==true || self::$config[self::$dbCurrent]['seperate']==0 )
         {
-            $this -> connectMaster();
+            return $this -> connectMaster();
         }
-        else
-        {
-            if($isMaster==true)
-            {
-                $this -> connectMaster();
-            }
-            else
-            {
-                $this ->connectSlave($connectNum);
-            }
-        }
+        return $this -> connectSlave($connectNum);
     }
 
-    //检测并连接主库
-    private function connectMaster()
+
+	/**
+	 * 检测并连接主库
+     * @return \mysqli
+	 */
+	private function connectMaster()
     {
-        if(isset(self::$dbConnection['master']))
+        if( !isset( self::$connPool[self::$dbCurrent]['master'] ) )
         {
-            self::$dbConn = self::$dbConnection['master'];
+            self::$connPool[self::$dbCurrent]['master'] = $this -> connectInit( self::$config[self::$dbCurrent]['master'] );
         }
-        else
-        {
-            $this -> connectDb(self::$config['master']);
-            self::$dbConnection['master'] = self::$dbConn;
-        }
+        return self::$connPool[self::$dbCurrent]['master'];
     }
 
-    //检测并连接从库
-    private function connectSlave($connectNum=0)
-    {
-        $slaveNum = count(self::$config['slave']);
-        if($slaveNum==1)
-        {
-            $this -> connectDb(self::$config['slave'][0]);
-            self::$dbConnection['slave'][0] = self::$dbConn;
-        }
-        else
-        {
-            $slave = $connectNum;
-            if($connectNum==0)
-            {
-                //查询随机从库
-                $slave = mt_rand(0,$slaveNum-1);
-            }
 
-            if(isset(self::$dbConnection['slave'][$slave]))
-            {
-                self::$dbConn = self::$dbConnection['slave'][$slave];
-            }
-            else
-            {
-                $this -> connectDb(self::$config['slave'][$slave]);
-                self::$dbConnection['slave'][$slave] = self::$dbConn;
-            }
+	/**
+	 * 检测并连接从库
+	 * @param int $slaveIndex
+	 * @return \mysqli
+	 */
+	private function connectSlave(int $slaveIndex=0)
+    {
+        $slaveCount = count(self::$config[self::$dbCurrent]['slave']);
+        $slave = ( $slaveIndex==0 || $slaveIndex>=$slaveCount || $slaveIndex<0 ) ? mt_rand( 0, $slaveCount-1 ) : $slaveIndex;
+
+        if ( !isset( self::$connPool[self::$dbCurrent]['slave'][$slave] ) )
+        {
+            self::$connPool[self::$dbCurrent]['slave'][$slave] = $this -> connectInit(self::$config[self::$dbCurrent]['slave'][$slave]);
         }
+        return self::$connPool[self::$dbCurrent]['slave'][$slave];
     }
 
-    //查询
-    public function query($sql,$isMaster=false,$connectNum=0)
+
+	/**
+	 * 查询
+	 * @param string $sql
+	 * @param bool $isMaster
+	 * @param int $connectNum
+	 * @return array|bool
+	 */
+	public function query(string $sql, bool $isMaster=false, int $connectNum=0)
     {
-        $this -> connect($isMaster,$connectNum);
-        $result = self::$dbConn -> query($sql);
+
+        $result = $this -> getConnection($isMaster,$connectNum) -> query($sql);
         if($result)
         {
             $return = [];
@@ -120,51 +135,77 @@ class Mysqli extends db
 
     }
 
-    //写入或更新
-    public function execute($sql)
+
+	/**
+	 * execute 写入或更新
+	 * @param string $sql
+	 * @return array
+	 */
+	public function execute(string $sql)
     {
-        $this -> connect(true);
-        $result = self::$dbConn -> query($sql);
-        //to be update
-        $return = ($result==false) ? false : self::$dbConn->affected_rows;
-        return $return;
+        $conn = $this -> getConnection(true);
+        return [
+            'result'       => $conn->query($sql),
+            'affectedRows' => $conn->affected_rows,
+            'insertId'     => $conn->insert_id
+        ];
     }
 
-    //写入id
-    public function insert_id()
+
+	/**
+	 * Begin 开始事务
+	 */
+	public function Begin()
     {
-        $this -> connect(true);
-        $result = self::$dbConn->insert_id;
-        //to be update
-        $return = ($result==0) ? false : $result;
-        return $return;
+        $conn = $this -> getConnection(true);
+        $conn -> autocommit(false);
+        $conn -> begin_transaction();
     }
 
-    //开始事务
-    public function begin()
+
+
+	/**
+	 * Commit 提交事务
+	 */
+	public function Commit()
     {
-        $this -> autocommit(false);
-        self::$dbConnection['master'] -> begin_transaction();
+        $conn = $this -> getConnection(true);
+        $conn -> commit();
+        $conn -> autocommit(true);
     }
 
-    //提交事务
-    public function commit()
+
+	/**
+	 * Rollback 事务回滚
+	 */
+	public function Rollback()
     {
-        self::$dbConnection['master'] -> commit();
-        $this -> autocommit(true);
+        $conn = $this -> getConnection(true);
+        $conn -> rollback();
+        $conn -> autocommit(true);
     }
 
-    //回滚
-    public function rollback()
+
+	/**
+	 * Autocommit 是否自动提交
+	 * @param bool $flag
+	 */
+	public function Autocommit(bool $flag)
     {
-        self::$dbConnection['master'] -> rollback();
-        $this -> autocommit(true);
+        $this -> getConnection(true) -> autocommit($flag);
     }
 
-    //是否自动提交
-    public function autocommit($flag)
+
+	/**
+	 * Table 启动sql组合
+	 * @param string $table
+	 * @return SqlBuilder
+	 */
+	public static function Table(string $table)
     {
-        self::$dbConnection['master'] -> autocommit($flag);
+        $sqlBuilder = new SqlBuilder();
+        return $sqlBuilder -> Table($table, self::$config[self::$dbCurrent]['driver']);
     }
+
 
 }
