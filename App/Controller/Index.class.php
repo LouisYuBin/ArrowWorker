@@ -21,16 +21,16 @@ class Index
     {
         $rnd  = Request::Get("rnd");
         //var_dump( Session::Id("session_".$rnd));
-        var_dump( Session::Id() );
+        var_dump( Session::Id("u8888888") );
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
 	function session()
 	{
-	    if( !Session::Get('louis') )
+	    /*if( !Session::Get('louis') )
         {
             Session::Set('louis','2018');
-        }
+        }*/
 		var_dump( Session::Get('louis') );
 		var_dump( Session::Get('louis') );
 		Response::Write(Session::Id());
@@ -40,7 +40,8 @@ class Index
     {
         Cookie::Set("louis","yubin");
         Cookie::Set("yubin","louis");
-        var_dump(Cookie::Get("louis"));
+        var_dump(Cookie::Set("louis1111","0000============="));
+        var_dump(Cookie::Get("louis1111"));
         Response::Write(Cookie::Get("louis"));
     }
 

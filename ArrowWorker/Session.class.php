@@ -37,7 +37,6 @@ class Session
 		{
 			return;
 		}
-
 		$session = Config::App("Session");
 		if( $session )
 		{
@@ -61,7 +60,7 @@ class Session
 		session_start(['cookie_lifetime' => 86400]);
 		session_set_cookie_params(static::$config['cookie']['lifetime'], static::$config['cookie']['path'], static::$config['cookie']['domain'], static::$config['cookie']['secure'], static::$config['cookie']['httponly']);
         static::setSessionCookie();
-		static::$isInited = true;
+        static::$isInited = true;
 	}
 
 	static function Set(string $key, string $val)
@@ -89,13 +88,12 @@ class Session
 
 	static function Id(string $id=null) : string
 	{
-        static::init();
-
-        /*if( !is_null($id) )
+        if( !is_null($id) )
         {
             session_id($id);
-        }*/
-		return session_id();
+        }
+        static::init();
+        return session_id();
 	}
 
 
@@ -112,11 +110,7 @@ class Session
             return ;
         }
 
-        $isOk = Cookie::Set( static::$swSessionCookie, static::Id() );
-        if( !$isOk )
-        {
-            throw new \Exception("set session cookie error",500);
-        }
+        Cookie::Set( "aaa", "aaa" );
     }
 
 }
