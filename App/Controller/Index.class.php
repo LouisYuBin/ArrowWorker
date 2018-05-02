@@ -9,6 +9,7 @@ namespace App\Controller;
 use ArrowWorker\Cookie;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
+use ArrowWorker\Request;
 use ArrowWorker\Response;
 use ArrowWorker\Session;
 
@@ -18,8 +19,9 @@ class Index
 
     function Index()
     {
-        //Response::Write('default index');
-        Response::Write( Session::Id() );
+        $rnd  = Request::Get("rnd");
+        var_dump( Session::Id());
+        Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
 	function session()

@@ -57,7 +57,7 @@ class ArrowWorker
     /**
      * @var 入口类实例对象
      */
-    private static $Arrow;
+    private static $Arrow = null;
 
     /**
      * ArrowWorker constructor.
@@ -73,7 +73,7 @@ class ArrowWorker
      * @author Louis
      */
     static function Start(){
-        if (!static::$Arrow)
+        if ( is_null(static::$Arrow) )
         {
             static::$Arrow = new self;
             //初始化异常和错误处理

@@ -55,7 +55,7 @@ class App
         {
             $this -> _cliApp();
         }
-        else if(APP_TYPE == 'swooleWeb')
+        else if(APP_TYPE == 'swWeb')
         {
             $this -> _swooleWeb();
         } else {

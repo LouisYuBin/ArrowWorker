@@ -27,19 +27,19 @@ class RedisSession implements \SessionHandlerInterface
 	{
 		if( !extension_loaded("redis") )
 		{
-			throw new Exception('please install redis extension',500);
+			throw new \Exception('please install redis extension',500);
 		}
 		$this->redis = new \Redis();
 		if( !$this->redis->connect($this->host, $this->port) )
 		{
-			throw new Exception('can not connect session redis',500);
+			throw new \Exception('can not connect session redis',500);
 			return false;
 		}
 		else
 		{
 			if( !$this->redis->auth($this->auth) )
 			{
-				throw new Exception('session redis password is not correct',500);
+				throw new \Exception('session redis password is not correct',500);
 				return false;
 			}
 		}

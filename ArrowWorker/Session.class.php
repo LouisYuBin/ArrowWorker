@@ -11,6 +11,7 @@ namespace ArrowWorker;
 class Session
 {
 	static $isInited = false;
+	static $swSessionCookie = "swooleSessionCookie";
 	static $config = [
 		'handler'  => 'files',
 		'savePath' => '/tmp',
@@ -43,9 +44,9 @@ class Session
 
 		if( static::$config['handler'] != 'files' )
 		{
-			$sessionDriver  = static::$driverPath.static::$config['handler'];
-			$sessionHandler = new $sessionDriver(static::$config['host'], static::$config['port'], static::$config['password'], static::$config['timeout']);
-			if( !session_set_save_handler($sessionHandler,true) )
+			$driver  = static::$driverPath.static::$config['handler'];
+			$handler = new $driver(static::$config['host'], static::$config['port'], static::$config['password'], static::$config['timeout']);
+			if( !session_set_save_handler($handler,true) )
 			{
 				throw new \Exception('session_set_save_handler failed',500);
 			}
@@ -57,7 +58,7 @@ class Session
 		}
 		session_start(['cookie_lifetime' => 86400]);
 		session_set_cookie_params(static::$config['cookie']['lifetime'], static::$config['cookie']['path'], static::$config['cookie']['domain'], static::$config['cookie']['secure'], static::$config['cookie']['httponly']);
-
+        static::setSessionCookie();
 		static::$isInited = true;
 	}
 
@@ -96,5 +97,19 @@ class Session
 		static::init();
 		session_destroy();
 	}
+
+	static function setSessionCookie()
+    {
+        if( APP_TYPE != 'swWeb' )
+        {
+            return ;
+        }
+
+        $isOk = Cookie::Set( static::$swSessionCookie, static::Id() );
+        if( !$isOk )
+        {
+            throw new \Exception("set session cookie error",500);
+        }
+    }
 
 }
