@@ -197,15 +197,15 @@ $app['Session'] = [
 	'timeout'  => 3600,
 ];
 
-//session相关配置
+//cookie相关
 $app['Cookie'] = [
-	//files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+	//cookie前缀
 	'prefix'  => 'ArrowWorker',
 ];
 
-//session相关配置
+//加密相关（相关模块 cookie）
 $app['Cryto'] = [
-    //files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+    //加密/解密因子
     'factor'  => 'ArrowWorker',
 ];
 
