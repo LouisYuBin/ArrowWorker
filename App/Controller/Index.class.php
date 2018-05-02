@@ -20,7 +20,8 @@ class Index
     function Index()
     {
         $rnd  = Request::Get("rnd");
-        var_dump( Session::Id());
+        //var_dump( Session::Id("session_".$rnd));
+        var_dump( Session::Id() );
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 

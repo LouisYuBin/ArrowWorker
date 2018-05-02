@@ -10,7 +10,9 @@ namespace ArrowWorker;
 
 class Session
 {
-	static $isInited = false;
+    static $handle;
+
+    static $isInited = false;
 	static $swSessionCookie = "swooleSessionCookie";
 	static $config = [
 		'handler'  => 'files',
@@ -46,7 +48,7 @@ class Session
 		{
 			$driver  = static::$driverPath.static::$config['handler'];
 			$handler = new $driver(static::$config['host'], static::$config['port'], static::$config['password'], static::$config['timeout']);
-			if( !session_set_save_handler($handler,true) )
+			if( !session_set_save_handler($handler, true) )
 			{
 				throw new \Exception('session_set_save_handler failed',500);
 			}
@@ -85,9 +87,14 @@ class Session
 		return false;
 	}
 
-	static function Id()
+	static function Id(string $id=null) : string
 	{
-		static::init();
+        static::init();
+
+        /*if( !is_null($id) )
+        {
+            session_id($id);
+        }*/
 		return session_id();
 	}
 
