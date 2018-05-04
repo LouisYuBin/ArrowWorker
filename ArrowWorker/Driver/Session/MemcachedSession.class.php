@@ -8,10 +8,10 @@
 namespace ArrowWorker\Driver\Session;
 
 /**
- * Class RedisSession
+ * Class MemcachedSession
  * @package ArrowWorker\Driver\Session
  */
-class RedisSession
+class MemcachedSession
 {
     /**
      * @var
@@ -23,7 +23,7 @@ class RedisSession
 	private $timeout = 0;
 
     /**
-     * RedisSession constructor.
+     * MemcachedSession constructor.
      * @param $host
      * @param $port
      * @param $auth
@@ -44,24 +44,18 @@ class RedisSession
      */
     public function connect()
 	{
-        if( !extension_loaded("redis") )
+        if( !extension_loaded("memcached") )
         {
-            throw new \Exception('please install redis extension',500);
+            throw new \Exception('please install memcached extension',500);
         }
-        $this->server = new \Redis();
-        if( !$this->server->connect($this->host, $this->port) )
+
+        $this->server = new \Memcached();
+        if( !$this->server->addServer($this->host, $this->port) )
         {
-            throw new \Exception('can not connect session redis',500);
+            throw new \Exception('can not connect session memcached',500);
             return false;
         }
-        else
-        {
-            if( !$this->server->auth($this->auth) )
-            {
-                throw new \Exception('session redis password is not correct',500);
-                return false;
-            }
-        }
+
         return true;
 	}
 
@@ -72,7 +66,7 @@ class RedisSession
      * @param string $val
      * @return bool
      */
-    public function Hset(string $sessionId, string $key, string $val) : bool
+    public function Set(string $sessionId, string $key, string $val) : bool
     {
         $isOk = $this->server -> Hset($sessionId, $key, $val);
         if( $isOk === false )

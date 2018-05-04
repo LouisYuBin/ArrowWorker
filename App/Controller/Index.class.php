@@ -21,18 +21,19 @@ class Index
     {
         $rnd  = Request::Get("rnd");
         //var_dump( Session::Id("session_".$rnd));
-        var_dump( Session::Id("u8888888") );
+        //var_dump( Session::Id("u8888888") );
+        var_dump( Session::Get('louis') );
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
 	function session()
 	{
-	    /*if( !Session::Get('louis') )
+        if( !Session::Get('louis') )
         {
             Session::Set('louis','2018');
-        }*/
+        }
 		var_dump( Session::Get('louis') );
-		var_dump( Session::Get('louis') );
+        echo "sdfdsf";
 		Response::Write(Session::Id());
 	}
 

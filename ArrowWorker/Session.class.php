@@ -16,7 +16,6 @@ class Session
 	static $swSessionCookie = "swooleSessionCookie";
 	static $config = [
 		'handler'  => 'files',
-		'savePath' => '/tmp',
 		'host'	   => '127.0.0.1',
 		'port'	   => 6379,
 		'password' => 'louis',
@@ -43,20 +42,14 @@ class Session
 			static::$config = array_merge( static::$config, $session);
 		}
 
-		if( static::$config['handler'] != 'files' )
-		{
-			$driver  = static::$driverPath.static::$config['handler'];
-			$handler = new $driver(static::$config['host'], static::$config['port'], static::$config['password'], static::$config['timeout']);
-			if( !session_set_save_handler($handler, true) )
-			{
-				throw new \Exception('session_set_save_handler failed',500);
-			}
-		}
-		else
-		{
-			ini_set('session.save_handler', static::$config['handler']);
-			ini_set('session.save_path', static::$config['savePath']);
-		}
+        $driver  = static::$driverPath.static::$config['handler'];
+        $handler = new $driver(static::$config['host'], static::$config['port'], static::$config['password'], static::$config['timeout']);
+
+        if( !session_set_save_handler($handler, true) )
+        {
+            throw new \Exception('session_set_save_handler failed',500);
+        }
+
 		session_start(['cookie_lifetime' => 86400]);
 		session_set_cookie_params(static::$config['cookie']['lifetime'], static::$config['cookie']['path'], static::$config['cookie']['domain'], static::$config['cookie']['secure'], static::$config['cookie']['httponly']);
         static::setSessionCookie();

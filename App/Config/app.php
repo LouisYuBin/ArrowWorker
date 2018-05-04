@@ -183,10 +183,9 @@ $app['swoole'] = [
 
 //session相关配置
 $app['Session'] = [
-	//files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+	//RedisSession:redis存储, MemcacheSession:memcache存储
 	'handler'  => 'RedisSession',
-	//session文件储存路径,handler为files使用
-	'savePath' => '/tmp',
+
 	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
 	'host'	   => '127.0.0.1',
 	//redis/memcache端口，handler为RedisSession或MemcacheSession时使用
