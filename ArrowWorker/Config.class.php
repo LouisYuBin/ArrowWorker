@@ -91,7 +91,7 @@ class Config
      * @author Louis
      * @param string $key
      * @param string $AppConfig
-     * @return array|mixed
+     * @return bool|mixed
      */
     public static function App(string $key='', string $AppConfig=APP_CONFIG_FILE )
     {

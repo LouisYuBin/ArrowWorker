@@ -27,8 +27,8 @@ class Index
         //  var_dump( Session::Get('louis') );
         Session::Set('louis2','done');
         Session::Get('louis2');
+        var_dump( Cookie::All() );
         Session::Del('louis1');
-        Session::Destory();
         var_dump( Session::Info() );
 
         Response::Json(200,['random'=>(int)$rnd],"ok");

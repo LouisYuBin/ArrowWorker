@@ -165,7 +165,38 @@ $app['Daemon'] = [
         //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
         'log'    => '/var/log/ArrowWorker.log',
         //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-        'level'  => 30719
+        'level'  => 30719,
+        //进程列表
+        'processor' => [
+            [
+                'function'    => ['\\App\\Controller\\Demo','Demo'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'Demo'
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channelApp'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'Demo'
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channelArrow'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'Demo'
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channeltest'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'Demo'
+            ],
+        ]
     ]
 ];
 

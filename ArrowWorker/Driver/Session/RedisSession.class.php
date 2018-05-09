@@ -6,39 +6,28 @@
  */
 
 namespace ArrowWorker\Driver\Session;
+use ArrowWorker\Driver\Session;
 
 /**
  * Class RedisSession
  * @package ArrowWorker\Driver\Session
  */
-class RedisSession
+class RedisSession extends Session
 {
-    /**
-     * @var
-     */
-    private $handler;
-	private $host = '127.0.0.1';
-	private $port = 6379;
-	private $auth = '';
-	private $timeout  = 0;
-	private $userName = '';
 
     /**
-     * RedisSession constructor.
-     * @param $host
-     * @param $port
-     * @param $auth
-     * @param $timeout
+     * Session constructor.
+     * @param string $host
+     * @param int $port
+     * @param string $userName
+     * @param string $password
+     * @param int $timeout
      */
-    public function __construct(string $host, int $port, string $userName, string $auth, int $timeout)
-	{
-		$this->host = $host;
-		$this->port = $port;
-		$this->auth = $auth;
-		$this->timeout  = $timeout;
-		$this->userName = $userName;
-		$this->connect();
-	}
+    public function __construct(string $host, int $port, string $userName, string $password, int $timeout)
+    {
+        parent::__construct($host, $port, $userName, $password, $timeout);
+        $this->connect();
+    }
 
     /**
      * connect to session server

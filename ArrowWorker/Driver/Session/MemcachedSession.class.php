@@ -6,45 +6,18 @@
  */
 
 namespace ArrowWorker\Driver\Session;
+use ArrowWorker\Driver\Session;
 
 /**
  * Class MemcachedSession
  * @package ArrowWorker\Driver\Session
  */
-class MemcachedSession
+class MemcachedSession extends Session
 {
-    /**
-     * @var
-     */
-    private $handler;
-    /**
-     * @var string
-     */
-    private $host = '127.0.0.1';
-
-    /**
-     * @var int
-     */
-    private $port = 6379;
-
-    /**
-     * @var string
-     */
-    private $userName = '';
-
-    /**
-     * @var string
-     */
-    private $auth = '';
-    
-    /**
-     * @var int
-     */
-    private $timeout = 0;
 
 
     /**
-     * MemcachedSession constructor.
+     * Session constructor.
      * @param string $host
      * @param int $port
      * @param string $userName
@@ -52,14 +25,10 @@ class MemcachedSession
      * @param int $timeout
      */
     public function __construct(string $host, int $port, string $userName, string $password, int $timeout)
-	{
-		$this->host = $host;
-		$this->port = $port;
-		$this->auth = $password;
-		$this->timeout  = $timeout;
-        $this->userName = $userName;
-		$this->connect();
-	}
+    {
+        parent::__construct($host, $port, $userName, $password, $timeout);
+        $this->connect();
+    }
 
     /**
      * @return bool

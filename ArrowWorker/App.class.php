@@ -53,7 +53,7 @@ class App
     {
         if(APP_TYPE=='cli')
         {
-            $this -> _cliApp();
+            Console::StartProcessor();
         }
         else if(APP_TYPE == 'swWeb')
         {
@@ -100,22 +100,5 @@ class App
         $server->start();
     }
 
-    /**
-     * _cliApp 常驻服务应用
-     * @author Louis
-     */
-    private function _cliApp()
-    {
-        if(php_sapi_name() != 'cli')
-        {
-            throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
-        }
-        $inputs = getopt('c:m:');
-        $controller = isset($inputs['c']) ? ucfirst($inputs['c']) : "Index";
-        $method     = isset($inputs['m']) ? ucfirst($inputs['m']) : "Index";
-        $controller = self::$appController.$controller;
-        $ctlObject  = new $controller;
-        $ctlObject -> $method();
-    }
 
 }
