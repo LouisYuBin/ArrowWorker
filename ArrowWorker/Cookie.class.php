@@ -69,12 +69,12 @@ class Cookie
      * @param null $domain
      * @return bool
      */
-    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', $domain=null)
+    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httponly=true) : bool
 	{
 		$expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
 		$name   = static::getKey($name);
 		$val    = Crypto::Encrypt($val);
-		return static::SetByDriver($name, $val, $expire, $path, $domain);
+		return static::SetByDriver($name, $val, $expire, $path, $domain, $secure, $httponly);
 	}
 
     /**
@@ -120,13 +120,16 @@ class Cookie
      * @param null $domain
      * @return bool
      */
-    private function SetByDriver(string $name, string $val, int $expire=0, string $path='/', $domain=null)
+    private static function SetByDriver(string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
     {
         if( is_null(static::$repsonse) )
         {
-            return setcookie($name, $val, $expire, $path, $domain);
+            return setcookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+
         }
-        return static::$repsonse->cookie($name, $val, $expire, $path, $domain);
+
+        static::$repsonse->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        return true;
     }
 
 }

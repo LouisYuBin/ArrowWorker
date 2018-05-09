@@ -16,11 +16,12 @@ class RedisSession
     /**
      * @var
      */
-    private $server;
+    private $handler;
 	private $host = '127.0.0.1';
 	private $port = 6379;
 	private $auth = '';
-	private $timeout = 0;
+	private $timeout  = 0;
+	private $userName = '';
 
     /**
      * RedisSession constructor.
@@ -29,16 +30,18 @@ class RedisSession
      * @param $auth
      * @param $timeout
      */
-    public function __construct($host, $port, $auth, $timeout)
+    public function __construct(string $host, int $port, string $userName, string $auth, int $timeout)
 	{
 		$this->host = $host;
 		$this->port = $port;
 		$this->auth = $auth;
-		$this->timeout = $timeout;
+		$this->timeout  = $timeout;
+		$this->userName = $userName;
 		$this->connect();
 	}
 
     /**
+     * connect to session server
      * @return bool
      * @throws \Exception
      */
@@ -48,15 +51,15 @@ class RedisSession
         {
             throw new \Exception('please install redis extension',500);
         }
-        $this->server = new \Redis();
-        if( !$this->server->connect($this->host, $this->port) )
+        $this->handler = new \Redis();
+        if( !$this->handler->connect($this->host, $this->port) )
         {
             throw new \Exception('can not connect session redis',500);
             return false;
         }
         else
         {
-            if( !$this->server->auth($this->auth) )
+            if( !$this->handler->auth($this->auth) )
             {
                 throw new \Exception('session redis password is not correct',500);
                 return false;
@@ -66,15 +69,15 @@ class RedisSession
 	}
 
     /**
-     * set
+     * set specified
      * @param string $sessionId
      * @param string $key
      * @param string $val
      * @return bool
      */
-    public function Hset(string $sessionId, string $key, string $val) : bool
+    public function Set(string $sessionId, string $key, string $val) : bool
     {
-        $isOk = $this->server -> Hset($sessionId, $key, $val);
+        $isOk = $this->handler -> Hset($sessionId, $key, $val);
         if( $isOk === false )
         {
             return false;
@@ -90,17 +93,7 @@ class RedisSession
      */
     public function Get(string $sessionId, string $key)
     {
-        return $this->server -> Hget($sessionId, $key);
-    }
-
-    /**
-     * count the total number in specified session
-     * @param string $sessionId
-     * @return int
-     */
-    public function Len(string $sessionId) : int
-    {
-        return $this->server -> hLen($sessionId);
+        return $this->handler -> Hget($sessionId, $key);
     }
 
     /**
@@ -109,19 +102,13 @@ class RedisSession
      * @param string $key
      * @return int
      */
-    public function Del(string $sessionId, string $key) : int
+    public function Del(string $sessionId, string $key) : bool 
     {
-        return $this->server -> hDel($sessionId, $key);
-    }
-
-    /**
-     * get specified session information
-     * @param string $sessionId
-     * @return array
-     */
-    public function All(string $sessionId) : array
-    {
-        return $this->server -> hGetAll( $sessionId );
+        if( $this->handler->hDel($sessionId, $key)>0 )
+        {
+            return true;
+        }
+        return true ;
     }
 
     /**
@@ -129,31 +116,35 @@ class RedisSession
      * @param string $sessionId
      * @return mixed
      */
-    public function Destory(string $sessionId) : int
+    public function Destory(string $sessionId) : bool
     {
-        return $this->server -> del( $sessionId );
+        if( $this->handler->del($sessionId)>0 )
+        {
+            return true;
+        }
+        return true;
     }
 
 
     /**
-     * verified if the specified session exists
+     * verify if the specified session exists
      * @param string $sessionId
-     * @return mixed
+     * @return bool
      */
     public function Exists(string $sessionId) : bool
     {
-        return $this->server -> exitst( $sessionId );
+        return $this->handler -> exitst( $sessionId );
     }
 
 
     /**
-     * verified if the specified session key exists
+     * verify if the specified session key exists
      * @param string $sessionId
      * @return mixed
      */
     public function KeyExits(string $sessionId, string $key) : bool
     {
-        return $this->server -> hExists( $sessionId, $key);
+        return $this->handler -> hExists( $sessionId, $key);
     }
 
 
