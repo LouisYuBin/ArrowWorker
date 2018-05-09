@@ -133,7 +133,7 @@ class RedisSession
      */
     public function Exists(string $sessionId) : bool
     {
-        return $this->handler -> exitst( $sessionId );
+        return $this->handler -> exits( $sessionId );
     }
 
 
@@ -147,6 +147,15 @@ class RedisSession
         return $this->handler -> hExists( $sessionId, $key);
     }
 
+    /**
+     * get all session information
+     * @param string $sessionId
+     * @return mixed
+     */
+    public function Info(string $sessionId) : array
+    {
+        return  $this->handler -> hGetAll( $sessionId );
+    }
 
 }
 

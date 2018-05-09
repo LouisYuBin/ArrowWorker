@@ -153,8 +153,6 @@ class MemcachedSession
         return false;
     }
 
-
-
     /**
      * destory specified session
      * @param string $sessionId
@@ -164,7 +162,6 @@ class MemcachedSession
     {
         return $this->handler -> delete( $sessionId );
     }
-
 
     /**
      * verified if the specified session exists
@@ -180,7 +177,6 @@ class MemcachedSession
         return true;
     }
 
-
     /**
      * verified if the specified session key exists
      * @param string $sessionId
@@ -195,6 +191,21 @@ class MemcachedSession
         return true;
     }
 
+
+    /**
+     * get all session information
+     * @param string $sessionId
+     * @return mixed
+     */
+    public function Info(string $sessionId) : array
+    {
+        $session =  $this->handler -> get( $sessionId );
+        if( is_array($session) )
+        {
+            return $session;
+        }
+        return [];
+    }
 
 }
 

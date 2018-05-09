@@ -8,15 +8,39 @@
 namespace ArrowWorker;
 
 
+/**
+ * Class Session
+ * @package ArrowWorker
+ */
 class Session
 {
+    /**
+     * handler : driver handler
+     * @var
+     */
     static $handler;
 
+    /**
+     * isInited : sign for judging if session driver is initialized
+     * @var bool
+     */
     static $isInited = false;
+    /**
+     * tokenKey : token key
+     * @var string
+     */
     static $tokenKey = 'ArrowWorkerSession';
+    /**
+     * token : current session id(token)
+     * @var string
+     */
     static $token = '';
+    /**
+     * config : session config information
+     * @var array
+     */
     static $config = [
-        'handler' => 'files',
+        'handler' => 'RedisSession',
         'host' => '127.0.0.1',
         'port' => 6379,
         'userName' => '',
@@ -31,8 +55,15 @@ class Session
             'httponly' => true
         ]
     ];
+    /**
+     * namespace
+     * @var string
+     */
     static $namespace = 'ArrowWorker\\Driver\\Session\\';
 
+    /**
+     * init : initialize session driver and get session id(token) from client
+     */
     static function init()
     {
         static::getSessionId();
@@ -58,24 +89,45 @@ class Session
         static::$isInited = true;
     }
 
+    /**
+     * Set : set key information for specified session
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
     static function Set(string $key, string $val): bool
     {
         static::init();
         return static::$handler->Set(static::$token, $key, $val);
     }
 
+    /**
+     * Get : get specified session key information
+     * @param string $key
+     * @return false|array
+     */
     static function Get(string $key)
     {
         static::init();
         return static::$handler->Get(static::$token, $key);
     }
 
+    /**
+     * Del : delete specified session key information
+     * @param string $key
+     * @return bool
+     */
     static function Del(string $key) : bool
     {
         static::init();
         return static::$handler->Del(static::$token, $key);
     }
 
+    /**
+     * Id : get or set session id(token)
+     * @param string|null $id
+     * @return string
+     */
     static function Id(string $id = null): string
     {
         static::init();
@@ -88,41 +140,65 @@ class Session
         return static::$token;
     }
 
+    /**
+     * Info : get all stored session information
+     * @param string|null $sessionId
+     * @return array
+     */
+    static function Info(string $sessionId = null) : array
+    {
+        static::init();
+        if( !is_null($sessionId) )
+        {
+            return static::$handler->Info( $sessionId );
+        }
+        return static::$handler->Info( static::$token );
+    }
 
+    /**
+     * Destory : destory a session
+     * @return bool
+     */
     static function Destory(): bool
     {
         static::init();
-        static::$handler->Destory(static::$token);
+        return static::$handler->Destory(static::$token);
     }
 
+    /**
+     * getSessionId : get session id(token) from cookie/get/post data
+     */
     static function getSessionId()
     {
         static::$token = '';
         $token = Cookie::Get(static::$tokenKey);
-        var_dump($token);
-        if (false !== $token) {
+        if( false!==$token )
+        {
             static::$token = $token;
             return ;
         }
 
         $token = Request::Get(static::$tokenKey);
-        var_dump($token);
-        if (false !== $token) {
+        if( false!==$token )
+        {
             static::$token = $token;
             return ;
         }
 
         $token = Request::Post(static::$tokenKey);
-        var_dump($token);
-        if (false !== $token) {
+        if( false!==$token )
+        {
             static::$token = $token;
             return ;
         }
 
-        var_dump($token);
         static::generateSession();
     }
 
+    /**
+     * setSessionCookie : save session cookies
+     * @return bool
+     */
     static function setSessionCookie() : bool
     {
         return Cookie::Set(static::$tokenKey,
@@ -135,6 +211,9 @@ class Session
             );
     }
 
+    /**
+     * generateSession : generate a session id(token)
+     */
     static function generateSession()
     {
         //session id为自动生成

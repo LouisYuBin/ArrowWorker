@@ -183,7 +183,7 @@ $app['swoole'] = [
 
 //session相关配置
 $app['Session'] = [
-	//RedisSession:redis存储, MemcacheSession:memcache存储
+	//RedisSession:redis存储, MemcachedSession:memcache存储
 	'handler'  => 'RedisSession',
 	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
 	'host'	   => '127.0.0.1',

@@ -23,9 +23,14 @@ class Index
         //var_dump( Session::Id("session_".$rnd));
         //var_dump( Session::Id("u8888888") );
         //var_dump( Session::Get('louis') );
-        var_dump( Session::Set('louis','done') );
-        var_dump(Cookie::All());
-        var_dump( Session::Get('louis') );
+        //var_dump( Session::Set('louis','done') );
+        //  var_dump( Session::Get('louis') );
+        Session::Set('louis2','done');
+        Session::Get('louis2');
+        Session::Del('louis1');
+        Session::Destory();
+        var_dump( Session::Info() );
+
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
