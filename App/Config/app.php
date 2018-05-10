@@ -69,7 +69,7 @@ $app['Channel'] = [
         //驱动类型
         'driver' => 'Queue',
         //路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
+        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
 		//最大读取长度
 		'size'   => 128,
 		//队列占用byte大小设置
@@ -79,7 +79,7 @@ $app['Channel'] = [
 		//驱动类型
 		'driver' => 'Queue',
 		//路径
-		'path'   => '/home/louis/github/ArrowWorker/App/Runtime/test.queue',
+		'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/test.queue',
 		//最大读取长度
 		'size'   => 128,
 		//队列占用byte大小设置
@@ -180,21 +180,21 @@ $app['Daemon'] = [
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'Demo'
+                'proName'     => 'channelApp'
             ],
             [
                 'function'    => ['\\App\\Controller\\Demo','channelArrow'],
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'Demo'
+                'proName'     => 'channelArrow'
             ],
             [
                 'function'    => ['\\App\\Controller\\Demo','channeltest'],
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'Demo'
+                'proName'     => 'channeltest'
             ],
         ]
     ]

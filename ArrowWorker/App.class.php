@@ -5,7 +5,6 @@
  */
 
 namespace ArrowWorker;
-use ArrowWorker\Router;
 
 /**
  * 应用加载/启动类

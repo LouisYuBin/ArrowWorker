@@ -7,8 +7,7 @@
 
 namespace ArrowWorker;
 
-
-use ArrowWorker\Utilities\Crypto;
+use ArrowWorker\Lib\Crypto;
 
 /**
  * Class Cookie

@@ -6,7 +6,7 @@
  * Date:   18-1-4
  */
 
-namespace ArrowWorker\Utilities;
+namespace ArrowWorker\Lib;
 
 use ArrowWorker\Config;
 

@@ -127,7 +127,8 @@ class ArrowWorker
 			'ArrowWorker\Session'    => ArrowWorker . '/Session'  . self::classExt,
             'ArrowWorker\Cookie'     => ArrowWorker . '/Cookie'   . self::classExt,
             'ArrowWorker\Response'   => ArrowWorker . '/Response' . self::classExt,
-            'ArrowWorker\Request'   => ArrowWorker  . '/Request'  . self::classExt,
+            'ArrowWorker\Request'    => ArrowWorker . '/Request'  . self::classExt,
+            'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
             'ArrowWorker\Utilities\Crypto'  => ArrowWorker  . '/Utilities/Crypto'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,

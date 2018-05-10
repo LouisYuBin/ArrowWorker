@@ -19,16 +19,13 @@ class Console
         }
     }
 
-    public static function StartProcessor()
+    private static function GetConfig() : array
     {
-        //verify if the application is started from command line
-        static::checkEnv();
-
-        //get parameter from command line
-        $app = getopt('app:');
-        if( !isset($input['app']) )
+        $input = getopt('a:');
+        $app   = static::$defaultProcessApp;
+        if( isset($input['a']) )
         {
-            $app = static::$defaultProcessApp;
+            $app = $input['a'];
         }
 
         //verify whether the daemon is configured
@@ -38,11 +35,30 @@ class Console
             throw new \Exception("daemon not configured");
         }
 
+        //check whether the specified deamon app configuration exists
+        if( !isset($config[$app]) )
+        {
+            throw new \Exception("configuration for {$app}  does not exists");
+        }
+
+        $appConfig = $config[$app];
+
         //verify if the processor configuration is correct
-        if( !isset($config['processor']) || !is_array($config['processor']) || count($config['processor'])==0 )
+        if( !isset($appConfig['processor']) || !is_array($appConfig['processor']) || count($appConfig['processor'])==0 )
         {
             throw new \Exception("daemon processor configuration is not correct");
         }
+
+        return [$app, $appConfig];
+    }
+
+    public static function StartProcessor()
+    {
+        //verify if the application is started from command line
+        static::checkEnv();
+
+        //get app and configuration
+        list($app, $config) = static::GetConfig();
 
         $daemon = Driver::Daemon( $app );
         foreach ($config['processor'] as $item)
