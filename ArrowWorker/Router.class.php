@@ -25,7 +25,7 @@ class Router
 	/**
 	 * 配置文件中路由配置key
 	 */
-	const routeType = "RouterType";
+	const type = "RouterType";
 
 	/**
 	 * get类型路由
@@ -40,7 +40,7 @@ class Router
     /**
      * @var string  应用命名空间
      */
-    private static $appController;
+    private static $appController = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
 
 
 	/**
@@ -51,22 +51,23 @@ class Router
 
 
 	/**
-	 * getRouteType
-	 * @return array|mixed
+	 * getRouterType
+	 * @return int
 	 */
-	private static function getRouteType()
+	private static function getRouterType()
     {
-        $routerConfig = Config::App(static::routeType);
-        if( !$routerConfig )
+        $type = Config::App(static::type);
+        if( false===$type )
         {
             return static::get;
         }
-        $routerConfig = (int)$routerConfig;
-        if ( $routerConfig<static::get|| $routerConfig>static::uri )
+
+        $type = (int)$type;
+        if ( $type<static::get|| $type>static::uri )
         {
             return static::get;
         }
-        return $routerConfig;
+        return $type;
     }
 
 
@@ -76,7 +77,7 @@ class Router
 	 */
 	public static function Start()
     {
-        switch ( static::getRouteType() )
+        switch ( static::getRouterType() )
         {
             case static::get;
                 static::getRouter();
@@ -93,8 +94,6 @@ class Router
 
     private static function exec()
     {
-        self::$appController = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
-
         $class  = self::$appController.ucfirst( static::$func['c'] );
         $method = ucfirst( static::$func['m'] );
 

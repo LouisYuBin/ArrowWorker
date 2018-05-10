@@ -79,7 +79,7 @@ class ArrowWorker
             //初始化异常和错误处理
             Exception::Init();
         }
-        App::InitApp() -> RunApp();
+        App::RunApp();
     }
 
 
@@ -129,7 +129,8 @@ class ArrowWorker
             'ArrowWorker\Response'   => ArrowWorker . '/Response' . self::classExt,
             'ArrowWorker\Request'    => ArrowWorker . '/Request'  . self::classExt,
             'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
-            'ArrowWorker\Utilities\Crypto'  => ArrowWorker  . '/Utilities/Crypto'  . self::classExt,
+            'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
+            'ArrowWorker\Lib\Crypto'  => ArrowWorker  . '/Lib/Crypto'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

@@ -555,7 +555,7 @@ class ArrowDaemon extends daemon
             $groupId = static::$consumePidMap[$pid];
             $this -> _writeLog("Task process(".self::$jobs[ $groupId ]["processName"]."-".$pid." : ".$status.") exited.");
         }
-
+        $this -> _writeLog("channel-finish process exited.");
     }
 
 
@@ -706,7 +706,7 @@ class ArrowDaemon extends daemon
 	 */
 	private function _startChannelFinishProcess()
     {
-        static::_writeLog("start channel-finish Process");
+        static::_writeLog("starting channel-finish Process");
 
         for($i = 0; $i<self::$jobNum; $i++)
         {
@@ -731,6 +731,7 @@ class ArrowDaemon extends daemon
 			}
             usleep(10000);
         }
+        static::_writeLog("channel-finish Process finished");
     }
 
     /**
@@ -757,7 +758,7 @@ class ArrowDaemon extends daemon
             }
             self::$workerStat['count']++;
 
-            if ( !$channelStatus )
+            if( !$channelStatus )
             {
                 //写入进程未退出
                 foreach (static::$consumePidMap as $pid => $groupId)

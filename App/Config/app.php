@@ -166,13 +166,17 @@ $app['Daemon'] = [
         'log'    => '/var/log/ArrowWorker.log',
         //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
         'level'  => 30719,
-        //进程列表
+        //process list
         'processor' => [
             [
+                //function to be call
                 'function'    => ['\\App\\Controller\\Demo','Demo'],
                 'argv'        => [100],
+                //number of process to be started
                 'concurrency' => 3,
+                //process lifecycle
                 'lifecycle'   => 120,
+                //process name
                 'proName'     => 'Demo'
             ],
             [
@@ -180,36 +184,42 @@ $app['Daemon'] = [
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'channelApp'
+                'proName'     => 'channelApp',
+                'channel'     => true,
             ],
             [
                 'function'    => ['\\App\\Controller\\Demo','channelArrow'],
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'channelArrow'
+                'proName'     => 'channelArrow',
+                'channel'     => true,
             ],
             [
                 'function'    => ['\\App\\Controller\\Demo','channeltest'],
                 'argv'        => [100],
                 'concurrency' => 3,
                 'lifecycle'   => 120,
-                'proName'     => 'channeltest'
+                'proName'     => 'channeltest',
+                'channel'     => true,
             ],
         ]
     ]
 ];
 
 //swoole web引擎
-$app['swoole'] = [
-    //端口
-    'port'      => 9502,
-    //工作进程数
-    'workerNum' => 10,
-    //是否常驻
-    'daemonize' => false,
-    //请求队列长度
-    'backlog'   => 2000
+$app['Swoole'] = [
+    //web server
+    'http' => [
+        //port of listen
+        'port'      => 9502,
+        //number of worker process
+        'workerNum' => 10,
+        //sign of working as a child process
+        'daemonize' => false,
+        //size of request queue
+        'backlog'   => 2000
+    ]
 ];
 
 //session相关配置
