@@ -27,6 +27,12 @@ class Index
         //  var_dump( Session::Get('louis') );
         Session::Set('louis2','done');
         Session::Get('louis2');
+
+        Session::MultiSet([
+            'name' => 'louis',
+            'do'   => 'good'
+        ]);
+
         var_dump( Cookie::All() );
         Session::Del('louis1');
         var_dump( Session::Info() );

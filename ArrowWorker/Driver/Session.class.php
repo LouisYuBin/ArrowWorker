@@ -11,7 +11,7 @@ namespace ArrowWorker\Driver;
 class Session
 {
     /**
-     * @var
+     * @var \Memcached|\Redis
      */
     protected $handler;
     /**

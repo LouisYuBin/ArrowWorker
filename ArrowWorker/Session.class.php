@@ -6,6 +6,8 @@
  */
 
 namespace ArrowWorker;
+use ArrowWorker\Driver\Session\MemcachedSession;
+use ArrowWorker\Driver\Session\RedisSession;
 
 
 /**
@@ -16,7 +18,7 @@ class Session
 {
     /**
      * handler : driver handler
-     * @var
+     * @var MemcachedSession|RedisSession
      */
     static $handler;
 
@@ -61,13 +63,17 @@ class Session
      */
     static $namespace = 'ArrowWorker\\Driver\\Session\\';
 
+    public static function Reset()
+    {
+        static::$token = '';
+        static::getSessionId();
+    }
+
     /**
      * init : initialize session driver and get session id(token) from client
      */
-    static function init()
+    private static function init()
     {
-        static::getSessionId();
-
         if (static::$isInited) {
             return;
         }
@@ -95,10 +101,21 @@ class Session
      * @param string $val
      * @return bool
      */
-    static function Set(string $key, string $val): bool
+    public static function Set(string $key, string $val): bool
     {
         static::init();
         return static::$handler->Set(static::$token, $key, $val);
+    }
+
+    /**
+     * Set : set key information by array for specified session
+     * @param array $val
+     * @return bool
+     */
+   public static function MultiSet(array $val): bool
+    {
+        static::init();
+        return static::$handler->MSet(static::$token, $val);
     }
 
     /**
@@ -106,7 +123,7 @@ class Session
      * @param string $key
      * @return false|array
      */
-    static function Get(string $key)
+    public static function Get(string $key)
     {
         static::init();
         return static::$handler->Get(static::$token, $key);
@@ -117,7 +134,7 @@ class Session
      * @param string $key
      * @return bool
      */
-    static function Del(string $key) : bool
+    public static function Del(string $key) : bool
     {
         static::init();
         return static::$handler->Del(static::$token, $key);
@@ -128,7 +145,7 @@ class Session
      * @param string|null $id
      * @return string
      */
-    static function Id(string $id = null): string
+    public static function Id(string $id = null): string
     {
         static::init();
         if( !is_null($id) )
@@ -145,7 +162,7 @@ class Session
      * @param string|null $sessionId
      * @return array
      */
-    static function Info(string $sessionId = null) : array
+    public static function Info(string $sessionId = null) : array
     {
         static::init();
         if( !is_null($sessionId) )
@@ -159,7 +176,7 @@ class Session
      * Destory : destory a session
      * @return bool
      */
-    static function Destory(): bool
+    public static function Destory(): bool
     {
         static::init();
         return static::$handler->Destory(static::$token);
@@ -168,9 +185,8 @@ class Session
     /**
      * getSessionId : get session id(token) from cookie/get/post data
      */
-    static function getSessionId()
+    private static function getSessionId()
     {
-        static::$token = '';
         $token = Cookie::Get(static::$tokenKey);
         if( false!==$token )
         {
@@ -199,7 +215,7 @@ class Session
      * setSessionCookie : save session cookies
      * @return bool
      */
-    static function setSessionCookie() : bool
+    private static function setSessionCookie() : bool
     {
         return Cookie::Set(static::$tokenKey,
             static::$token,

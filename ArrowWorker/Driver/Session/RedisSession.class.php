@@ -75,6 +75,17 @@ class RedisSession extends Session
     }
 
     /**
+     * MSet : set session information by array
+     * @param string $sessionId
+     * @param array $val
+     * @return bool
+     */
+    public function MSet(string $sessionId, array $val) : bool
+    {
+        return $this->handler -> hMset($sessionId, $val);
+    }
+
+    /**
      * get specified information in specified session
      * @param string $sessionId
      * @param string $key

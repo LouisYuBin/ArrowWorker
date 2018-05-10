@@ -49,6 +49,7 @@ class Swoole
                 is_array($request->server) ? $request->server : [],
                 is_array($request->files) ? $request->files : []
             );
+            Session::Reset();
             Response::Init($response);
             Router::Start();
         });

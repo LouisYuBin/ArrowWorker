@@ -89,6 +89,29 @@ class MemcachedSession extends Session
     }
 
     /**
+     * MSet : set session information by array
+     * @param string $sessionId
+     * @param array $val
+     * @return bool
+     */
+    public function MSet(string $sessionId, array $val) : bool
+    {
+        $info = $this->handler->get($sessionId);
+        if( false === $info)
+        {
+            return $this->handler -> set($sessionId, $val);
+        }
+
+        if( is_array($info) )
+        {
+            $info = array_merge($info,$val);
+            return $this->handler -> set($sessionId, $info);
+        }
+
+        return false;
+    }
+
+    /**
      * get specified information in specified session
      * @param string $sessionId
      * @param string $key

@@ -245,9 +245,9 @@ $app['Session'] = [
         //所属域名
         'domain' => '',
         //是否只允许针对https协议有效
-        'secure' => 'false',
+        'secure' => false,
         //是否只允许http协议修改
-        'httponly' => 'true'
+        'httponly' => true
     ]
 ];
 
