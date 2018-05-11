@@ -218,7 +218,9 @@ $app['Swoole'] = [
         //sign of working as a child process
         'daemonize' => false,
         //size of request queue
-        'backlog'   => 2000
+        'backlog'   => 2000,
+        //max post data length
+        'maxContentLength' => 20889600
     ]
 ];
 
@@ -248,6 +250,18 @@ $app['Session'] = [
         'secure' => false,
         //是否只允许http协议修改
         'httponly' => true
+    ]
+];
+
+$app['Upload'] = [
+    'savePath'  => APP_PATH.'/Runtime/Upload/',
+    'extension' =>[
+        'jpg',
+        'jpeg',
+        'zip',
+        'rar',
+        'png',
+        'webp'
     ]
 ];
 

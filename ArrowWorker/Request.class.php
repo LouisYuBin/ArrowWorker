@@ -96,4 +96,22 @@ class Request
         return $_SERVER;
     }
 
+    /**
+     * Servers : return all server data
+     * @return Upload|false
+     */
+    public static function File(string $postName)
+    {
+        return ( !isset($_FILES[$postName]) ) ? false : new Upload($postName);
+    }
+
+    /**
+     * Servers : return all server data
+     * @return array
+     */
+    public static function Files()
+    {
+        return $_FILES;
+    }
+
 }

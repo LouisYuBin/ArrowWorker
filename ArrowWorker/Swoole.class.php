@@ -13,7 +13,8 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'daemonize' => false,
-        'backlog'   => 1000
+        'backlog'   => 1000,
+        'maxContentLength' => 2088960
     ];
 
     private static function getHttpConfig()
@@ -40,6 +41,7 @@ class Swoole
             'worker_num' => static::$Http['workerNum'],
             'daemonize'  => static::$Http['daemonize'],
             'backlog'    => static::$Http['backlog'],
+            'package_max_length' => static::$Http['maxContentLength'],
         ]);
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);

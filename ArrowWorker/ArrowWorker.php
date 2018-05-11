@@ -130,7 +130,8 @@ class ArrowWorker
             'ArrowWorker\Request'    => ArrowWorker . '/Request'  . self::classExt,
             'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
             'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
-            'ArrowWorker\Lib\Crypto'  => ArrowWorker  . '/Lib/Crypto'  . self::classExt,
+            'ArrowWorker\Upload'     => ArrowWorker . '/Upload'  . self::classExt,
+            'ArrowWorker\Lib\Crypto' => ArrowWorker  . '/Lib/Crypto'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

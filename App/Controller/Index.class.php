@@ -40,6 +40,12 @@ class Index
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
+    function upload()
+    {
+        var_dump(Request::File('photo')->Save());
+        Response::Json(200, Request::Files());
+    }
+
 	function session()
 	{
        Response::Json(200,Request::Servers());
