@@ -18,7 +18,7 @@ class Response
      * response handler for swoole
      * @var null
      */
-    private static $response=null;
+    private static $response = null;
 
     /**
      * Init : init swoole response handler
@@ -62,8 +62,9 @@ class Response
      * Header : set response header
      * @param string $key
      * @param string $val
+     * @return void
      */
-    private static function Header(string $key, string $val)
+    public static function Header(string $key, string $val)
     {
         if( is_null(static::$response) )
         {

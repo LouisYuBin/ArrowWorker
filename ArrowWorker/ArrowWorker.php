@@ -1,61 +1,77 @@
 <?php
 /**
  * User: Louis
- * Date: 2016/11/07
- * Time: 23:49
+ * Time: 2016/11/07 23:49
+ * Update: 2018-05-21 12:22
  */
 
 namespace ArrowWorker;
 use ArrowWorker\App;
 use ArrowWorker\Config;
 use ArrowWorker\Exception;
-//框架目录
+
+//ArrowWorker framework folder
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
-//应用目录名称
+
+//application folder
 defined('APP_FOLDER') or define('APP_FOLDER','App');
-//应用默认应用路径
+
+//application path
 defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_FOLDER);
-//应用类型（cli:命令行模式 swoole: 用swoole作为引擎的web的web，web：使用php-fpm做为引擎的web）
+
+//application type（cli:command line application, swWeb: swoole http application, web: nginx+fpm application）
 defined('APP_TYPE') or define('APP_TYPE','web');
-//状态：debug（开发） or online（上线）
+
+//application development status(debug:in dev status, online:in released status)
 defined('APP_STATUS') or define('APP_STATUS','debug');
-//应用控制器目录名
+
+//folder name for application controller
 defined('APP_CONTROLLER_FOLDER') or define('APP_CONTROLLER_FOLDER','Controller');
-//应用模型目录名
+
+//folder name for application model
 defined('APP_MODEL_FOLDER') or define('APP_MODEL_FOLDER','Model');
-//应用类目录名
+
+//folder name for application class
 defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Classes');
-//应用业务目录名
+
+//folder name for application Runtime
+defined('APP_RUNTIME_FOLDER') or define('APP_RUNTIME_FOLDER','Classes');
+
+//folder name for application service
 defined('APP_SERVICE_FOLDER') or define('APP_SERVICE_FOLDER','Service');
-//应用配置文件夹
+
+//folder name for application Config
 defined('APP_CONFIG_FOLDER') or define('APP_CONFIG_FOLDER','Config');
-//应用语言文件夹
+
+//folder name for application language
 defined('APP_LANG_FOLDER') or define('APP_LANG_FOLDER','Lang');
-//应用配置文件夹
+
+//folder name for application view-tpl
 defined('APP_TPL_FOLDER') or define('APP_TPL_FOLDER','Tpl');
-//默认控制器
+
+//default controller Class name
 defined('DEFAULT_CONTROLLER') or define('DEFAULT_CONTROLLER','Index');
-//默认控制器方法
+
+//default controller method name in default controller class
 defined('DEFAULT_METHOD') or define('DEFAULT_METHOD','index');
-//默认应用配置文件
+
+//file name for default configuration
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','app');
-//默认应用controller、class、model映射文件
-defined('APP_ALIAS') or define('APP_ALIAS','cam');
 
 
 /**
- * Class ArrowWorker 框架入口类
+ * Class ArrowWorker
  * @package ArrowWorker
  */
 class ArrowWorker
 {
     /**
-     * 框架类文件后缀
+     * frame class extension
      */
     const classExt = '.class.php';
 
     /**
-     * @var 入口类实例对象
+     * @var frame instance
      */
     private static $Arrow = null;
 
@@ -69,14 +85,13 @@ class ArrowWorker
 
 
     /**
-     * Start 启动框架
+     * Start : frame start method
      * @author Louis
      */
     static function Start(){
         if ( is_null(static::$Arrow) )
         {
             static::$Arrow = new self;
-            //初始化异常和错误处理
             Exception::Init();
         }
         App::RunApp();
@@ -84,7 +99,7 @@ class ArrowWorker
 
 
     /**
-     * loadClass 加载框架/用户类
+     * loadClass : auto-load class method
      * @author Louis
      * @param string $class
      */
@@ -93,7 +108,7 @@ class ArrowWorker
         $ArrowClass = static::classMap();
         if( isset($ArrowClass[$class]) )
         {
-            //系统类映射
+            //frame class
             $class = $ArrowClass[$class];
         }
         else
@@ -109,7 +124,7 @@ class ArrowWorker
 
 
     /**
-     * classMap 框架命名空间和文件路径映射
+     * classMap frame class alias
      * @author Louis
      * @return array
      */
