@@ -6,11 +6,11 @@
  * Date:   18-1-4
  */
 
-namespace ArrowWorker\Lib;
+namespace ArrowWorker\Lib\Crypto;
 
 use ArrowWorker\Config;
 
-class Crypto
+class CryptoArrow
 {
 	static $factor = "";
 	static $defaultFactor = "Louis";

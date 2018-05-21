@@ -7,7 +7,7 @@
 
 namespace ArrowWorker;
 
-use ArrowWorker\Lib\Crypto;
+use ArrowWorker\Lib\Crypto\CryptoArrow;
 
 /**
  * Class Cookie
@@ -54,7 +54,7 @@ class Cookie
         $key = static::getKey($key);
 		if( isset($_COOKIE[$key]) )
 		{
-			return Crypto::Decrypt($_COOKIE[$key]);
+			return CryptoArrow::Decrypt($_COOKIE[$key]);
 		}
 		return false;
 	}
@@ -72,7 +72,7 @@ class Cookie
 	{
 		$expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
 		$name   = static::getKey($name);
-		$val    = Crypto::Encrypt($val);
+		$val    = CryptoArrow::Encrypt($val);
 		return static::SetByDriver($name, $val, $expire, $path, $domain, $secure, $httponly);
 	}
 
@@ -124,7 +124,6 @@ class Cookie
         if( is_null(static::$repsonse) )
         {
             return setcookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
-
         }
 
         static::$repsonse->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);

@@ -1,12 +1,13 @@
 <?php
-namespace ArrowWorker\Lib;
+namespace ArrowWorker\Lib\Validation;
+
 use ArrowWorker\Config;
 use ArrowWorker\Response;
 
 /**
- * Class ValidateCode
+ * Class ValidateImg
  */
-class ValidationCode
+class ValidateImg
 {
 
     const fontPath = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_FOLDER.DIRECTORY_SEPARATOR.'Font/';
@@ -15,7 +16,7 @@ class ValidationCode
      * code factor
      * @var string
      */
-    private $codeFactor = 'abcdefghkmnprstuvwxyzABCDEFGHKMNPRSTUVWXYZ23456789';//随机因子
+    private $codeFactor = 'abcdefghkmnprstuvwxyzABCDEFGHKMNPRSTUVWXYZ0123456789';
 
     /**
      * code : validation code
@@ -112,7 +113,6 @@ class ValidationCode
         {
             $this->fontSize = $config['fontSize'];
         }
-
 
     }
 
