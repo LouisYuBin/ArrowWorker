@@ -52,9 +52,9 @@ class ValidateImg
      * @var string
      */
     private $font = [
-        fontPath.'ZEBRRA.ttf',
-        fontPath.'Kranky.ttf',
-        fontPath.'ARCADE.ttf'
+        self::fontPath.'ZEBRRA.ttf',
+        self::fontPath.'Kranky.ttf',
+        self::fontPath.'ARCADE.ttf'
     ];
 
     /**
@@ -134,6 +134,7 @@ class ValidateImg
      */
     private function generateCode()
     {
+        $this->code = '';
         $len = strlen($this->codeFactor)-1;
         for( $i=0; $i<$this->codeLen; $i++ )
         {
@@ -171,6 +172,7 @@ class ValidateImg
     private function writeCode()
     {
         $x = $this->width / $this->codeLen;
+        $fontLen = count($this->font);
         for( $i=0; $i<$this->codeLen; $i++)
         {
             $this->fontColor = imagecolorallocate(
@@ -179,7 +181,6 @@ class ValidateImg
                 mt_rand(0,156),
                 mt_rand(0,156)
             );
-
             imagettftext(
                 $this->img,
                 $this->fontSize,
@@ -187,7 +188,7 @@ class ValidateImg
                 $x*$i+mt_rand(1,5),
                 $this->height / 1.4,
                 $this->fontColor,
-                $this->font,
+                $this->font[mt_rand(0,$fontLen-1)],
                 $this->code[$i]
             );
         }
@@ -260,9 +261,24 @@ class ValidateImg
     private function output()
     {
         Response::Header("Content-type",'image/png');
+        if( APP_TYPE!='fpm' )
+        {
+            ob_clean();
+            if( !ob_start() )
+            {
+                return false;
+            }
+        }
+
         if( !imagepng($this->img) )
         {
             return false;
+        }
+
+        if( APP_TYPE!='fpm')
+        {
+            Response::Write( ob_get_contents() );
+            ob_end_clean();
         }
 
         if( !imagedestroy($this->img) )

@@ -35,7 +35,7 @@ defined('APP_MODEL_FOLDER') or define('APP_MODEL_FOLDER','Model');
 defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Classes');
 
 //folder name for application Runtime
-defined('APP_RUNTIME_FOLDER') or define('APP_RUNTIME_FOLDER','Classes');
+defined('APP_RUNTIME_FOLDER') or define('APP_RUNTIME_FOLDER','Runtime');
 
 //folder name for application service
 defined('APP_SERVICE_FOLDER') or define('APP_SERVICE_FOLDER','Service');
@@ -146,7 +146,8 @@ class ArrowWorker
             'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
             'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
             'ArrowWorker\Upload'     => ArrowWorker . '/Upload'  . self::classExt,
-            'ArrowWorker\Lib\Crypto' => ArrowWorker  . '/Lib/Crypto'  . self::classExt,
+            'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,
+            'ArrowWorker\Lib\Validation\ValidateImg' => ArrowWorker  . '/Lib/Validation/ValidateImg' . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

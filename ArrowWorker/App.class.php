@@ -28,7 +28,7 @@ class App
             case 'swHttp':
                 Swoole::Http();
                 break;
-            case 'web':
+            case 'fpm':
                 Router::Start();
                 break;
             default:

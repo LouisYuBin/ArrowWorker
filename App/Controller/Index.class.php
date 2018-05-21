@@ -8,6 +8,7 @@
 namespace App\Controller;
 use ArrowWorker\Cookie;
 use ArrowWorker\Driver;
+use ArrowWorker\Lib\Validation\ValidateImg;
 use ArrowWorker\Loader;
 use ArrowWorker\Request;
 use ArrowWorker\Response;
@@ -33,9 +34,9 @@ class Index
             'do'   => 'good'
         ]);
 
-        var_dump( Cookie::All() );
+        //var_dump( Cookie::All() );
         Session::Del('louis1');
-        var_dump( Session::Info() );
+        //var_dump( Session::Info() );
 
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
@@ -44,6 +45,14 @@ class Index
     {
         var_dump(Request::File('photo')->Save());
         Response::Json(200, Request::Files());
+    }
+
+    function validation()
+    {
+        $isOk = ValidateImg::Create();
+        var_dump($isOk);
+        //ob_end_flush();
+
     }
 
 	function session()
