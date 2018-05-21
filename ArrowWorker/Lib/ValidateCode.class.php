@@ -8,6 +8,9 @@ use ArrowWorker\Response;
  */
 class ValidationCode
 {
+
+    const fontPath = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_FOLDER.DIRECTORY_SEPARATOR.'Font/';
+
     /**
      * code factor
      * @var string
@@ -41,13 +44,17 @@ class ValidationCode
      * img : image resource handler
      * @var
      */
-    private $img;//图形资源句柄
+    private $img;
 
     /**
      * font : code font
      * @var string
      */
-    private $font;//指定的字体
+    private $font = [
+        fontPath.'ZEBRRA.ttf',
+        fontPath.'Kranky.ttf',
+        fontPath.'ARCADE.ttf'
+    ];
 
     /**
      * fontSize : code font size
@@ -59,7 +66,7 @@ class ValidationCode
      * fontColor : code font color
      * @var
      */
-    private $fontColor;//指定字体颜色
+    private $fontColor;
 
     /**
      * handler
@@ -77,7 +84,36 @@ class ValidationCode
         {
             return ;
         }
-        $this->font = dirname(__FILE__).'/ZEBRRA__.ttf';//注意字体路径要写对，否则显示不了图片
+
+        if( isset($config['font']) && is_array($config['font']))
+        {
+            foreach ($config['font'] as $font)
+            {
+                $this->font[] = static::fontPath.$font;
+            }
+        }
+
+        if( isset($config['codeLen']) && is_int($config['codeLen']) )
+        {
+            $this->codeLen = $config['codeLen'];
+        }
+
+        if( isset($config['with']) && is_int($config['with']) )
+        {
+            $this->width = $config['with'];
+        }
+
+        if( isset($config['height']) && is_int($config['height']) )
+        {
+            $this->height = $config['height'];
+        }
+
+        if( isset($config['fontSize']) && is_int($config['fontSize']) )
+        {
+            $this->fontSize = $config['fontSize'];
+        }
+
+
     }
 
     /**
@@ -157,8 +193,11 @@ class ValidationCode
         }
     }
 
+
     /**
-     * createLine ： create interference factor( snowflake and line )
+     * createLine : create interference factor( snowflake and line )
+     * @return bool
+     * @throws \Exception
      */
     private function createLine()
     {

@@ -265,6 +265,18 @@ $app['Upload'] = [
     ]
 ];
 
+$app['ValidationCode'] = [
+    'codeLen' => 4,
+    'with'    => 138,
+    'height'  => 50,
+    'font'    => [
+        'ZEBRRA.ttf',
+        'Kranky.ttf',
+        'ARCADE.ttf'
+    ],
+    'fontSize' => 22,
+];
+
 //cookie相关配置
 $app['Cookie'] = [
 	//cookie前缀
