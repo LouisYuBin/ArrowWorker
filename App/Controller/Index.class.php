@@ -49,9 +49,9 @@ class Index
 
     function validation()
     {
-        $isOk = ValidateImg::Create();
-        var_dump($isOk);
-        //ob_end_flush();
+        $code = ValidateImg::Create();
+        $cache = Driver::Cache();
+        $cache->Set("validate", $code);
 
     }
 

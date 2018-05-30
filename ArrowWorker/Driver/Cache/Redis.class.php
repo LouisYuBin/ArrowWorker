@@ -73,30 +73,30 @@ class Redis extends cache
 	/**
 	 * Db 选择数据库
 	 * @param int $dbName
-	 * @return mixed
+	 * @return bool
 	 */
-	public function Db(int $dbName)
+	public function Db(int $dbName) : bool
     {
         return $this -> getConnection() -> select( $dbName );
     }
 
 
 	/**
-	 * Set 写入key
+	 * Set : write cache
 	 * @param $key
 	 * @param $val
-	 * @return mixed
+	 * @return bool
 	 */
-	public function Set(string $key, mixed $val)
+	public function Set(string $key, string $val) : bool
     {
         return $this -> getConnection() -> set( $key, $val );
     }
 
 
 	/**
-	 * Get 读取key
+	 * Get : read cache
 	 * @param string $key
-	 * @return mixed
+	 * @return string|false
 	 */
 	public function Get(string $key)
     {
@@ -105,10 +105,11 @@ class Redis extends cache
 
 
 	/**
-	 * Lpush 左入队列
+	 * Lpush : Adds the string values to the head (left) of the list. Creates the list if the key didn't exist.
+     * If the key exists and is not a list, FALSE is returned
 	 * @param string $queue
 	 * @param mixed $val
-	 * @return mixed
+	 * @return int|false
 	 */
 	public function Lpush(string $queue, string $val)
     {
@@ -117,21 +118,22 @@ class Redis extends cache
 
 
 	/**
-	 * Rpush 写队列(右)
+	 * Rpush : Adds the string values to the tail (right) of the list. Creates the list if the key didn't exist.
+     * If the key exists and is not a list, FALSE is returned.
 	 * @param string $queue
 	 * @param mixed $val
-	 * @return mixed
+	 * @return int|false
 	 */
-	public function Rpush(string $queue, mixed $val)
+	public function Rpush(string $queue, string $val)
     {
         return $this -> getConnection() ->rPush( $queue, $val );
     }
 
 
 	/**
-	 * Rpop 读队列(右)
+	 * Rpop : Returns and removes the last element of the list.
 	 * @param  string $queue
-	 * @return mixed
+	 * @return string|false
 	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
 	 */
 	public function Rpop(string $queue)
@@ -140,9 +142,9 @@ class Redis extends cache
     }
 
 	/**
-	 * Lpop 左出队列
+	 * Lpop : Returns and removes the first element of the list.
 	 * @param string $queue
-	 * @return mixed
+	 * @return string|false
 	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
 	 */
 	public function Lpop(string $queue)
@@ -152,26 +154,33 @@ class Redis extends cache
 
 
 	/**
-	 * BrPop 读队列(右)(阻塞模式)
+	 * BrPop : Is a blocking rPop primitive. If at least one of the lists contains at least one element,
+     * the element will be popped from the head of the list and returned to the caller.
+     * Il all the list identified by the keys passed in arguments are empty, brPop will
+     * block during the specified timeout until an element is pushed to one of those lists. T
+     * his element will be popped.
 	 * @param string $queue
 	 * @param int $timeout
-	 * @return mixed
+	 * @return array
 	 *  Return value ：ARRAY array('listName', 'element')
 	 */
-	public function BrPop(string $queue, int $timeout )
+	public function BrPop(int $timeout, string ...$queue )
     {
         return $this -> getConnection() ->brPop ( $queue, $timeout );
     }
 
 	/**
-	 * BlPop 读队列(左)(阻塞模式)
+	 * BlPop : Is a blocking lPop primitive. If at least one of the lists contains at least one element,
+     * the element will be popped from the head of the list and returned to the caller.
+     * Il all the list identified by the keys passed in arguments are empty, blPop will block
+     * during the specified timeout until an element is pushed to one of those lists. This element will be popped.
 	 * @param string|array $queue
 	 *    Parameters：ARRAY Array containing the keys of the lists INTEGER Timeout Or STRING Key1 STRING Key2 STRING Key3 ... STRING Keyn INTEGER Timeout
 	 * @param int $timeout
 	 * @return mixed
 	 * 	  ARRAY array('listName', 'element')
 	 */
-	public function BlPop(mixed $queue, int $timeout)
+	public function BlPop(int $timeout, string ...$queue)
     {
         return $this -> getConnection() ->blPop ( $queue, $timeout );
     }
@@ -184,7 +193,7 @@ class Redis extends cache
 	 * @return mixed
 	 *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
 	 */
-	public function Hset(sting $key, string $hashKey, mixed $value)
+	public function Hset(sting $key, string $hashKey, string $value)
     {
         return $this -> getConnection() ->Hset ( $key, $hashKey, $value);
     }
