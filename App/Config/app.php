@@ -270,9 +270,9 @@ $app['ValidationCode'] = [
     'with'    => 138,
     'height'  => 50,
     'font'    => [
-        'ZEBRRA.ttf',
-        'Kranky.ttf',
-        'ARCADE.ttf'
+        'en_ZEBRRA.ttf',
+        'en_Kranky.ttf',
+        'en_ARCADE.ttf'
     ],
     'fontSize' => 22,
 ];
