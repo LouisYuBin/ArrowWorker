@@ -378,6 +378,11 @@ class Gd
      */
     public function fill($fillWidth, $fillHeight, $position = 'center', array $color=[255,255,255])
     {
+        if($this->type==IMAGETYPE_GIF)
+        {
+            return $this;
+        }
+
         $newImage = imagecreatetruecolor($fillWidth, $fillHeight);
         static::alphaSetting($newImage, true, $color);
         list($x,$y) = $this->GetPosition(
@@ -422,6 +427,11 @@ class Gd
      */
     public function WaterMark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
     {
+        if($this->type==IMAGETYPE_GIF)
+        {
+            return $this;
+        }
+
         $waterImg = $this->getImg($waterImg);
         $waterImgWidth  = imagesx($waterImg);
         $waterImgHeight = imagesy($waterImg);
@@ -443,14 +453,19 @@ class Gd
      * @return Gd
      * @throws \Exception
      */
-    public function Text(string $text, int $x=20, int $y=50, string $font='hwxk.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
+    public function Text(string $text, int $x=20, int $y=50, string $font='zh-cn/PianPianQingShuShouXie.ttf.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
     {
+        if($this->type==IMAGETYPE_GIF)
+        {
+            return $this;
+        }
+
         if( count($color)<3 )
         {
             throw new \Exception("color data error");
         }
         $color = imagecolorallocate($this->img,(int)$color[0],(int)$color[1],(int)$color[2]);
-        imagettftext($this->img,$size,$direction,$x,$y,$color,$font,$text);
+        imagettftext($this->img,$size,$direction,$x,$y,$color,static::FONT_PATh.$font,$text);
         return $this;
     }
 
@@ -464,6 +479,11 @@ class Gd
      */
     public function Crop(int $x, int $y, $width, $height)
     {
+        if($this->type==IMAGETYPE_GIF)
+        {
+            return $this;
+        }
+
         $newImage = imagecreatetruecolor($width, $height);
         static::alphaSetting($newImage, true, [255,255,255]);
         imagecopyresampled(
@@ -521,7 +541,7 @@ class Gd
      * @param int $permission
      * @throws \Exception
      */
-    public function Save(string $newFile, $quality = 85, $interlace = false, $permission = 0755)
+    public function Save(string $newFile, $quality = 100, $interlace = false, $permission = 0755)
     {
         $targetDir = dirname($newFile);    // $file's directory
         if (false === is_dir($targetDir))  // Check if $file's directory exist

@@ -114,8 +114,8 @@ class ImageMagick
      */
     public static function Open(string $imageFile) : self
     {
-        $imageFile = realpath($imageFile);
-        if ( ! file_exists( $imageFile ) ) {
+        var_dump($imageFile);
+        if ( !file_exists( $imageFile ) ) {
             throw new \Exception( sprintf('Could not open image file "%s"', $imageFile) );
         }
 
@@ -333,14 +333,14 @@ class ImageMagick
      * @return $this
      * @throws \Exception
      */
-    public function Text(string $text, int $x=20, int $y=50, string $font='hwxk.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
+    public function Text(string $text, int $x=20, int $y=50, string $font='zh-cn/PianPianQingShuShouXie.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
     {
         if(count($color)<4)
         {
             throw new \Exception('color data illegal');
         }
         $draw = new \ImagickDraw();
-        $draw->setFont($font);
+        $draw->setFont(static::FONT_PATh.$font);
         $draw->setFillColor(new \ImagickPixel("rgba({$color[0]}, {$color[1]}, {$color[2]}, {$color[3]})"));
         $draw->setFontSize($size);
         $draw->annotation($x, $y, $text);
@@ -413,7 +413,7 @@ class ImageMagick
      * @param int $permission
      * @throws \Exception
      */
-    public function Save(string $newFile, $quality = 85, $interlace = false, $permission = 0755)
+    public function Save(string $newFile, $quality = 100, $interlace = false, $permission = 0755)
     {
         $targetDir = dirname($newFile);    // $file's directory
         if (false === is_dir($targetDir))  // Check if $file's directory exist

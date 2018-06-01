@@ -19,7 +19,7 @@ class Image
         {
             return ImageMagick::Open($file);
         }
-        else if( extension_loaded('gd') )
+        if( extension_loaded('gd') )
         {
             return Gd::Open($file);
         }
