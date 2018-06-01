@@ -1,9 +1,7 @@
 <?php
 /**
- * Created by PhpStorm.
  * User: louis
- * Date: 17-10-10
- * Time: 上午11:19
+ * Time: 2017-10-10 11:19
  */
 
 namespace ArrowWorker;
@@ -16,32 +14,32 @@ namespace ArrowWorker;
 class Exception
 {
 	/**
-	 * @var int 错误/异常码
+	 * @var int error/exception code
 	 */
 	private static $code  = 0;
 
 	/**
-	 * @var string 错误/异常消息
+	 * @var string error/exception message
 	 */
     private static $msg   = '';
 
 	/**
-	 * @var int 错误/异常发生所在文件
+	 * @var int file which error/exception happend
 	 */
     private static $file  = '';
 
 	/**
-	 * @var int 错误/异常行数
+	 * @var int exception/error line number
 	 */
     private static $line  = 0;
 
 	/**
-	 * @var int 文件追踪
+	 * @var int exception file trace
 	 */
     private static $trace = '';
 
 	/**
-	 * init 初始化错误处理和异常助理
+	 * init : set handle-function of error/exception
 	 */
 	static function Init()
     {
@@ -51,7 +49,7 @@ class Exception
 
 
 	/**
-	 * error
+	 * error : error-handle function
 	 * @param int $code
 	 * @param string $msg
 	 * @param string $file
@@ -96,7 +94,7 @@ class Exception
 
 
 	/**
-	 * exception 异常处理
+	 * exception : exception function
 	 * @param string $msg
 	 */
 	static function exception(string $msg = '')

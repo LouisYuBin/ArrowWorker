@@ -69,7 +69,7 @@ $app['Channel'] = [
         //驱动类型
         'driver' => 'Queue',
         //路径
-        'path'   => '/home/louis/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
+        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
 		//最大读取长度
 		'size'   => 128,
 		//队列占用byte大小设置
@@ -79,7 +79,7 @@ $app['Channel'] = [
 		//驱动类型
 		'driver' => 'Queue',
 		//路径
-		'path'   => '/home/louis/github/ArrowWorker/App/Runtime/test.queue',
+		'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/test.queue',
 		//最大读取长度
 		'size'   => 128,
 		//队列占用byte大小设置
@@ -165,45 +165,128 @@ $app['Daemon'] = [
         //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
         'log'    => '/var/log/ArrowWorker.log',
         //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-        'level'  => 30719
+        'level'  => 30719,
+        //process list
+        'processor' => [
+            [
+                //function to be call
+                'function'    => ['\\App\\Controller\\Demo','Demo'],
+                'argv'        => [100],
+                //number of process to be started
+                'concurrency' => 3,
+                //process lifecycle
+                'lifecycle'   => 120,
+                //process name
+                'proName'     => 'Demo'
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channelApp'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'channelApp',
+                'channel'     => true,
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channelArrow'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'channelArrow',
+                'channel'     => true,
+            ],
+            [
+                'function'    => ['\\App\\Controller\\Demo','channeltest'],
+                'argv'        => [100],
+                'concurrency' => 3,
+                'lifecycle'   => 120,
+                'proName'     => 'channeltest',
+                'channel'     => true,
+            ],
+        ]
     ]
 ];
 
-//swoole引擎
-$app['swoole'] = [
-    //端口
-    'port'      => 9502,
-    //工作进程数
-    'workerNum' => 10,
-    //是否常驻
-    'daemonize' => false,
-    //请求队列长度
-    'backlog'   => 2000
+//swoole web引擎
+$app['Swoole'] = [
+    //web server
+    'http' => [
+        //port of listen
+        'port'      => 9502,
+        //number of worker process
+        'workerNum' => 10,
+        //sign of working as a child process
+        'daemonize' => false,
+        //size of request queue
+        'backlog'   => 2000,
+        //max post data length
+        'maxContentLength' => 20889600
+    ]
 ];
 
 //session相关配置
 $app['Session'] = [
-	//files；文件存储, RedisSession:redis存储, MemcacheSession:memcache存储
+	//RedisSession:redis存储, MemcachedSession:memcache存储
 	'handler'  => 'RedisSession',
-	//session文件储存路径,handler为files使用
-	'savePath' => '/tmp',
 	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
 	'host'	   => '127.0.0.1',
 	//redis/memcache端口，handler为RedisSession或MemcacheSession时使用
 	'port'	   => 6379,
-	//redis密码，handler为RedisSession时使用
+	//用户名，对memcached有效
+	'userName' => '',
+	//redis密码，handler为RedisSession/memcached时使用
 	'password' => 'louis',
 	//session超时时间
 	'timeout'  => 3600,
+    //客户端使用cookie做session存储时使用
+    'cookie'   => [
+        //超时时间
+        'expire' => 36000,
+        //所属路径
+        'path' => '/',
+        //所属域名
+        'domain' => '',
+        //是否只允许针对https协议有效
+        'secure' => false,
+        //是否只允许http协议修改
+        'httponly' => true
+    ]
 ];
 
-//cookie相关
+//文件上传相关配置
+$app['Upload'] = [
+    'savePath'  => APP_PATH.'/Runtime/Upload/',
+    'extension' =>[
+        'jpg',
+        'jpeg',
+        'zip',
+        'rar',
+        'png',
+        'webp'
+    ]
+];
+
+//验证码相关配置
+$app['ValidationCode'] = [
+    'codeLen' => 4,
+    'with'    => 138,
+    'height'  => 50,
+    'font'    => [
+        'en_ZEBRRA.ttf',
+        'en_Kranky.ttf',
+        'en_ARCADE.ttf'
+    ],
+    'fontSize' => 22,
+];
+
+//cookie相关配置
 $app['Cookie'] = [
 	//cookie前缀
 	'prefix'  => 'ArrowWorker',
 ];
 
-//加密相关（相关模块 cookie）
+
+//加解密相关配置
 $app['Cryto'] = [
     //加密/解密因子
     'factor'  => 'ArrowWorker',

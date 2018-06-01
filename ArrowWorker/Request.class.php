@@ -42,7 +42,7 @@ class Request
     /**
      * Get : return specified get data
      * @param string $key
-     * @return bool
+     * @return string|bool
      */
     public static function Get(string $key)
     {
@@ -75,6 +75,43 @@ class Request
     public static function Posts() : array
     {
         return $_POST;
+    }
+
+    /**
+     * Server : return specified server data
+     * @param string $key
+     * @return string|bool
+     */
+    public static function Server(string $key)
+    {
+        return ( !isset($_SERVER[$key]) ) ? false : $_SERVER[$key];
+    }
+
+    /**
+     * Servers : return all server data
+     * @return array
+     */
+    public static function Servers()
+    {
+        return $_SERVER;
+    }
+
+    /**
+     * Servers : return all server data
+     * @return Upload|false
+     */
+    public static function File(string $postName)
+    {
+        return ( !isset($_FILES[$postName]) ) ? false : new Upload($postName);
+    }
+
+    /**
+     * Servers : return all server data
+     * @return array
+     */
+    public static function Files()
+    {
+        return $_FILES;
     }
 
 }

@@ -8,7 +8,9 @@
 namespace App\Controller;
 use ArrowWorker\Cookie;
 use ArrowWorker\Driver;
+use ArrowWorker\Lib\Validation\ValidateImg;
 use ArrowWorker\Loader;
+use ArrowWorker\Request;
 use ArrowWorker\Response;
 use ArrowWorker\Session;
 
@@ -18,26 +20,52 @@ class Index
 
     function Index()
     {
-        //Response::Write('default index');
-        Response::Write( Session::Id() );
+        $rnd  = Request::Get("rnd");
+        //var_dump( Session::Id("session_".$rnd));
+        //var_dump( Session::Id("u8888888") );
+        //var_dump( Session::Get('louis') );
+        //var_dump( Session::Set('louis','done') );
+        //  var_dump( Session::Get('louis') );
+        Session::Set('louis2','done');
+        Session::Get('louis2');
+
+        Session::MultiSet([
+            'name' => 'louis',
+            'do'   => 'good'
+        ]);
+
+        //var_dump( Cookie::All() );
+        Session::Del('louis1');
+        //var_dump( Session::Info() );
+
+        Response::Json(200,['random'=>(int)$rnd],"ok");
+    }
+
+    function upload()
+    {
+        var_dump(Request::File('photo')->Save());
+        Response::Json(200, Request::Files());
+    }
+
+    function validation()
+    {
+        $code = ValidateImg::Create();
+        $cache = Driver::Cache();
+        $cache->Set("validate", $code);
+
     }
 
 	function session()
 	{
-	    if( !Session::Get('louis') )
-        {
-            Session::Set('louis','2018');
-        }
-		var_dump( Session::Get('louis') );
-		var_dump( Session::Get('louis') );
-		Response::Write(Session::Id());
+       Response::Json(200,Request::Servers());
 	}
 
     function cookie()
     {
         Cookie::Set("louis","yubin");
         Cookie::Set("yubin","louis");
-        var_dump(Cookie::Get("louis"));
+        var_dump(Cookie::Set("louis1111","0000============="));
+        var_dump(Cookie::Get("louis1111"));
         Response::Write(Cookie::Get("louis"));
     }
 
