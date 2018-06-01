@@ -4,10 +4,7 @@
  * Time: 18-5-24 下午12:53
  */
 
-
-
-namespace Image;
-
+namespace ArrowWorker\Lib\Image;
 
 /**
  * Class ImageMagick
@@ -50,26 +47,51 @@ class ImageMagick
     /**
      * Bottom right of the background-image.
      */
+
     const BOTTOM_RIGHT = 'bottom-right';
-
-    private $img;
-
-    private $file   = '';
-    private $width  = 0;
-    private $height = 0;
-    private $type   = 0;
-    private $blocks = '';
-    private $animated = false;
+    const IMAGETYPE_GIF  = 'GIF';
+    const IMAGETYPE_JPEG = 'JPEG';
+    const IMAGETYPE_PNG = 'PNG';
 
     /**
-     * Gd constructor.
-     * @param $gd
+     * image object
+     */
+    private $img;
+    /**
+     * image file path.
+     */
+    private $file   = '';
+    /**
+     * image file width.
+     */
+    private $width  = 0;
+    /**
+     * image file height
+     */
+    private $height = 0;
+    /**
+     * image file type
+     */
+    private $type   = 0;
+    /**
+     * image file block
+     */
+    private $blocks = '';
+    /**
+     * is image file a gif
+     */
+    private $animated = false;
+
+
+    /**
+     * ImageMagick constructor.
+     * @param $img
      * @param string $imageFile
      * @param int $width
      * @param int $height
      * @param int $type
      */
-    private function __construct($img, string $imageFile, int $width, int $height, int $type, $blocks = '', bool $animated = false )
+    private function __construct(\Imagick $img, string $imageFile, int $width, int $height, string $type, $blocks = '', bool $animated = false )
     {
         $this->img    = $img;
         $this->file   = $imageFile;
@@ -81,170 +103,32 @@ class ImageMagick
     }
 
     /**
-     * GetImgInfo
-     * @param string $imgPath
-     * @throws \Exception
-     * @return int
-     */
-    public static function getImgInfo(string $imgPath)
-    {
-        if( !file_exists($imgPath) )
-        {
-            throw new \Exception("image file : {$imgPath} does not exists");
-        }
-
-        $info = getimagesize($imgPath);
-        if( false==$info )
-        {
-            throw new \Exception("getimagesize ({$imgPath}) error.");
-        }
-
-        return $info[2];
-    }
-
-    /**
      * Open
      * @param string $imageFile
      * @return Gd
      */
     public static function Open(string $imageFile) : self
     {
-        switch( static::getImgInfo($imageFile) )
-        {
-            case IMAGETYPE_GIF :
-                return static::createGif( $imageFile );
-            case IMAGETYPE_JPEG :
-                return static::createJpeg( $imageFile );
-            case IMAGETYPE_PNG :
-                return static::createPng( $imageFile );
-            case IMAGETYPE_WBMP :
-                return static::createWbmp( $imageFile );
-
-        }
-        throw new \Exception('Could not open '.$imageFile.'. File type not supported.');
-    }
-
-    /**
-     * Load a JPEG image.
-     *
-     * @param string $imageFile File path to image.
-     *
-     * @return Gd
-     * @throws \Exception
-     */
-    private static function createJpeg( string $imageFile ){
-        $img = @imagecreatefromjpeg( $imageFile );
-
-        if( !$img ){
-            throw new \Exception( 'Could not open '.$imageFile.' Not a valid '.IMAGETYPE_JPEG.' file.' );
+        $imageFile = realpath($imageFile);
+        if ( ! file_exists( $imageFile ) ) {
+            throw new \Exception( sprintf('Could not open image file "%s"', $imageFile) );
         }
 
-        return new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_JPEG );
-    }
-
-    /**
-     * Load a PNG image.
-     *
-     * @param string $imageFile File path to image.
-     *
-     * @return Gd
-     * @throws \Exception
-     */
-    private static function createPng( string $imageFile )
-    {
-        $img = @imagecreatefrompng( $imageFile );
-
-        if( !$img )
-        {
-            throw new \Exception( 'Could not open '.$imageFile.'. Not a valid PNG file.' );
-        }
-
-        $gd = new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_PNG);
-        static::alphaSetting($img, true);
-        return $gd;
-    }
-
-    /**
-     * alphaSetting
-     * @param $img
-     * @param bool $flag
-     * @param array $color
-     * @param int $alpha
-     */
-    private static function alphaSetting($img, bool $flag, array $color=[255,255,255], int $alpha=127)
-    {
-        $newtransparentcolor = imagecolorallocatealpha(
-            $img,
-            $color[0],
-            $color[1],
-            $color[2],
-            $alpha
-        );
-        imagefill( $img, 0, 0, $newtransparentcolor );
-        imagecolortransparent( $img, $newtransparentcolor );
-        imagealphablending( $img, false );
-        imagesavealpha( $img, $flag );
-    }
-
-
-
-    /**
-     * Load a WBMP image.
-     *
-     * @param string $imageFile
-     *
-     * @return Gd
-     * @throws \Exception
-     */
-    private static function createWbmp( string $imageFile )
-    {
-        $img = @imagecreatefromwbmp( $imageFile );
-
-        if( !$img )
-        {
-            throw new \Exception( 'Could not open '.$imageFile.' Not a valid WEBMP file.' );
-        }
-
-        return new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_WBMP );
-    }
-
-    /**
-     * Load a GIF image.
-     *
-     * @param string $imageFile
-     *
-     * @return Gd
-     * @throws \Exception
-     */
-    private static function createGif( string $imageFile )
-    {
-        $gift     = new GifHelper();
-        $bytes    = $gift->open($imageFile);
-        $animated = $gift->isAnimated($bytes);
-        $blocks   = '';
-        if( $animated )
-        {
-            $blocks = $gift->decode($bytes);
-        }
-        $img = @imagecreatefromgif( $imageFile );
-
-        if( !$img )
-        {
-            throw new \Exception('Could not open '.$imageFile.'. Not a valid GIF file.' );
+        $imagick = new \Imagick( $imageFile );
+        $animated = false;
+        if ($imagick->getImageIterations() > 0) {
+            $animated = true;
         }
 
         return new self(
-            $img,
+            $imagick,
             $imageFile,
-            imagesx( $img ),
-            imagesy( $img ),
-            IMAGETYPE_GIF,
-            $blocks,
+            $imagick->getImageWidth(),
+            $imagick->getImageHeight(),
+            $imagick->getImageFormat(),
             $animated
         );
-
     }
-
 
     /**
      * Resize
@@ -256,10 +140,10 @@ class ImageMagick
      *      top-left  top-center  top-right
      *      center-left  center  center-right
      *      bottom-left  bottom-center  bottom-right
-     * @return Gd
+     * @return $this
      * @throws \Exception
      */
-    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255], string $position='center' )
+    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255,1], string $position='center' )
     {
         $resizeWidth  = $this->width;
         $resizeHeight = $this->height;
@@ -270,8 +154,10 @@ class ImageMagick
                 $resizeHeight = $newHeight;
                 break;
             case 'fill':
-                return $this->Resize($newWidth, $newHeight)->fill($newWidth, $newHeight, $position, $color);
-                break;
+                //return $this->Resize($newWidth, $newHeight)->fill($newWidth, $newHeight, $position, $color);
+                return $this->fill($newWidth, $newHeight, $position, $color);
+
+            break;
             case 'width':
                 $resizeWidth = $newWidth;
                 $resizeHeight = $this->height/($this->width/$newWidth);
@@ -308,35 +194,22 @@ class ImageMagick
      */
     public function _resize(int $newWidth, int $newHeight, int $targetX = 0, int $targetY = 0, int $srcX = 0, int $srcY = 0)
     {
-        if ( $this->animated )
+        if ( $this->type==static::IMAGETYPE_GIF )
         {
-            // Animated GIF
-            $gift = new GifHelper();
-            $this->blocks = $gift->resize($this->blocks, $newWidth, $newHeight);
+            $imagick = $this->img->coalesceImages();
+            foreach ($imagick as $frame) {
+                $frame->resizeImage($newWidth, $newHeight, \Imagick::FILTER_BOX, 1, false);
+                $frame->setImagePage($newWidth, $newHeight, 0, 0);
+            }
+            $this->img = $imagick->deconstructImages();
         }
         else
         {
-            $newImage = imagecreatetruecolor($newWidth, $newHeight);
-            if( IMAGETYPE_PNG === $this->type )
+            $result = $this->img->resizeImage($newWidth, $newHeight, \Imagick::FILTER_LANCZOS, 1, false);
+            if( !$result )
             {
-                static::alphaSetting($newImage, true);
+                throw new \Exception('resizeImage failed');
             }
-
-            imagecopyresampled(
-                $newImage,
-                $this->img,
-                $targetX,
-                $targetY,
-                $srcX,
-                $srcY,
-                $newWidth,
-                $newHeight,
-                $this->width,
-                $this->height
-            );
-            // Free old of tmp resource
-            imagedestroy( $this->img );
-            $this->img = $newImage;
         }
 
         $this->width  = $newWidth;
@@ -353,38 +226,53 @@ class ImageMagick
      *      center-left  center  center-right
      *      bottom-left  bottom-center  bottom-right
      * @param array $color ： available if $model='fill'
-     * @return Gd
+     * @return $this
      */
-    public function fill($fillWidth, $fillHeight, $position = 'center', array $color=[255,255,255])
+    public function fill($fillWidth, $fillHeight, $position = 'center', array $color=[255,255,255,1])
     {
-        $newImage = imagecreatetruecolor($fillWidth, $fillHeight);
-        static::alphaSetting($newImage, true, $color);
-        list($x,$y) = $this->GetPosition(
-            $fillWidth,
-            $fillHeight,
-            $this->width,
-            $this->height,
-            $position
-        );
-        imagecopyresampled(
-            $newImage,
-            $this->img,
-            $x,
-            $y,
-            0,
-            0,
-            $this->width,
-            $this->height,
-            $this->width,
-            $this->height
-        );
+        $newImg = new \Imagick();
+        list($x, $y) = $this->getPosition($fillWidth,$fillHeight, $this->width, $this->height, $position);
 
-        imagedestroy($this->img);
+        if( $this->type==static::IMAGETYPE_GIF )
+        {
+            $imagick = $this->img->coalesceImages();
+            foreach($imagick as $frame)
+            {
+                $draw = new \ImagickDraw();
+                $draw->composite(
+                    $frame->getImageCompose(),
+                    $x,
+                    $y,
+                    $this->width,
+                    $this->height,
+                    $frame
+                );
+                $eachPage = new \Imagick();
+                $eachPage->newImage($fillWidth, $fillHeight,"rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
+                $eachPage->drawImage($draw);
+                $newImg->addImage($eachPage);
+                $newImg->setImageFormat(static::IMAGETYPE_GIF);
+            }
+        }
+        else
+        {
+            $draw = new \ImagickDraw();
+            $draw->composite(
+                $this->img->getImageCompose(),
+                $x,
+                $y,
+                $this->width,
+                $this->height,
+                $this->img
+            );
 
-        $this->img = $newImage;
+            $newImg->newImage($fillWidth, $fillHeight,"rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
+            $newImg->drawImage($draw);
+            $newImg->setImageFormat($this->type);
+        }
         $this->width  = $fillWidth;
         $this->height = $fillHeight;
-
+        $this->img = $newImg;
         return $this;
     }
 
@@ -397,39 +285,74 @@ class ImageMagick
      *      bottom-left  bottom-center  bottom-right
      * @param int $offsetX
      * @param int $offsetY
-     * @return Gd
+     * @return $this
      */
     public function WaterMark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
     {
-        $waterImg = $this->getImg($waterImg);
-        $waterImgWidth  = imagesx($waterImg);
-        $waterImgHeight = imagesy($waterImg);
-        list($x,$y) = static::getPosition($this->width,$this->height, $waterImgWidth, $waterImgHeight, $position);
-        imagecopy($this->img, $waterImg, $x-$offsetX, $y-$offsetY, 0, 0, $waterImgWidth, $waterImgHeight);
-        imagedestroy($waterImg);
+        $waterMark = new \Imagick($waterImg);
+        list($x,$y) = $this->getPosition($this->width,$this->height,$waterMark->getImageWidth(),$waterMark->getImageHeight(),$position);
+        $draw = new \ImagickDraw();
+        $draw->composite(
+            $waterMark->getImageCompose(),
+            $x - $offsetX,
+            $y - $offsetY,
+            $waterMark->getImageWidth(),
+            $waterMark->getimageheight(),
+            $waterMark
+        );
+        if( $this->type==static::IMAGETYPE_GIF )
+        {
+            $imagick = $this->img->coalesceImages();
+            foreach($imagick as $frame)
+            {
+                $frame->drawImage($draw);
+            }
+            $this->img = $imagick->deconstructImages();
+        }
+        else
+        {
+            $this->img->drawImage($draw);
+        }
         return $this;
     }
 
+
     /**
-     * Text
      * @param string $text
-     * @param string $font
-     * @param int $size
-     * @param int $direction
      * @param int $x
      * @param int $y
+     * @param string $font
+     * @param int $size
      * @param array $color
-     * @return Gd
+     * @param int $direction
+     * @return $this
      * @throws \Exception
      */
-    public function Text(string $text, string $font='hwxk.ttf', int $size=20, int $direction=0, int $x=20, int $y=50, array $color=[255,255,255])
+    public function Text(string $text, int $x=20, int $y=50, string $font='hwxk.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
     {
-        if( count($color)<3 )
+        if(count($color)<4)
         {
-            throw new \Exception("color data error");
+            throw new \Exception('color data illegal');
         }
-        $color = imagecolorallocate($this->img,(int)$color[0],(int)$color[1],(int)$color[2]);
-        imagettftext($this->img,$size,$direction,$x,$y,$color,$font,$text);
+        $draw = new \ImagickDraw();
+        $draw->setFont($font);
+        $draw->setFillColor(new \ImagickPixel("rgba({$color[0]}, {$color[1]}, {$color[2]}, {$color[3]})"));
+        $draw->setFontSize($size);
+        $draw->annotation($x, $y, $text);
+
+        if( $this->type==static::IMAGETYPE_GIF )
+        {
+            $imagick = $this->img->coalesceImages();
+            foreach($imagick as $frame)
+            {
+                $frame->drawImage($draw);
+            }
+            $this->img = $imagick->deconstructImages();
+        }
+        else
+        {
+            $this->img->drawImage($draw);
+        }
         return $this;
     }
 
@@ -439,58 +362,43 @@ class ImageMagick
      * @param int $y
      * @param $width
      * @param $height
-     * @return Gd
+     * @return $this
      */
     public function Crop(int $x, int $y, $width, $height)
     {
-        $newImage = imagecreatetruecolor($width, $height);
-        static::alphaSetting($newImage, true, [255,255,255]);
-        imagecopyresampled(
-            $newImage,
-            $this->img,
-            0,
-            0,
-            $x,
-            $y,
-            $width,
-            $height,
-            $width,
-            $height
-        );
-        imagedestroy($this->img);
+        if( $this->type==static::IMAGETYPE_GIF )
+        {
+            $newImg = new \Imagick();
+            $newImg->setFormat(static::IMAGETYPE_GIF);
 
-        $this->img = $newImage;
+            $imagick = $this->img->coalesceImages();
+            foreach($imagick as $frame)
+            {
+                if( !$frame->cropImage($width,$height,$x,$y) )
+                {
+                    throw new \Exception('cropImage error');
+                }
+                $frame->setImagePage($width, $height, 0, 0);
+                $eachPage = new \Imagick();
+                $eachPage->readImageBlob($frame);
+                $newImg->addImage($eachPage);
+                $newImg->setImageDelay( $eachPage->getImageDelay() );
+            }
+            $this->img->destroy();
+            $this->img = $newImg;
+        }
+        else
+        {
+            if( !$this->img->cropImage($width,$height,$x,$y) )
+            {
+                throw new \Exception('cropImage error');
+            }
+        }
         $this->width  = $width;
         $this->height = $height;
         return $this;
     }
 
-    /**
-     * getImg
-     * @param string $waterImg
-     * @return resource
-     * @throws \Exception
-     */
-    private function getImg(string $waterImg)
-    {
-        switch( self::getImgInfo($waterImg) )
-        {
-            case IMAGETYPE_PNG:
-                $img = imagecreatefrompng($waterImg);
-                static::alphaSetting($img, true);
-                break;
-            case IMAGETYPE_JPEG:
-                $img = imagecreatefromjpeg($waterImg);
-                break;
-            case IMAGETYPE_GIF:
-                $img = imagecreatefromgif($waterImg);
-                break;
-            default:
-                throw new \Exception('water image type does not supported');
-
-        }
-        return $img;
-    }
 
     /**
      * Save
@@ -514,31 +422,25 @@ class ImageMagick
 
         switch ( $this->type )
         {
-            case IMAGETYPE_GIF :
-                if( $this->animated )
-                {
-                    $blocks = $this->blocks;
-                    $gift = new GifHelper();
-                    $hex = $gift->encode($blocks);
-                    file_put_contents($newFile, pack('H*', $hex));
-                }
-                else
-                {
-                    imagegif($this->img, $newFile);
-                }
+            case static::IMAGETYPE_GIF :
+                $this->img->writeImages($newFile, true); // Support animated image. Eg. GIF
                 break;
-
-            case IMAGETYPE_PNG :
+            case static::IMAGETYPE_PNG :
                 // PNG is lossless and does not need compression. Although GD allow values 0-9 (0 = no compression), we leave it alone.
-                imagepng($this->img, $newFile);
+                $this->img->setImageFormat($this->type);
+                $this->img->writeImage($newFile);
                 break;
-
             default:
                 // Defaults to jpeg
                 $quality = ($quality > 100) ? 100 : $quality;
                 $quality = ($quality < 0) ? 0 : $quality;
-                imageinterlace($this->img, $interlace);
-                imagejpeg($this->img, $newFile, $quality);
+                if ($interlace) {
+                    $this->img->setImageInterlaceScheme(\Imagick::INTERLACE_JPEG);
+                }
+                $this->img->setImageFormat(static::IMAGETYPE_JPEG);
+                $this->img->setImageCompression(\Imagick::COMPRESSION_JPEG);
+                $this->img->setImageCompressionQuality($quality);
+                $this->img->writeImage($newFile); // Single frame image. Eg. JPEG
         }
     }
 

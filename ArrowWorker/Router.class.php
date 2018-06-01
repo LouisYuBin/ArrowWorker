@@ -40,7 +40,7 @@ class Router
     /**
      * @var string  应用命名空间
      */
-    private static $appController = '\\'.APP_FOLDER.'\\'.APP_CONTROLLER_FOLDER.'\\';
+    private static $appController = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
 
 	/**

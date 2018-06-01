@@ -6,18 +6,15 @@
  */
 
 namespace ArrowWorker;
-use ArrowWorker\App;
-use ArrowWorker\Config;
-use ArrowWorker\Exception;
 
 //ArrowWorker framework folder
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
 
 //application folder
-defined('APP_FOLDER') or define('APP_FOLDER','App');
+defined('APP_DIR') or define('APP_DIR','App');
 
 //application path
-defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_FOLDER);
+defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_DIR);
 
 //application type（cli:command line application, swWeb: swoole http application, web: nginx+fpm application）
 defined('APP_TYPE') or define('APP_TYPE','web');
@@ -26,28 +23,28 @@ defined('APP_TYPE') or define('APP_TYPE','web');
 defined('APP_STATUS') or define('APP_STATUS','debug');
 
 //folder name for application controller
-defined('APP_CONTROLLER_FOLDER') or define('APP_CONTROLLER_FOLDER','Controller');
+defined('APP_CONTROLLER_DIR') or define('APP_CONTROLLER_DIR','Controller');
 
 //folder name for application model
-defined('APP_MODEL_FOLDER') or define('APP_MODEL_FOLDER','Model');
+defined('APP_MODEL_DIR') or define('APP_MODEL_DIR','Model');
 
 //folder name for application class
-defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Classes');
+defined('APP_CLASS_DIR') or define('APP_CLASS_DIR','Classes');
 
 //folder name for application Runtime
-defined('APP_RUNTIME_FOLDER') or define('APP_RUNTIME_FOLDER','Runtime');
+defined('APP_RUNTIME_DIR') or define('APP_RUNTIME_DIR','Runtime');
 
 //folder name for application service
-defined('APP_SERVICE_FOLDER') or define('APP_SERVICE_FOLDER','Service');
+defined('APP_SERVICE_DIR') or define('APP_SERVICE_DIR','Service');
 
 //folder name for application Config
-defined('APP_CONFIG_FOLDER') or define('APP_CONFIG_FOLDER','Config');
+defined('APP_CONFIG_DIR') or define('APP_CONFIG_DIR','Config');
 
 //folder name for application language
-defined('APP_LANG_FOLDER') or define('APP_LANG_FOLDER','Lang');
+defined('APP_LANG_DIR') or define('APP_LANG_DIR','Lang');
 
 //folder name for application view-tpl
-defined('APP_TPL_FOLDER') or define('APP_TPL_FOLDER','Tpl');
+defined('APP_TPL_DIR') or define('APP_TPL_DIR','Tpl');
 
 //default controller Class name
 defined('DEFAULT_CONTROLLER') or define('DEFAULT_CONTROLLER','Index');
@@ -146,8 +143,14 @@ class ArrowWorker
             'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
             'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
             'ArrowWorker\Upload'     => ArrowWorker . '/Upload'  . self::classExt,
+
             'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,
             'ArrowWorker\Lib\Validation\ValidateImg' => ArrowWorker  . '/Lib/Validation/ValidateImg' . self::classExt,
+            'ArrowWorker\Lib\Image\Gd'     => ArrowWorker  . '/Lib/Image/Gd' . self::classExt,
+            'ArrowWorker\Lib\Image\ImageMagick' => ArrowWorker  . '/Lib/Image/ImageMagick' . self::classExt,
+            'ArrowWorker\Lib\Image\Image'     => ArrowWorker  . '/Lib/Image/Image' . self::classExt,
+            'ArrowWorker\Lib\Image\Gif\GifHelper' => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
+            'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

@@ -78,7 +78,7 @@ class Config
     {
         if( empty(self::$path) && empty($configFilePath) )
         {
-            self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_FOLDER . DIRECTORY_SEPARATOR;
+            self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR;
         }
         else if( !empty($configFilePath) )
         {

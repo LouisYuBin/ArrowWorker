@@ -4,13 +4,9 @@
  * Time: 18-5-24 下午12:53
  */
 
+namespace ArrowWorker\Lib\Image;
 
-
-namespace Image;
-
-require_once "Gif/GifHelper.class.php";
-
-use \Image\Gif\GifHelper;
+use ArrowWorker\Lib\Image\Gif\GifHelper;
 
 
 /**
@@ -55,19 +51,38 @@ class Gd
      * Bottom right of the background-image.
      */
     const BOTTOM_RIGHT = 'bottom-right';
-
+    /**
+     * image object
+     */
     private $img;
-
+    /**
+     * image file path.
+     */
     private $file   = '';
+    /**
+     * image file width.
+     */
     private $width  = 0;
+    /**
+     * image file height
+     */
     private $height = 0;
+    /**
+     * image file type
+     */
     private $type   = 0;
+    /**
+     * image file block
+     */
     private $blocks = '';
+    /**
+     * is image file a gif
+     */
     private $animated = false;
 
     /**
      * Gd constructor.
-     * @param $gd
+     * @param $img
      * @param string $imageFile
      * @param int $width
      * @param int $height
@@ -92,17 +107,11 @@ class Gd
      */
     public static function getImgInfo(string $imgPath)
     {
-        if( !file_exists($imgPath) )
-        {
-            throw new \Exception("image file : {$imgPath} does not exists");
-        }
-
         $info = getimagesize($imgPath);
         if( false==$info )
         {
             throw new \Exception("getimagesize ({$imgPath}) error.");
         }
-
         return $info[2];
     }
 
@@ -113,6 +122,10 @@ class Gd
      */
     public static function Open(string $imageFile) : self
     {
+        if( !file_exists($imageFile) )
+        {
+            throw new \Exception("image file : {$imageFile} does not exists");
+        }
         switch( static::getImgInfo($imageFile) )
         {
             case IMAGETYPE_GIF :
@@ -274,7 +287,7 @@ class Gd
                 $resizeHeight = $newHeight;
                 break;
             case 'fill':
-                return $this->Resize($newWidth, $newHeight)->fill($newWidth, $newHeight, $position, $color);
+                return $this->fill($newWidth, $newHeight, $position, $color);
                 break;
             case 'width':
                 $resizeWidth = $newWidth;
@@ -426,7 +439,7 @@ class Gd
      * @return Gd
      * @throws \Exception
      */
-    public function Text(string $text, string $font='hwxk.ttf', int $size=20, int $direction=0, int $x=20, int $y=50, array $color=[255,255,255])
+    public function Text(string $text, int $x=20, int $y=50, string $font='hwxk.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
     {
         if( count($color)<3 )
         {

@@ -1,7 +1,6 @@
 <?php
-namespace Image\Gif;
 
-require_once "GifByteStream.class.php";
+namespace ArrowWorker\Lib\Image\Gif;
 
 final class GifHelper {
 

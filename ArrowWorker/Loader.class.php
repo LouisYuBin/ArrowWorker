@@ -30,7 +30,7 @@ class Loader
      */
     public static function Model( string $name )
     {
-        return self::_appModule( $name, APP_MODEL_FOLDER );
+        return self::_appModule( $name, APP_MODEL_DIR );
     }
 
 
@@ -42,7 +42,7 @@ class Loader
      */
     public static function Classes( string $name )
     {
-        return self::_appModule( $name, APP_CLASS_FOLDER );
+        return self::_appModule( $name, APP_CLASS_DIR );
     }
 
 	/**
@@ -52,7 +52,7 @@ class Loader
 	 */
     public static function Service( string $name )
     {
-        return self::_appModule( $name, APP_SERVICE_FOLDER );
+        return self::_appModule( $name, APP_SERVICE_DIR );
     }
 
     /**
@@ -60,12 +60,12 @@ class Loader
      * @param $name
      * @return \App\Service\DbService
      */
-    private static function _appModule(string $name, string $type=APP_MODEL_FOLDER )
+    private static function _appModule(string $name, string $type=APP_MODEL_DIR )
     {
         $key = $type.$name;
         if( !isset( self::$appClass[$key] ) )
         {
-            $class  = '\\'.APP_FOLDER.'\\'.$type.'\\'.ucfirst( $name );
+            $class  = '\\'.APP_DIR.'\\'.$type.'\\'.ucfirst( $name );
             self::$appClass[$key] = new $class;
         }
         return self::$appClass[$key];

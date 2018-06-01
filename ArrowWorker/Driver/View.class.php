@@ -42,7 +42,7 @@ class View
         {
             $driver       = "ArrowWorker\\Driver\\View\\".self::$config['driver'];
             self::$tplObj = new $driver;
-            $TplPath      = APP_PATH.APP_TPL_FOLDER.DIRECTORY_SEPARATOR;
+            $TplPath      = APP_PATH.APP_TPL_DIR.DIRECTORY_SEPARATOR;
 
             self::$tplObj -> template_dir = $TplPath;
             self::$tplObj -> compile_dir  = $TplPath.'Compile';

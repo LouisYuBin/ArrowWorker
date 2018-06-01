@@ -1,6 +1,6 @@
 <?php
 
-namespace Image\Gif;
+namespace ArrowWorker\Lib\Image\Gif;
 
 /**
  * Class GifByteStream
