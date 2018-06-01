@@ -51,6 +51,10 @@ class Gd
      * Bottom right of the background-image.
      */
     const BOTTOM_RIGHT = 'bottom-right';
+    /*
+     * font path
+     * */
+    const FONT_PATh = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Font/';
     /**
      * image object
      */

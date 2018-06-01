@@ -53,6 +53,11 @@ class ImageMagick
     const IMAGETYPE_JPEG = 'JPEG';
     const IMAGETYPE_PNG = 'PNG';
 
+    /*
+     * font path
+     */
+    const FONT_PATh = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Font/';
+
     /**
      * image object
      */
