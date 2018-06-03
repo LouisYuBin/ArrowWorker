@@ -146,6 +146,45 @@ class Gd
     }
 
     /**
+     * @param int $width
+     * @param int $height
+     * @param string $type
+     * @return Gd
+     */
+    public static function Create(int $width, int $height, string $type='GIf') : self
+    {
+        $type = static::ImageStringTypeToInt($type);
+        $image = imagecreatetruecolor($width, $height);
+        if( $type==IMAGETYPE_PNG )
+        {
+            static::alphaSetting($image, true);
+        }
+        return new self( $image, '', $width, $height, IMAGETYPE_JPEG );
+    }
+
+    /**
+     * @param string $type
+     * @return int
+     */
+    private static function ImageStringTypeToInt(string $type) : int
+    {
+        $type = strtoupper($type);
+        if($type=='PNG')
+        {
+            return IMAGETYPE_PNG;
+        }
+        else if ( $type=='JPEG')
+        {
+            return IMAGETYPE_JPEG;
+        }
+        else if ( $type=='GIF')
+        {
+            return IMAGETYPE_GIF;
+        }
+        return 0;
+    }
+
+    /**
      * Load a JPEG image.
      *
      * @param string $imageFile File path to image.

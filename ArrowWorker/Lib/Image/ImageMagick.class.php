@@ -361,6 +361,100 @@ class ImageMagick
         return $this;
     }
 
+    public function AddFrame(ImageMagick $frame, int $delayTime=500)
+    {
+        if( $this->type !=static::IMAGETYPE_GIF )
+        {
+            return $this;
+        }
+
+        if( $frame->type==static::IMAGETYPE_GIF )
+        {
+            $frames = $frame->img->coalesceImages();
+            foreach($frames as $eachFrame)
+            {
+                $tmpImagick = new \Imagick();
+                $tmpImagick->readImageBlob($eachFrame);
+                $this->img->addImage($tmpImagick);
+                $this->img->setImageDelay( $tmpImagick->getImageDelay() );
+                $tmpImagick->destroy();
+            }
+        }
+        else
+        {
+            $this->img->addImage($frame->img);
+            $this->img->setImageDelay($delayTime);
+        }
+
+        return $this;
+    }
+
+    public function AddFrontFrame(ImageMagick $frame, int $delayTime=500)
+    {
+        if( $this->type != static::IMAGETYPE_GIF )
+        {
+            return $this;
+        }
+        $newGif = new \Imagick();
+
+        if( $frame->type==static::IMAGETYPE_GIF )
+        {
+            $frames = $frame->img->coalesceImages();
+            foreach($frames as $eachFrame)
+            {
+                $tmpImagick = new \Imagick();
+                $tmpImagick->readImageBlob($eachFrame);
+                $newGif->addImage($tmpImagick);
+                $newGif->setImageDelay( $tmpImagick->getImageDelay() );
+                $newGif->setImageFormat( static::IMAGETYPE_GIF );
+                $tmpImagick->destroy();
+            }
+        }
+        else
+        {
+            $newGif->addImage($frame->img);
+            $newGif->setImageDelay($delayTime);
+        }
+
+        $frames = $this->img->coalesceImages();
+        foreach($frames as $eachFrame)
+        {
+            $tmpImagick = new \Imagick();
+            $tmpImagick->readImageBlob($eachFrame);
+            $newGif->addImage($tmpImagick);
+            $newGif->setImageDelay( $tmpImagick->getImageDelay() );
+            $tmpImagick->destroy();
+        }
+
+        $this->img->destroy();
+        $this->img = $newGif;
+
+        return $this;
+    }
+
+    public function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
+    {
+        if( count($bg)<4 )
+        {
+            throw new \Exception('background color format illegal!');
+        }
+        $img = new \Imagick();
+
+        if($type!='GIF')
+        {
+            $img->newImage($width,$height,"rgba({$bg[0]},{$bg[1]},{$bg[2]},{$bg[3]})", $type);
+        }
+
+        return new self(
+            $img,
+            '',
+            $width,
+            $height,
+            $type,
+            false
+        );
+    }
+
     /**
      * Crop
      * @param int $x
