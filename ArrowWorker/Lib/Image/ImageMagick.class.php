@@ -10,7 +10,7 @@ namespace ArrowWorker\Lib\Image;
  * Class ImageMagick
  * @package Image
  */
-class ImageMagick
+class ImageMagick implements ImageInterface
 {
     /**
      * Top left of the background-image.
@@ -114,7 +114,6 @@ class ImageMagick
      */
     public static function Open(string $imageFile) : self
     {
-        var_dump($imageFile);
         if ( !file_exists( $imageFile ) ) {
             throw new \Exception( sprintf('Could not open image file "%s"', $imageFile) );
         }
@@ -282,7 +281,7 @@ class ImageMagick
     }
 
     /**
-     * WaterMark
+     * AddWatermark : add watermark on the image
      * @param string $waterImg
      * @param string $position
      *      top-left  top-center  top-right
@@ -292,7 +291,7 @@ class ImageMagick
      * @param int $offsetY
      * @return $this
      */
-    public function WaterMark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
+    public function AddWatermark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
     {
         $waterMark = new \Imagick($waterImg);
         list($x,$y) = $this->getPosition($this->width,$this->height,$waterMark->getImageWidth(),$waterMark->getImageHeight(),$position);
@@ -323,6 +322,7 @@ class ImageMagick
 
 
     /**
+     * WriteText : write text on the image
      * @param string $text
      * @param int $x
      * @param int $y
@@ -333,7 +333,7 @@ class ImageMagick
      * @return $this
      * @throws \Exception
      */
-    public function Text(string $text, int $x=20, int $y=50, string $font='zh-cn/PianPianQingShuShouXie.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
+    public function WriteText(string $text, int $x=20, int $y=50, string $font='cn_PianPianQingShuShouXie.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
     {
         if(count($color)<4)
         {
@@ -361,7 +361,12 @@ class ImageMagick
         return $this;
     }
 
-    public function AddFrame(ImageMagick $frame, int $delayTime=500)
+    /**
+     * @param  $frame
+     * @param int $delayTime
+     * @return $this
+     */
+    public function AddFrame( $frame, int $delayTime=500)
     {
         if( $this->type !=static::IMAGETYPE_GIF )
         {
@@ -384,12 +389,19 @@ class ImageMagick
         {
             $this->img->addImage($frame->img);
             $this->img->setImageDelay($delayTime);
+            $this->img->setImageFormat(static::IMAGETYPE_GIF);
         }
 
         return $this;
     }
 
-    public function AddFrontFrame(ImageMagick $frame, int $delayTime=500)
+    /**
+     * AddFrontFrame : add gif frame on the front
+     * @param ImageMagick $frame
+     * @param int $delayTime
+     * @return $this
+     */
+    public function AddFrontFrame( $frame, int $delayTime=500)
     {
         if( $this->type != static::IMAGETYPE_GIF )
         {
@@ -432,15 +444,25 @@ class ImageMagick
         return $this;
     }
 
-    public function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
+    /**
+     * Create : create an image
+     * @param int $width
+     * @param int $height
+     * @param array $bg
+     * @param string $type
+     * @return ImageMagick
+     * @throws \Exception
+     */
+    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
     {
+        $type = strtoupper($type);
         if( count($bg)<4 )
         {
             throw new \Exception('background color format illegal!');
         }
         $img = new \Imagick();
 
-        if($type!='GIF')
+        if( $type!=static::IMAGETYPE_GIF )
         {
             $img->newImage($width,$height,"rgba({$bg[0]},{$bg[1]},{$bg[2]},{$bg[3]})", $type);
         }

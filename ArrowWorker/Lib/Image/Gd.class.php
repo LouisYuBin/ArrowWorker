@@ -13,7 +13,7 @@ use ArrowWorker\Lib\Image\Gif\GifHelper;
  * Class Gd
  * @package Image
  */
-class Gd
+class Gd implements ImageInterface
 {
     /**
      * Top left of the background-image.
@@ -151,7 +151,7 @@ class Gd
      * @param string $type
      * @return Gd
      */
-    public static function Create(int $width, int $height, string $type='GIf') : self
+    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIf') : self
     {
         $type = static::ImageStringTypeToInt($type);
         $image = imagecreatetruecolor($width, $height);
@@ -160,6 +160,26 @@ class Gd
             static::alphaSetting($image, true);
         }
         return new self( $image, '', $width, $height, IMAGETYPE_JPEG );
+    }
+
+    /**
+     * @param Gd $frame
+     * @param int $delayTime
+     * @return $this
+     */
+    public function AddFrame(Gd $frame, int $delayTime=500)
+    {
+        return $this;
+    }
+
+    /**
+     * @param Gd $frame
+     * @param int $delayTime
+     * @return $this
+     */
+    public function AddFrontFrame(Gd $frame, int $delayTime=500)
+    {
+        return $this;
     }
 
     /**
@@ -319,7 +339,7 @@ class Gd
      * @return Gd
      * @throws \Exception
      */
-    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255], string $position='center' )
+    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255,1], string $position='center' )
     {
         $resizeWidth  = $this->width;
         $resizeHeight = $this->height;
@@ -454,7 +474,7 @@ class Gd
     }
 
     /**
-     * WaterMark
+     * AddWatermark : add watermark on the image
      * @param string $waterImg
      * @param string $position
      *      top-left  top-center  top-right
@@ -464,7 +484,7 @@ class Gd
      * @param int $offsetY
      * @return Gd
      */
-    public function WaterMark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
+    public function AddWatermark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
     {
         if($this->type==IMAGETYPE_GIF)
         {
@@ -481,7 +501,7 @@ class Gd
     }
 
     /**
-     * Text
+     * WriteText : write text on the image
      * @param string $text
      * @param string $font
      * @param int $size
@@ -492,7 +512,7 @@ class Gd
      * @return Gd
      * @throws \Exception
      */
-    public function Text(string $text, int $x=20, int $y=50, string $font='zh-cn/PianPianQingShuShouXie.ttf.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
+    public function WriteText(string $text, int $x=20, int $y=50, string $font='cn_PianPianQingShuShouXie.ttf.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
     {
         if($this->type==IMAGETYPE_GIF)
         {

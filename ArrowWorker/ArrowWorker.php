@@ -149,6 +149,7 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gd'     => ArrowWorker  . '/Lib/Image/Gd' . self::classExt,
             'ArrowWorker\Lib\Image\ImageMagick' => ArrowWorker  . '/Lib/Image/ImageMagick' . self::classExt,
             'ArrowWorker\Lib\Image\Image'     => ArrowWorker  . '/Lib/Image/Image' . self::classExt,
+            'ArrowWorker\Lib\Image\ImageInterface'     => ArrowWorker  . '/Lib/Image/ImageInterface' . self::classExt,
             'ArrowWorker\Lib\Image\Gif\GifHelper' => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
 
