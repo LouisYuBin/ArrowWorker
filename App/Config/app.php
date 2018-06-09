@@ -58,32 +58,26 @@ $app['Channel'] = [
     'app' => [
         //驱动类型
         'driver' => 'Queue',
-        //映射路径
-        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/app.queue',
         //最大读取长度
-        'size'   => 128,
+        'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
     ],
     'arrow' => [
         //驱动类型
         'driver' => 'Queue',
-        //路径
-        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
 		//最大读取长度
-		'size'   => 128,
+		'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
     ],
 	'test' => [
 		//驱动类型
 		'driver' => 'Queue',
-		//路径
-		'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/test.queue',
 		//最大读取长度
-		'size'   => 128,
+		'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
 	]
 ];
 
@@ -147,26 +141,33 @@ $app['View'] = [
     ]
 ];
 
-//常驻服务配置
 $app['Daemon'] = [
+    'user' => 'root',
+    'pid'  => 'app1',
+    'output'  => 'output',
+    'appName' => 'ArrowWorker',
+    'log'     => '/var/log/ArrowWorker.log',
+    //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
+    'errorLevel' => 30719,
+];
+
+$app['Log'] = [
+    'type'    => 'file',
+    'baseDir' => APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Log',
+    'bufSize' => 102400000,
+    'ip'       => '127.0.0.1',
+    'port'     => 6379,
+    'userName' => 'root',
+    'password' => 'louis'
+
+];
+
+//常驻服务配置
+$app['Worker'] = [
     'app' => [
         //驱动类型
         'driver' => 'ArrowDaemon',
-        //进程名称
-        'name'   => 'demo',
-        //进程id文件名称
-        'pid'    => 'ArrowWorker',
-        //用户名
-        'user'   => 'root',
-        //线程数（在使用多线程模式下有效，依赖pthread扩展）
-        'thread' => 4,
-        //是否启用协成（不建议使用，调度损耗较大）
-        'enableGenerator' => false,
-        //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
-        'log'    => '/var/log/ArrowWorker.log',
-        //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-        'level'  => 30719,
-        //process list
+
         'processor' => [
             [
                 //function to be call
@@ -221,7 +222,7 @@ $app['Swoole'] = [
         'backlog'   => 2000,
         //max post data length
         'maxContentLength' => 20889600
-    ]
+    ],
 ];
 
 //session相关配置
@@ -291,5 +292,6 @@ $app['Cryto'] = [
     //加密/解密因子
     'factor'  => 'ArrowWorker',
 ];
+
 
 return $app;

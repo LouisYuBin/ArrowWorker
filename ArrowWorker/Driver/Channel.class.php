@@ -30,7 +30,11 @@ class Channel
 	 */
 	protected static $current = '';
 
-	/**
+
+    protected static $channelFilePath = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Channel/';
+
+
+    /**
 	 * Message constructor.
 	 */
 	private function __construct()

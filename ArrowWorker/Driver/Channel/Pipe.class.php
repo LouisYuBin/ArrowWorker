@@ -43,14 +43,20 @@ class Pipe extends Channel
      */
     public static function Init(array $config, string $alias)
     {
+        //设置当前
+        self::$current = $alias;
+
+        //如果已经创建并做了相关检测则直接跳过
+        if( isset( static::$fifoMap[self::$current] ) )
+        {
+            return static::$instance;
+        }
+
         //存储配置
         if ( !isset( self::$config[$alias] ) )
         {
             self::$config[$alias] = $config;
         }
-
-        //设置当前
-        self::$current = $alias;
 
         if(!self::$instance)
         {
@@ -70,13 +76,8 @@ class Pipe extends Channel
      */
     private static function _init()
     {
-        //如果已经创建并做了相关检测则直接跳过
-        if( isset( static::$fifoMap[self::$current] ) )
-        {
-            return;
-        }
 
-        $fifoName = self::$config[self::$current]['path'];
+        $fifoName = static::$channelFilePath.self::$current.'.fifo';
         if (!file_exists($fifoName) && !posix_mkfifo($fifoName, self::mode))
         {
             throw new \Exception("create pipe:{$fifoName} failed");
@@ -85,11 +86,12 @@ class Pipe extends Channel
         {
             throw new \Exception("pipe:{$fifoName} is not a fifo file");
         }
+        static::$config[static::$current]['path'] = $fifoName;
         static::$fifoMap[self::$current] = $fifoName;
     }
 
     /**
-     * _getHandle 获取当前读/写管道 实例
+     * _getPipe 获取当前读/写管道 实例
      * @author Louis
      * @param string $alias  实例别名
      * @param bool $isBlock  是否阻塞
@@ -97,7 +99,7 @@ class Pipe extends Channel
      * @return mixed
      * @throws \Exception
      */
-    public function _getHandle(string $handleAlias, bool $isBlock, string $property)
+    public function _getPipe(string $handleAlias, bool $isBlock, string $property)
     {
         $alias = self::$current.$handleAlias;
         if( !isset( self::$pool[$alias] ) )
@@ -112,7 +114,7 @@ class Pipe extends Channel
         //是否阻塞
         if (!stream_set_blocking(self::$pool[$alias], $isBlock))
         {
-            throw new \RuntimeException("pipe stream_set_blocking : $fifoPath failed");
+            throw new \RuntimeException("pipe stream_set_blocking : {$fifoPath} failed");
         }
         return self::$pool[$alias];
     }
@@ -127,7 +129,7 @@ class Pipe extends Channel
     public function Write( string $message )
     {
         $specifiedMsg = str_pad($message,static::$config[ static::$current ]['size']);
-        $handle = $this->_getHandle(__FUNCTION__,false, static::writeProperty);
+        $handle = $this->_getPipe(__FUNCTION__,false, static::writeProperty);
         return fwrite( $handle, $specifiedMsg);
     }
 
@@ -139,7 +141,7 @@ class Pipe extends Channel
      */
     public function Read(bool $isBlock=false)
     {
-        $handle = $this->_getHandle(__FUNCTION__, $isBlock, static::readProperty);
+        $handle = $this->_getPipe(__FUNCTION__, $isBlock, static::readProperty);
         $result = fread( $handle, static::$config[ static::$current ]['size'] );
         return $result ? trim($result) : $result;
     }

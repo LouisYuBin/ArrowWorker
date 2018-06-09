@@ -7,17 +7,10 @@
 namespace ArrowWorker;
 
 
-class Console
+class Worker
 {
     private static $defaultProcessApp = 'app';
 
-    public static function checkEnv()
-    {
-        if(php_sapi_name() != 'cli')
-        {
-            throw new \Exception("您当前模式为命令行模式，请在命令行执行相关命令，如：php index.php -c index -m index");
-        }
-    }
 
     private static function GetConfig() : array
     {
@@ -52,11 +45,8 @@ class Console
         return [$app, $appConfig];
     }
 
-    public static function StartProcessor()
+    public static function Start()
     {
-        //verify if the application is started from command line
-        static::checkEnv();
-
         //get app and configuration
         list($app, $config) = static::GetConfig();
 

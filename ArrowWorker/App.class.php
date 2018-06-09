@@ -20,22 +20,21 @@ class App
      */
     public static function RunApp()
     {
-        switch (APP_TYPE)
+        set_time_limit(0);
+        //设置运行日志级别
+        error_reporting(self::$config['level']);
+
+        if( APP_TYPE=='fpm' )
         {
-            case 'cli':
-                Console::StartProcessor();
-                break;
-            case 'swHttp':
-                Swoole::Http();
-                break;
-            case 'fpm':
-                Router::Start();
-                break;
-            default:
-                exit('application type not defined.');
+            Router::Start();
+        }
+        else
+        {
+            Daemon::Start();
         }
 
     }
+
 
 
 

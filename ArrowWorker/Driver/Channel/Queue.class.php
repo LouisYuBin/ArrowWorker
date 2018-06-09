@@ -37,27 +37,33 @@ class Queue extends Channel
      * @author Louis
      * @param array $config
      * @param string $alias
-     * @return Pipe
+     * @return Queue
      */
     public static function Init(array $config, string $alias)
     {
+        //设置当前
+        self::$current = $alias;
+
+        //如果已经创建并做了相关检测则直接跳过
+        if( isset( static::$pool[self::$current] ) )
+        {
+            return self::$instance;
+        }
+
         //存储配置
         if ( !isset( self::$config[$alias] ) )
         {
             self::$config[$alias] = $config;
         }
 
-        //设置当前
-        self::$current = $alias;
-
-        if(!self::$instance)
+        if( !self::$instance )
         {
             self::$instance = new self($config);
         }
         //初始化（创建队列等）
-        static::_init();
+        static::_initQueue();
 
-        return self::$instance;
+        return static::$instance;
     }
 
 
@@ -66,22 +72,20 @@ class Queue extends Channel
      * @author Louis
      * @throws \Exception
      */
-    private static function _init()
+    private static function _initQueue()
     {
-        //如果已经创建并做了相关检测则直接跳过
-        if( isset( static::$pool[self::$current] ) )
-        {
-            return;
-        }
 
-        $pathName = self::$config[self::$current]['path'];
-		if (!file_exists($pathName))
+        $channelFile = static::$channelFilePath.self::$current.'.chan';
+		if (!file_exists($channelFile))
 		{
-			throw new \Exception("path : {$pathName} does not exists.");
+		    if( !touch($channelFile) )
+            {
+                throw new \Exception("create queue file : {$channelFile} error.");
+            }
 		}
-		$key = ftok($pathName, 'A');
+		$key = ftok($channelFile, 'A');
         static::$pool[self::$current] = msg_get_queue($key, static::mode);
-        msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['length']]);
+        msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
     }
 
     /**
@@ -115,7 +119,7 @@ class Queue extends Channel
      * Status  获取队列状态
      * @author Louis
      * @param string $alias 队列配置名
-     * @return bool
+     * @return array
      */
     public function Status( string $alias='' )
     {
@@ -126,12 +130,26 @@ class Queue extends Channel
      * Read 写消息
      * @author Louis
      * @param int $sequence 从队列什么位置开始读取消息  1:先进先出读取，0则为先进后出读取
+     * @param int $waitSecond wait seconds while there is no message to be read
      * @return bool|string
      */
-    public function Read(int $readPostion=1)
+    public function Read(int $waitUecond=500000, int $readPostion=1)
     {
-		$result = msg_receive( static::_getQueue(), $readPostion, $messageType, self::$config[self::$current]['size'], $message, true, MSG_IPC_NOWAIT);
-    	return $result ? $message : $result;
+		$result = msg_receive(
+		    static::_getQueue(),
+            $readPostion,
+            $messageType,
+            self::$config[self::$current]['msgSize'],
+            $message,
+            true,
+            MSG_IPC_NOWAIT,
+            $errorCode
+        );
+    	if( !$result && MSG_ENOMSG==$errorCode )
+        {
+            sleep(500000);
+        }
+		return $result ? $message : $result;
     }
 
     /**

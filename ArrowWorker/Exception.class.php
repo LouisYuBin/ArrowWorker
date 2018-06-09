@@ -58,17 +58,17 @@ class Exception
 	static function error(int $code=0, string $msg='', string $file='', int $line=0 )
     {
         //ob_clean();
-        if( APP_TYPE=='web' && APP_STATUS=='debug' )
+        if( APP_TYPE=='fpm' && APP_STATUS=='debug' )
         {
-            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
-            exit("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
+            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!",'');
+            Response::Write("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
         }
-        else if( APP_TYPE=='web' && APP_STATUS!='debug' )
+        else if( APP_TYPE=='fpm' && APP_STATUS!='debug' )
         {
-            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
-            exit( json_encode( ['code' => 500, 'msg' => 'something is wrong with the server...'] ) );
+            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
+            Response::Json( 500, ['msg' => 'something is wrong with the server...'] );
         }
-        else if( APP_TYPE=='cli')
+        else if( in_array(APP_TYPE,['worker','swHttp']) )
         {
             static::_removePidFile();
             exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);

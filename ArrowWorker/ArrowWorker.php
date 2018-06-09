@@ -16,7 +16,7 @@ defined('APP_DIR') or define('APP_DIR','App');
 //application path
 defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_DIR);
 
-//application type（cli:command line application, swWeb: swoole http application, web: nginx+fpm application）
+//application type（worker:command line application, swWeb: swoole http application, web: nginx+fpm application）
 defined('APP_TYPE') or define('APP_TYPE','web');
 
 //application development status(debug:in dev status, online:in released status)
@@ -77,7 +77,7 @@ class ArrowWorker
      */
     private function __construct()
     {
-        spl_autoload_register(['self','loadClass']);
+        spl_autoload_register(['self','_loadClass']);
     }
 
 
@@ -96,13 +96,13 @@ class ArrowWorker
 
 
     /**
-     * loadClass : auto-load class method
+     * _loadClass : auto-load class method
      * @author Louis
      * @param string $class
      */
-    static function loadClass(string $class)
+    static function _loadClass(string $class)
     {
-        $ArrowClass = static::classMap();
+        $ArrowClass = static::_classMap();
         if( isset($ArrowClass[$class]) )
         {
             //frame class
@@ -125,7 +125,7 @@ class ArrowWorker
      * @author Louis
      * @return array
      */
-    static function classMap()
+    static function _classMap()
     {
         return [
             'ArrowWorker\App'        => ArrowWorker . '/App' .        self::classExt,
