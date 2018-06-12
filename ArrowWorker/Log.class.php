@@ -36,6 +36,12 @@ class Log
 
 
     /**
+     * default log timezone
+     */
+    const TIME_ZONE = 'UTC';
+
+
+    /**
      * period for checkout log file size
      * @var int
      */
@@ -107,6 +113,8 @@ class Log
      * @var int
      */
     private static $logFileSize = 1073741824;
+
+    private static $logTimeZone='UTC';
 
 
     /**
@@ -241,9 +249,10 @@ class Log
         static::$filePath = static::$baseDir.DIRECTORY_SEPARATOR.APP_TYPE.'.log';
         static::$logFileSize = $config['fileSize'] ?? static::$logFileSize;
         static::$outputLevel = $config['errorLevel'] ??  static::$outputLevel;
+        static::$logTimeZone = $config['timeZone'] ??  static::TIME_ZONE;
 
-        //设置运行日志级别
         error_reporting((int)static::$outputLevel);
+        date_default_timezone_set(self::$logTimeZone);
 
     }
 
@@ -419,7 +428,6 @@ class Log
     {
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
-            static::Dump('log process exited');
             exit(0);
         }
     }
@@ -452,7 +460,7 @@ class Log
         }
         else
         {
-            die("ArrowWorker hint : can not open stdoutFile");
+            die("ArrowWorker hint : can not open stdoutFile".PHP_EOL);
         }
     }
 

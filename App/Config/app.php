@@ -156,6 +156,7 @@ $app['Log'] = [
     'baseDir' => APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Log',
     'bufSize' => 102400000,
     'fileSize' => 1073741824,
+    'timeZone' => 'UTC',
     'ip'       => '127.0.0.1',
     'port'     => 6379,
     'userName' => 'root',

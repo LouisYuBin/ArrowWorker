@@ -11,7 +11,7 @@ class Daemon
 {
 
     /**
-     * 运行用户
+     * running user
      * @var string
      */
     private static $user = 'root';
@@ -23,23 +23,35 @@ class Daemon
     private static $umask = 0;
 
     /**
-     * pid文件路径
+     * path of where pid file will be located
      * @var string
      */
     private static $pidDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Pid/';
 
     /**
-     * pidName
+     * $pid : pid file for monitor process
      * @var mixed|string
      */
-    private static $pidName = 'ArrowWorker';
+    private static $pid = 'ArrowWorker';
 
     private static $tipTimeZone='UTC';
 
+    /**
+     * appName : application name for service
+     * @var mixed|string
+     */
     private static $appName = 'ArrowWorker demo';
 
+    /**
+     * pidMap : child process name
+     * @var array
+     */
     private static $pidMap = [];
 
+    /**
+     * terminate : is terminate process
+     * @var bool
+     */
     private static $terminate = false;
     
 
@@ -49,22 +61,26 @@ class Daemon
      */
     public function __construct($config)
     {
-        date_default_timezone_set(self::$tipTimeZone);
 
         self::$user    = $config['user'] ?? self::$user;
-        self::$pidName = $config['pid']  ?? self::$pidName;
+        self::$pid = $config['pid']  ?? self::$pid;
         self::$appName = $config['appName'] ?? self::$appName;
+        self::$pid = static::$pidDir.self::$pid.'.log';
+
         $this -> _environmentCheck();
         $this -> _checkPidfile();
         Log::Init();
 
         $this -> _daemonMake();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        $this -> _setUser(self::$user) or die("ArrowWorker hint : Setting process user failed！");
+        $this -> _setUser(self::$user) or die("ArrowWorker hint : Setting process user failed！".PHP_EOL);
         $this -> _setProcessName("ArrowWorker V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         $this -> _createPidfile();
     }
 
+    /**
+     * Start
+     */
     public static function Start()
     {
         $config = static::_getConfig();
@@ -93,6 +109,9 @@ class Daemon
         }
     }
 
+    /**
+     * _startLogProcess
+     */
     private function _startLogProcess()
     {
         $pid = pcntl_fork();
@@ -108,13 +127,16 @@ class Daemon
         }
     }
 
+    /**
+     * _startWorkerProcess
+     */
     private function _startWorkerProcess()
     {
         $pid = pcntl_fork();
         if($pid == 0)
         {
             Log::Dump('starting worker process');
-            static::_setProcessName(static::$appName.'_Worker monitor');
+            static::_setProcessName(static::$appName.' - Worker monitor');
             Worker::Start();
         }
         else
@@ -123,13 +145,16 @@ class Daemon
         }
     }
 
+    /**
+     * _startSwHttpProcess
+     */
     private function _startSwHttpProcess()
     {
         $pid = pcntl_fork();
         if($pid == 0)
         {
             Log::Dump('starting swoole http process');
-            static::_setProcessName(static::$appName.'_swoole http');
+            static::_setProcessName(static::$appName.' - swoole http');
             Swoole::Http();
             Log::Dump('swoole http exited');
             exit();
@@ -142,7 +167,7 @@ class Daemon
     }
 
     /**
-     * _exitWorkers 开启worker监控
+     * _startMonitor : start monitor process
      * @author Louis
      */
     private function _startMonitor()
@@ -152,7 +177,6 @@ class Daemon
         {
             if( self::$terminate )
             {
-                Log::Dump('starting Exit');
                 $this->_exitProcess();
                 $this->_exitLog();
                 $this->_exitMonitor();
@@ -165,10 +189,15 @@ class Daemon
             $pid = pcntl_wait($status, WUNTRACED);
             $this->_handleExitedProcess($pid, $status);
             pcntl_signal_dispatch();
-            sleep(1);
+            usleep(1000);
         }
     }
 
+    /**
+     * _handleExitedProcess
+     * @param int $pid
+     * @param int $status
+     */
     private function _handleExitedProcess(int $pid, int $status)
     {
         foreach (static::$pidMap as $prePid=>$appType)
@@ -178,9 +207,11 @@ class Daemon
                 continue;
             }
 
+            unset(static::$pidMap[$pid]);
+
+
             if( self::$terminate )
             {
-                unset(static::$pidMap[$pid]);
                 Log::Dump($appType.' process exited : at status : '.$status);
                 return ;
             }
@@ -202,6 +233,9 @@ class Daemon
         }
     }
 
+    /**
+     * _exitProcess
+     */
     private function _exitProcess()
     {
         foreach (static::$pidMap as $pid=>$appType)
@@ -222,9 +256,11 @@ class Daemon
         }
     }
 
+    /**
+     * _exitLog
+     */
     private function _exitLog()
     {
-        Log::Dump('in _exitLog');
         if( count(static::$pidMap)!=1 )
         {
            return ;
@@ -246,23 +282,34 @@ class Daemon
 
     }
 
+    /**
+     * _exitMonitor
+     */
     private function _exitMonitor()
     {
         if( count(static::$pidMap)!=0 )
         {
             return ;
         }
+        if( file_exists(static::$pid) )
+        {
+            unlink(static::$pid);
+        }
         Log::Dump('Monitor process exited!');
         exit(0);
     }
 
+    /**
+     * _getConfig
+     * @return array
+     */
     private static function _getConfig() : array
     {
 
         $config = Config::App('Daemon');
         if( false===$config  )
         {
-            die('Daemon configuration not found');
+            die('Daemon configuration not found'.PHP_EOL);
         }
         return $config;
     }
@@ -275,7 +322,7 @@ class Daemon
     {
         if ( php_sapi_name() != "cli" )
         {
-            die("ArrowWorker hint : only run in command line mode\n");
+            die("ArrowWorker hint : only run in command line mode".PHP_EOL);
         }
 
         if ( !function_exists('pcntl_signal_dispatch') )
@@ -285,8 +332,7 @@ class Daemon
 
         if ( !function_exists('pcntl_signal') )
         {
-            $message = 'ArrowWorker hint : php environment do not support pcntl_signal';
-            die($message);
+            die('ArrowWorker hint : php environment do not support pcntl_signal'.PHP_EOL);
         }
 
         if ( function_exists('gc_enable') )
@@ -329,11 +375,11 @@ class Daemon
             mkdir(self::$pidDir);
         }
 
-        $fp = fopen(self::$pidName, 'w') or die("cannot create pid file");
+        $fp = fopen(self::$pid, 'w') or die("cannot create pid file".PHP_EOL);
         fwrite($fp, posix_getpid());
         fclose($fp);
 
-        Log::Dump("creating pid file " . self::$pidName);
+        Log::Dump("creating pid file " . self::$pid);
     }
 
     /**
@@ -342,24 +388,23 @@ class Daemon
      */
     private function _checkPidfile()
     {
-        $pidFile = self::$pidDir . DIRECTORY_SEPARATOR . self::$pidName . ".pid";
-        if (!file_exists($pidFile))
+        if (!file_exists(static::$pid))
         {
             return true;
         }
 
-        $pid = (int)file_get_contents($pidFile);
+        $pid = (int)file_get_contents(static::$pid);
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
-            die("ArrowWorker hint : process is already started");
+            die("ArrowWorker hint : process is already started".PHP_EOL);
         }
         else
         {
-            die("ArrowWorker hint : process ended abnormally , Check your program." . self::$pidName);
+            die("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid.PHP_EOL);
         }
 
-        die('checking pid file error');
+        die('checking pid file error'.PHP_EOL);
     }
 
 
@@ -384,6 +429,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
+        Log::Dump('got signal:'.$signal);
         switch($signal)
         {
             case SIGUSR1:
