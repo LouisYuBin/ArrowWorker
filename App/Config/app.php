@@ -142,7 +142,7 @@ $app['View'] = [
 ];
 
 $app['Daemon'] = [
-    'user' => 'root',
+    'user' => 'louis',
     'pid'  => 'app1',
     'output'  => 'output',
     'appName' => 'ArrowWorker',
@@ -152,13 +152,15 @@ $app['Daemon'] = [
 ];
 
 $app['Log'] = [
-    'type'    => 'file',
+    'type'    => 'File',
     'baseDir' => APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Log',
     'bufSize' => 102400000,
+    'fileSize' => 1073741824,
     'ip'       => '127.0.0.1',
     'port'     => 6379,
     'userName' => 'root',
-    'password' => 'louis'
+    'password' => 'louis',
+    'queue'    => 'ArrowWorkerLog'
 
 ];
 
@@ -216,8 +218,6 @@ $app['Swoole'] = [
         'port'      => 9502,
         //number of worker process
         'workerNum' => 10,
-        //sign of working as a child process
-        'daemonize' => false,
         //size of request queue
         'backlog'   => 2000,
         //max post data length

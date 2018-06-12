@@ -12,7 +12,7 @@ class Worker
     private static $defaultProcessApp = 'app';
 
 
-    private static function GetConfig() : array
+    private static function _getConfig() : array
     {
         $input = getopt('a:');
         $app   = static::$defaultProcessApp;
@@ -47,8 +47,7 @@ class Worker
 
     public static function Start()
     {
-        //get app and configuration
-        list($app, $config) = static::GetConfig();
+        list($app, $config) = static::_getConfig();
 
         $daemon = Driver::Daemon( $app );
         foreach ($config['processor'] as $item)

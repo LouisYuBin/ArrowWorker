@@ -12,7 +12,6 @@ class Swoole
     public static $Http = [
         'port'      => 8888,
         'workerNum' => 4,
-        'daemonize' => false,
         'backlog'   => 1000,
         'maxContentLength' => 2088960
     ];
@@ -33,13 +32,14 @@ class Swoole
         static::$Http = array_merge(static::$Http, $config['http']);
     }
 
+
     public static function Http()
     {
         static::getHttpConfig();
         $server = new \swoole_http_server("0.0.0.0", static::$Http['port']);
         $server->set([
             'worker_num' => static::$Http['workerNum'],
-            'daemonize'  => static::$Http['daemonize'],
+            'daemonize'  => false,
             'backlog'    => static::$Http['backlog'],
             'package_max_length' => static::$Http['maxContentLength'],
         ]);

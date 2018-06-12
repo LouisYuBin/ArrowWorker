@@ -9,6 +9,7 @@
 namespace ArrowWorker\Driver\Daemon;
 
 use ArrowWorker\Driver\Daemon AS daemon;
+use ArrowWorker\Log;
 
 
 /**
@@ -162,7 +163,7 @@ class ArrowDaemon extends daemon
         if ( !function_exists('pcntl_signal') )
         {
             $message = 'ArrowWorker hint : php environment do not support pcntl_signal';
-            $this -> _writeLog($message);
+            Log::Dump($message);
             throw new \Exception($message);
         }
 
@@ -226,7 +227,7 @@ class ArrowDaemon extends daemon
         }
         else
         {
-            $this -> _writeLog("ArrowWorker hint : can not open stdoutFile");
+            Log::Dump("ArrowWorker hint : can not open stdoutFile");
         }
     }
 
@@ -245,8 +246,7 @@ class ArrowDaemon extends daemon
         $fp = fopen(self::$pid_File, 'w') or die("cannot create pid file");
         fwrite($fp, posix_getpid());
         fclose($fp);
-
-        $this -> _writeLog("create pid file " . self::$pid_File);
+        Log::Dump("create pid file " . self::$pid_File);
     }
 
     /**
@@ -265,11 +265,11 @@ class ArrowDaemon extends daemon
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
-            $this -> _writeLog("ArrowWorker hint : Daemon process is already started");
+            Log::Dump("ArrowWorker hint : Daemon process is already started");
         }
         else
         {
-            $this -> _writeLog("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid_File);
+            Log::Dump("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid_File);
         }
 
         exit(1);
@@ -400,7 +400,7 @@ class ArrowDaemon extends daemon
 
         if( self::$jobNum == 0 )
         {
-            $this -> _writeLog("ArrowWorker hint : please add one task at least.");
+            Log::Dump("ArrowWorker hint : please add one task at least.");
             $this -> _finishMonitorExit()();
         }
         $this -> _setSignalHandler('monitorHandler');
@@ -490,9 +490,9 @@ class ArrowDaemon extends daemon
             $status  = 0;
             $pid     = pcntl_wait($status, WUNTRACED);
             $groupId = static::$consumePidMap[$pid];
-            $this -> _writeLog("Task process(".self::$jobs[ $groupId ]["processName"]."-".$pid." : ".$status.") exited.");
+            Log::Dump("Task process(".self::$jobs[ $groupId ]["processName"]."-".$pid." : ".$status.") exited.");
         }
-        $this -> _writeLog("channel-finish process exited.");
+        Log::Dump("channel-finish process exited.");
     }
 
 
@@ -520,7 +520,7 @@ class ArrowDaemon extends daemon
 		{
 			$this -> _forkOneWorker($processGroupId);
 		}
-		$this -> _writeLog("Task process(".self::$jobs[$processGroupId]["processName"]."-".$pid.":".$status.") exited.");
+		Log::Dump("Task process(".self::$jobs[$processGroupId]["processName"]."-".$pid.":".$status.") exited.");
     }
 
 
@@ -575,7 +575,7 @@ class ArrowDaemon extends daemon
     private function _runWorker(int $index, int $lifecycle)
     {
         $this -> _setSignalHandler('workerHandler');
-        $this ->_setProcessAlarm($lifecycle);
+        $this -> _setProcessAlarm($lifecycle);
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
         $this -> _processRunTask( $index );
     }
@@ -589,14 +589,14 @@ class ArrowDaemon extends daemon
     private function _processRunTask(int $index)
     {
         self::$workerStat['start'] = time();
-        $this -> _writeLog( self::$jobs[$index]['processName'].' started.');
+        Log::Dump( self::$jobs[$index]['processName'].' started.');
         while( 1 )
         {
             if( self::$terminate )
             {
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                $this -> _writeLog( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+                Log::Dump( self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
                 exit(0);
             }
             pcntl_signal_dispatch();
@@ -618,7 +618,7 @@ class ArrowDaemon extends daemon
 	 */
 	private function _startChannelFinishProcess()
     {
-        static::_writeLog("starting channel-finish Process");
+        Log::Dump("starting channel-finish Process");
 
         for($i = 0; $i<self::$jobNum; $i++)
         {
@@ -643,7 +643,7 @@ class ArrowDaemon extends daemon
 			}
             usleep(10000);
         }
-        static::_writeLog("channel-finish Process finished");
+        Log::Dump("channel-finish Process finished");
     }
 
     /**
@@ -655,7 +655,7 @@ class ArrowDaemon extends daemon
     {
         $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
-        $this -> _writeLog( self::$jobs[$index]['processName'].'--- channel-finish started.');
+        Log::Dump( self::$jobs[$index]['processName'].'--- channel-finish started.');
         $retryTimes = 0;
         while( 1 )
         {
@@ -703,7 +703,7 @@ class ArrowDaemon extends daemon
         }
         self::$workerStat['end'] = time();
         $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-        $this -> _writeLog( self::$jobs[$index]['processName'].' ......finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
+        Log::Dump( self::$jobs[$index]['processName'].' ......finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
         exit();
     }
 
@@ -716,9 +716,9 @@ class ArrowDaemon extends daemon
         if (file_exists(self::$pid_File))
         {
             unlink(self::$pid_File);
-            $this -> _writeLog("delete pid file " . self::$pid_File);
+            Log::Dump("delete pid file " . self::$pid_File);
         }
-        $this -> _writeLog("ArrowWork  hint ：monitor exits.");
+        Log::Dump("ArrowWork  hint ：monitor exits.");
         exit(0);
     }
 
@@ -732,7 +732,7 @@ class ArrowDaemon extends daemon
         
         if(!isset($job['function'])||empty($job['function']))
         {
-            $this -> _writeLog("ArrowWork  hint ： one Task at least is needed.");
+            Log::Dump("ArrowWork  hint ： one Task at least is needed.");
             exit(0);
         }
 
@@ -742,17 +742,6 @@ class ArrowDaemon extends daemon
         $job['processName'] = (isset($job['proName'])     && !empty($job['proName']))    ?  $job['proName']    : static::processName;
         $job['channel']     = isset($job['channel']) ? true : false;
         self::$jobs[] = $job;
-    }
-
-    /**
-     * _writeLog 标准输出日志
-     * @author Louis
-     * @param string $message
-     */
-    private  function _writeLog(string $message)
-    {
-        date_default_timezone_set(self::$tipTimeZone);
-        @printf("%s\tpid:%d\tppid:%d\t%s\n", date("Y-m-d H:i:s"), posix_getpid(), posix_getppid(), $message);
     }
 
 }

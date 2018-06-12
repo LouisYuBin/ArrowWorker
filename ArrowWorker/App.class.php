@@ -21,8 +21,7 @@ class App
     public static function RunApp()
     {
         set_time_limit(0);
-        //设置运行日志级别
-        error_reporting(self::$config['level']);
+
 
         if( APP_TYPE=='fpm' )
         {

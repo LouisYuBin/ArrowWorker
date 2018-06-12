@@ -81,15 +81,18 @@ class Exception
      */
     static function _removePidFile()
     {
-        $daemonArray = Config::App('Daemon');
-        foreach ($daemonArray as $daemonConfig)
+        $daemonConfig = Config::App('Daemon');
+        if( $daemonConfig===false )
         {
-            $pidPath = '/var/run'.$daemonConfig['pid'].'.pid';
-            if(file_exists($pidPath))
-            {
-                @unlink($pidPath);
-            }
+            return ;
         }
+
+        $pidPath = '/var/run/arrow.pid';
+        if(file_exists($pidPath))
+        {
+            @unlink($pidPath);
+        }
+
     }
 
 
