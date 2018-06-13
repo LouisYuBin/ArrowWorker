@@ -267,7 +267,7 @@ class Log
      */
     public static function Info(string $log)
     {
-        static::_selectLogChan()->Write('[Info '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('[I '.static::_getTime().'] '.$log.PHP_EOL);
     }
 
 
@@ -277,7 +277,7 @@ class Log
      */
     public static function Notice(string $log)
     {
-        static::_selectLogChan()->Write('[Notice '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('[N '.static::_getTime().'] '.$log.PHP_EOL);
     }
 
 
@@ -287,7 +287,7 @@ class Log
      */
     public static function Warning(string $log)
     {
-        static::_selectLogChan()->Write('[Warning '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('[W '.static::_getTime().'] '.$log.PHP_EOL);
     }
 
 
@@ -297,7 +297,7 @@ class Log
      */
     public static function Error(string $log)
     {
-        static::_selectLogChan()->Write('[Error '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('[E '.static::_getTime().'] '.$log.PHP_EOL);
     }
 
 
