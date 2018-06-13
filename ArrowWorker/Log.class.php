@@ -470,9 +470,11 @@ class Log
      */
     private static function _setSignalHandler()
     {
-        pcntl_signal(SIGUSR1, array(__CLASS__, "signalHandler"),false);
         pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
         pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
+
+        pcntl_signal(SIGCHLD, SIG_IGN,false);
+        pcntl_signal(SIGQUIT, SIG_IGN,false);
     }
 
 
@@ -483,8 +485,8 @@ class Log
      */
     public static function signalHandler(int $signal)
     {
-        static::Info('got signal : '.$signal);
-        if( $signal==SIGUSR1 || $signal==SIGTERM  )
+        static::Info('log process got got a signal : '.$signal);
+        if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;
         }

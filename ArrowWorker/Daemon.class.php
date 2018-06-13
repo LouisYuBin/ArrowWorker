@@ -95,7 +95,6 @@ class Daemon
      */
     private function _startProcess()
     {
-
         $this->_startLogProcess();
 
         if(APP_TYPE=='swHttp')
@@ -156,8 +155,7 @@ class Daemon
             Log::Dump('starting swoole http process');
             static::_setProcessName(static::$appName.' - swoole http');
             Swoole::Http();
-            Log::Dump('swoole http exited');
-            exit();
+            exit(0);
 
         }
         else
@@ -209,14 +207,13 @@ class Daemon
 
             unset(static::$pidMap[$pid]);
 
-
             if( self::$terminate )
             {
-                Log::Dump($appType.' process exited : at status : '.$status);
+                Log::Dump($appType.' process exited at status : '.$status);
                 return ;
             }
 
-            Log::Dump($appType.' process restarting : at status : '.$status);
+            Log::Dump($appType.' process restarting at status : '.$status);
 
             if( $appType=='log' )
             {
@@ -278,8 +275,6 @@ class Daemon
 
         $pid = pcntl_wait($status,WUNTRACED);
         unset(static::$pidMap[$pid]);
-        Log::Dump('log process exited at status : '.$status);
-
     }
 
     /**
@@ -429,7 +424,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-        Log::Dump('got signal:'.$signal);
+        Log::Dump('monitor process got a signal : '.$signal);
         switch($signal)
         {
             case SIGUSR1:
@@ -482,12 +477,18 @@ class Daemon
      */
     private function _setProcessName(string $proName)
     {
+        if( PHP_OS=='Darwin')
+        {
+            return ;
+        }
+
         $proName = self::$appName.' : '.$proName;
         if(function_exists('cli_set_process_title'))
         {
-            @cli_set_process_title($proName);
+            Log::Dump($proName);
+            @cli_set_process_title('aaaa');
         }
-        elseif(extension_loaded('proctitle')&&function_exists('setproctitle'))
+        if(extension_loaded('proctitle') && function_exists('setproctitle'))
         {
             @setproctitle($proName);
         }

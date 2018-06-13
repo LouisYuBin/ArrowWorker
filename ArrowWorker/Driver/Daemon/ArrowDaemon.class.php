@@ -377,6 +377,10 @@ class ArrowDaemon extends daemon
      */
     private function _setProcessName(string $proName)
     {
+        if( PHP_OS=='Darwin')
+        {
+            return ;
+        }
         $proName = self::$App_Name.' : '.$proName;
         if(function_exists('cli_set_process_title'))
         {
