@@ -142,7 +142,7 @@ $app['View'] = [
 ];
 
 $app['Daemon'] = [
-    'user' => 'yubin',
+    'user' => 'louis',
     'pid'  => 'app1',
     'output'  => 'output',
     'appName' => 'ArrowWorker',

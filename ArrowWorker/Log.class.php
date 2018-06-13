@@ -485,7 +485,7 @@ class Log
      */
     public static function signalHandler(int $signal)
     {
-        static::Info('log process got got a signal : '.$signal);
+        static::Dump('log process got got a signal : '.$signal);
         if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;

@@ -274,6 +274,7 @@ class Daemon
         }
 
         $pid = pcntl_wait($status,WUNTRACED);
+        Log::Dump('log process exited at status : '.$status);
         unset(static::$pidMap[$pid]);
     }
 
@@ -485,8 +486,7 @@ class Daemon
         $proName = self::$appName.' : '.$proName;
         if(function_exists('cli_set_process_title'))
         {
-            Log::Dump($proName);
-            @cli_set_process_title('aaaa');
+            @cli_set_process_title($proName);
         }
         if(extension_loaded('proctitle') && function_exists('setproctitle'))
         {
