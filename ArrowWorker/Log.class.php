@@ -45,7 +45,7 @@ class Log
      * period for checkout log file size
      * @var int
      */
-    const SIZE_CHECK_PERIOD = 60;
+    const SIZE_CHECK_PERIOD = 10;
 
     /**
      * bufSize : log buffer size
@@ -202,13 +202,16 @@ class Log
      */
     private static function _resetLogFile()
     {
+        clearstatcache(true,static::$filePath);
         $size = filesize(static::$filePath);
         if( $size===false )
         {
-            static::Error('get log file size error : '.static::$filePath);
+            static::Dump('get log file size error : '.static::$filePath);
             return ;
         }
-        
+
+        static::Dump('current  '.$size.'  :  '.static::$logFileSize);
+
         if( (int)$size < static::$logFileSize )
         {
             return;
@@ -216,11 +219,12 @@ class Log
         
         if( !fclose(static::$file) )
         {
+            static::Dump('close log file failed');
             return ;
         }
 
-        static::Info('starting rename log file ');
-        rename(static::$filePath, date('Y-m-d H:i:s'));
+        static::Dump('starting rename log file ');
+        rename(static::$filePath, static::$baseDir.DIRECTORY_SEPARATOR.APP_TYPE.'_'.date('Y-m-d H:i:s').'.log');
 
         static::_initFile();
 
@@ -428,6 +432,7 @@ class Log
     {
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
+            static::Dump(json_encode(static::_selectLogChan()->Status()));
             exit(0);
         }
     }

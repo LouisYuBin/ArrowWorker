@@ -146,16 +146,13 @@ $app['Daemon'] = [
     'pid'  => 'app1',
     'output'  => 'output',
     'appName' => 'ArrowWorker',
-    'log'     => '/var/log/ArrowWorker.log',
-    //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-    'errorLevel' => 30719,
 ];
 
 $app['Log'] = [
     'type'    => 'File',
-    'baseDir' => APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Log',
-    'bufSize' => 102400000,
-    'fileSize' => 1073741824,
+    'baseDir' => '/home/louis/',
+    'bufSize' => 1073741824,
+    'fileSize' => 10485760,
     'timeZone' => 'UTC',
     'ip'       => '127.0.0.1',
     'port'     => 6379,

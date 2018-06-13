@@ -133,7 +133,7 @@ class Queue extends Channel
      * @param int $waitSecond wait seconds while there is no message to be read
      * @return bool|string
      */
-    public function Read(int $waitSecond=500000, int $readPostion=1)
+    public function Read(int $waitSecond=500, int $readPostion=1)
     {
 		$result = msg_receive(
 		    static::_getQueue(),
@@ -147,7 +147,7 @@ class Queue extends Channel
         );
     	if( !$result && MSG_ENOMSG==$errorCode )
         {
-            sleep($waitSecond);
+            usleep($waitSecond);
         }
 		return $result ? $message : $result;
     }
