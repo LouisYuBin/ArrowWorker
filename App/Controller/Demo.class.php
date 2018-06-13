@@ -59,7 +59,6 @@ class Demo
         $result  = $channel->Read(false);
         if( !$result )
         {
-            usleep(1000);
             return false;
         }
 		Driver::Channel('arrow')->Write($result);
@@ -74,7 +73,6 @@ class Demo
         //var_dump($result);
         if( !$result )
         {
-            usleep(1000);
             return false;
         }
 		Driver::Channel('test')->Write($result);
@@ -89,7 +87,6 @@ class Demo
 		//var_dump($result);
 		if( !$result )
 		{
-			usleep(1000);
 			return false;
 		}
 		return true;
