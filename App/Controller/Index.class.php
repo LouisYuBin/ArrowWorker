@@ -28,19 +28,22 @@ class Index
         //var_dump( Session::Set('louis','done') );
         //  var_dump( Session::Get('louis') );
         Session::Set('louis2','done');
-        Session::Get('louis2');
+        $louis2 = Session::Get('louis2');
+        if( $louis2!==false )
+        {
+            Log::Info( $louis2 );
+        }
+
 
         Session::MultiSet([
             'name' => 'louis',
             'do'   => 'good'
         ]);
-        Log::Info('M0、M1、M2、M3都是用来反映货币供应量的重要指标。M1反映着经济中的现实购买力；M2同时反映现实和潜在购买力。');
         Log::Error('M1过高M2过低，表明需求强劲、投资不足，存在通货膨胀风险；M2过高而M1过低，表明投资过热、需求不旺。');
-        Log::Warning('若M1增速较快，则消费和终端市场活跃；若M2增速较快，则投资和中间市场活跃。中央银行和各商业银行可以据此判定货币政策');
         Log::Warning('user not found in mysql db and redis cache,please checkout your user name[sdfsdfdsf]58745645654');
-        Log::Notice('If M1 grows faster, the consumer and terminal markets will be active; if M2 grows faster, investment and the middle market will be more active. The central bank and commercial banks can judge monetary policy accordingly.');
+        //Log::Notice('If M1 grows faster, the consumer and terminal markets will be active; if M2 grows faster, investment and the middle market will be more active. The central bank and commercial banks can judge monetary policy accordingly.');
         //var_dump( Cookie::All() );
-        Session::Del('louis1');
+        //Session::Del('louis1');
         //var_dump( Session::Info() );
 
         Response::Json(200,['random'=>(int)$rnd],"ok");

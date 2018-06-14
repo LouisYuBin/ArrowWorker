@@ -138,6 +138,8 @@ class Log
     //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
     private static $outputLevel = 30719;
 
+    private static $timeCache = '';
+
 
     /**
      * Init log process
@@ -267,7 +269,7 @@ class Log
      */
     public static function Info(string $log)
     {
-        static::_selectLogChan()->Write('[I '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('I '.static::_getTime().' '.$log.PHP_EOL);
     }
 
 
@@ -277,7 +279,7 @@ class Log
      */
     public static function Notice(string $log)
     {
-        static::_selectLogChan()->Write('[N '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('N '.static::_getTime().' '.$log.PHP_EOL);
     }
 
 
@@ -287,7 +289,7 @@ class Log
      */
     public static function Warning(string $log)
     {
-        static::_selectLogChan()->Write('[W '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('W '.static::_getTime().' '.$log.PHP_EOL);
     }
 
 
@@ -297,7 +299,7 @@ class Log
      */
     public static function Error(string $log)
     {
-        static::_selectLogChan()->Write('[E '.static::_getTime().'] '.$log.PHP_EOL);
+        static::_selectLogChan()->Write('E '.static::_getTime().' '.$log.PHP_EOL);
     }
 
 
@@ -307,7 +309,7 @@ class Log
      */
     public static function Dump(string $log)
     {
-        echo sprintf("%s - %s".PHP_EOL,date('Y-m-d H:i:s'), $log);
+        echo sprintf("%s - %s".PHP_EOL,static::_getTime(), $log);
     }
 
 

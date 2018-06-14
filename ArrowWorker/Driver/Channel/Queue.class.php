@@ -107,12 +107,13 @@ class Queue extends Channel
      * Write  写入消息
      * @author Louis
      * @param string $message 要写入的消息
+     * @param string $chan channel name
      * @param int $msgType 消息类型
      * @return bool
      */
-    public function Write( string $message, int $msgType=1 )
+    public function Write( string $message, string $chan='', int $msgType=1 )
     {
-        return msg_send( static::_getQueue(), $msgType, $message,true, true, $errorCode);
+        return msg_send( static::_getQueue($chan), $msgType, $message,true, true, $errorCode);
 	}
 
     /**
@@ -129,15 +130,16 @@ class Queue extends Channel
     /**
      * Read 写消息
      * @author Louis
-     * @param int $sequence 从队列什么位置开始读取消息  1:先进先出读取，0则为先进后出读取
-     * @param int $waitSecond wait seconds while there is no message to be read
+     * @param int $waitSecond seconds to wait while there is no message in channel
+     * @param string $chan channel name to read from
+     * @param int $msgType message type to be read
      * @return bool|string
      */
-    public function Read(int $waitSecond=500, int $readPostion=1)
+    public function Read(int $waitSecond=500, string $chan='', int $msgType=1)
     {
 		$result = msg_receive(
-		    static::_getQueue(),
-            $readPostion,
+		    static::_getQueue($chan),
+            $msgType,
             $messageType,
             self::$config[self::$current]['msgSize'],
             $message,

@@ -74,7 +74,8 @@ class Session
      */
     private static function init()
     {
-        if (static::$isInited) {
+        if( static::$isInited )
+        {
             return;
         }
 

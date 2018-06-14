@@ -215,7 +215,7 @@ $app['Swoole'] = [
         //port of listen
         'port'      => 9502,
         //number of worker process
-        'workerNum' => 10,
+        'workerNum' => 8,
         //size of request queue
         'backlog'   => 2000,
         //max post data length
@@ -226,14 +226,14 @@ $app['Swoole'] = [
 //session相关配置
 $app['Session'] = [
 	//RedisSession:redis存储, MemcachedSession:memcache存储
-	'handler'  => 'RedisSession',
+	'handler'  => 'MemcachedSession',
 	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
 	'host'	   => '127.0.0.1',
 	//redis/memcache端口，handler为RedisSession或MemcacheSession时使用
-	'port'	   => 6379,
+	'port'	   => 11211,
 	//用户名，对memcached有效
 	'userName' => '',
-	//redis密码，handler为RedisSession/memcached时使用
+	//密码，handler为RedisSession/memcached时使用
 	'password' => 'louis',
 	//session超时时间
 	'timeout'  => 3600,
