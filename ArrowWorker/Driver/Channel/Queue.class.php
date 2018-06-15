@@ -75,7 +75,7 @@ class Queue extends Channel
     private static function _initQueue()
     {
 
-        $channelFile = static::$channelFilePath.self::$current.'.chan';
+        $channelFile = static::$channelFileDir.self::$current.'.chan';
 		if (!file_exists($channelFile))
 		{
 		    if( !touch($channelFile) )

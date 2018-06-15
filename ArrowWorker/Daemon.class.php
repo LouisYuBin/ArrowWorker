@@ -68,7 +68,7 @@ class Daemon
         $this -> _checkPidfile();
         Log::Init();
 
-        $this -> _daemonMake();
+        $this -> _demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
         $this -> _setUser(self::$user) or die("ArrowWorker hint : Setting process user failed！".PHP_EOL);
         $this -> _setProcessName(" V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
@@ -288,7 +288,22 @@ class Daemon
         {
             unlink(static::$pid);
         }
-       Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
+
+        $chanPath  = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Channel/';
+        $chanFiles = scandir($chanPath);
+        if( $chanFiles!==false )
+        {
+            foreach ($chanFiles as $file)
+            {
+                if( $file=='.' || $file=='..' || is_dir($chanPath.$file))
+                {
+                    continue ;
+                }
+                @unlink($chanPath.$file);
+            }
+        }
+
+        Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
         exit(0);
     }
 
@@ -340,7 +355,7 @@ class Daemon
      * _daemonMake : demonize the process
      * @author Louis
      */
-    private function _daemonMake()
+    private function _demonize()
     {
         umask(self::$umask);
 

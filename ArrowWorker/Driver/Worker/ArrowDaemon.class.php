@@ -8,6 +8,7 @@
 
 namespace ArrowWorker\Driver\Worker;
 
+use ArrowWorker\Driver;
 use ArrowWorker\Driver\Worker AS worker;
 use ArrowWorker\Log;
 
@@ -56,7 +57,7 @@ class ArrowDaemon extends Worker
 
     /**
      * 任务map
-     * @var bool
+     * @var array
      */
     private static $jobs      = [];
 
@@ -68,7 +69,7 @@ class ArrowDaemon extends Worker
 
 	/**
 	 * 最后队列消费map
-	 * @var bool
+	 * @var array
 	 */
 	private static $consumePidMap = [];
 
@@ -119,14 +120,27 @@ class ArrowDaemon extends Worker
                 pcntl_signal(SIGINT,  SIG_IGN,false);
                 pcntl_signal(SIGQUIT, SIG_IGN,false);
 
+
                 pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGUSR1, array(__CLASS__, "signalHandler"),false);
+                break;
+
+            case 'chanHandler':
+                pcntl_signal(SIGCHLD, SIG_IGN,false);
+                pcntl_signal(SIGTERM, SIG_IGN,false);
+                pcntl_signal(SIGINT,  SIG_IGN,false);
+                pcntl_signal(SIGQUIT, SIG_IGN,false);
+                pcntl_signal(SIGUSR1, SIG_IGN,false);
+
+                pcntl_signal(SIGUSR2, array(__CLASS__, "signalHandler"),false);
                 break;
             default:
                 pcntl_signal(SIGCHLD, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGTERM, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGINT,  array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGQUIT, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGUSR2, array(__CLASS__, "signalHandler"),false);
+
         }
     }
 
@@ -161,9 +175,33 @@ class ArrowDaemon extends Worker
             case SIGQUIT:
                 self::$terminate = true;
                 break;
+            case SIGUSR2:
+                Log::Dump('channel finish process got signal : SIGUSR2');
+                $this->_unsetExitedProc();
+                break;
             default:
                 return false;
         }
+
+    }
+
+    private function _unsetExitedProc()
+    {
+        $pid = Driver\Channel\Queue::Init(
+            [
+                'msgSize'   => 128,
+                'bufSize' => 10240000
+            ],
+        'channelReadProcStatus_'.posix_getpid()
+        )->Read();
+
+        if( false!==$pid && isset(static::$consumePidMap[$pid]) )
+        {
+            unset(static::$consumePidMap[$pid]);
+        }
+
+        Log::Info('unset: '.posix_getpid().':'.$pid.' '.json_encode(static::$consumePidMap));
+
 
     }
 
@@ -291,9 +329,42 @@ class ArrowDaemon extends Worker
             $status  = 0;
             $pid     = pcntl_wait($status, WUNTRACED);
             $groupId = static::$consumePidMap[$pid];
+            unset( static::$consumePidMap[$pid] );
+            $this->_sendExitedPid2Child($pid);
             Log::Dump(static::LOG_PREFIX."channel-finish process : ".self::$jobs[ $groupId ]["processName"]."(".$pid.") exited at status : ".$status);
         }
         Log::Dump(static::LOG_PREFIX."channel-finish processes are all exited.");
+    }
+
+    private function _sendExitedPid2Child(int $exitedPid)
+    {
+        foreach (static::$consumePidMap as $pid=>$groupId)
+        {
+            for ($i=0; $i<3; $i++)
+            {
+                if( Driver\Channel\Queue::Init(
+                    [
+                        'msgSize'   => 128,
+                        'bufSize' => 10240000
+                    ],
+                    'channelReadProcStatus_'.$pid
+                )->Write($exitedPid) )
+                {
+                    break ;
+                }
+            }
+            for ($i=0; $i<3; $i++)
+            {
+                if ( posix_kill($pid, SIGUSR2) )
+                {
+                    break ;
+                }
+            }
+
+        }
+
+
+
     }
 
 
@@ -421,6 +492,7 @@ class ArrowDaemon extends Worker
     {
         Log::Dump(static::LOG_PREFIX."starting channel-finish Process");
 
+        $newGroupNum = 0;
         for($i = 0; $i<self::$jobNum; $i++)
         {
             if( !self::$jobs[$i]['isChanReadProc'] )
@@ -434,14 +506,18 @@ class ArrowDaemon extends Worker
 
 				if($pid > 0)
 				{
-					static::$consumePidMap[$pid] = $i;
-                    self::$jobs[$i]['pidCount']++;
+					static::$consumePidMap[$pid] = $newGroupNum;
                 }
 				elseif($pid==0)
 				{
-					$this -> _consumeChannelTask($i);
+                    $this -> _setSignalHandler('chanHandler');
+                    $this -> _setProcessName( self::$jobs[$i]['processName'] );
+                    Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$i]['processName'].' starting work');
+
+                    $this -> _consumeChannelTask($i);
 				}
 			}
+            $newGroupNum++;
             usleep(10000);
         }
         Log::Dump(static::LOG_PREFIX."channel-finish Processes are all started.");
@@ -454,14 +530,14 @@ class ArrowDaemon extends Worker
      */
     private function _consumeChannelTask(int $index)
     {
-        $this -> _setProcessName( self::$jobs[$index]['processName'] );
         self::$workerStat['start'] = time();
-        Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$index]['processName'].' starting work');
         $retryTimes = 0;
-        while( 1 )
+
+        while ( 1 )
         {
-            $channelStatus = true;
-            if( isset( self::$jobs[$index]['argv'] ) )
+            pcntl_signal_dispatch();
+
+            if ( isset( self::$jobs[$index]['argv'] ) )
             {
                 $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
             }
@@ -471,42 +547,30 @@ class ArrowDaemon extends Worker
             }
             self::$workerStat['count']++;
 
-            if( !$channelStatus )
+            if ( $channelStatus )
             {
-                //写入进程未退出
-                foreach (static::$consumePidMap as $pid => $groupId)
-                {
-                    if( posix_kill($pid,SIGUSR2) )
-                    {
-                        $channelStatus = true;
-                    }
-                }
-
-                //写入进程退出了，重试测试+1
-                if ( !$channelStatus )
-                {
-                    $retryTimes++;
-                }
-
-                //未重试
-                if ( $retryTimes > 1 )
-                {
-                    $channelStatus = true;
-                }
-
-                if ( !$channelStatus )
-                {
-                    break;
-                }
-
+                continue ;
             }
 
+            if ( !$channelStatus && $retryTimes>0 && count(static::$consumePidMap)<=self::$jobs[$index]['procQuantity'] )
+            {
+                break;
+            }
+
+            if ( !$channelStatus && count(static::$consumePidMap)<=self::$jobs[$index]['procQuantity'] )
+            {
+                $retryTimes++;
+            }
+            pcntl_signal_dispatch();
+
         }
+
         self::$workerStat['end'] = time();
         $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
         Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
         exit(0);
     }
+
 
     /**
      * _finishMonitorExit() 删除进程pid文件、记录退出信息后正常退出粗
