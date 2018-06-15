@@ -20,9 +20,8 @@ class Worker
         {
             $app = $input['a'];
         }
-
         //verify whether the daemon is configured
-        $config = Config::App('Daemon');
+        $config = Config::App('Worker');
         if( false===$config )
         {
             throw new \Exception("daemon not configured");
@@ -49,7 +48,7 @@ class Worker
     {
         list($app, $config) = static::_getConfig();
 
-        $daemon = Driver::Daemon( $app );
+        $daemon = Driver::Worker( $app );
         foreach ($config['processor'] as $item)
         {
             if( !isset($item['function']) || !is_array($item['function']) || count($item['function'])<2 )

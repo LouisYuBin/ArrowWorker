@@ -5,7 +5,7 @@
  * Time: 20:28
  */
 
-namespace ArrowWorker\Driver\Daemon;
+namespace ArrowWorker\Driver\Worker;
 
 /**
  * Class ArrowThread

@@ -1,6 +1,5 @@
 <?php
-namespace ArrowWorker\Driver\Daemon;
-use ArrowWorker\Driver\Daemon\GeneratorTask;
+namespace ArrowWorker\Driver\Worker;
 
 class GeneratorSchedule
 {

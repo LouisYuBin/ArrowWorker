@@ -9,6 +9,7 @@ namespace ArrowWorker;
 
 class Daemon
 {
+    const LOG_PREFIX = 'monitor : ';
 
     /**
      * running user
@@ -33,14 +34,12 @@ class Daemon
      * @var mixed|string
      */
     private static $pid = 'ArrowWorker';
-
-    private static $tipTimeZone='UTC';
-
+    
     /**
      * appName : application name for service
      * @var mixed|string
      */
-    private static $appName = 'ArrowWorker demo';
+    private static $appName = 'ArrowWorker';
 
     /**
      * pidMap : child process name
@@ -62,10 +61,8 @@ class Daemon
     public function __construct($config)
     {
 
-        self::$user    = $config['user'] ?? self::$user;
-        self::$pid = $config['pid']  ?? self::$pid;
-        self::$appName = $config['appName'] ?? self::$appName;
-        self::$pid = static::$pidDir.self::$pid.'.log';
+        self::$user = $config['user'] ?? self::$user;
+        self::$pid = static::$pidDir.static::$appName.'.pid';
 
         $this -> _environmentCheck();
         $this -> _checkPidfile();
@@ -74,7 +71,7 @@ class Daemon
         $this -> _daemonMake();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
         $this -> _setUser(self::$user) or die("ArrowWorker hint : Setting process user failed！".PHP_EOL);
-        $this -> _setProcessName("ArrowWorker V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
+        $this -> _setProcessName(" V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         $this -> _createPidfile();
     }
 
@@ -116,8 +113,8 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-            Log::Dump('starting log process');
-            static::_setProcessName(static::$appName.'_log');
+           Log::Dump(static::LOG_PREFIX.'starting log process');
+            static::_setProcessName('log');
             Log::Start();
         }
         else
@@ -134,8 +131,8 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-            Log::Dump('starting worker process');
-            static::_setProcessName(static::$appName.' - Worker monitor');
+            Log::Dump(static::LOG_PREFIX.'starting worker process');
+            static::_setProcessName('Worker monitor');
             Worker::Start();
         }
         else
@@ -152,8 +149,8 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-            Log::Dump('starting swoole http process');
-            static::_setProcessName(static::$appName.' - swoole http');
+           Log::Dump(static::LOG_PREFIX.'starting swoole http process');
+            static::_setProcessName(static::$appName.'swoole http');
             Swoole::Http();
             exit(0);
 
@@ -170,7 +167,7 @@ class Daemon
      */
     private function _startMonitor()
     {
-        Log::Dump('starting monitor');
+       Log::Dump(static::LOG_PREFIX.'starting monitor');
         while (1)
         {
             if( self::$terminate )
@@ -209,11 +206,11 @@ class Daemon
 
             if( self::$terminate )
             {
-                Log::Dump($appType.' process exited at status : '.$status);
+               Log::Dump(static::LOG_PREFIX.$appType.' process exited at status : '.$status);
                 return ;
             }
 
-            Log::Dump($appType.' process restarting at status : '.$status);
+           Log::Dump(static::LOG_PREFIX.$appType.' process restarting at status : '.$status);
 
             if( $appType=='log' )
             {
@@ -241,7 +238,7 @@ class Daemon
             {
                 continue;
             }
-            Log::Dump('sending SIGTERM signal to '.$appType.' process');
+           Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
             for($i=0; $i<3; $i++)
             {
                 if( posix_kill($pid,SIGTERM) )
@@ -263,7 +260,7 @@ class Daemon
            return ;
         }
 
-        Log::Dump('send signal to log process');
+       Log::Dump(static::LOG_PREFIX.'send signal to log process');
         foreach (static::$pidMap as $pid=>$appType)
         {
             if($appType != 'log')
@@ -274,7 +271,7 @@ class Daemon
         }
 
         $pid = pcntl_wait($status,WUNTRACED);
-        Log::Dump('log process exited at status : '.$status);
+       Log::Dump(static::LOG_PREFIX.'log process exited at status : '.$status);
         unset(static::$pidMap[$pid]);
     }
 
@@ -291,7 +288,7 @@ class Daemon
         {
             unlink(static::$pid);
         }
-        Log::Dump('Monitor process exited!');
+       Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
         exit(0);
     }
 
@@ -305,7 +302,8 @@ class Daemon
         $config = Config::App('Daemon');
         if( false===$config  )
         {
-            die('Daemon configuration not found'.PHP_EOL);
+           Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
+            return [];
         }
         return $config;
     }
@@ -375,7 +373,7 @@ class Daemon
         fwrite($fp, posix_getpid());
         fclose($fp);
 
-        Log::Dump("creating pid file " . self::$pid);
+       Log::Dump(static::LOG_PREFIX."creating pid file " . self::$pid);
     }
 
     /**
@@ -425,7 +423,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-        Log::Dump('monitor process got a signal : '.$signal);
+       Log::Dump(static::LOG_PREFIX.'monitor process got a signal : '.$signal);
         switch($signal)
         {
             case SIGUSR1:
@@ -483,7 +481,7 @@ class Daemon
             return ;
         }
 
-        $proName = self::$appName.' : '.$proName;
+        $proName = self::$appName.'_'.$proName;
         if(function_exists('cli_set_process_title'))
         {
             @cli_set_process_title($proName);

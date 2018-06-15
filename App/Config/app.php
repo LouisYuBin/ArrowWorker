@@ -143,9 +143,6 @@ $app['View'] = [
 
 $app['Daemon'] = [
     'user' => 'louis',
-    'pid'  => 'app1',
-    'output'  => 'output',
-    'appName' => 'ArrowWorker',
 ];
 
 $app['Log'] = [
@@ -174,35 +171,30 @@ $app['Worker'] = [
                 'function'    => ['\\App\\Controller\\Demo','Demo'],
                 'argv'        => [100],
                 //number of process to be started
-                'concurrency' => 3,
-                //process lifecycle
-                'lifecycle'   => 120,
+                'procQuantity' => 3,
                 //process name
-                'proName'     => 'Demo'
+                'procName'     => 'Demo'
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channelApp'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channelApp',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channelApp'],
+                'argv'           => [100],
+                'procName'        => 'channelApp',
+                'procQuantity'   => 3,
+                'isChanReadProc' => true,
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channelArrow'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channelArrow',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channelArrow'],
+                'argv'           => [100],
+                'procName'       => 'channelArrow',
+                'procQuantity'   => 3,
+                'isChanReadProc' => true,
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channeltest'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channeltest',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channeltest'],
+                'argv'           => [100],
+                'procName'        => 'channeltest',
+                'procQuantity'    => 3,
+                'isChanReadProc' => true,
             ],
         ]
     ]
@@ -226,11 +218,11 @@ $app['Swoole'] = [
 //session相关配置
 $app['Session'] = [
 	//RedisSession:redis存储, MemcachedSession:memcache存储
-	'handler'  => 'MemcachedSession',
+	'handler'  => 'RedisSession',
 	//redis/memcache地址，handler为RedisSession或MemcacheSession时使用
 	'host'	   => '127.0.0.1',
 	//redis/memcache端口，handler为RedisSession或MemcacheSession时使用
-	'port'	   => 11211,
+	'port'	   => 6379,
 	//用户名，对memcached有效
 	'userName' => '',
 	//密码，handler为RedisSession/memcached时使用

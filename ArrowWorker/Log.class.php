@@ -212,8 +212,6 @@ class Log
             return ;
         }
 
-        static::Dump('current  '.$size.'  :  '.static::$logFileSize);
-
         if( (int)$size < static::$logFileSize )
         {
             return;
@@ -225,7 +223,7 @@ class Log
             return ;
         }
 
-        static::Dump('starting rename log file ');
+        static::Dump('starting rename log file ('.$size.'/'.static::$logFileSize.')');
         rename(static::$filePath, static::$baseDir.DIRECTORY_SEPARATOR.APP_TYPE.'_'.date('Y-m-d H:i:s').'.log');
 
         static::_initFile();
@@ -492,7 +490,6 @@ class Log
      */
     public static function signalHandler(int $signal)
     {
-        static::Dump('log process got got a signal : '.$signal);
         if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;

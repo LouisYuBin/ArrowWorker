@@ -144,7 +144,8 @@ class ArrowWorker
             'ArrowWorker\Upload'     => ArrowWorker . '/Upload'  . self::classExt,
             'ArrowWorker\Daemon'     => ArrowWorker . '/Daemon'  . self::classExt,
             'ArrowWorker\Log'        => ArrowWorker . '/Log'  . self::classExt,
-            'ArrowWorker\Swoole'        => ArrowWorker . '/Swoole'  . self::classExt,
+            'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
+            'ArrowWorker\Worker'     => ArrowWorker . '/Worker'  . self::classExt,
 
             'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,
             'ArrowWorker\Lib\Validation\ValidateImg' => ArrowWorker  . '/Lib/Validation/ValidateImg' . self::classExt,
@@ -158,7 +159,7 @@ class ArrowWorker
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
             'ArrowWorker\Driver\Cache'   => ArrowWorker . '/Driver/Cache' .   self::classExt,
-            'ArrowWorker\Driver\Daemon'  => ArrowWorker . '/Driver/Daemon' .  self::classExt,
+            'ArrowWorker\Driver\Worker'  => ArrowWorker . '/Driver/Worker' .  self::classExt,
             'ArrowWorker\Driver\Channel' => ArrowWorker . '/Driver/Channel'.  self::classExt,
             'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session'.  self::classExt,
 
@@ -166,7 +167,7 @@ class ArrowWorker
             'ArrowWorker\Driver\Db\SqlBuilder'      => ArrowWorker . '/Driver/Db/SqlBuilder' .      self::classExt,
             'ArrowWorker\Driver\Cache\Redis'        => ArrowWorker . '/Driver/Cache/Redis' .        self::classExt,
             'ArrowWorker\Driver\View\Smarty'        => ArrowWorker . '/Driver/View/Smarty' .        self::classExt,
-            'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . self::classExt,
+            'ArrowWorker\Driver\Worker\ArrowDaemon' => ArrowWorker . '/Driver/Worker/ArrowDaemon' . self::classExt,
             'ArrowWorker\Driver\Channel\Pipe'       => ArrowWorker . '/Driver/Channel/Pipe' .       self::classExt,
             'ArrowWorker\Driver\Channel\Queue'      => ArrowWorker . '/Driver/Channel/Queue' .      self::classExt,
 			'ArrowWorker\Driver\Session\RedisSession' => ArrowWorker . '/Driver/Session/RedisSession' . self::classExt,

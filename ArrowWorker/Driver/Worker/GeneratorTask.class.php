@@ -3,7 +3,7 @@
  * generator task
  * By Louis at 2017-03-08
  */
-namespace ArrowWorker\Driver\Daemon;
+namespace ArrowWorker\Driver\Worker;
 
 class GeneratorTask
 {

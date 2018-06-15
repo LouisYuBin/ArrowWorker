@@ -8,7 +8,7 @@
 namespace ArrowWorker\Driver;
 
 
-class Daemon
+class Worker
 {
     //服务配置
     protected static $config = [];
