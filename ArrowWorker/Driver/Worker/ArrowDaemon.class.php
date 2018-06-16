@@ -63,7 +63,7 @@ class ArrowDaemon extends Worker
 
     /**
      * 任务进程 ID map(不带管道消费的进程)
-     * @var Array
+     * @var array
      */
     private static $pidMap    = [];
 
@@ -75,7 +75,7 @@ class ArrowDaemon extends Worker
 
     /**
      * 进程内任务执行状态 开始时间、运行次数、结束时间
-     * @var Array
+     * @var array
      */
     private static $workerStat  = ['start' => null, 'count' => 0, 'end' => null];
 
@@ -176,8 +176,7 @@ class ArrowDaemon extends Worker
                 self::$terminate = true;
                 break;
             case SIGUSR2:
-                Log::Dump('channel finish process got signal : SIGUSR2');
-                $this->_unsetExitedProc();
+                $this->_exitProc();
                 break;
             default:
                 return false;
@@ -185,24 +184,10 @@ class ArrowDaemon extends Worker
 
     }
 
-    private function _unsetExitedProc()
+    private function _exitProc()
     {
-        $pid = Driver\Channel\Queue::Init(
-            [
-                'msgSize'   => 128,
-                'bufSize' => 10240000
-            ],
-        'channelReadProcStatus_'.posix_getpid()
-        )->Read();
-
-        if( false!==$pid && isset(static::$consumePidMap[$pid]) )
-        {
-            unset(static::$consumePidMap[$pid]);
-        }
-
-        Log::Info('unset: '.posix_getpid().':'.$pid.' '.json_encode(static::$consumePidMap));
-
-
+        Log::Info(posix_getpid().' set terminate false');
+        static::$terminate = false;
     }
 
     /**
@@ -322,6 +307,18 @@ class ArrowDaemon extends Worker
         //开启最终队列消费进程
         $this -> _startChannelFinishProcess();
 
+        $exitGroupQuantity = [];
+        for ( $i=0; $i<static::$jobNum; $i++)
+        {
+            if( !self::$jobs[$i]['isChanReadProc'] )
+            {
+                continue;
+            }
+            $exitGroupQuantity[$i] = 0;
+        }
+
+        $procSentSig = [];
+
         //等待未退出进程退出
         $consumeProcessNum = count(static::$consumePidMap);
         for ($i=0; $i<$consumeProcessNum; $i++)
@@ -329,36 +326,52 @@ class ArrowDaemon extends Worker
             $status  = 0;
             $pid     = pcntl_wait($status, WUNTRACED);
             $groupId = static::$consumePidMap[$pid];
-            unset( static::$consumePidMap[$pid] );
-            $this->_sendExitedPid2Child($pid);
+            $exitGroupQuantity[$groupId]++;
+            $this->_sendExitedSig2Child($exitGroupQuantity,$procSentSig);
             Log::Dump(static::LOG_PREFIX."channel-finish process : ".self::$jobs[ $groupId ]["processName"]."(".$pid.") exited at status : ".$status);
         }
         Log::Dump(static::LOG_PREFIX."channel-finish processes are all exited.");
     }
 
-    private function _sendExitedPid2Child(int $exitedPid)
+
+    private function  _sendExitedSig2Child(array $exitGroupQuantity,&$procSentSig)
     {
-        foreach (static::$consumePidMap as $pid=>$groupId)
+        for ( $groupId=0; $groupId<static::$jobNum; $groupId++)
         {
-            for ($i=0; $i<3; $i++)
+            //ignore the first group process
+            if( !self::$jobs[$groupId]['isChanReadProc'] || $groupId==0 )
             {
-                if( Driver\Channel\Queue::Init(
-                    [
-                        'msgSize'   => 128,
-                        'bufSize' => 10240000
-                    ],
-                    'channelReadProcStatus_'.$pid
-                )->Write($exitedPid) )
-                {
-                    break ;
-                }
+                continue;
             }
-            for ($i=0; $i<3; $i++)
+
+            $lastGroupId = $groupId-1;
+            if( !isset($exitGroupQuantity[$lastGroupId]) )
             {
-                if ( posix_kill($pid, SIGUSR2) )
+                continue ;
+            }
+
+            if( static::$jobs[$lastGroupId]['procQuantity']!=$exitGroupQuantity[$lastGroupId] )
+            {
+                continue ;
+            }
+
+            foreach ( static::$consumePidMap as $pid=>$consumerGroupId )
+            {
+                if($consumerGroupId!=$groupId)
                 {
-                    break ;
+                    continue ;
                 }
+
+                if( isset($procSentSig[$pid]) )
+                {
+                    continue ;
+                }
+
+                Log::Dump('sending SIGUSR2 to '.$pid);
+                posix_kill($pid, SIGUSR2);
+                $procSentSig[$pid] = 1;
+
+
             }
 
         }
@@ -506,7 +519,8 @@ class ArrowDaemon extends Worker
 
 				if($pid > 0)
 				{
-					static::$consumePidMap[$pid] = $newGroupNum;
+					static::$consumePidMap[$pid] = $i;
+                    self::$jobs[$i]['pidCount']++;
                 }
 				elseif($pid==0)
 				{
@@ -514,7 +528,7 @@ class ArrowDaemon extends Worker
                     $this -> _setProcessName( self::$jobs[$i]['processName'] );
                     Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$i]['processName'].' starting work');
 
-                    $this -> _consumeChannelTask($i);
+                    $this -> _consumeChannelTask($i, $newGroupNum);
 				}
 			}
             $newGroupNum++;
@@ -527,8 +541,9 @@ class ArrowDaemon extends Worker
      * _processRunTask 进程形式执行任务
      * @author Louis
      * @param int $index
+     * @param int $newJobIndex
      */
-    private function _consumeChannelTask(int $index)
+    private function _consumeChannelTask(int $index,int $newJobIndex)
     {
         self::$workerStat['start'] = time();
         $retryTimes = 0;
@@ -552,12 +567,12 @@ class ArrowDaemon extends Worker
                 continue ;
             }
 
-            if ( !$channelStatus && $retryTimes>0 && count(static::$consumePidMap)<=self::$jobs[$index]['procQuantity'] )
+            if ( !$channelStatus && $retryTimes>0 && ($newJobIndex==0 || !static::$terminate) )
             {
                 break;
             }
 
-            if ( !$channelStatus && count(static::$consumePidMap)<=self::$jobs[$index]['procQuantity'] )
+            if ( !$channelStatus && ($newJobIndex==0 || !static::$terminate) )
             {
                 $retryTimes++;
             }
