@@ -367,7 +367,6 @@ class ArrowDaemon extends Worker
                     continue ;
                 }
 
-                Log::Dump('sending SIGUSR2 to '.$pid);
                 posix_kill($pid, SIGUSR2);
                 $procSentSig[$pid] = 1;
 
