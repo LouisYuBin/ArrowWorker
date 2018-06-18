@@ -94,12 +94,25 @@ class Daemon
     {
         $this->_startLogProcess();
 
-        if(APP_TYPE=='swHttp')
+        if ( is_array(APP_TYPE) )
+        {
+            foreach ( APP_TYPE as $appType )
+            {
+                if ( $appType=='swHttp' )
+                {
+                    $this->_startSwHttpProcess();
+                }
+                else if( $appType=='worker' )
+                {
+                    $this->_startWorkerProcess();
+                }
+            }
+        }
+        else if( APP_TYPE=='swHttp' )
         {
             $this->_startSwHttpProcess();
         }
-
-        if(APP_TYPE=='worker')
+        else if( APP_TYPE=='worker' )
         {
             $this->_startWorkerProcess();
         }
@@ -119,7 +132,7 @@ class Daemon
         }
         else
         {
-            static::$pidMap[$pid] = 'log';
+            static::$pidMap['log'] = $pid;
         }
     }
 
@@ -137,7 +150,7 @@ class Daemon
         }
         else
         {
-            static::$pidMap[$pid] = APP_TYPE;
+            static::$pidMap['worker'] = $pid;
         }
     }
 
@@ -149,15 +162,14 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-           Log::Dump(static::LOG_PREFIX.'starting swoole http process');
+            Log::Dump(static::LOG_PREFIX.'starting swoole http process');
             static::_setProcessName(static::$appName.'swoole http');
             Swoole::Http();
             exit(0);
-
         }
         else
         {
-            static::$pidMap[$pid] = APP_TYPE;
+            static::$pidMap['swHttp'] = $pid;
         }
     }
 
@@ -172,7 +184,9 @@ class Daemon
         {
             if( self::$terminate )
             {
-                $this->_exitProcess();
+                $this->_exitSwooleApp('swHttp');
+                $this->_exitSwooleApp('swWebsocket');
+                $this->_exitWorker();
                 $this->_exitLog();
                 $this->_exitMonitor();
             }
@@ -195,22 +209,22 @@ class Daemon
      */
     private function _handleExitedProcess(int $pid, int $status)
     {
-        foreach (static::$pidMap as $prePid=>$appType)
+        foreach (static::$pidMap as $appType=>$prePid)
         {
             if($pid != $prePid)
             {
                 continue;
             }
 
-            unset(static::$pidMap[$pid]);
+            unset(static::$pidMap[$appType]);
 
             if( self::$terminate )
             {
-               Log::Dump(static::LOG_PREFIX.$appType.' process exited at status : '.$status);
+                Log::Dump(static::LOG_PREFIX.$appType.' process exited at status : '.$status);
                 return ;
             }
 
-           Log::Dump(static::LOG_PREFIX.$appType.' process restarting at status : '.$status);
+            Log::Dump(static::LOG_PREFIX.$appType.' process restarting at status : '.$status);
 
             if( $appType=='log' )
             {
@@ -227,26 +241,49 @@ class Daemon
         }
     }
 
+
     /**
-     * _exitProcess
+     * _exitSwHttp
      */
-    private function _exitProcess()
+    private function _exitSwooleApp(string $appType)
     {
-        foreach (static::$pidMap as $pid=>$appType)
+        if ( !isset(static::$pidMap[$appType]) )
         {
-            if($pid==0 || $appType=='log')
+            return ;
+        }
+
+        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
+        for($i=0; $i<3; $i++)
+        {
+            if( posix_kill(static::$pidMap[$appType],SIGTERM) )
             {
-                continue;
+                break ;
             }
-           Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
-            for($i=0; $i<3; $i++)
+            usleep(1000);
+        }
+    }
+
+    /**
+     * _exitWorker
+     */
+    private function _exitWorker()
+    {
+        $appType = 'worker';
+        if ( !isset(static::$pidMap['worker']) ||
+              isset(static::$pidMap['swHttp']) ||
+              isset(static::$pidMap['swWebsocket']) )
+        {
+            return ;
+        }
+
+        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
+        for($i=0; $i<3; $i++)
+        {
+            if( posix_kill(static::$pidMap[$appType],SIGTERM) )
             {
-                if( posix_kill($pid,SIGTERM) )
-                {
-                    break ;
-                }
-                usleep(1000);
+                break ;
             }
+            usleep(1000);
         }
     }
 
@@ -255,24 +292,21 @@ class Daemon
      */
     private function _exitLog()
     {
-        if( count(static::$pidMap)!=1 )
+        if( count(static::$pidMap)!=1 || !isset(static::$pidMap['log']) )
         {
            return ;
         }
 
-       Log::Dump(static::LOG_PREFIX.'send signal to log process');
-        foreach (static::$pidMap as $pid=>$appType)
-        {
-            if($appType != 'log')
-            {
-                continue ;
-            }
-            posix_kill($pid,SIGTERM);
-        }
+        Log::Dump(static::LOG_PREFIX.'send signal to log process');
 
-        $pid = pcntl_wait($status,WUNTRACED);
-       Log::Dump(static::LOG_PREFIX.'log process exited at status : '.$status);
-        unset(static::$pidMap[$pid]);
+        for($i=0; $i<3; $i++)
+        {
+            if( posix_kill(static::$pidMap['log'],SIGTERM) )
+            {
+                break ;
+            }
+            usleep(1000);
+        }
     }
 
     /**
@@ -284,6 +318,7 @@ class Daemon
         {
             return ;
         }
+
         if( file_exists(static::$pid) )
         {
             unlink(static::$pid);

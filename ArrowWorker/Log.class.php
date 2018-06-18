@@ -224,7 +224,7 @@ class Log
         }
 
         static::Dump('starting rename log file ('.$size.'/'.static::$logFileSize.')');
-        rename(static::$filePath, static::$baseDir.DIRECTORY_SEPARATOR.APP_TYPE.'_'.date('Y-m-d H:i:s').'.log');
+        rename(static::$filePath, static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'_'.date('Y-m-d H:i:s').'.log');
 
         static::_initFile();
 
@@ -250,14 +250,24 @@ class Log
         static::$password = $config['password'] ?? static::$password;
         static::$userName = $config['userName'] ?? static::$userName;
         static::$queue    = $config['queue'] ?? static::$queue;
-        static::$filePath = static::$baseDir.DIRECTORY_SEPARATOR.APP_TYPE.'.log';
         static::$logFileSize = $config['fileSize'] ?? static::$logFileSize;
         static::$outputLevel = $config['errorLevel'] ??  static::$outputLevel;
         static::$logTimeZone = $config['timeZone'] ??  static::TIME_ZONE;
+        static::$filePath = static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'.log';
+
 
         error_reporting((int)static::$outputLevel);
         date_default_timezone_set(self::$logTimeZone);
 
+    }
+
+    private static function _getLogFileName() : string
+    {
+        if ( is_array(APP_TYPE) )
+        {
+            return implode('_',APP_TYPE);
+        }
+        return APP_TYPE;
     }
 
 
