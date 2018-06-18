@@ -113,7 +113,7 @@ class Queue extends Channel
      */
     public function Write( string $message, string $chan='', int $msgType=1 )
     {
-        return msg_send( static::_getQueue($chan), $msgType, $message,true, true, $errorCode);
+        return msg_send( static::_getQueue($chan), $msgType, (string)$message,true, true, $errorCode);
 	}
 
     /**
@@ -158,9 +158,9 @@ class Queue extends Channel
      * Close 关闭管道
      * @author Louis
      */
-    public function Close()
+    public static function Close()
     {
-        foreach (self::$pool as $eachQueue)
+        foreach (static::$pool as $eachQueue)
         {
             msg_remove_queue($eachQueue);
         }
@@ -171,7 +171,7 @@ class Queue extends Channel
      */
     public function __destruct()
     {
-		//todo
+		//$this->Close();
     }
 
 }
