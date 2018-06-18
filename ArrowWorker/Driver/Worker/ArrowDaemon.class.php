@@ -112,6 +112,7 @@ class ArrowDaemon extends Worker
      */
     private function _setSignalHandler(string $type = 'parentsQuit')
     {
+        // SIGTSTP have to be ignored on mac os
         switch($type)
         {
             case 'workerHandler':
@@ -119,6 +120,7 @@ class ArrowDaemon extends Worker
                 pcntl_signal(SIGTERM, SIG_IGN,false);
                 pcntl_signal(SIGINT,  SIG_IGN,false);
                 pcntl_signal(SIGQUIT, SIG_IGN,false);
+                pcntl_signal(SIGTSTP, SIG_IGN,false);
 
 
                 pcntl_signal(SIGALRM, array(__CLASS__, "signalHandler"),false);
@@ -131,6 +133,8 @@ class ArrowDaemon extends Worker
                 pcntl_signal(SIGINT,  SIG_IGN,false);
                 pcntl_signal(SIGQUIT, SIG_IGN,false);
                 pcntl_signal(SIGUSR1, SIG_IGN,false);
+                pcntl_signal(SIGTSTP, SIG_IGN,false);
+
 
                 pcntl_signal(SIGUSR2, array(__CLASS__, "signalHandler"),false);
                 break;
@@ -140,6 +144,7 @@ class ArrowDaemon extends Worker
                 pcntl_signal(SIGINT,  array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGQUIT, array(__CLASS__, "signalHandler"),false);
                 pcntl_signal(SIGUSR2, array(__CLASS__, "signalHandler"),false);
+                pcntl_signal(SIGTSTP, SIG_IGN,false);
 
         }
     }
@@ -324,7 +329,21 @@ class ArrowDaemon extends Worker
         for ($i=0; $i<$consumeProcessNum; $i++)
         {
             $status  = 0;
+            RETRY:
             $pid     = pcntl_wait($status, WUNTRACED);
+            if($pid==-1)
+            {
+                goto RETRY;
+            }
+            Log::Dump('exited : '.$pid);
+            if( !isset(static::$consumePidMap[$pid]) )
+            {
+                if ( !isset(static::$consumePidMap[$pid+10]) )
+                {
+                    continue ;
+                }
+                $pid = $pid+10;
+            }
             $groupId = static::$consumePidMap[$pid];
             $exitGroupQuantity[$groupId]++;
             $this->_sendExitedSig2Child($exitGroupQuantity,$procSentSig);
@@ -367,8 +386,16 @@ class ArrowDaemon extends Worker
                     continue ;
                 }
 
-                posix_kill($pid, SIGUSR2);
-                $procSentSig[$pid] = 1;
+                Log::Dump('sending to '.$pid);
+                for($i=0; $i<3; $i++)
+                {
+                    if( posix_kill($pid, SIGUSR2) )
+                    {
+                        $procSentSig[$pid] = 1;
+                        break;
+                    }
+
+                }
 
 
             }
@@ -533,6 +560,7 @@ class ArrowDaemon extends Worker
             $newGroupNum++;
             usleep(10000);
         }
+        Log::Dump(json_encode(static::$consumePidMap));
         Log::Dump(static::LOG_PREFIX."channel-finish Processes are all started.");
     }
 

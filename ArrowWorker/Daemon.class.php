@@ -7,6 +7,8 @@
 namespace ArrowWorker;
 
 
+use ArrowWorker\Driver\Channel\Queue;
+
 class Daemon
 {
     const LOG_PREFIX = 'monitor : ';
@@ -338,6 +340,8 @@ class Daemon
             }
         }
 
+        Queue::Close();
+
         Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
         exit(0);
     }
@@ -462,6 +466,9 @@ class Daemon
         pcntl_signal(SIGTERM, [$this, "signalHandler"],false);
         pcntl_signal(SIGINT,  [$this, "signalHandler"],false);
         pcntl_signal(SIGQUIT, [$this, "signalHandler"],false);
+        // SIGTSTP have to be ignored on mac os
+        pcntl_signal(SIGTSTP, SIG_IGN,false);
+
     }
 
 
