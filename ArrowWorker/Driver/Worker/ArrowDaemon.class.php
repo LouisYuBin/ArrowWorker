@@ -191,7 +191,7 @@ class ArrowDaemon extends Worker
 
     private function _exitProc()
     {
-        Log::Info(posix_getpid().' set terminate false');
+        Log::Dump(posix_getpid().' set terminate false');
         static::$terminate = false;
     }
 

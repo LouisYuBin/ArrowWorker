@@ -9,6 +9,10 @@ namespace ArrowWorker;
 
 use ArrowWorker\Driver\Channel\Queue;
 
+/**
+ * Class Daemon : demonize process
+ * @package ArrowWorker
+ */
 class Daemon
 {
     const LOG_PREFIX = 'monitor : ';
@@ -326,6 +330,18 @@ class Daemon
             unlink(static::$pid);
         }
 
+        $this->_cleanChannelPath();
+        Queue::Close();
+
+        Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
+        exit(0);
+    }
+
+    /**
+     * _cleanChannelPath
+     */
+    private function _cleanChannelPath()
+    {
         $chanPath  = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Channel/';
         $chanFiles = scandir($chanPath);
         if( $chanFiles!==false )
@@ -339,11 +355,6 @@ class Daemon
                 @unlink($chanPath.$file);
             }
         }
-
-        Queue::Close();
-
-        Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
-        exit(0);
     }
 
     /**
