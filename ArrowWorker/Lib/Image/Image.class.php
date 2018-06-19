@@ -26,4 +26,22 @@ class Image
         return false;
     }
 
+    /**
+     * @param string $file
+     * @return bool|Gd|ImageMagick
+     * @throws \Exception
+     */
+    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
+    {
+        if( extension_loaded('imagick') )
+        {
+            return ImageMagick::Create($width,$height,$bg,$type);
+        }
+        if( extension_loaded('gd') )
+        {
+            return Gd::Create($width,$height,$bg,$type);
+        }
+        return false;
+    }
+
 }

@@ -58,32 +58,26 @@ $app['Channel'] = [
     'app' => [
         //驱动类型
         'driver' => 'Queue',
-        //映射路径
-        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/app.queue',
         //最大读取长度
-        'size'   => 128,
+        'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
     ],
     'arrow' => [
         //驱动类型
         'driver' => 'Queue',
-        //路径
-        'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/ArrowWorker.queue',
 		//最大读取长度
-		'size'   => 128,
+		'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
     ],
 	'test' => [
 		//驱动类型
 		'driver' => 'Queue',
-		//路径
-		'path'   => '/home/louis/data/github/ArrowWorker/App/Runtime/test.queue',
 		//最大读取长度
-		'size'   => 128,
+		'msgSize'   => 128,
 		//队列占用byte大小设置
-		'length' => 10240000
+		'bufSize' => 10240000
 	]
 ];
 
@@ -147,61 +141,60 @@ $app['View'] = [
     ]
 ];
 
-//常驻服务配置
 $app['Daemon'] = [
+    'user' => 'louis',
+];
+
+$app['Log'] = [
+    'type'    => 'File',
+    'baseDir' => APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Log/',
+    'bufSize' => 10485760,
+    'fileSize' => 10485760,
+    'timeZone' => 'PRC',
+    'ip'       => '127.0.0.1',
+    'port'     => 6379,
+    'userName' => 'root',
+    'password' => 'louis',
+    'queue'    => 'ArrowWorkerLog'
+
+];
+
+//常驻服务配置
+$app['Worker'] = [
     'app' => [
         //驱动类型
         'driver' => 'ArrowDaemon',
-        //进程名称
-        'name'   => 'demo',
-        //进程id文件名称
-        'pid'    => 'ArrowWorker',
-        //用户名
-        'user'   => 'root',
-        //线程数（在使用多线程模式下有效，依赖pthread扩展）
-        'thread' => 4,
-        //是否启用协成（不建议使用，调度损耗较大）
-        'enableGenerator' => false,
-        //日志文件路径（路路径必须存在，且对应文件夹要有相应权限）
-        'log'    => '/var/log/ArrowWorker.log',
-        //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
-        'level'  => 30719,
-        //process list
+
         'processor' => [
             [
                 //function to be call
                 'function'    => ['\\App\\Controller\\Demo','Demo'],
                 'argv'        => [100],
                 //number of process to be started
-                'concurrency' => 3,
-                //process lifecycle
-                'lifecycle'   => 120,
+                'procQuantity' => 3,
                 //process name
-                'proName'     => 'Demo'
+                'procName'     => 'Demo'
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channelApp'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channelApp',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channelApp'],
+                'argv'           => [100],
+                'procName'        => 'channelApp',
+                'procQuantity'   => 3,
+                'isChanReadProc' => true,
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channelArrow'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channelArrow',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channelArrow'],
+                'argv'           => [100],
+                'procName'       => 'channelArrow',
+                'procQuantity'   => 3,
+                'isChanReadProc' => true,
             ],
             [
-                'function'    => ['\\App\\Controller\\Demo','channeltest'],
-                'argv'        => [100],
-                'concurrency' => 3,
-                'lifecycle'   => 120,
-                'proName'     => 'channeltest',
-                'channel'     => true,
+                'function'       => ['\\App\\Controller\\Demo','channeltest'],
+                'argv'           => [100],
+                'procName'        => 'channeltest',
+                'procQuantity'    => 3,
+                'isChanReadProc' => true,
             ],
         ]
     ]
@@ -214,14 +207,12 @@ $app['Swoole'] = [
         //port of listen
         'port'      => 9502,
         //number of worker process
-        'workerNum' => 10,
-        //sign of working as a child process
-        'daemonize' => false,
+        'workerNum' => 8,
         //size of request queue
         'backlog'   => 2000,
         //max post data length
         'maxContentLength' => 20889600
-    ]
+    ],
 ];
 
 //session相关配置
@@ -234,7 +225,7 @@ $app['Session'] = [
 	'port'	   => 6379,
 	//用户名，对memcached有效
 	'userName' => '',
-	//redis密码，handler为RedisSession/memcached时使用
+	//密码，handler为RedisSession/memcached时使用
 	'password' => 'louis',
 	//session超时时间
 	'timeout'  => 3600,
@@ -291,5 +282,6 @@ $app['Cryto'] = [
     //加密/解密因子
     'factor'  => 'ArrowWorker',
 ];
+
 
 return $app;

@@ -10,7 +10,7 @@ use ArrowWorker\Response;
 class ValidateImg
 {
 
-    const fontPath = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_FOLDER.DIRECTORY_SEPARATOR.'Font/';
+    const fontPath = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Font/';
 
     /**
      * code factor
@@ -52,9 +52,9 @@ class ValidateImg
      * @var string
      */
     private $font = [
-        self::fontPath.'ZEBRRA.ttf',
-        self::fontPath.'Kranky.ttf',
-        self::fontPath.'ARCADE.ttf'
+        self::fontPath.'en_ZEBRRA.ttf',
+        self::fontPath.'en_Kranky.ttf',
+        self::fontPath.'en_ARCADE.ttf'
     ];
 
     /**
@@ -263,7 +263,7 @@ class ValidateImg
         Response::Header("Content-type",'image/png');
         if( APP_TYPE!='fpm' )
         {
-            ob_clean();
+            //ob_clean();
             if( !ob_start() )
             {
                 return false;

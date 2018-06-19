@@ -9,6 +9,7 @@ namespace App\Controller;
 
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
+use ArrowWorker\Log;
 
 
 class Demo
@@ -44,11 +45,11 @@ class Demo
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();
 
-        $randamNum = mt_rand(0,10000000);
+        $randamNum = 10000;
 
         $appChannel   = Driver::Channel();
         $writeResult = $appChannel->Write("app".$randamNum);
-        //var_dump($writeResult);
+        Log::Info($writeResult);
 
     }
 
@@ -56,10 +57,9 @@ class Demo
     {
 
         $channel = Driver::Channel();
-        $result  = $channel->Read(false);
+        $result  = $channel->Read();
         if( !$result )
         {
-            usleep(1000);
             return false;
         }
 		Driver::Channel('arrow')->Write($result);
@@ -70,11 +70,10 @@ class Demo
     {
 
         $channel = Driver::Channel('arrow');
-        $result  = $channel->Read(false);
+        $result  = $channel->Read();
         //var_dump($result);
         if( !$result )
         {
-            usleep(1000);
             return false;
         }
 		Driver::Channel('test')->Write($result);
@@ -85,11 +84,9 @@ class Demo
 	{
 
 		$channel = Driver::Channel('test');
-		$result  = $channel->Read(false);
-		//var_dump($result);
+		$result  = $channel->Read();
 		if( !$result )
 		{
-			usleep(1000);
 			return false;
 		}
 		return true;

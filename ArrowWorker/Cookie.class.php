@@ -51,7 +51,6 @@ class Cookie
      */
     public static function Get(string $key)
 	{
-        $key = static::getKey($key);
 		if( isset($_COOKIE[$key]) )
 		{
 			return CryptoArrow::Decrypt($_COOKIE[$key]);
@@ -71,7 +70,6 @@ class Cookie
     public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httponly=true) : bool
 	{
 		$expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
-		$name   = static::getKey($name);
 		$val    = CryptoArrow::Encrypt($val);
 		return static::SetByDriver($name, $val, $expire, $path, $domain, $secure, $httponly);
 	}
@@ -85,30 +83,6 @@ class Cookie
 		return $_COOKIE;
 	}
 
-    /**
-     * getKey ：get encrypted key by original key
-     * @param string $name
-     * @return string
-     */
-    public static function getKey(string $key) : string
-	{
-	    if( !empty(static::$prefix) )
-        {
-            return md5(static::$prefix.$key);
-        }
-
-		$config = Config::App('Cookie');
-		if( !$config )
-		{
-            static::$prefix = static::$defaultPrefix;
-        }
-
-		if( !isset($config['prefix']) )
-        {
-            static::$prefix = static::$defaultPrefix;
-        }
-		return md5(static::$prefix.$key);
-	}
 
     /**
      * SetByDriver : set cookie by app type
