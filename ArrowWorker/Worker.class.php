@@ -21,7 +21,7 @@ class Worker
             $app = $input['a'];
         }
         //verify whether the daemon is configured
-        $config = Config::App('Worker');
+        $config = Config::Get('Worker');
         if( false===$config )
         {
             throw new \Exception("daemon not configured");

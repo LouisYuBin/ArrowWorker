@@ -18,24 +18,24 @@ class Router
 	/**
 	 * 默认控制器/方法
 	 */
-	const defaultController  = 'Index';
+	const DEFAULT_CONTROLLER  = 'Index';
 
-	const defaultMethod = 'index';
+	const dEFAULT_METHOD = 'index';
 
 	/**
 	 * 配置文件中路由配置key
 	 */
-	const type = "RouterType";
+	const FILE = "type";
 
 	/**
 	 * get类型路由
 	 */
-    const get = 1;
+    const GET = 1;
 
 	/**
 	 * uri类型路由
 	 */
-    const uri = 2;
+    const URI = 2;
 
     /**
      * @var string  应用命名空间
@@ -47,7 +47,7 @@ class Router
 	 * 路由返回格式
 	 * @var array
 	 */
-	private static $func = ['c'=> self::defaultController, 'm' => self::defaultMethod];
+	private static $func = ['c'=> self::DEFAULT_CONTROLLER, 'm' => self::dEFAULT_METHOD];
 
 
 	/**
@@ -56,16 +56,16 @@ class Router
 	 */
 	private static function getRouterType()
     {
-        $type = Config::App(static::type);
+        $type = Config::Get(static::FILE);
         if( false===$type )
         {
-            return static::get;
+            return static::GET;
         }
 
         $type = (int)$type;
-        if ( $type<static::get|| $type>static::uri )
+        if ( $type<static::GET|| $type>static::URI )
         {
-            return static::get;
+            return static::GET;
         }
         return $type;
     }
@@ -79,10 +79,10 @@ class Router
     {
         switch ( static::getRouterType() )
         {
-            case static::get;
+            case static::GET;
                 static::getRouter();
                 break;
-            case static::uri;
+            case static::URI;
                 static::uriRouter();
                 break;
             default:
@@ -113,8 +113,8 @@ class Router
     {
         $c = Request::Get('c');
         $m = Request::Get('m');
-        @self::$func['c'] =  $c ? $c : self::defaultController;
-        @self::$func['m'] =  $m ? $m : self::defaultMethod;
+        @self::$func['c'] =  $c ? $c : self::DEFAULT_CONTROLLER;
+        @self::$func['m'] =  $m ? $m : self::dEFAULT_METHOD;
     }
 
 	/**

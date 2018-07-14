@@ -236,7 +236,7 @@ class Log
      */
     private static function _initConfig()
     {
-        $config = Config::App('Log');
+        $config = Config::Get('Log');
         if( false === $config )
         {
             return;

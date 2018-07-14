@@ -80,7 +80,7 @@ class ValidateImg
      */
     private function __construct()
     {
-        $config = Config::App('ValidationCode');
+        $config = Config::Get('ValidationCode');
         if( !$config )
         {
             return ;

@@ -47,7 +47,7 @@ class Driver
     /**
      * ArrowWorker驱动
      * @param string $alias
-     * @return \ArrowWorker\Driver\Daemon\ArrowDaemon
+     * @return \ArrowWorker\Driver\Worker\ArrowDaemon
      */
     public static function Worker( string $alias='app' )
     {
@@ -72,7 +72,7 @@ class Driver
     public static function View( string $alias='app' )
     {
         $class  = self::$driverDir.'\\View';
-        return $class::Init( Config::App('view') );
+        return $class::Init( Config::Get('view') );
     }
 
 
@@ -86,7 +86,7 @@ class Driver
      */
     private static function _init(string $driverType, string $alias)
     {
-        $config = Config::App($driverType);
+        $config = Config::Get($driverType);
         if ( !isset( $config[$alias] ) )
         {
             throw new \Exception("driver {$driverType}->{$alias} config does not exists.");

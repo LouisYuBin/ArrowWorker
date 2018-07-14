@@ -65,7 +65,7 @@ class Upload
      */
     private function checkConfig()
     {
-        $config = Config::App('Upload');
+        $config = Config::Get('Upload');
         if( false===$config )
         {
             throw new \Exception('upload config is not found');

@@ -11,7 +11,7 @@ class Method
 
     public function __construct()
     {
-        self::$config = Config::App();
+        self::$config = Config::Get();
     }
     
     public function godDamIt()

@@ -364,7 +364,7 @@ class Daemon
     private static function _getConfig() : array
     {
 
-        $config = Config::App('Daemon');
+        $config = Config::Get('Daemon');
         if( false===$config  )
         {
            Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');

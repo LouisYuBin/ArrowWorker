@@ -81,7 +81,7 @@ class Exception
      */
     static function _removePidFile()
     {
-        $daemonConfig = Config::App('Daemon');
+        $daemonConfig = Config::Get('Daemon');
         if( $daemonConfig===false )
         {
             return ;

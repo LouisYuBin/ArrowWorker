@@ -79,7 +79,7 @@ class Session
             return;
         }
 
-        $session = Config::App("Session");
+        $session = Config::Get("Session");
         if ($session) {
             static::$config = array_merge(static::$config, $session);
         }

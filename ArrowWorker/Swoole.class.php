@@ -18,7 +18,7 @@ class Swoole
 
     private static function getHttpConfig()
     {
-        $config = Config::App("Swoole");
+        $config = Config::Get("Swoole");
         if( false===$config )
         {
             throw new \Exception('swoole config does not exists');
