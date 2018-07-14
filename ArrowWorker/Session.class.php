@@ -239,11 +239,7 @@ class Session
             return ;
         }
 
-        $remoteAddr = APP_TYPE==='swWeb' ?
-            Request::Server('remote_addr') :
-            Request::Server('REMOTE_ADDR');
-
-        static::$token = static::$config['prefix'].crc32( $remoteAddr . microtime(false) . mt_rand(1,1000000) );
+        static::$token = static::$config['prefix'].crc32( Request::Server('REMOTE_ADDR') . microtime(false) . mt_rand(1,1000000) );
         static::setSessionCookie();
     }
 

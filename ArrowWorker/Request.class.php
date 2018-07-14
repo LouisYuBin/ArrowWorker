@@ -27,7 +27,7 @@ class Request
         $_GET    = $get;
         $_POST   = $post;
         $_FILES  = $files;
-        $_SERVER = $server;
+        $_SERVER = array_change_key_case($server,CASE_UPPER);
     }
 
     /**
