@@ -25,7 +25,7 @@ class Router
 	/**
 	 * 配置文件中路由配置key
 	 */
-	const FILE = "type";
+	const FILE = "Router";
 
 	/**
 	 * get类型路由
@@ -56,13 +56,13 @@ class Router
 	 */
 	private static function getRouterType()
     {
-        $type = Config::Get(static::FILE);
-        if( false===$type )
+        $config = Config::Get(static::FILE);
+        if( false===$config )
         {
             return static::GET;
         }
 
-        $type = (int)$type;
+        $type = (int)$config['type'];
         if ( $type<static::GET|| $type>static::URI )
         {
             return static::GET;
@@ -122,6 +122,8 @@ class Router
 	 */
     private static function uriRouter()
     {
-		//todo
+        $uri = explode('/', Request::Server('REQUEST_URI') );
+        @self::$func['c'] =  count($uri)>2 ? $uri[1] : self::DEFAULT_CONTROLLER;
+        @self::$func['m'] =  count($uri)>2 ? $uri[2] : self::dEFAULT_METHOD;
     }
 }

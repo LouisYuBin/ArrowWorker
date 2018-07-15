@@ -1,4 +1,4 @@
 <?php
 return [
-    'type' => 1
+    'type' => 2
 ];
