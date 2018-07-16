@@ -13,7 +13,9 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
-        'maxContentLength' => 2088960
+        'maxContentLength' => 2088960,
+        'enableStaticHandler' => false,
+        'documentRoot' => ''
     ];
 
     private static function getHttpConfig()
@@ -42,6 +44,8 @@ class Swoole
             'daemonize'  => false,
             'backlog'    => static::$Http['backlog'],
             'package_max_length' => static::$Http['maxContentLength'],
+            'enable_static_handler' => static::$Http['enableStaticHandler'],
+            'document_root' => static::$Http['documentRoot']
         ]);
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);

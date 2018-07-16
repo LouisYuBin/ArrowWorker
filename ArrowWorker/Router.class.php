@@ -20,7 +20,7 @@ class Router
 	 */
 	const DEFAULT_CONTROLLER  = 'Index';
 
-	const dEFAULT_METHOD = 'index';
+	const DEFAULT_METHOD = 'index';
 
 	/**
 	 * 配置文件中路由配置key
@@ -38,6 +38,11 @@ class Router
     const URI = 2;
 
     /**
+     * uri伪静态类型路由
+     */
+    const HTML = 3;
+
+    /**
      * @var string  应用命名空间
      */
     private static $appController = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
@@ -47,7 +52,7 @@ class Router
 	 * 路由返回格式
 	 * @var array
 	 */
-	private static $func = ['c'=> self::DEFAULT_CONTROLLER, 'm' => self::dEFAULT_METHOD];
+	private static $func = ['c'=> self::DEFAULT_CONTROLLER, 'm' => self::DEFAULT_METHOD];
 
 
 	/**
@@ -63,7 +68,7 @@ class Router
         }
 
         $type = (int)$config['type'];
-        if ( $type<static::GET|| $type>static::URI )
+        if ( $type<static::GET || $type>static::HTML )
         {
             return static::GET;
         }
@@ -84,6 +89,9 @@ class Router
                 break;
             case static::URI;
                 static::uriRouter();
+                break;
+            case static::HTML;
+                static::pseudoHtml();
                 break;
             default:
                 //Todo
@@ -114,16 +122,38 @@ class Router
         $c = Request::Get('c');
         $m = Request::Get('m');
         @self::$func['c'] =  $c ? $c : self::DEFAULT_CONTROLLER;
-        @self::$func['m'] =  $m ? $m : self::dEFAULT_METHOD;
+        @self::$func['m'] =  $m ? $m : self::DEFAULT_METHOD;
     }
 
 	/**
-	 * uriRouter uri类型路由获取
+	 * uriRouter uri类型路由
 	 */
     private static function uriRouter()
     {
         $uri = explode('/', Request::Server('REQUEST_URI') );
-        @self::$func['c'] =  count($uri)>2 ? $uri[1] : self::DEFAULT_CONTROLLER;
-        @self::$func['m'] =  count($uri)>2 ? $uri[2] : self::dEFAULT_METHOD;
+        if ( count($uri)>2 )
+        {
+            @self::$func['c'] = $uri[1];
+            @self::$func['m'] = $uri[2];
+            return ;
+        }
+        self::$func['c'] = self::DEFAULT_CONTROLLER;
+        self::$func['m'] = self::DEFAULT_METHOD;
+    }
+
+    /**
+     * pseudoHtml uri伪静态类型路由
+     */
+    private static function pseudoHtml()
+    {
+        $uri = explode('/', Request::Server('REQUEST_URI') );
+        if ( count($uri)>2 )
+        {
+            @self::$func['c'] = $uri[1];
+            @self::$func['m'] = explode('.',$uri[2])[0];
+            return ;
+        }
+        self::$func['c'] = self::DEFAULT_CONTROLLER;
+        self::$func['m'] = self::DEFAULT_METHOD;
     }
 }
