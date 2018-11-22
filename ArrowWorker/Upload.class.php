@@ -85,21 +85,18 @@ class Upload
     }
 
     /**
-     * GetFileExt : get file extension
+     * _setExt : get file extension
      */
-    private function _setExt() : string
+    private function _setExt()
     {
         $pathNode  = explode('.', $this->file['name']);
         $nodeCount = count($pathNode);
         if( $nodeCount==1 )
         {
             $this->extension = '';
-            goto _RETURN;
+            return ;
         }
         $this->extension = strtolower( $pathNode[$nodeCount-1] );
-
-        _RETURN:
-        return $this->extension;
     }
 
     /**
@@ -121,13 +118,31 @@ class Upload
     }
 
     /**
+     * GetTmpName
+     * @return array
+     */
+    public function GetTmpName() : string
+    {
+        return (string)$this->file['tmp_name'];
+    }
+
+    /**
+     * GetName
+     * @return array
+     */
+    public function GetName() : string
+    {
+        return (string)$this->file['name'];
+    }
+
+    /**
      * SetNewName
-     * @param string|null $name
+     * @param string $name
      * @return $this
      */
-    public function SetNewName(string $name=null)
+    public function SetNewName(string $name='')
     {
-        if( !is_null($name) )
+        if( !empty($name) )
         {
             $this->newFileName = $name;
         }
