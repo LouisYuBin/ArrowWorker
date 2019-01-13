@@ -67,9 +67,6 @@ class Daemon
     public function __construct($config)
     {
 
-        self::$user = $config['user'] ?? self::$user;
-        self::$pid = static::$pidDir.static::$appName.'.pid';
-
         $this -> _environmentCheck();
         $this -> _checkPidfile();
         Log::Init();
@@ -87,6 +84,8 @@ class Daemon
     public static function Start()
     {
         $config = static::_getConfig();
+        static::_exitDaemon();
+
         $daemon = new self($config);
         $daemon->_setSignalHandler();
         $daemon->_startProcess();
@@ -185,7 +184,7 @@ class Daemon
      */
     private function _startMonitor()
     {
-       Log::Dump(static::LOG_PREFIX.'starting monitor');
+        Log::Dump(static::LOG_PREFIX.'starting monitor');
         while (1)
         {
             if( self::$terminate )
@@ -337,6 +336,52 @@ class Daemon
         exit(0);
     }
 
+    private function _exitDaemon()
+    {
+        global $argv;
+        if( !isset($argv[1]) )
+        {
+            return ;
+        }
+
+        if( $argv[1] !='stop' )
+        {
+            return ;
+        }
+
+        $pid = (int)file_get_contents(static::$pid);
+        if( $pid==0 )
+        {
+            return ;
+        }
+
+        for($i=1; $i>0; $i++ )
+        {
+            if( $i==1 )
+            {
+                if( posix_kill($pid,SIGTERM) )
+                {
+                    Log::Dump('ArrowWorker process is exiting...');
+                }
+                else
+                {
+                    Log::Dump('ArrowWorker process does not exists.');
+                    exit;
+                }
+            }
+            else
+            {
+                if( !posix_kill($pid,SIGTERM) )
+                {
+                    Log::Dump('ArrowWorker process is been stopped.');
+                    exit ;
+                }
+                usleep(100000);
+            }
+        }
+
+    }
+
     /**
      * _cleanChannelPath
      */
@@ -367,9 +412,11 @@ class Daemon
         $config = Config::Get('Daemon');
         if( false===$config  )
         {
-           Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
+            Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
             return [];
         }
+        self::$user = $config['user'] ?? self::$user;
+        self::$pid  = static::$pidDir.static::$appName.'.pid';
         return $config;
     }
 

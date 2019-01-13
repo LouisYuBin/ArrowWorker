@@ -146,9 +146,19 @@ class Log
      */
     public static function Init()
     {
+        static::_checkExtension();
         static::_initConfig();
         static::_resetStd();
         static::_initHandler();
+    }
+
+    private static function _checkExtension()
+    {
+        if( !extension_loaded('sysvmsg') )
+        {
+            static::Dump('extension sysvmsg does not installed/loaded.');
+            exit ;
+        }
     }
 
     /**
@@ -366,7 +376,8 @@ class Log
         $log = static::_selectLogChan()->Read();
         if( $log === false )
         {
-           return ;
+            usleep(1000);
+            return ;
         }
 
         for($i=0; $i<3; $i++)
@@ -411,7 +422,7 @@ class Log
     {
         static::_setSignalHandler();
         pcntl_alarm(static::SIZE_CHECK_PERIOD);
-        while( 1 )
+        while( true )
         {
             if( static::$isTerminate )
             {
@@ -442,7 +453,7 @@ class Log
     {
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
-            static::Dump(json_encode(static::_selectLogChan()->Status()));
+            static::Dump('Log queue status : '.json_encode(static::_selectLogChan()->Status()));
             exit(0);
         }
     }
@@ -465,7 +476,7 @@ class Log
         global $STDOUT, $STDERR;
         $output = static::$baseDir.DIRECTORY_SEPARATOR.'ArrowWorker.output';
         $handle = fopen($output, "a");
-        if ($handle)
+        if ( is_resource($handle))
         {
             unset($handle);
             fclose(STDOUT);
