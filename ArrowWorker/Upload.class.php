@@ -55,15 +55,15 @@ class Upload
     public function __construct(string $name)
     {
         $this->file= $_FILES[$name];
-        $this->checkConfig();
-        $this->getFileExt();
+        $this->_initConfig();
+        $this->_setExt();
     }
 
     /**
      * checkConfig
      * @throws \Exception
      */
-    private function checkConfig()
+    private function _initConfig()
     {
         $config = Config::Get('Upload');
         if( false===$config )
@@ -76,37 +76,34 @@ class Upload
     /**
      * IsExtAllowed : check if the upload file extension is allowed
      * @return bool
-     * @throws \Exception
      */
-    private function IsExtAllowed() :bool
+    private function IsExtAllowed() : bool
     {
-        $ext = $this->GetFileExt();
-        if( false===$ext )
-        {
-            return false;
-        }
-
-        return in_array( $ext, $this->config['extension'] );
+        return in_array(
+            $this->GetExt(),
+            $this->config['extension'] );
     }
 
     /**
-     * GetFileExt : get file extension
+     * _setExt : get file extension
      */
-    private function getFileExt()
+    private function _setExt()
     {
-        $dotPos = strrpos($this->file['name'],'.');
-        if( false===$dotPos )
+        $pathNode  = explode('.', $this->file['name']);
+        $nodeCount = count($pathNode);
+        if( $nodeCount==1 )
         {
-            throw new \Exception('file extension does not exits');
+            $this->extension = '';
+            return ;
         }
-        $this->extension = strtolower( substr($this->file['name'],$dotPos+1) );
+        $this->extension = strtolower( $pathNode[$nodeCount-1] );
     }
 
     /**
-     * FileExt : return file extension
-     * @return null
+     * GetExt : return file extension
+     * @return string
      */
-    public function FileExt()
+    public function GetExt() : string
     {
         return $this->extension;
     }
@@ -121,13 +118,31 @@ class Upload
     }
 
     /**
+     * GetTmpName
+     * @return array
+     */
+    public function GetTmpName() : string
+    {
+        return (string)$this->file['tmp_name'];
+    }
+
+    /**
+     * GetName
+     * @return array
+     */
+    public function GetName() : string
+    {
+        return (string)$this->file['name'];
+    }
+
+    /**
      * SetNewName
-     * @param string|null $name
+     * @param string $name
      * @return $this
      */
-    public function SetNewName(string $name=null)
+    public function SetNewName(string $name='')
     {
-        if( !is_null($name) )
+        if( !empty($name) )
         {
             $this->newFileName = $name;
         }
@@ -136,19 +151,18 @@ class Upload
 
     /**
      * Save :save upload file
-     * @param string|null $savePath
+     * @param string $savePath
      * @return bool
      */
-    public function Save(string $savePath = null )
+    public function Save(string $savePath = '' )
     {
-        if( is_null( $this->newFileName) )
+        if( empty( $this->newFileName) )
         {
-            $this->newFileName = microtime(true).mt_rand(1000,1000000);
+            $this->newFileName = dechex(getmypid()).microtime(true).mt_rand(1000,1000000);
         }
+        $savePath = empty($savePath) ? $this->config['savePath'] : $savePath;
 
-        var_dump($this->config['savePath'].$this->newFileName.'.'.$this->extension);
-        var_dump( file_exists($this->file['tmp_name']) );
-        return move_uploaded_file( $this->file['tmp_name'], $this->config['savePath'].$this->newFileName.'.'.$this->extension);
+        return move_uploaded_file( $this->file['tmp_name'], $savePath.$this->newFileName.'.'.$this->extension);
     }
 
 
