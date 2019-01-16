@@ -6,8 +6,10 @@
  */
 use ArrowWorker\ArrowWorker as arrow;
 define('APP_PATH',__DIR__.'/App');
+define('APP_TYPE',['worker']);
 //define('APP_TYPE',['worker','swHttp']);
-define('APP_TYPE',['swHttp']);
+
+//define('APP_TYPE',['swHttp']);
 
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
 arrow::Start();

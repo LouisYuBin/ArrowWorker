@@ -137,6 +137,7 @@ class ArrowDaemon extends Worker
 
 
                 pcntl_signal(SIGUSR2, array(__CLASS__, "signalHandler"),false);
+
                 break;
             default:
                 pcntl_signal(SIGCHLD, array(__CLASS__, "signalHandler"),false);
@@ -181,7 +182,8 @@ class ArrowDaemon extends Worker
                 self::$terminate = true;
                 break;
             case SIGUSR2:
-                $this->_exitProc();
+                //剩余队列消费专用
+                static::$terminate = true;
                 break;
             default:
                 return false;
@@ -189,11 +191,6 @@ class ArrowDaemon extends Worker
 
     }
 
-    private function _exitProc()
-    {
-        Log::Dump(posix_getpid().' set terminate false');
-        static::$terminate = false;
-    }
 
     /**
      * _setProcessName  进程名称设置
@@ -298,7 +295,13 @@ class ArrowDaemon extends Worker
 		for ($i=0; $i<$unExitedCount; $i++)
 		{
 			$status = 0;
-			$pid    = pcntl_wait($status, WUNTRACED);
+            RE_WAIT:
+            $pid = pcntl_wait($status, WUNTRACED);
+            if( $pid==-1 )
+            {
+                goto RE_WAIT;
+            }
+
 			$this -> _handleExited( $pid, $status );
 		}
 	}
@@ -368,7 +371,7 @@ class ArrowDaemon extends Worker
             {
                 continue ;
             }
-
+            //队列生产进程未全部退出
             if( static::$jobs[$lastGroupId]['procQuantity']!=$exitGroupQuantity[$lastGroupId] )
             {
                 continue ;
@@ -550,6 +553,8 @@ class ArrowDaemon extends Worker
                 }
 				elseif($pid==0)
 				{
+				    //重置退出标识为不退出
+				    static::$terminate = false;
                     $this -> _setSignalHandler('chanHandler');
                     $this -> _setProcessName( self::$jobs[$i]['processName'] );
                     Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$i]['processName'].' starting work');
@@ -591,15 +596,17 @@ class ArrowDaemon extends Worker
 
             if ( $channelStatus )
             {
+                $retryTimes=0;
                 continue ;
             }
 
-            if ( !$channelStatus && $retryTimes>0 && ($newJobIndex==0 || !static::$terminate) )
+            //队列为空 且 已重试 且
+            if ( !$channelStatus && $retryTimes>0 && ($newJobIndex==0 || static::$terminate) )
             {
                 break;
             }
 
-            if ( !$channelStatus && ($newJobIndex==0 || !static::$terminate) )
+            if ( !$channelStatus && ($newJobIndex==0 || static::$terminate) )
             {
                 $retryTimes++;
             }

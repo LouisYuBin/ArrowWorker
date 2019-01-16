@@ -45,7 +45,8 @@ class Swoole
             'backlog'    => static::$Http['backlog'],
             'package_max_length' => static::$Http['maxContentLength'],
             'enable_static_handler' => static::$Http['enableStaticHandler'],
-            'document_root' => static::$Http['documentRoot']
+            'document_root' => static::$Http['documentRoot'],
+            'log_file' => Log::$StdoutFile
         ]);
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);
@@ -61,5 +62,6 @@ class Swoole
         });
 
         $server->start();
+        ob_end_flush();
     }
 }

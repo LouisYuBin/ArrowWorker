@@ -33,6 +33,7 @@ class Index
         {
             Log::Info( $louis2 );
         }
+        test();
 
 
         Session::MultiSet([

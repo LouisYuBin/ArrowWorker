@@ -114,7 +114,20 @@ class Log
      */
     private static $logFileSize = 1073741824;
 
+    /**
+     * @var string
+     */
     private static $logTimeZone='UTC';
+
+    /**
+     * @var
+     */
+    private static $_stdout;
+
+    /**
+     * @var
+     */
+    public static $StdoutFile;
 
 
     /**
@@ -136,9 +149,11 @@ class Log
     private static $filePath = '';
 
     //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
+    /**
+     * @var int
+     */
     private static $outputLevel = 30719;
 
-    private static $timeCache = '';
 
 
     /**
@@ -263,9 +278,8 @@ class Log
         static::$logFileSize = $config['fileSize'] ?? static::$logFileSize;
         static::$outputLevel = $config['errorLevel'] ??  static::$outputLevel;
         static::$logTimeZone = $config['timeZone'] ??  static::TIME_ZONE;
-        static::$filePath = static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'.log';
-
-
+        static::$filePath   = static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'.log';
+        static::$StdoutFile = static::$baseDir.DIRECTORY_SEPARATOR.'ArrowWorker.output';
         error_reporting((int)static::$outputLevel);
         date_default_timezone_set(self::$logTimeZone);
 
@@ -474,20 +488,29 @@ class Log
     private static function _resetStd()
     {
         global $STDOUT, $STDERR;
-        $output = static::$baseDir.DIRECTORY_SEPARATOR.'ArrowWorker.output';
-        $handle = fopen($output, "a");
-        if ( is_resource($handle))
+        static::$_stdout = fopen(static::$StdoutFile , "a");
+        if ( is_resource(static::$_stdout))
         {
-            unset($handle);
             fclose(STDOUT);
             fclose(STDERR);
-            $STDOUT = fopen($output, 'a');
-            $STDERR = fopen($output, 'a');
+            $STDOUT = fopen(static::$StdoutFile , 'a');
+            $STDERR = fopen(static::$StdoutFile , 'a');
+            ob_start('static::_outputToFile');
+            return ;
+
         }
         else
         {
             die("ArrowWorker hint : can not open stdoutFile".PHP_EOL);
         }
+    }
+
+    /**
+     * @param string $msg
+     */
+    private static function _outputToFile(string $msg)
+    {
+        fwrite( static::$_stdout, $msg);
     }
 
     /**

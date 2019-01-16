@@ -84,7 +84,7 @@ class Daemon
     public static function Start()
     {
         $config = static::_getConfig();
-        static::_exitDaemon();
+        static::_handleAction();
 
         $daemon = new self($config);
         $daemon->_setSignalHandler();
@@ -336,7 +336,10 @@ class Daemon
         exit(0);
     }
 
-    private function _exitDaemon()
+    /**
+     * handle current operation：exit daemon
+     */
+    private function _handleAction()
     {
         global $argv;
         if( !isset($argv[1]) )
