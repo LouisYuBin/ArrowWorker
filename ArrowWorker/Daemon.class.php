@@ -379,7 +379,7 @@ class Daemon
                     Log::Dump('ArrowWorker process is been stopped.');
                     exit ;
                 }
-                usleep(100000);
+                sleep(1);
             }
         }
 

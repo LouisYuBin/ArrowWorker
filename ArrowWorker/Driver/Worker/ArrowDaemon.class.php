@@ -332,13 +332,15 @@ class ArrowDaemon extends Worker
         for ($i=0; $i<$consumeProcessNum; $i++)
         {
             $status  = 0;
+
             RETRY:
-            $pid     = pcntl_wait($status, WUNTRACED);
+            $pid = pcntl_wait($status, WUNTRACED);
             if($pid==-1)
             {
                 goto RETRY;
             }
-            Log::Dump('exited : '.$pid);
+
+            //兼容mac 拿到的子进程pid比原始pid少10的不过
             if( !isset(static::$consumePidMap[$pid]) )
             {
                 if ( !isset(static::$consumePidMap[$pid+10]) )
@@ -347,16 +349,24 @@ class ArrowDaemon extends Worker
                 }
                 $pid = $pid+10;
             }
+
+            //通过退出的进程id获取 对应的进程组id
             $groupId = static::$consumePidMap[$pid];
+
+            //进程组中，退出的进程计数
             $exitGroupQuantity[$groupId]++;
-            $this->_sendExitedSig2Child($exitGroupQuantity,$procSentSig);
-            Log::Dump(static::LOG_PREFIX."channel-finish process : ".self::$jobs[ $groupId ]["processName"]."(".$pid.") exited at status : ".$status);
+            $this->_sendExitedSignalToChild($exitGroupQuantity,$procSentSig);
+            Log::Dump(static::LOG_PREFIX."chan consumer process : ".self::$jobs[ $groupId ]["processName"]."(".$pid.") exited at status : ".$status);
         }
-        Log::Dump(static::LOG_PREFIX."channel-finish processes are all exited.");
+        Log::Dump(static::LOG_PREFIX."chan consumer processes are all exited.");
     }
 
 
-    private function  _sendExitedSig2Child(array $exitGroupQuantity,&$procSentSig)
+    /**
+     * @param array $exitGroupQuantity
+     * @param $procSentSig
+     */
+    private function  _sendExitedSignalToChild(array $exitGroupQuantity, &$procSentSig)
     {
         for ( $groupId=0; $groupId<static::$jobNum; $groupId++)
         {
@@ -379,17 +389,19 @@ class ArrowDaemon extends Worker
 
             foreach ( static::$consumePidMap as $pid=>$consumerGroupId )
             {
+                //退出的进程组非某消费队列对应的生产队列
                 if($consumerGroupId!=$groupId)
                 {
                     continue ;
                 }
 
+                //已向当前进程发送过退出信号，则不重新发送
                 if( isset($procSentSig[$pid]) )
                 {
                     continue ;
                 }
 
-                Log::Dump('sending to '.$pid);
+                Log::Dump('Sending SIGUSR2 to chan consumer process '.$pid);
                 for($i=0; $i<3; $i++)
                 {
                     if( posix_kill($pid, SIGUSR2) )
@@ -532,7 +544,7 @@ class ArrowDaemon extends Worker
 	 */
 	private function _startChannelFinishProcess()
     {
-        Log::Dump(static::LOG_PREFIX."starting channel-finish Process");
+        Log::Dump(static::LOG_PREFIX."starting chan consumer Process");
 
         $newGroupNum = 0;
         for($i = 0; $i<self::$jobNum; $i++)
@@ -600,7 +612,7 @@ class ArrowDaemon extends Worker
                 continue ;
             }
 
-            //队列为空 且 已重试 且
+            //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
             if ( !$channelStatus && $retryTimes>0 && ($newJobIndex==0 || static::$terminate) )
             {
                 break;
