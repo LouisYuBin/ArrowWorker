@@ -9,6 +9,7 @@
 namespace ArrowWorker\Driver\Channel;
 
 use ArrowWorker\Driver\Channel;
+use ArrowWorker\Log;
 
 
 /**
@@ -70,21 +71,26 @@ class Queue extends Channel
     /**
      * _initHandle  创建管道文件
      * @author Louis
-     * @throws \Exception
      */
     private static function _initQueue()
     {
 
-        $channelFile = static::$channelFileDir.self::$current.'.chan';
-		if (!file_exists($channelFile))
+        $chanFile = static::$chanFileDir.self::$current.'.chan';
+		if (!file_exists($chanFile))
 		{
-		    if( !touch($channelFile) )
+		    if( !touch($chanFile) )
             {
-                throw new \Exception("create queue file : {$channelFile} error.");
+                Log::Error("touch chan file failed ({$chanFile}).");
+                return ;
             }
 		}
-		$key = ftok($channelFile, 'A');
-        static::$pool[self::$current] = msg_get_queue($key, static::mode);
+		$key   = ftok($chanFile, 'A');
+		$queue = msg_get_queue($key, static::mode);
+		if( !$queue )
+        {
+            Log::Error("msg_get_queue({$key},066) failed");
+        }
+        static::$pool[self::$current] = $queue;
         msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
     }
 

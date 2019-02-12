@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Driver\Db;
 use ArrowWorker\Driver\Db AS db;
+use ArrowWorker\Log;
 
 
 /**
@@ -46,18 +47,18 @@ class Mysqli extends db
 	 * @param array $config
 	 * @return \mysqli
 	 */
-	private function connectInit(array $config)
+	private function _initConnection(array $config)
     {
         //建立连接
-        @$Conn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
+        @$conn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
         //捕捉错误
-        if($Conn->connect_errno)
+        if($conn->connect_errno)
         {
-            exit($Conn->connect_error);
+            Log::DumpExit("connecting to mysql failed : ".$conn->connect_error);
         }
         //初始化字符集
-        $Conn -> query("set names '".self::$config[self::$dbCurrent]['charset']."'");
-        return $Conn;
+        $conn->query("set names '".self::$config[self::$dbCurrent]['charset']."'");
+        return $conn;
     }
 
 	/**
@@ -66,13 +67,13 @@ class Mysqli extends db
 	 * @param int $connectNum
 	 * @return \mysqli
 	 */
-	protected function getConnection(bool $isMaster=false, int $connectNum=0)
+	protected function _getConnection(bool $isMaster=false, int $connectNum=0)
     {
         if( $isMaster==true || self::$config[self::$dbCurrent]['seperate']==0 )
         {
-            return $this -> connectMaster();
+            return $this->_connectMaster();
         }
-        return $this -> connectSlave($connectNum);
+        return $this->_connectSlave($connectNum);
     }
 
 
@@ -80,11 +81,11 @@ class Mysqli extends db
 	 * 检测并连接主库
      * @return \mysqli
 	 */
-	private function connectMaster()
+	private function _connectMaster()
     {
         if( !isset( self::$connPool[self::$dbCurrent]['master'] ) )
         {
-            self::$connPool[self::$dbCurrent]['master'] = $this -> connectInit( self::$config[self::$dbCurrent]['master'] );
+            self::$connPool[self::$dbCurrent]['master'] = $this->_initConnection( self::$config[self::$dbCurrent]['master'] );
         }
         return self::$connPool[self::$dbCurrent]['master'];
     }
@@ -95,14 +96,14 @@ class Mysqli extends db
 	 * @param int $slaveIndex
 	 * @return \mysqli
 	 */
-	private function connectSlave(int $slaveIndex=0)
+	private function _connectSlave(int $slaveIndex=0)
     {
         $slaveCount = count(self::$config[self::$dbCurrent]['slave']);
         $slave = ( $slaveIndex==0 || $slaveIndex>=$slaveCount || $slaveIndex<0 ) ? mt_rand( 0, $slaveCount-1 ) : $slaveIndex;
 
         if ( !isset( self::$connPool[self::$dbCurrent]['slave'][$slave] ) )
         {
-            self::$connPool[self::$dbCurrent]['slave'][$slave] = $this -> connectInit(self::$config[self::$dbCurrent]['slave'][$slave]);
+            self::$connPool[self::$dbCurrent]['slave'][$slave] = $this->_initConnection(self::$config[self::$dbCurrent]['slave'][$slave]);
         }
         return self::$connPool[self::$dbCurrent]['slave'][$slave];
     }
@@ -115,15 +116,19 @@ class Mysqli extends db
 	 * @param int $connectNum
 	 * @return array|bool
 	 */
-	public function query(string $sql, bool $isMaster=false, int $connectNum=0)
+	public function Query(string $sql, bool $isMaster=false, int $connectNum=0)
     {
-
-        $result = $this -> getConnection($isMaster,$connectNum) -> query($sql);
+        $result = $this->_getConnection($isMaster,$connectNum)->query($sql);
         if($result)
         {
             $return = [];
+            $field  = $this->_parseFieldType($result);
             while($row = $result->fetch_assoc())
             {
+                foreach ($row as $key=>&$val)
+                {
+                    settype($val, $field[$key]);
+                }
                 $return[] = $row;
             }
             return $return;
@@ -135,15 +140,46 @@ class Mysqli extends db
 
     }
 
+    /**
+     * @param mysqli_result $result
+     * @return array
+     */
+    private function _parseFieldType(mysqli_result $result): array
+    {
+        $fields = [];
+        while ($info = $result->fetch_field()) {
+            switch ($info->type) {
+                case MYSQLI_TYPE_BIT:
+                case MYSQLI_TYPE_TINY:
+                case MYSQLI_TYPE_SHORT:
+                case MYSQLI_TYPE_LONG:
+                case MYSQLI_TYPE_LONGLONG:
+                case MYSQLI_TYPE_INT24:
+                    $type = 'int';
+                    break;
+                case MYSQLI_TYPE_FLOAT:
+                case MYSQLI_TYPE_DOUBLE:
+                case MYSQLI_TYPE_DECIMAL:
+                case MYSQLI_TYPE_NEWDECIMAL:
+                    $type = 'float';
+                    break;
+                default:
+                    $type = 'string';
+            }
+            $fields[$info->name] = $type;
+        }
+        return $fields;
+    }
+
 
 	/**
 	 * execute 写入或更新
 	 * @param string $sql
 	 * @return array
 	 */
-	public function execute(string $sql)
+	public function Execute(string $sql)
     {
-        $conn = $this -> getConnection(true);
+        $conn = $this->_getConnection(true);
         return [
             'result'       => $conn->query($sql),
             'affectedRows' => $conn->affected_rows,
@@ -157,9 +193,9 @@ class Mysqli extends db
 	 */
 	public function Begin()
     {
-        $conn = $this -> getConnection(true);
-        $conn -> autocommit(false);
-        $conn -> begin_transaction();
+        $conn = $this->_getConnection(true);
+        $conn->autocommit(false);
+        $conn->begin_transaction();
     }
 
 
@@ -169,9 +205,9 @@ class Mysqli extends db
 	 */
 	public function Commit()
     {
-        $conn = $this -> getConnection(true);
-        $conn -> commit();
-        $conn -> autocommit(true);
+        $conn = $this->_getConnection(true);
+        $conn->commit();
+        $conn->autocommit(true);
     }
 
 
@@ -180,9 +216,9 @@ class Mysqli extends db
 	 */
 	public function Rollback()
     {
-        $conn = $this -> getConnection(true);
-        $conn -> rollback();
-        $conn -> autocommit(true);
+        $conn = $this->_getConnection(true);
+        $conn->rollback();
+        $conn->autocommit(true);
     }
 
 
@@ -192,7 +228,7 @@ class Mysqli extends db
 	 */
 	public function Autocommit(bool $flag)
     {
-        $this -> getConnection(true) -> autocommit($flag);
+        $this->_getConnection(true)->autocommit($flag);
     }
 
 
@@ -204,7 +240,7 @@ class Mysqli extends db
 	public static function Table(string $table)
     {
         $sqlBuilder = new SqlBuilder();
-        return $sqlBuilder -> Table($table, self::$config[self::$dbCurrent]['driver']);
+        return $sqlBuilder->Table($table, self::$config[self::$dbCurrent]['driver']);
     }
 
 

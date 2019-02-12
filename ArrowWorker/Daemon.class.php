@@ -73,7 +73,7 @@ class Daemon
 
         $this -> _demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        $this -> _setUser(self::$user) or die("ArrowWorker hint : Setting process user failed！".PHP_EOL);
+        $this -> _setUser(self::$user);
         $this -> _setProcessName(" V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         $this -> _createPidfile();
     }
@@ -332,22 +332,28 @@ class Daemon
         $this->_cleanChannelPath();
         Queue::Close();
 
-        Log::Dump(static::LOG_PREFIX.'Monitor process exited!');
-        exit(0);
+        Log::DumpExit(static::LOG_PREFIX.'Monitor process exited!');
     }
 
     /**
      * handle current operation：exit daemon
      */
-    private function _handleAction()
+    private static function _handleAction()
     {
         global $argv;
         if( !isset($argv[1]) )
         {
-            return ;
+            Log::DumpExit('use command << php index.php start/stop >> to start or stop Arrow Server');
         }
 
-        if( $argv[1] !='stop' )
+        $action = $argv[1];
+
+        if( !in_array($action, ['start','stop']) )
+        {
+            Log::DumpExit('unknown action, use << php index.php start/stop >> to start or stop Arrow Server');
+        }
+
+        if( $action!='stop' )
         {
             return ;
         }
@@ -355,7 +361,7 @@ class Daemon
         $pid = (int)file_get_contents(static::$pid);
         if( $pid==0 )
         {
-            return ;
+            Log::DumpExit('Arrow Server is not running');
         }
 
         for($i=1; $i>0; $i++ )
@@ -364,20 +370,18 @@ class Daemon
             {
                 if( posix_kill($pid,SIGTERM) )
                 {
-                    Log::Dump('ArrowWorker process is exiting...');
+                    echo ('ArrowWorker process is exiting...'.PHP_EOL);
                 }
                 else
                 {
-                    Log::Dump('ArrowWorker process does not exists.');
-                    exit;
+                    Log::DumpExit('ArrowWorker process does not exists.');
                 }
             }
             else
             {
                 if( !posix_kill($pid,SIGTERM) )
                 {
-                    Log::Dump('ArrowWorker process is been stopped.');
-                    exit ;
+                    Log::DumpExit('ArrowWorker process is been stopped.');
                 }
                 sleep(1);
             }
@@ -431,7 +435,7 @@ class Daemon
     {
         if ( php_sapi_name() != "cli" )
         {
-            die("ArrowWorker hint : only run in command line mode".PHP_EOL);
+            Log::DumpExit("Arrow hint : only run in command line mode");
         }
 
         if ( !function_exists('pcntl_signal_dispatch') )
@@ -441,7 +445,7 @@ class Daemon
 
         if ( !function_exists('pcntl_signal') )
         {
-            die('ArrowWorker hint : php environment do not support pcntl_signal'.PHP_EOL);
+            Log::DumpExit('Arrow hint : php environment do not support pcntl_signal');
         }
 
         if ( function_exists('gc_enable') )
@@ -497,23 +501,22 @@ class Daemon
      */
     private function _checkPidfile()
     {
-        if (!file_exists(static::$pid))
+        if ( !file_exists(static::$pid) )
         {
-            return true;
+            return ;
         }
 
         $pid = (int)file_get_contents(static::$pid);
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
-            die("ArrowWorker hint : process is already started".PHP_EOL);
+            Log::DumpExit("ArrowWorker hint : process is already started");
         }
         else
         {
-            die("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid.PHP_EOL);
+            Log::DumpExit("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid);
         }
 
-        die('checking pid file error'.PHP_EOL);
     }
 
 
@@ -559,31 +562,28 @@ class Daemon
     }
 
     /**
-     * _userSet set process running user
+     * _setUser set process running user
      * @author Louis
-     * @param string $name
-     * @return bool
+     * @param string $userName
+     * @return void
      */
-    private function _setUser(string $name) : bool
+    private function _setUser(string $userName)
     {
-
-        $result = false;
-        if (empty($name))
+        if (empty($userName))
         {
-            return true;
+            return ;
         }
 
-        $user = posix_getpwnam($name);
-
-        if ($user)
+        $userInfo = posix_getpwnam($userName);
+        if( !$userInfo )
         {
-            $uid = $user['uid'];
-            $gid = $user['gid'];
-            $result = posix_setuid($uid);
-            posix_setgid($gid);
+            Log::DumpExit("Arrow hint : Setting process user failed！");
         }
-        return $result;
 
+        if( !posix_setuid($userInfo['uid']) || !posix_setgid($userInfo['gid']) )
+        {
+            Log::DumpExit("Arrow hint : Setting process user failed！");
+        }
     }
 
 

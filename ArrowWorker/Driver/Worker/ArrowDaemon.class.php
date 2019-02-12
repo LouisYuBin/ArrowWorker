@@ -522,8 +522,7 @@ class ArrowDaemon extends Worker
             {
                 self::$workerStat['end'] = time();
                 $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-                Log::Dump(static::LOG_PREFIX.'process : '.self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
-                exit(0);
+                Log::DumpExit(static::LOG_PREFIX.'process : '.self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
             }
             pcntl_signal_dispatch();
             if( isset( self::$jobs[$index]['argv'] ) )
@@ -628,8 +627,7 @@ class ArrowDaemon extends Worker
 
         self::$workerStat['end'] = time();
         $proWorkerTimeSum  = self::$workerStat['end'] - self::$workerStat['start'];
-        Log::Dump(static::LOG_PREFIX.'channel-finish '. self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
-        exit(0);
+        Log::DumpExit(static::LOG_PREFIX.'channel-finish '. self::$jobs[$index]['processName'].' finished '.self::$workerStat['count'].' times of its work in '.$proWorkerTimeSum.' seconds.' );
     }
 
 
@@ -639,8 +637,7 @@ class ArrowDaemon extends Worker
      */
     private function _finishMonitorExit()
     {
-        Log::Dump(static::LOG_PREFIX."worker monitor exits.");
-        exit(0);
+        Log::DumpExit(static::LOG_PREFIX."worker monitor exits.");
     }
 
     /**
@@ -653,8 +650,7 @@ class ArrowDaemon extends Worker
         
         if(!isset($job['function'])||empty($job['function']))
         {
-            Log::Dump(static::LOG_PREFIX." one Task at least is needed.");
-            exit(0);
+            Log::DumpExit(static::LOG_PREFIX." one Task at least is needed.");
         }
 
         $job['pidCount']     = 0;

@@ -30,7 +30,7 @@ class Redis extends cache
         {
             self::$config[$alias] = $config;
         }
-        self::$cacheCurrent = $alias;
+        self::$current = $alias;
 
         if(!self::$instance)
         {
@@ -42,31 +42,32 @@ class Redis extends cache
 
 
     /**
-     * getConnection 获取redis连接
+     * _getConnection 获取redis连接
      * @author Louis
      * @return \Redis
-     */private function getConnection() : \Redis
+     */
+    private function _getConnection() : \Redis
     {
-        if( !isset( self::$connPool[self::$cacheCurrent] ) )
+        if( !isset( self::$connPool[self::$current] ) )
         {
-            $currentConfig = self::$config[self::$cacheCurrent];
+            $currentConfig = self::$config[self::$current];
             $conn = new \Redis();
-            $conn -> connect($currentConfig['host'],$currentConfig['port']);
+            $conn->connect($currentConfig['host'],$currentConfig['port']);
 
             //连接密码
             if(isset($currentConfig['password']))
             {
-                $conn -> auth($currentConfig['password']);
+                $conn->auth($currentConfig['password']);
             }
 
             //缓存库
             if(isset($currentConfig['db']))
             {
-                $conn -> select($currentConfig['db']);
+                $conn->select($currentConfig['db']);
             }
-            self::$connPool[self::$cacheCurrent] = $conn;
+            self::$connPool[self::$current] = $conn;
         }
-        return self::$connPool[self::$cacheCurrent];
+        return self::$connPool[self::$current];
     }
 
 
@@ -77,7 +78,7 @@ class Redis extends cache
 	 */
 	public function Db(int $dbName) : bool
     {
-        return $this -> getConnection() -> select( $dbName );
+        return $this->_getConnection()->select( $dbName );
     }
 
 
@@ -89,7 +90,7 @@ class Redis extends cache
 	 */
 	public function Set(string $key, string $val) : bool
     {
-        return $this -> getConnection() -> set( $key, $val );
+        return $this->_getConnection()->set( $key, $val );
     }
 
 
@@ -100,7 +101,7 @@ class Redis extends cache
 	 */
 	public function Get(string $key)
     {
-        return $this -> getConnection() -> get($key);
+        return $this->_getConnection()->get($key);
     }
 
 
@@ -113,7 +114,7 @@ class Redis extends cache
 	 */
 	public function Lpush(string $queue, string $val)
     {
-        return $this -> getConnection() ->lPush( $queue, $val );
+        return $this->_getConnection()->lPush( $queue, $val );
     }
 
 
@@ -126,7 +127,7 @@ class Redis extends cache
 	 */
 	public function Rpush(string $queue, string $val)
     {
-        return $this -> getConnection() ->rPush( $queue, $val );
+        return $this->_getConnection()->rPush( $queue, $val );
     }
 
 
@@ -138,7 +139,7 @@ class Redis extends cache
 	 */
 	public function Rpop(string $queue)
     {
-        return $this -> getConnection() ->rPop( $queue);
+        return $this->_getConnection()->rPop( $queue);
     }
 
 	/**
@@ -149,7 +150,7 @@ class Redis extends cache
 	 */
 	public function Lpop(string $queue)
     {
-        return $this -> getConnection() ->lPop( $queue);
+        return $this->_getConnection()->lPop( $queue);
     }
 
 
@@ -166,7 +167,7 @@ class Redis extends cache
 	 */
 	public function BrPop(int $timeout, string ...$queue )
     {
-        return $this -> getConnection() ->brPop ( $queue, $timeout );
+        return $this->_getConnection() ->brPop ( $queue, $timeout );
     }
 
 	/**
@@ -182,20 +183,20 @@ class Redis extends cache
 	 */
 	public function BlPop(int $timeout, string ...$queue)
     {
-        return $this -> getConnection() ->blPop ( $queue, $timeout );
+        return $this->_getConnection() ->blPop ( $queue, $timeout );
     }
 
 	/**
 	 * Hset hash table 写入
 	 * @param string $key
 	 * @param string $hashKey
-	 * @param mixed $value
+	 * @param string $value
 	 * @return mixed
 	 *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
 	 */
-	public function Hset(sting $key, string $hashKey, string $value)
+	public function Hset(string $key, string $hashKey, string $value)
     {
-        return $this -> getConnection() ->Hset ( $key, $hashKey, $value);
+        return $this->_getConnection() ->Hset ( $key, $hashKey, $value);
     }
 
 	/**
@@ -207,7 +208,7 @@ class Redis extends cache
 	 */
 	public function Hget(string $key, string $hashKey)
     {
-        return $this -> getConnection() ->hGet ( $key, $hashKey );
+        return $this->_getConnection() ->hGet ( $key, $hashKey );
     }
 
 
@@ -219,7 +220,7 @@ class Redis extends cache
 	 */
 	public function Hlen(string $key)
     {
-        return $this -> getConnection() ->hGet ( $key );
+        return $this->_getConnection() ->hGet ( $key );
     }
 
 
@@ -230,7 +231,7 @@ class Redis extends cache
 	 */
 	public function Ping()
     {
-        return $this -> getConnection() ->ping ();
+        return $this->_getConnection() ->ping ();
     }
 
 
@@ -240,7 +241,7 @@ class Redis extends cache
 	 */
 	public function close()
     {
-        return $this -> getConnection() ->close();
+        return $this->_getConnection() ->close();
     }
 
 }

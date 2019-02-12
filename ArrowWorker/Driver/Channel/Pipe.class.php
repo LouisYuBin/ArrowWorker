@@ -77,7 +77,7 @@ class Pipe extends Channel
     private static function _init()
     {
 
-        $fifoName = static::$channelFileDir.self::$current.'.fifo';
+        $fifoName = static::$chanFileDir.self::$current.'.fifo';
         if (!file_exists($fifoName) && !posix_mkfifo($fifoName, self::mode))
         {
             throw new \Exception("create pipe:{$fifoName} failed");

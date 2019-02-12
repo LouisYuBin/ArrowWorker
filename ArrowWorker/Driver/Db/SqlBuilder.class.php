@@ -149,13 +149,13 @@ class SqlBuilder
 
 
 	/**
-	 * @param bool $Master
+	 * @param bool $isMaster
 	 * @param int $slaveIndex
 	 * @return array
 	 */
-	public function Find(bool $Master=false, int $slaveIndex=0)
+	public function Find(bool $isMaster=false, int $slaveIndex=0)
     {
-        $result =  $this->getDb()->query( $this->parseSelect(), $Master, $slaveIndex );
+        $result =  $this->getDb()->Query( $this->parseSelect(), $isMaster, $slaveIndex );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result
@@ -164,13 +164,13 @@ class SqlBuilder
 
 
 	/**
-	 * @param bool $Master
+	 * @param bool $isMaster
 	 * @param int $slaveIndex
 	 * @return array
 	 */
-	public function Get(bool $Master=false, int $slaveIndex=0 )
+	public function Get(bool $isMaster=false, int $slaveIndex=0 )
     {
-        $result = $this->getDb()->query( $this->parseSelect() ,$Master, $slaveIndex );
+        $result = $this->getDb()->Query( $this->parseSelect() ,$isMaster, $slaveIndex );
         return [
             'sql'  => $this->parseSelect(),
             'data' => $result ? $result[0] : $result
@@ -180,17 +180,12 @@ class SqlBuilder
 	/**
 	 * @param array $data
 	 * @return array
-	 * @throws \Exception
 	 */
 	public function Insert(array $data)
     {
-        if ( !is_array($data) )
-        {
-            throw new \Exception("inert data must be an array,just like ['name'=>'Louis']");
-        }
         $column = implode(',', array_keys($data));
         $values = "'".implode("','", $data)."'";
-        return $this->getDb()->execute("insert into {$this->table}({$column}) values({$values})");
+        return $this->getDb()->Execute("insert into {$this->table}({$column}) values({$values})");
     }
 
 
@@ -201,17 +196,13 @@ class SqlBuilder
 	 */
 	public function Update(array $data)
     {
-        if ( !is_array($data) )
-        {
-            throw new \Exception("update data must be an array,just like ['name'=>'Louis']");
-        }
         $update = '';
         foreach ($data as $key=>$val)
         {
             $update = $update.$key."='".$val."',";
         }
         $update = substr($update,0,-1);
-        return $this->getDb()->execute("update {$this->table} set {$update} {$this->where}");
+        return $this->getDb()->Execute("update {$this->table} set {$update} {$this->where}");
     }
 
 
@@ -220,20 +211,15 @@ class SqlBuilder
 	 */
 	public function delete()
     {
-        return $this->getDb()->execute("delete from {$this->table} {$this->where}");
+        return $this->getDb()->Execute("delete from {$this->table} {$this->where}");
     }
 
 
 	/**
 	 * @return string
-	 * @throws \Exception
 	 */
 	public function parseSelect() :string
     {
-        if ( $this->table=="" )
-        {
-            throw new \Exception("please specify the table you wanna query.");
-        }
         return trim("select  {$this->column} from {$this->table} {$this->where} {$this->groupBy} {$this->having} {$this->limit}");
     }
 

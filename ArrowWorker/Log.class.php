@@ -344,6 +344,15 @@ class Log
         echo sprintf("%s - %s".PHP_EOL,static::_getTime(), $log);
     }
 
+    /**
+     * Dump : echo log to standard output
+     * @param string $log
+     */
+    public static function DumpExit(string $log)
+    {
+        exit($log.PHP_EOL);
+    }
+
 
     /**
      * _selectLogChan : select the log chan
@@ -467,8 +476,7 @@ class Log
     {
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
-            static::Dump('Log queue status : '.json_encode(static::_selectLogChan()->Status()));
-            exit(0);
+            static::DumpExit('Log queue status : '.json_encode(static::_selectLogChan()->Status()));
         }
     }
 

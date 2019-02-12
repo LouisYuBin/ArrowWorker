@@ -18,7 +18,7 @@ class Cache
     //缓存连接池
     protected static $connPool = [];
     //缓存连接对象
-    protected static $cacheCurrent;
+    protected static $current;
 
     protected function __construct($config)
     {
