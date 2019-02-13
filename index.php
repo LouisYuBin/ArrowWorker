@@ -6,7 +6,7 @@
  */
 use ArrowWorker\ArrowWorker as arrow;
 define('APP_PATH',__DIR__.'/App');
-define('APP_TYPE','swooleWeb');
+define('APP_TYPE',['worker','swHttp']);
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
 arrow::Start();
 

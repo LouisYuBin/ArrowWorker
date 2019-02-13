@@ -1,99 +1,111 @@
 <?php
 /**
  * User: Louis
- * Date: 2016/11/07
- * Time: 23:49
+ * Time: 2016/11/07 23:49
+ * Update: 2018-05-21 12:22
  */
 
 namespace ArrowWorker;
-use ArrowWorker\App;
-use ArrowWorker\Config;
-use ArrowWorker\Exception;
-//框架目录
+
+//ArrowWorker framework folder
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
-//应用目录名称
-defined('APP_FOLDER') or define('APP_FOLDER','App');
-//应用默认应用路径
-defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_FOLDER);
-//应用类型（cli:命令行模式 swoole: 用swoole作为引擎的web的web，web：使用php-fpm做为引擎的web）
+
+//application folder
+defined('APP_DIR') or define('APP_DIR','App');
+
+//application path
+defined('APP_PATH') or define('APP_PATH',dirname(__DIR__).'/'.APP_DIR);
+
+//application type（worker:command line application, swWeb: swoole http application, web: nginx+fpm application）
 defined('APP_TYPE') or define('APP_TYPE','web');
-//状态：debug（开发） or online（上线）
+
+//application development status(debug:in dev status, online:in released status)
 defined('APP_STATUS') or define('APP_STATUS','debug');
-//应用控制器目录名
-defined('APP_CONTROLLER_FOLDER') or define('APP_CONTROLLER_FOLDER','Controller');
-//应用模型目录名
-defined('APP_MODEL_FOLDER') or define('APP_MODEL_FOLDER','Model');
-//应用类目录名
-defined('APP_CLASS_FOLDER') or define('APP_CLASS_FOLDER','Classes');
-//应用业务目录名
-defined('APP_SERVICE_FOLDER') or define('APP_SERVICE_FOLDER','Service');
-//应用配置文件夹
-defined('APP_CONFIG_FOLDER') or define('APP_CONFIG_FOLDER','Config');
-//应用语言文件夹
-defined('APP_LANG_FOLDER') or define('APP_LANG_FOLDER','Lang');
-//应用配置文件夹
-defined('APP_TPL_FOLDER') or define('APP_TPL_FOLDER','Tpl');
-//默认控制器
+
+//folder name for application controller
+defined('APP_CONTROLLER_DIR') or define('APP_CONTROLLER_DIR','Controller');
+
+//folder name for application model
+defined('APP_MODEL_DIR') or define('APP_MODEL_DIR','Model');
+
+//folder name for application class
+defined('APP_CLASS_DIR') or define('APP_CLASS_DIR','Classes');
+
+//folder name for application Runtime
+defined('APP_RUNTIME_DIR') or define('APP_RUNTIME_DIR','Runtime');
+
+//folder name for application service
+defined('APP_SERVICE_DIR') or define('APP_SERVICE_DIR','Service');
+
+//folder name for application Config
+defined('APP_CONFIG_DIR') or define('APP_CONFIG_DIR','Config');
+
+//folder name for application language
+defined('APP_LANG_DIR') or define('APP_LANG_DIR','Lang');
+
+//folder name for application view-tpl
+defined('APP_TPL_DIR') or define('APP_TPL_DIR','Tpl');
+
+//default controller Class name
 defined('DEFAULT_CONTROLLER') or define('DEFAULT_CONTROLLER','Index');
-//默认控制器方法
+
+//default controller method name in default controller class
 defined('DEFAULT_METHOD') or define('DEFAULT_METHOD','index');
-//默认应用配置文件
+
+//file name for default configuration
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','app');
-//默认应用controller、class、model映射文件
-defined('APP_ALIAS') or define('APP_ALIAS','cam');
 
 
 /**
- * Class ArrowWorker 框架入口类
+ * Class ArrowWorker
  * @package ArrowWorker
  */
 class ArrowWorker
 {
     /**
-     * 框架类文件后缀
+     * frame class extension
      */
     const classExt = '.class.php';
 
     /**
-     * @var 入口类实例对象
+     * @var frame instance
      */
-    private static $Arrow;
+    private static $Arrow = null;
 
     /**
      * ArrowWorker constructor.
      */
     private function __construct()
     {
-        spl_autoload_register(['self','loadClass']);
+        spl_autoload_register(['self','_loadClass']);
     }
 
 
     /**
-     * Start 启动框架
+     * Start : frame start method
      * @author Louis
      */
     static function Start(){
-        if (!static::$Arrow)
+        if ( is_null(static::$Arrow) )
         {
             static::$Arrow = new self;
-            //初始化异常和错误处理
             Exception::Init();
         }
-        App::InitApp() -> RunApp();
+        App::RunApp();
     }
 
 
     /**
-     * loadClass 加载框架/用户类
+     * _loadClass : auto-load class method
      * @author Louis
      * @param string $class
      */
-    static function loadClass(string $class)
+    static function _loadClass(string $class)
     {
-        $ArrowClass = static::classMap();
+        $ArrowClass = static::_classMap();
         if( isset($ArrowClass[$class]) )
         {
-            //系统类映射
+            //frame class
             $class = $ArrowClass[$class];
         }
         else
@@ -109,11 +121,11 @@ class ArrowWorker
 
 
     /**
-     * classMap 框架命名空间和文件路径映射
+     * classMap frame class alias
      * @author Louis
      * @return array
      */
-    static function classMap()
+    static function _classMap()
     {
         return [
             'ArrowWorker\App'        => ArrowWorker . '/App' .        self::classExt,
@@ -127,31 +139,40 @@ class ArrowWorker
 			'ArrowWorker\Session'    => ArrowWorker . '/Session'  . self::classExt,
             'ArrowWorker\Cookie'     => ArrowWorker . '/Cookie'   . self::classExt,
             'ArrowWorker\Response'   => ArrowWorker . '/Response' . self::classExt,
-            'ArrowWorker\Request'   => ArrowWorker  . '/Request'  . self::classExt,
-            'ArrowWorker\Utilities\Crypto'  => ArrowWorker  . '/Utilities/Crypto'  . self::classExt,
+            'ArrowWorker\Request'    => ArrowWorker . '/Request'  . self::classExt,
+            'ArrowWorker\Console'    => ArrowWorker . '/Console'  . self::classExt,
+            'ArrowWorker\Upload'     => ArrowWorker . '/Upload'  . self::classExt,
+            'ArrowWorker\Daemon'     => ArrowWorker . '/Daemon'  . self::classExt,
+            'ArrowWorker\Log'        => ArrowWorker . '/Log'  . self::classExt,
+            'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
+            'ArrowWorker\Worker'     => ArrowWorker . '/Worker'  . self::classExt,
+
+            'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,
+            'ArrowWorker\Lib\Validation\ValidateImg' => ArrowWorker  . '/Lib/Validation/ValidateImg' . self::classExt,
+            'ArrowWorker\Lib\Image\Gd'     => ArrowWorker  . '/Lib/Image/Gd' . self::classExt,
+            'ArrowWorker\Lib\Image\ImageMagick' => ArrowWorker  . '/Lib/Image/ImageMagick' . self::classExt,
+            'ArrowWorker\Lib\Image\Image'     => ArrowWorker  . '/Lib/Image/Image' . self::classExt,
+            'ArrowWorker\Lib\Image\ImageInterface'     => ArrowWorker  . '/Lib/Image/ImageInterface' . self::classExt,
+            'ArrowWorker\Lib\Image\Gif\GifHelper' => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
+            'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
             'ArrowWorker\Driver\Cache'   => ArrowWorker . '/Driver/Cache' .   self::classExt,
-            'ArrowWorker\Driver\Daemon'  => ArrowWorker . '/Driver/Daemon' .  self::classExt,
+            'ArrowWorker\Driver\Worker'  => ArrowWorker . '/Driver/Worker' .  self::classExt,
             'ArrowWorker\Driver\Channel' => ArrowWorker . '/Driver/Channel'.  self::classExt,
+            'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session'.  self::classExt,
 
             'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' .          self::classExt,
             'ArrowWorker\Driver\Db\SqlBuilder'      => ArrowWorker . '/Driver/Db/SqlBuilder' .      self::classExt,
             'ArrowWorker\Driver\Cache\Redis'        => ArrowWorker . '/Driver/Cache/Redis' .        self::classExt,
             'ArrowWorker\Driver\View\Smarty'        => ArrowWorker . '/Driver/View/Smarty' .        self::classExt,
-            'ArrowWorker\Driver\Daemon\ArrowDaemon' => ArrowWorker . '/Driver/Daemon/ArrowDaemon' . self::classExt,
-            'ArrowWorker\Driver\Daemon\ArrowThread' => ArrowWorker . '/Driver/Daemon/ArrowThread' . self::classExt,
+            'ArrowWorker\Driver\Worker\ArrowDaemon' => ArrowWorker . '/Driver/Worker/ArrowDaemon' . self::classExt,
             'ArrowWorker\Driver\Channel\Pipe'       => ArrowWorker . '/Driver/Channel/Pipe' .       self::classExt,
             'ArrowWorker\Driver\Channel\Queue'      => ArrowWorker . '/Driver/Channel/Queue' .      self::classExt,
 			'ArrowWorker\Driver\Session\RedisSession' => ArrowWorker . '/Driver/Session/RedisSession' . self::classExt,
-
+            'ArrowWorker\Driver\Session\MemcachedSession' => ArrowWorker . '/Driver/Session/MemcachedSession' . self::classExt,
         ];
     }
 
 }
-
-
-
-
-

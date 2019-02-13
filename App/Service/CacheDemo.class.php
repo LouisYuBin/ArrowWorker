@@ -5,6 +5,7 @@ namespace App\Service;
 use ArrowWorker\Config;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
+use ArrowWorker\Log;
 
 class CacheDemo
 {
@@ -29,13 +30,13 @@ class CacheDemo
     public function testRedisLpush()
     {
         $result = Driver::Cache() -> Lpush('ArrowWorker',100);
-        //var_dump($result);
+        Log::Info( $result );
     }
 
     public function testRedisBrpop()
     {
-        $result = Driver::Cache() -> Brpop('ArrowWorker',3);
-        //var_dump($result);
+        $result = Driver::Cache() -> Brpop(3,'ArrowWorker');
+        Log::Info( json_encode($result) );
     }
 
 }

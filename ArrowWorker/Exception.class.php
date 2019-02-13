@@ -1,9 +1,7 @@
 <?php
 /**
- * Created by PhpStorm.
  * User: louis
- * Date: 17-10-10
- * Time: 上午11:19
+ * Time: 2017-10-10 11:19
  */
 
 namespace ArrowWorker;
@@ -16,32 +14,32 @@ namespace ArrowWorker;
 class Exception
 {
 	/**
-	 * @var int 错误/异常码
+	 * @var int error/exception code
 	 */
 	private static $code  = 0;
 
 	/**
-	 * @var string 错误/异常消息
+	 * @var string error/exception message
 	 */
     private static $msg   = '';
 
 	/**
-	 * @var int 错误/异常发生所在文件
+	 * @var int file which error/exception happend
 	 */
     private static $file  = '';
 
 	/**
-	 * @var int 错误/异常行数
+	 * @var int exception/error line number
 	 */
     private static $line  = 0;
 
 	/**
-	 * @var int 文件追踪
+	 * @var int exception file trace
 	 */
     private static $trace = '';
 
 	/**
-	 * init 初始化错误处理和异常助理
+	 * init : set handle-function of error/exception
 	 */
 	static function Init()
     {
@@ -51,7 +49,7 @@ class Exception
 
 
 	/**
-	 * error
+	 * error : error-handle function
 	 * @param int $code
 	 * @param string $msg
 	 * @param string $file
@@ -60,17 +58,17 @@ class Exception
 	static function error(int $code=0, string $msg='', string $file='', int $line=0 )
     {
         //ob_clean();
-        if( APP_TYPE=='web' && APP_STATUS=='debug' )
+        if( APP_TYPE=='fpm' && APP_STATUS=='debug' )
         {
-            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
-            exit("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
+            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!",'');
+            Response::Write("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
         }
-        else if( APP_TYPE=='web' && APP_STATUS!='debug' )
+        else if( APP_TYPE=='fpm' && APP_STATUS!='debug' )
         {
-            header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
-            exit( json_encode( ['code' => 500, 'msg' => 'something is wrong with the server...'] ) );
+            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
+            Response::Json( 500, ['msg' => 'something is wrong with the server...'] );
         }
-        else if( APP_TYPE=='cli')
+        else if( in_array(APP_TYPE,['worker','swHttp']) )
         {
             static::_removePidFile();
             exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);
@@ -83,20 +81,23 @@ class Exception
      */
     static function _removePidFile()
     {
-        $daemonArray = Config::App('Daemon');
-        foreach ($daemonArray as $daemonConfig)
+        $daemonConfig = Config::App('Daemon');
+        if( $daemonConfig===false )
         {
-            $pidPath = '/var/run'.$daemonConfig['pid'].'.pid';
-            if(file_exists($pidPath))
-            {
-                @unlink($pidPath);
-            }
+            return ;
         }
+
+        $pidPath = '/var/run/arrow.pid';
+        if(file_exists($pidPath))
+        {
+            @unlink($pidPath);
+        }
+
     }
 
 
 	/**
-	 * exception 异常处理
+	 * exception : exception function
 	 * @param string $msg
 	 */
 	static function exception(string $msg = '')

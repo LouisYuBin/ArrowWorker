@@ -49,7 +49,7 @@ class Driver
      * @param string $alias
      * @return \ArrowWorker\Driver\Daemon\ArrowDaemon
      */
-    public static function Daemon( string $alias='app' )
+    public static function Worker( string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
