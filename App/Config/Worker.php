@@ -11,7 +11,7 @@ return [
                 'function'    => ['\\App\\Controller\\Demo','Demo'],
                 'argv'        => [100],
                 //number of process to be started
-                'procQuantity' => 3,
+                'procQuantity' => 1,
                 //process name
                 'procName'     => 'Demo'
 

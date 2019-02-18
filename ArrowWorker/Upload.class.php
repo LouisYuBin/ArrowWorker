@@ -54,21 +54,20 @@ class Upload
      */
     public function __construct(string $name)
     {
-        $this->file= $_FILES[$name];
+        $this->file= $_FILES[Swoole::GetCid()][$name];
         $this->_initConfig();
         $this->_setExt();
     }
 
     /**
      * checkConfig
-     * @throws \Exception
      */
     private function _initConfig()
     {
         $config = Config::Get('Upload');
         if( false===$config )
         {
-            throw new \Exception('upload config is not found');
+            Log::Warning("Config::Get('Upload') failed");
         }
         $this->config = array_merge($this->config, $config);
     }

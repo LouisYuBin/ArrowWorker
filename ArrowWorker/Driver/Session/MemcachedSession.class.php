@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Driver\Session;
 use ArrowWorker\Driver\Session;
+use ArrowWorker\Log;
 
 /**
  * Class MemcachedSession
@@ -38,7 +39,7 @@ class MemcachedSession extends Session
 	{
         if( !extension_loaded("memcached") )
         {
-            throw new \Exception('please install memcached extension',500);
+            Log::DumpExit("memcached extension is not installed.");
         }
 
         $this->handler = new \Memcached();
@@ -50,13 +51,13 @@ class MemcachedSession extends Session
 
         if( !$this->handler->addServer($this->host, $this->port) )
         {
-            throw new \Exception('can not connect session memcached',500);
-            return false;
+            Log::DumpExit("memcached add server failed.".$this->handler->getLastError());
         }
 
         $this->handler->setOption(\ Memcached::SERIALIZER_JSON, true);
 
-        if ('' != $this->userName) {
+        if ('' != $this->userName)
+        {
             $this->handler->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
             $this->handler->setSaslAuthData($this->userName, $this->auth);
         }

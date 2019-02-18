@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Driver\Cache;
 use ArrowWorker\Driver\Cache as cache;
+use ArrowWorker\Log;
 
 
 /**
@@ -52,18 +53,27 @@ class Redis extends cache
         {
             $currentConfig = self::$config[self::$current];
             $conn = new \Redis();
-            $conn->connect($currentConfig['host'],$currentConfig['port']);
-
-            //连接密码
-            if(isset($currentConfig['password']))
+            if( !$conn->connect($currentConfig['host'],$currentConfig['port']) )
             {
-                $conn->auth($currentConfig['password']);
+                Log::Error("connect redis failed, reason : ".$conn->getLastError());
             }
 
-            //缓存库
+            //check authorisation
+            if(isset($currentConfig['password']))
+            {
+                if( !$conn->auth($currentConfig['password']) )
+                {
+                    Log::Error("redis auth failed, reason : ".$conn->getLastError());
+                }
+            }
+
+            //select db
             if(isset($currentConfig['db']))
             {
-                $conn->select($currentConfig['db']);
+                if( !$conn->select($currentConfig['db']) )
+                {
+                    Log::Error("redis auth failed, reason : ".$conn->getLastError());
+                }
             }
             self::$connPool[self::$current] = $conn;
         }

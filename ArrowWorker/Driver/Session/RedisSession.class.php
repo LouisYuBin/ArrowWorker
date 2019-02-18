@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Driver\Session;
 use ArrowWorker\Driver\Session;
+use ArrowWorker\Log;
 
 /**
  * Class RedisSession
@@ -32,26 +33,23 @@ class RedisSession extends Session
     /**
      * connect to session server
      * @return bool
-     * @throws \Exception
      */
     public function connect()
 	{
         if( !extension_loaded("redis") )
         {
-            throw new \Exception('please install redis extension',500);
+            Log::DumpExit("redis extension is not installed.");
         }
         $this->handler = new \Redis();
         if( !$this->handler->connect($this->host, $this->port) )
         {
-            throw new \Exception('can not connect session redis',500);
-            return false;
+            Log::DumpExit("can not connect session redis failed, reason : ".$this->handler->getLastError());
         }
         else
         {
             if( !$this->handler->auth($this->auth) )
             {
-                throw new \Exception('session redis password is not correct',500);
-                return false;
+                Log::DumpExit("check session redis authorisation failed, reason : ".$this->handler->getLastError());
             }
         }
         return true;
@@ -66,7 +64,7 @@ class RedisSession extends Session
      */
     public function Set(string $sessionId, string $key, string $val) : bool
     {
-        $isOk = $this->handler -> Hset($sessionId, $key, $val);
+        $isOk = $this->handler->Hset($sessionId, $key, $val);
         if( $isOk === false )
         {
             return false;
@@ -82,7 +80,7 @@ class RedisSession extends Session
      */
     public function MSet(string $sessionId, array $val) : bool
     {
-        return $this->handler -> hMset($sessionId, $val);
+        return $this->handler->hMset($sessionId, $val);
     }
 
     /**
@@ -93,7 +91,7 @@ class RedisSession extends Session
      */
     public function Get(string $sessionId, string $key)
     {
-        return $this->handler -> Hget($sessionId, $key);
+        return $this->handler->Hget($sessionId, $key);
     }
 
     /**
@@ -133,7 +131,7 @@ class RedisSession extends Session
      */
     public function Exists(string $sessionId) : bool
     {
-        return $this->handler -> exits( $sessionId );
+        return $this->handler->exists( $sessionId );
     }
 
 
@@ -144,7 +142,7 @@ class RedisSession extends Session
      */
     public function KeyExits(string $sessionId, string $key) : bool
     {
-        return $this->handler -> hExists( $sessionId, $key);
+        return $this->handler->hExists( $sessionId, $key);
     }
 
     /**
@@ -154,7 +152,7 @@ class RedisSession extends Session
      */
     public function Info(string $sessionId) : array
     {
-        return  $this->handler -> hGetAll( $sessionId );
+        return  $this->handler->hGetAll( $sessionId );
     }
 
 }

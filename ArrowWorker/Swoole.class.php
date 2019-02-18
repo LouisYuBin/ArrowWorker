@@ -6,6 +6,9 @@
 
 namespace ArrowWorker;
 
+use \Swoole\Coroutine as Co;
+use \Swoole\Http\Server as Http;
+
 
 class Swoole
 {
@@ -18,17 +21,17 @@ class Swoole
         'documentRoot' => ''
     ];
 
-    private static function getHttpConfig()
+    private static function _getHttpConfig()
     {
         $config = Config::Get("Swoole");
         if( false===$config )
         {
-            throw new \Exception('swoole config does not exists');
+            Log::Warning('swoole http configuration file does not exists, using default configuration');
         }
 
         if( !isset($config['http']) )
         {
-            throw new \Exception('swoole http config does not exists');
+            Log::Warning('swoole http configuration key does not exists, using default configuration');
         }
 
         static::$Http = array_merge(static::$Http, $config['http']);
@@ -37,8 +40,9 @@ class Swoole
 
     public static function Http()
     {
-        static::getHttpConfig();
-        $server = new \swoole_http_server("0.0.0.0", static::$Http['port']);
+        static::_getHttpConfig();
+        Router::Init();
+        $server = new Http("0.0.0.0", static::$Http['port']);
         $server->set([
             'worker_num' => static::$Http['workerNum'],
             'daemonize'  => false,
@@ -58,10 +62,18 @@ class Swoole
             );
             Session::Reset();
             Response::Init($response);
-            Router::Start();
+            Router::Go();
         });
 
         $server->start();
-        ob_end_flush();
+    }
+
+    /**
+     * get swoole coroutine id
+     * @return int
+     */
+    public static function GetCid() : int
+    {
+        return Co::getuid();
     }
 }

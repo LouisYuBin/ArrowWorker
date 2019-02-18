@@ -171,8 +171,7 @@ class Log
     {
         if( !extension_loaded('sysvmsg') )
         {
-            static::Dump('extension sysvmsg does not installed/loaded.');
-            exit ;
+            static::DumpExit('extension sysvmsg does not installed/loaded.');
         }
     }
 
@@ -350,6 +349,7 @@ class Log
      */
     public static function DumpExit(string $log)
     {
+        Log::Error($log);
         exit($log.PHP_EOL);
     }
 
@@ -503,7 +503,6 @@ class Log
             fclose(STDERR);
             $STDOUT = fopen(static::$StdoutFile , 'a');
             $STDERR = fopen(static::$StdoutFile , 'a');
-            ob_start('static::_outputToFile');
             return ;
 
         }

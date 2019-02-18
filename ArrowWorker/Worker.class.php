@@ -24,13 +24,13 @@ class Worker
         $config = Config::Get('Worker');
         if( false===$config )
         {
-            throw new \Exception("daemon not configured");
+            Log::DumpExit("worker configuration is not exists.");
         }
 
         //check whether the specified deamon app configuration exists
         if( !isset($config[$app]) )
         {
-            throw new \Exception("configuration for {$app}  does not exists");
+            Log::DumpExit("configuration for {$app}  does not exists.");
         }
 
         $appConfig = $config[$app];
@@ -38,7 +38,7 @@ class Worker
         //verify if the processor configuration is correct
         if( !isset($appConfig['processor']) || !is_array($appConfig['processor']) || count($appConfig['processor'])==0 )
         {
-            throw new \Exception("daemon processor configuration is not correct");
+            Log::DumpExit("daemon processor configuration is not correct");
         }
 
         return [$app, $appConfig];
@@ -53,7 +53,7 @@ class Worker
         {
             if( !isset($item['function']) || !is_array($item['function']) || count($item['function'])<2 )
             {
-                throw new \Exception("some processor configuration is not correct");
+                Log::DumpExit("some processor configuration is not correct");
             }
             $item['function'] = [ new $item['function'][0], $item['function'][1] ];
             $daemon->AddTask( $item );

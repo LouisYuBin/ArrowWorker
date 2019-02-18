@@ -57,7 +57,10 @@ class Mysqli extends db
             Log::DumpExit("connecting to mysql failed : ".$conn->connect_error);
         }
         //初始化字符集
-        $conn->query("set names '".self::$config[self::$dbCurrent]['charset']."'");
+        if( false===$conn->query("set names '".self::$config[self::$dbCurrent]['charset']."'") )
+        {
+            Log::Warning("mysqi set names(charset) failed.");
+        }
         return $conn;
     }
 

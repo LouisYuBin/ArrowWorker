@@ -18,7 +18,7 @@ class Response
      * response handler for swoole
      * @var null
      */
-    private static $response = null;
+    private static $response = [];
 
     /**
      * Init : init swoole response handler
@@ -26,7 +26,7 @@ class Response
      */
     public static function Init(\Swoole\Http\Response $response)
     {
-        static::$response = $response;
+        static::$response[Swoole::GetCid()] = $response;
     }
 
     /**
@@ -51,11 +51,7 @@ class Response
      */
     public static function Write(string $msg)
     {
-        if( is_null(static::$response) )
-        {
-            exit( $msg );
-        }
-        static::$response->end( $msg );
+        static::$response[Swoole::GetCid()]->end( $msg );
     }
 
     /**
@@ -66,12 +62,7 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        if( is_null(static::$response) )
-        {
-            header("{$key}:{$val}");
-            return ;
-        }
-        static::$response->header($key,$val);
+        static::$response[Swoole::GetCid()]->header($key,$val);
     }
 
 }

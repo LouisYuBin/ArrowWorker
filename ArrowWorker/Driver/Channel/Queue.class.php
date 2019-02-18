@@ -13,7 +13,7 @@ use ArrowWorker\Log;
 
 
 /**
- * Class Pipe  管道类
+ * Class Queue  队列类
  * @package ArrowWorker\Driver\Channel
  */
 class Queue extends Channel
@@ -61,7 +61,7 @@ class Queue extends Channel
         {
             self::$instance = new self($config);
         }
-        //初始化（创建队列等）
+
         static::_initQueue();
 
         return static::$instance;
@@ -69,26 +69,24 @@ class Queue extends Channel
 
 
     /**
-     * _initHandle  创建管道文件
+     * _initHandle  create queue
      * @author Louis
      */
     private static function _initQueue()
     {
-
         $chanFile = static::$chanFileDir.self::$current.'.chan';
 		if (!file_exists($chanFile))
 		{
 		    if( !touch($chanFile) )
             {
-                Log::Error("touch chan file failed ({$chanFile}).");
-                return ;
+                Log::DumpExit("touch chan file failed ({$chanFile}).");
             }
 		}
 		$key   = ftok($chanFile, 'A');
 		$queue = msg_get_queue($key, static::mode);
 		if( !$queue )
         {
-            Log::Error("msg_get_queue({$key},066) failed");
+            Log::DumpExit("msg_get_queue({$key},066) failed");
         }
         static::$pool[self::$current] = $queue;
         msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
@@ -168,7 +166,7 @@ class Queue extends Channel
     {
         foreach (static::$pool as $eachQueue)
         {
-            msg_remove_queue($eachQueue);
+            Log::Dump("msg_remove_queue result : ".(int)msg_remove_queue($eachQueue));
         }
     }
 

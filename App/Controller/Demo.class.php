@@ -40,17 +40,16 @@ class Demo
          */
         $classService = Loader::Service('ClassDemo');
 
-        $dbService    -> testDb();
+/*        $dbService    -> testDb();
         $cacheService -> testRedisLpush();
         $cacheService -> testRedisBrpop();
-        $classService -> testMethod();
+        $classService -> testMethod();*/
 
         $randamNum = 10000;
 
         $appChannel   = Driver::Channel();
         $writeResult = $appChannel->Write("app".$randamNum);
         Log::Info($writeResult);
-
     }
 
     public function channelApp()

@@ -22,30 +22,10 @@ class Router
 
 	const DEFAULT_METHOD = 'index';
 
-	/**
-	 * 配置文件中路由配置key
-	 */
-	const FILE = "Router";
+	const CONTROLLER_NAMESPACE = '\\';
 
-	/**
-	 * get类型路由
-	 */
-    const GET = 1;
+	private static $_restApiConfig = [];
 
-	/**
-	 * uri类型路由
-	 */
-    const URI = 2;
-
-    /**
-     * uri伪静态类型路由
-     */
-    const HTML = 3;
-
-    /**
-     * @var string  应用命名空间
-     */
-    private static $appController = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
 
 	/**
@@ -54,50 +34,28 @@ class Router
 	 */
 	private static $func = ['c'=> self::DEFAULT_CONTROLLER, 'm' => self::DEFAULT_METHOD];
 
-
-	/**
-	 * getRouterType
-	 * @return int
-	 */
-	private static function getRouterType()
+	public static function Init()
     {
-        $config = Config::Get(static::FILE);
+        self::_loadRestConfig();
+    }
+
+    private static function _loadRestConfig()
+    {
+        $config = Config::Get('Rest');
         if( false===$config )
         {
-            return static::GET;
+            Log::Warning("Load rest api configuration failed");
         }
-
-        $type = (int)$config['type'];
-        if ( $type<static::GET || $type>static::HTML )
-        {
-            return static::GET;
-        }
-        return $type;
+        static::$_restApiConfig = $config;
     }
 
 
 	/**
-	 * Exec 返回要调用的控制器和方法
-	 * @return array
+	 * Go 返回要调用的控制器和方法
 	 */
-	public static function Start()
+	public static function Go()
     {
-        switch ( static::getRouterType() )
-        {
-            case static::GET;
-                static::getRouter();
-                break;
-            case static::URI;
-                static::uriRouter();
-                break;
-            case static::HTML;
-                static::pseudoHtml();
-                break;
-            default:
-                //Todo
-                throw new \Exception("router type does not exists",500);
-        }
-        static::exec();
+
     }
 
     private static function exec()
@@ -114,46 +72,6 @@ class Router
         $controller -> $method();
     }
 
-	/**
-	 * getRouter get类型路由获取
-	 */
-	private static function getRouter()
-    {
-        $c = Request::Get('c');
-        $m = Request::Get('m');
-        @self::$func['c'] =  $c ? $c : self::DEFAULT_CONTROLLER;
-        @self::$func['m'] =  $m ? $m : self::DEFAULT_METHOD;
-    }
 
-	/**
-	 * uriRouter uri类型路由
-	 */
-    private static function uriRouter()
-    {
-        $uri = explode('/', Request::Server('REQUEST_URI') );
-        if ( count($uri)>2 )
-        {
-            @self::$func['c'] = $uri[1];
-            @self::$func['m'] = $uri[2];
-            return ;
-        }
-        self::$func['c'] = self::DEFAULT_CONTROLLER;
-        self::$func['m'] = self::DEFAULT_METHOD;
-    }
 
-    /**
-     * pseudoHtml uri伪静态类型路由
-     */
-    private static function pseudoHtml()
-    {
-        $uri = explode('/', Request::Server('REQUEST_URI') );
-        if ( count($uri)>2 )
-        {
-            @self::$func['c'] = $uri[1];
-            @self::$func['m'] = explode('.',$uri[2])[0];
-            return ;
-        }
-        self::$func['c'] = self::DEFAULT_CONTROLLER;
-        self::$func['m'] = self::DEFAULT_METHOD;
-    }
 }

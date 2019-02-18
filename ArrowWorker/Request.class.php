@@ -24,10 +24,10 @@ class Request
      */
     public static function Init(array $get, array $post, array $server, array $files)
     {
-        $_GET    = $get;
-        $_POST   = $post;
-        $_FILES  = $files;
-        $_SERVER = array_change_key_case($server,CASE_UPPER);
+        $_GET[    Swoole::GetCid() ]  = $get;
+        $_POST[   Swoole::GetCid() ]  = $post;
+        $_FILES[  Swoole::GetCid() ]  = $files;
+        $_SERVER[ Swoole::GetCid() ]  = array_change_key_case($server,CASE_UPPER);
     }
 
     /**
@@ -36,7 +36,7 @@ class Request
      */
     public static function Method() : string
     {
-        return $_SERVER['REQUEST_METHOD'];
+        return $_SERVER[ Swoole::GetCid() ]['REQUEST_METHOD'];
     }
 
     /**
@@ -44,19 +44,19 @@ class Request
      * @param string $key
      * @return string|bool
      */
-    public static function Get(string $key)
+    public static function Get(string $key) : string
     {
-        return isset($_GET[$key]) ? $_GET[$key] : false;
+        return isset($_GET[Swoole::GetCid()] [$key]) ? $_GET[Swoole::GetCid()] [$key] : '';
     }
 
     /**
      * Post : return specified post data
      * @param string $key
-     * @return string|bool
+     * @return string
      */
-    public static function Post(string $key)
+    public static function Post(string $key) : string
     {
-        return ( !isset($_POST[$key]) ) ? false : $_POST[$key];
+        return ( !isset($_POST[Swoole::GetCid()] [$key]) ) ? '' : $_POST[Swoole::GetCid()] [$key];
     }
 
     /**
@@ -65,7 +65,7 @@ class Request
      */
     public static function Gets() : array
     {
-        return $_GET;
+        return $_GET[ Swoole::GetCid() ];
     }
 
     /**
@@ -74,7 +74,7 @@ class Request
      */
     public static function Posts() : array
     {
-        return $_POST;
+        return $_POST[ Swoole::GetCid() ] ;
     }
 
     /**
@@ -84,7 +84,7 @@ class Request
      */
     public static function Server(string $key)
     {
-        return ( !isset($_SERVER[$key]) ) ? false : $_SERVER[$key];
+        return ( !isset($_SERVER[Swoole::GetCid()][$key]) ) ? false : $_SERVER[Swoole::GetCid()][$key];
     }
 
     /**
@@ -93,16 +93,17 @@ class Request
      */
     public static function Servers()
     {
-        return $_SERVER;
+        return $_SERVER[ Swoole::GetCid() ];
     }
 
     /**
      * Servers : return all server data
+     * @param string $name
      * @return Upload|false
      */
-    public static function File(string $postName)
+    public static function File(string $name)
     {
-        return ( !isset($_FILES[$postName]) ) ? false : new Upload($postName);
+        return ( !isset($_FILES[Swoole::GetCid()][$name]) ) ? false : new Upload($name);
     }
 
     /**
@@ -111,7 +112,7 @@ class Request
      */
     public static function Files()
     {
-        return $_FILES;
+        return $_FILES[ Swoole::GetCid() ];
     }
 
 }
