@@ -16,9 +16,14 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
+        'pipeBufferSize'   => 1024*1024*100,
+        'socketBufferSize' => 1024*1024*100,
+        'maxRequest'       => 20000,
+        'reactorNum'       => 4,
         'maxContentLength' => 2088960,
+        'maxCoroutine'     => 10000,
         'enableStaticHandler' => false,
-        'documentRoot' => ''
+        'documentRoot'     => ''
     ];
 
     private static function _getHttpConfig()
@@ -42,9 +47,14 @@ class Swoole
             'worker_num' => static::$Http['workerNum'],
             'daemonize'  => false,
             'backlog'    => static::$Http['backlog'],
-            'package_max_length' => static::$Http['maxContentLength'],
+            'package_max_length'   => static::$Http['maxContentLength'],
             'enable_static_handler' => static::$Http['enableStaticHandler'],
-            'document_root' => static::$Http['documentRoot'],
+            'reactor_num'        => static::$Http['reactorNum'],
+            'pipe_buffer_size'   => static::$Http['pipeBufferSize'],
+            'socket_buffer_size' => static::$Http['socketBufferSize'],
+            'max_request'        => static::$Http['maxRequest'],
+            'max_coroutine'      => static::$Http['maxCoroutine'],
+            'document_root'      => static::$Http['documentRoot'],
             'log_file' => Log::$StdoutFile
         ]);
         $server->on('Request', function($request, $response) {
