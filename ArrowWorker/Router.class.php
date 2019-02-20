@@ -22,17 +22,9 @@ class Router
 
 	const DEFAULT_METHOD = 'index';
 
-	const CONTROLLER_NAMESPACE = '\\';
+	const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
 	private static $_restApiConfig = [];
-
-
-
-	/**
-	 * 路由返回格式
-	 * @var array
-	 */
-	private static $func = ['c'=> self::DEFAULT_CONTROLLER, 'm' => self::DEFAULT_METHOD];
 
 	public static function Init()
     {
@@ -55,23 +47,86 @@ class Router
 	 */
 	public static function Go()
     {
-
-    }
-
-    private static function exec()
-    {
-        $class  = self::$appController.ucfirst( static::$func['c'] );
-        $method = ucfirst( static::$func['m'] );
-
-        $controller = new $class;
-        if( !method_exists($controller, static::$func['m']) )
+        if( static::_restRouter() )
         {
-            throw new \Exception($class.'->'.$method.' does not exists',500);
+            return ;
         }
 
-        $controller -> $method();
+        if( static::_pathInfoRouter() )
+        {
+            return ;
+        }
+        if( static::_routeToDefault() )
+        {
+            return ;
+        }
+        static::_logAndResponse("request does not match any router");
     }
 
+    private static function _restRouter()
+    {
+        $uri    = Request::Server('REQUEST_URI');
+        $method = strtolower(Request::Method());
+        if( !isset(static::$_restApiConfig[$uri]) )
+        {
+            return false;
+        }
+
+        if( !isset(static::$_restApiConfig[$uri][$method]) )
+        {
+            return false;
+        }
+
+        list($class, $function) = explode('::',static::$_restApiConfig[$uri][$method]);
+        $class = self::CONTROLLER_NAMESPACE.$class;
+        return static::_routeToFunction($class, $function);
+    }
+
+    private static function _pathInfoRouter()
+    {
+        $uri      = Request::Server('REQUEST_URI');
+        $pathInfo = explode('/', $uri);
+        $pathLen  = count($pathInfo);
+        if( $pathLen>=3 )
+        {
+            $class = self::CONTROLLER_NAMESPACE.$pathInfo[0].'\\'.$pathInfo[1];
+            return static::_routeToFunction($class, $pathInfo[2]);
+        }
+        else if( $pathLen==2 )
+        {
+            $class = self::CONTROLLER_NAMESPACE.$pathInfo[0];
+            return static::_routeToFunction($class, $pathInfo[1]);
+        }
+        return false;
+    }
+
+    private static function _routeToDefault()
+    {
+        $class = self::CONTROLLER_NAMESPACE.DEFAULT_CONTROLLER;
+        return static::_routeToFunction($class, DEFAULT_METHOD);
+    }
+
+    private static function _routeToFunction(string $class, string $function)
+    {
+        if( !class_exists($class) )
+        {
+            static::_logAndResponse("rest api : {$class} does not exists.");
+        }
+
+        $controller = new $class;
+        if( !method_exists($controller, $function) )
+        {
+            static::_logAndResponse("rest api : {$class}->{$function} does not exists.");
+        }
+        $controller->$function();
+        return true;
+    }
+
+    private static function _logAndResponse(string $msg)
+    {
+        Log::Warning($msg);
+        Response::Write($msg);
+    }
 
 
 }

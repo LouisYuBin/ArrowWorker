@@ -32,7 +32,7 @@ class Request
 
     /**
      * Method:return current request method(get/post/put/delete...)
-     * @return mixed
+     * @return string
      */
     public static function Method() : string
     {
@@ -46,7 +46,7 @@ class Request
      */
     public static function Get(string $key) : string
     {
-        return isset($_GET[Swoole::GetCid()] [$key]) ? $_GET[Swoole::GetCid()] [$key] : '';
+        return isset($_GET[Swoole::GetCid()][$key]) ? $_GET[Swoole::GetCid()][$key] : '';
     }
 
     /**
@@ -56,7 +56,7 @@ class Request
      */
     public static function Post(string $key) : string
     {
-        return ( !isset($_POST[Swoole::GetCid()] [$key]) ) ? '' : $_POST[Swoole::GetCid()] [$key];
+        return ( !isset($_POST[Swoole::GetCid()][$key]) ) ? '' : $_POST[Swoole::GetCid()][$key];
     }
 
     /**

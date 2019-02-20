@@ -23,18 +23,13 @@ class Swoole
 
     private static function _getHttpConfig()
     {
-        $config = Config::Get("Swoole");
+        $config = Config::Get("Http");
         if( false===$config )
         {
             Log::Warning('swoole http configuration file does not exists, using default configuration');
         }
 
-        if( !isset($config['http']) )
-        {
-            Log::Warning('swoole http configuration key does not exists, using default configuration');
-        }
-
-        static::$Http = array_merge(static::$Http, $config['http']);
+        static::$Http = array_merge(static::$Http, $config);
     }
 
 
