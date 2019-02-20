@@ -9,9 +9,10 @@ return [
     'reactor_num' => 4,
     //size of request queue
     'backlog'   => 20000,
-    'pipe_buffer_size' => 1024*1024*100,
-    'socket_buffer_size' =>  1024*1024*100,
-    'max_coroutine' => 5000,
+    'pipe_buffer_size' => 1024*1024*200,
+    'socket_buffer_size' =>  1024*1024*200,
+    'max_request' => 20000,
+    'max_coroutine' => 50000,
     //max post data length
     'maxContentLength' => 20889600,
     //is enable request for static file
