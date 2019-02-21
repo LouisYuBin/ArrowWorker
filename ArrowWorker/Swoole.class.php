@@ -30,6 +30,7 @@ class Swoole
     {
         $config = array_merge(static::$defaultHttp, $config);
         return [
+            'port'       => $config['port'],
             'worker_num' => $config['workerNum'],
             'daemonize'  => false,
             'backlog'    => $config['backlog'],
