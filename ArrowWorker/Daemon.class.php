@@ -182,7 +182,7 @@ class Daemon
                 continue;
             }
 
-            if( $index==0 )  //start all swoole server
+            if( $pointedIndex==0 )  //start all swoole server
             {
                 $this->_startPointedSwooleServer($config, $index);
             }
