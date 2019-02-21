@@ -41,7 +41,7 @@ class Swoole
             'max_request'        => $config['maxRequest'],
             'max_coroutine'      => $config['maxCoroutine'],
             'document_root'      => $config['documentRoot'],
-            'log_file' => Log::$StdoutFile
+            'log_file'           => Log::$StdoutFile
         ];
     }
 
@@ -49,7 +49,7 @@ class Swoole
     {
         $config = static::_getHttpConfig($config);
         Router::Init();
-        $server = new Http("0.0.0.0", static::$Http['port']);
+        $server = new Http("0.0.0.0", $config['port']);
         $server->set($config);
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);

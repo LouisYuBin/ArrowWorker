@@ -177,7 +177,7 @@ class Daemon
         foreach ($configs as $index=>$config)
         {
             //必要配置不完整则不开启
-            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','websocket','tcp','udp']))
+            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','websocket','tcp','udp']) )
             {
                 continue;
             }
@@ -649,7 +649,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-       Log::Dump(static::LOG_PREFIX.'monitor process got a signal : '.$signal);
+        Log::Dump(static::LOG_PREFIX.'monitor process got a signal : '.$signal);
         switch($signal)
         {
             case SIGUSR1:
