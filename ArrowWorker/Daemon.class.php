@@ -8,6 +8,7 @@ namespace ArrowWorker;
 
 
 use ArrowWorker\Driver\Channel\Queue;
+use ArrowWorker\Lib\System\LoadAverage;
 
 /**
  * Class Daemon : demonize process
@@ -39,13 +40,13 @@ class Daemon
      * $pid : pid file for monitor process
      * @var mixed|string
      */
-    private static $pid = 'ArrowWorker';
+    private static $pid = 'Arrow';
     
     /**
      * appName : application name for service
      * @var mixed|string
      */
-    private static $appName = 'ArrowWorker';
+    private static $appName = 'Arrow';
 
     /**
      * pidMap : child process name
@@ -74,7 +75,7 @@ class Daemon
         $this -> _demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
         $this -> _setUser(self::$user);
-        $this -> _setProcessName(" V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
+        $this -> _setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         $this -> _createPidfile();
     }
 
@@ -101,26 +102,21 @@ class Daemon
 
         if ( is_array(APP_TYPE) )
         {
-            foreach ( APP_TYPE as $appType )
+            Log::Error('APP_TYPE is incorrect.');
+        }
+
+        foreach ( APP_TYPE as $appType )
+        {
+            if ( $appType=='server' )
             {
-                if ( $appType=='swHttp' )
-                {
-                    $this->_startSwHttpProcess();
-                }
-                else if( $appType=='worker' )
-                {
-                    $this->_startWorkerProcess();
-                }
+                $this->_startSwooleServer();
+            }
+            else if( $appType=='worker' )
+            {
+                $this->_startWorkerProcess();
             }
         }
-        else if( APP_TYPE=='swHttp' )
-        {
-            $this->_startSwHttpProcess();
-        }
-        else if( APP_TYPE=='worker' )
-        {
-            $this->_startWorkerProcess();
-        }
+
     }
 
     /**
@@ -137,7 +133,11 @@ class Daemon
         }
         else
         {
-            static::$pidMap['log'] = $pid;
+            static::$pidMap[] = [
+                'pid'   => $pid,
+                'type'  => 'log',
+                'index' => 0
+            ];
         }
     }
 
@@ -150,31 +150,87 @@ class Daemon
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting worker process');
-            static::_setProcessName('Worker monitor');
+            static::_setProcessName('Worker-group monitor');
             Worker::Start();
         }
         else
         {
-            static::$pidMap['worker'] = $pid;
+            static::$pidMap[] = [
+                'pid'   => $pid,
+                'type'  => 'worker',
+                'index' => 0
+            ];
         }
     }
 
+
     /**
-     * _startSwHttpProcess
+     * @param int $pointedIndex
      */
-    private function _startSwHttpProcess()
+    private function _startSwooleServer(int $pointedIndex=0)
+    {
+        $configs = Config::Get('Server');
+        if( false===$configs || !is_array($configs) )
+        {
+            return ;
+        }
+        foreach ($configs as $index=>$config)
+        {
+            //必要配置不完整则不开启
+            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','websocket','tcp','udp']))
+            {
+                continue;
+            }
+
+            if( $index==0 )  //start all swoole server
+            {
+                $this->_startPointedSwooleServer($config, $index);
+            }
+            else            // start specified swoole server only
+            {
+                if( $pointedIndex!=$index )
+                {
+                    continue ;
+                }
+                $this->_startPointedSwooleServer($config, $index);
+            }
+        }
+    }
+
+    private function _startPointedSwooleServer(array $config, int $index)
     {
         $pid = pcntl_fork();
         if($pid == 0)
         {
-            Log::Dump(static::LOG_PREFIX.'starting swoole http process');
-            static::_setProcessName(static::$appName.'swoole http');
-            Swoole::Http();
+            $processName = "swoole-{$config['type']}-{$index}";
+            Log::Dump(static::LOG_PREFIX."starting {$processName} process");
+            static::_setProcessName($processName);
+            if( $config['type']=='web' )
+            {
+                Swoole::StartHttpServer($config);
+            }
+            else if( $config['type']=='websocket' )
+            {
+                Swoole::StartWebsocketServer($config);
+            }
+            else if( $config['type']=='tcp' )
+            {
+                Swoole::StartTcpServer($config);
+            }
+            else if( $config['type']=='udp' )
+            {
+                Swoole::StartUdpServer($config);
+            }
+
             exit(0);
         }
         else
         {
-            static::$pidMap['swHttp'] = $pid;
+            static::$pidMap[] = [
+                'pid'   => $pid,
+                'index' => $index,
+                'type'  => 'server'
+            ];
         }
     }
 
@@ -189,10 +245,7 @@ class Daemon
         {
             if( self::$terminate )
             {
-                $this->_exitSwooleApp('swHttp');
-                $this->_exitSwooleApp('swWebsocket');
                 $this->_exitWorker();
-                $this->_exitLog();
                 $this->_exitMonitor();
             }
 
@@ -214,14 +267,17 @@ class Daemon
      */
     private function _handleExitedProcess(int $pid, int $status)
     {
-        foreach (static::$pidMap as $appType=>$prePid)
+        foreach (static::$pidMap as $key=>$eachProcess)
         {
-            if($pid != $prePid)
+            if($eachProcess['pid'] != $pid)
             {
                 continue;
             }
 
-            unset(static::$pidMap[$appType]);
+            $appType = $eachProcess['type'];
+            $index   = $eachProcess['index'];
+
+            unset(static::$pidMap[$key]);
 
             if( self::$terminate )
             {
@@ -239,74 +295,31 @@ class Daemon
             {
                 $this->_startWorkerProcess();
             }
-            else if( $appType=='swHttp' )
+            else if( $appType=='server' )
             {
-                $this->_startSwHttpProcess();
+                $this->_startSwooleServer($index);
             }
         }
     }
 
-
-    /**
-     * _exitSwHttp
-     */
-    private function _exitSwooleApp(string $appType)
-    {
-        if ( !isset(static::$pidMap[$appType]) )
-        {
-            return ;
-        }
-
-        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
-        for($i=0; $i<3; $i++)
-        {
-            if( posix_kill(static::$pidMap[$appType],SIGTERM) )
-            {
-                break ;
-            }
-            usleep(1000);
-        }
-    }
 
     /**
      * _exitWorker
      */
     private function _exitWorker()
     {
-        $appType = 'worker';
-        if ( !isset(static::$pidMap['worker']) ||
-              isset(static::$pidMap['swHttp']) ||
-              isset(static::$pidMap['swWebsocket']) )
+        foreach (static::$pidMap as $eachProcess)
         {
-            return ;
-        }
-
-        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
-        for($i=0; $i<3; $i++)
-        {
-            if( posix_kill(static::$pidMap[$appType],SIGTERM) )
-            {
-                break ;
-            }
-            usleep(1000);
+            $this->_exitProcess($eachProcess['type'], $eachProcess['pid']);
         }
     }
 
-    /**
-     * _exitLog
-     */
-    private function _exitLog()
+    private function _exitProcess(string $appType, int $pid)
     {
-        if( count(static::$pidMap)!=1 || !isset(static::$pidMap['log']) )
-        {
-           return ;
-        }
-
-        Log::Dump(static::LOG_PREFIX.'send signal to log process');
-
+        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
         for($i=0; $i<3; $i++)
         {
-            if( posix_kill(static::$pidMap['log'],SIGTERM) )
+            if( posix_kill($pid,SIGTERM) )
             {
                 break ;
             }
@@ -348,45 +361,137 @@ class Daemon
 
         $action = $argv[1];
 
-        if( !in_array($action, ['start','stop']) )
+        if( !in_array($action, ['start', 'stop', 'status']) )
         {
-            Log::DumpExit('unknown action, use << php index.php start/stop >> to start or stop Arrow Server');
+            Log::DumpExit('unknown action, use << php index.php start/stop/status >> to start or stop Arrow Server');
         }
 
-        if( $action!='stop' )
+        switch ($action)
         {
-            return ;
+            case 'stop':
+                static::_stop();
+                break;
+            case 'start':
+                static::_start();
+                break;
+            case 'status':
+                static::_status();
+                break;
+            default:
         }
 
-        $pid = (int)file_get_contents(static::$pid);
-        if( $pid==0 )
-        {
-            Log::DumpExit('Arrow Server is not running');
-        }
+    }
 
+    private static function _start()
+    {
+        Log::Hint('Arrow starting...');
+    }
+
+    private static function _stop()
+    {
+        $pid = static::_getDaemonPid();
         for($i=1; $i>0; $i++ )
         {
             if( $i==1 )
             {
                 if( posix_kill($pid,SIGTERM) )
                 {
-                    echo ('ArrowWorker process is exiting...'.PHP_EOL);
+                    echo ('Arrow process is exiting...'.PHP_EOL);
                 }
                 else
                 {
-                    Log::DumpExit('ArrowWorker process does not exists.');
+                    Log::DumpExit('Arrow process does not exists.');
                 }
             }
             else
             {
                 if( !posix_kill($pid,SIGTERM) )
                 {
-                    Log::DumpExit('ArrowWorker process is been stopped.');
+                    Log::DumpExit('Arrow process is been stopped.');
                 }
                 sleep(1);
             }
         }
+    }
 
+    private static function _status()
+    {
+        $output = static::_processStatus();
+        Log::DumpExit($output);
+    }
+
+    private static function _netStatus()
+    {
+        $keyword = static::$appName;
+        if( PHP_OS=='Darwin')
+        {
+            $keyword = 'index.php' ;
+        }
+        $commend = "ps -e -o 'user,pid,ppid,args,pcpu,%mem' | grep {$keyword}";
+        $output  = str_pad('user',10).
+            str_pad('pid',10).
+            str_pad('ppid',10).
+            str_pad('process name',25).
+            str_pad('cpu usage',15).
+            str_pad('memory usage',15).PHP_EOL;
+        $results = LoadAverage::GetCommandResult($commend);
+        foreach ($results as $key=>$item)
+        {
+            $param = preg_split('/\s{1,}/',$item);
+            if(false===$param || count($param)<8)
+            {
+                continue;
+            }
+            $output .= str_pad($param[0],10).
+                str_pad($param[1],10).
+                str_pad($param[2],10).
+                str_pad($param[3].' '.$param[4].' '.$param[5],25).
+                str_pad($param[6].'%',15).
+                str_pad($param[7].'%',15).PHP_EOL;
+        }
+        return $output;
+    }
+
+    private static function _processStatus()
+    {
+        $keyword = static::$appName;
+        if( PHP_OS=='Darwin')
+        {
+            $keyword = 'index.php' ;
+        }
+        $commend = "ps -e -o 'user,pid,ppid,args,pcpu,%mem' | grep {$keyword}";
+        $output  = str_pad('user',10).
+            str_pad('pid',10).
+            str_pad('ppid',10).
+            str_pad('process name',25).
+            str_pad('cpu usage',15).
+            str_pad('memory usage',15).PHP_EOL;
+        $results = LoadAverage::GetCommandResult($commend);
+        foreach ($results as $key=>$item)
+        {
+            $param = preg_split('/\s{1,}/',$item);
+            if(false===$param || count($param)<8)
+            {
+                continue;
+            }
+            $output .= str_pad($param[0],10).
+                str_pad($param[1],10).
+                str_pad($param[2],10).
+                str_pad($param[3].' '.$param[4].' '.$param[5],25).
+                str_pad($param[6].'%',15).
+                str_pad($param[7].'%',15).PHP_EOL;
+        }
+        return $output;
+    }
+
+    private static function _getDaemonPid() : int
+    {
+        $pid = (int)file_get_contents(static::$pid);
+        if( $pid==0 )
+        {
+            Log::DumpExit('Arrow Server is not running');
+        }
+        return $pid;
     }
 
     /**
@@ -510,11 +615,11 @@ class Daemon
 
         if ($pid > 0 && posix_kill($pid, 0))
         {
-            Log::DumpExit("ArrowWorker hint : process is already started");
+            Log::DumpExit("Arrow hint : process is already started");
         }
         else
         {
-            Log::DumpExit("ArrowWorker hint : process ended abnormally , Check your program." . self::$pid);
+            Log::DumpExit("Arrow hint : process ended abnormally , Check your program." . self::$pid);
         }
 
     }

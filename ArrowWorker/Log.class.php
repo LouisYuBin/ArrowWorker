@@ -349,8 +349,12 @@ class Log
      */
     public static function DumpExit(string $log)
     {
-        Log::Error($log);
         exit($log.PHP_EOL);
+    }
+
+    public static function Hint(string $log)
+    {
+        echo $log.PHP_EOL;
     }
 
 

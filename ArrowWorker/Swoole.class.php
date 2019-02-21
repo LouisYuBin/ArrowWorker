@@ -12,7 +12,7 @@ use \Swoole\Http\Server as Http;
 
 class Swoole
 {
-    public static $Http = [
+    public static $defaultHttp = [
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
@@ -26,37 +26,31 @@ class Swoole
         'documentRoot'     => ''
     ];
 
-    private static function _getHttpConfig()
+    private static function _getHttpConfig(array $config) : array
     {
-        $config = Config::Get("Http");
-        if( false===$config )
-        {
-            Log::Warning('swoole http configuration file does not exists, using default configuration');
-        }
-
-        static::$Http = array_merge(static::$Http, $config);
+        $config = array_merge(static::$defaultHttp, $config);
+        return [
+            'worker_num' => $config['workerNum'],
+            'daemonize'  => false,
+            'backlog'    => $config['backlog'],
+            'package_max_length'    => $config['maxContentLength'],
+            'enable_static_handler' => $config['enableStaticHandler'],
+            'reactor_num'        => $config['reactorNum'],
+            'pipe_buffer_size'   => $config['pipeBufferSize'],
+            'socket_buffer_size' => $config['socketBufferSize'],
+            'max_request'        => $config['maxRequest'],
+            'max_coroutine'      => $config['maxCoroutine'],
+            'document_root'      => $config['documentRoot'],
+            'log_file' => Log::$StdoutFile
+        ];
     }
 
-
-    public static function Http()
+    public static function StartHttpServer(array $config)
     {
-        static::_getHttpConfig();
+        $config = static::_getHttpConfig($config);
         Router::Init();
         $server = new Http("0.0.0.0", static::$Http['port']);
-        $server->set([
-            'worker_num' => static::$Http['workerNum'],
-            'daemonize'  => false,
-            'backlog'    => static::$Http['backlog'],
-            'package_max_length'   => static::$Http['maxContentLength'],
-            'enable_static_handler' => static::$Http['enableStaticHandler'],
-            'reactor_num'        => static::$Http['reactorNum'],
-            'pipe_buffer_size'   => static::$Http['pipeBufferSize'],
-            'socket_buffer_size' => static::$Http['socketBufferSize'],
-            'max_request'        => static::$Http['maxRequest'],
-            'max_coroutine'      => static::$Http['maxCoroutine'],
-            'document_root'      => static::$Http['documentRoot'],
-            'log_file' => Log::$StdoutFile
-        ]);
+        $server->set($config);
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);
             Request::Init(
@@ -71,6 +65,22 @@ class Swoole
         });
 
         $server->start();
+    }
+
+    public static function StartWebsocketServer(array $config)
+    {
+
+    }
+
+
+    public static function StartTcpServer(array $config)
+    {
+
+    }
+
+    public static function StartUdpServer(array $config)
+    {
+
     }
 
     /**
