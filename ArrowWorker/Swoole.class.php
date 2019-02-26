@@ -8,11 +8,12 @@ namespace ArrowWorker;
 
 use \Swoole\Coroutine as Co;
 use \Swoole\Http\Server as Http;
+use \Swoole\Server;
 
 
 class Swoole
 {
-    public static $defaultHttp = [
+    public static $defaultHttpConfig = [
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
@@ -22,13 +23,28 @@ class Swoole
         'reactorNum'       => 4,
         'maxContentLength' => 2088960,
         'maxCoroutine'     => 10000,
+        'enableCoroutine'  => true,
         'enableStaticHandler' => false,
         'documentRoot'     => ''
     ];
 
+    public static $defaultTcpConfig = [
+        'port'      => 8888,
+        'workerNum' => 4,
+        'backlog'   => 1000,
+        'pipeBufferSize'   => 1024*1024*100,
+        'socketBufferSize' => 1024*1024*100,
+        'enableCoroutine'  => true,
+        'maxRequest'       => 20000,
+        'reactorNum'       => 4,
+        'maxContentLength' => 2088960,
+        'maxCoroutine'     => 10000,
+        'mode'             => SWOOLE_PROCESS
+    ];
+
     private static function _getHttpConfig(array $config) : array
     {
-        $config = array_merge(static::$defaultHttp, $config);
+        $config = array_merge(static::$defaultHttpConfig, $config);
         return [
             'port'       => $config['port'],
             'worker_num' => $config['workerNum'],
@@ -40,8 +56,27 @@ class Swoole
             'pipe_buffer_size'   => $config['pipeBufferSize'],
             'socket_buffer_size' => $config['socketBufferSize'],
             'max_request'        => $config['maxRequest'],
+            'enable_coroutine'   => $config['enableCoroutine'],
             'max_coroutine'      => $config['maxCoroutine'],
             'document_root'      => $config['documentRoot'],
+            'log_file'           => Log::$StdoutFile
+        ];
+    }
+
+    private static function _getTcpConfig(array $config) : array
+    {
+        $config = array_merge(static::$defaultHttpConfig, $config);
+        return [
+            'port'       => $config['port'],
+            'worker_num' => $config['workerNum'],
+            'daemonize'  => false,
+            'backlog'    => $config['backlog'],
+            'reactor_num'        => $config['reactorNum'],
+            'pipe_buffer_size'   => $config['pipeBufferSize'],
+            'socket_buffer_size' => $config['socketBufferSize'],
+            'max_request'        => $config['maxRequest'],
+            'enable_coroutine'   => $config['enableCoroutine'],
+            'max_coroutine'      => $config['maxCoroutine'],
             'log_file'           => Log::$StdoutFile
         ];
     }
@@ -70,7 +105,13 @@ class Swoole
 
     public static function StartWebsocketServer(array $config)
     {
-
+        $config = static::_getTcpConfig($config);
+        $server = new Server('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_TCP);
+        $server->set($config);
+        $server->on('connect', $config['handler']['connect']);
+        $server->on('receive', $config['handler']['receive']);
+        $server->on('close',   $config['handler']['close']);
+        $server->start();
     }
 
 
