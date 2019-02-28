@@ -209,9 +209,9 @@ class Daemon
             {
                 Swoole::StartHttpServer($config);
             }
-            else if( $config['type']=='websocket' )
+            else if( $config['type']=='webSocket' )
             {
-                Swoole::StartWebsocketServer($config);
+                Swoole::StartWebSocketServer($config);
             }
             else if( $config['type']=='tcp' )
             {

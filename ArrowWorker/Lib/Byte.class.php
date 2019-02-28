@@ -6,7 +6,13 @@
 class Byte
 {
 
-     public static function StringToBytes(string $string, string $charset='UTF-8') : array
+    /**
+     * convert string to byte array
+     * @param string $string
+     * @param string $charset
+     * @return array
+     */
+    public static function StringToBytes(string $string, string $charset='UTF-8') : array
      {
         $string = iconv($charset,'UTF-16', $string);
         $bytes  = [];
@@ -19,6 +25,12 @@ class Byte
 
     }
 
+    /**
+     * convert byte array to string
+     * @param array  $bytes
+     * @param string $charset
+     * @return string
+     */
     public static function BytesToString(array $bytes, string $charset='UTF-8') : string
     {
         $bytes  = array_map('chr', $bytes);

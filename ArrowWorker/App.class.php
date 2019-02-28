@@ -20,18 +20,10 @@ class App
      */
     public static function RunApp()
     {
+
         set_time_limit(0);
         ini_set('memory_limit', '128M');
-
-
-        if( APP_TYPE=='fpm' )
-        {
-            Router::Start();
-        }
-        else
-        {
-            Daemon::Start();
-        }
+        Daemon::Start();
 
     }
 

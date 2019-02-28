@@ -8,11 +8,17 @@ namespace ArrowWorker;
 
 use \Swoole\Coroutine as Co;
 use \Swoole\Http\Server as Http;
-use \Swoole\Server;
+use \Swoole\Server as SocketServer;
+use \Swoole\WebSocket\Server as WebSocket;
 
 
 class Swoole
 {
+    const WEB_SERVER        = 1;
+    const WEB_SOCKET_SERVER = 2;
+    const TCP_SERVER    = 3;
+    const UDP_SERVER    = 4;
+
     public static $defaultHttpConfig = [
         'port'      => 8888,
         'workerNum' => 4,
@@ -42,9 +48,52 @@ class Swoole
         'mode'             => SWOOLE_PROCESS
     ];
 
-    private static function _getHttpConfig(array $config) : array
+    public static $defaultWebSocketConfig = [
+        'port'      => 8888,
+        'workerNum' => 4,
+        'backlog'   => 1000,
+        'pipeBufferSize'   => 1024*1024*100,
+        'socketBufferSize' => 1024*1024*100,
+        'enableCoroutine'  => true,
+        'maxRequest'       => 20000,
+        'reactorNum'       => 4,
+        'maxContentLength' => 2088960,
+        'maxCoroutine'     => 10000,
+        'mode'             => SWOOLE_PROCESS
+    ];
+
+
+    public static $defaultUdpConfig = [
+        'port'      => 8888,
+        'workerNum' => 4,
+        'backlog'   => 1000,
+        'pipeBufferSize'   => 1024*1024*100,
+        'socketBufferSize' => 1024*1024*100,
+        'enableCoroutine'  => true,
+        'maxRequest'       => 20000,
+        'reactorNum'       => 4,
+        'maxContentLength' => 2088960,
+        'maxCoroutine'     => 10000,
+        'mode'             => SWOOLE_PROCESS
+    ];
+
+    private static function _getConfig(int $type, array $config) : array
     {
-        $config = array_merge(static::$defaultHttpConfig, $config);
+        switch ($type)
+        {
+            case static::WEB_SERVER:
+                $defaultConfig = static::$defaultHttpConfig;
+                break;
+            case static::WEB_SOCKET_SERVER:
+                $defaultConfig = static::$defaultWebSocketConfig;
+                break;
+            case static::TCP_SERVER:
+                $defaultConfig = static::$defaultTcpConfig;
+                break;
+            default:
+                $defaultConfig = static::$defaultUdpConfig;
+        }
+        $config = array_merge($defaultConfig, $config);
         return [
             'port'       => $config['port'],
             'worker_num' => $config['workerNum'],
@@ -63,27 +112,9 @@ class Swoole
         ];
     }
 
-    private static function _getTcpConfig(array $config) : array
-    {
-        $config = array_merge(static::$defaultHttpConfig, $config);
-        return [
-            'port'       => $config['port'],
-            'worker_num' => $config['workerNum'],
-            'daemonize'  => false,
-            'backlog'    => $config['backlog'],
-            'reactor_num'        => $config['reactorNum'],
-            'pipe_buffer_size'   => $config['pipeBufferSize'],
-            'socket_buffer_size' => $config['socketBufferSize'],
-            'max_request'        => $config['maxRequest'],
-            'enable_coroutine'   => $config['enableCoroutine'],
-            'max_coroutine'      => $config['maxCoroutine'],
-            'log_file'           => Log::$StdoutFile
-        ];
-    }
-
     public static function StartHttpServer(array $config)
     {
-        $config = static::_getHttpConfig($config);
+        $config = static::_getConfig(static::WEB_SERVER, $config);
         Router::Init();
         $server = new Http("0.0.0.0", $config['port']);
         $server->set($config);
@@ -103,10 +134,10 @@ class Swoole
         $server->start();
     }
 
-    public static function StartWebsocketServer(array $config)
+    public static function StartWebSocketServer(array $config)
     {
-        $config = static::_getTcpConfig($config);
-        $server = new Server('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_TCP);
+        $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
+        $server = new WebSocket('0.0.0.0', $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('connect', $config['handler']['connect']);
         $server->on('receive', $config['handler']['receive']);
@@ -117,12 +148,24 @@ class Swoole
 
     public static function StartTcpServer(array $config)
     {
-
+        $config = static::_getConfig(static::TCP_SERVER, $config);
+        $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_TCP);
+        $server->set($config);
+        $server->on('connect', $config['handler']['connect']);
+        $server->on('receive', $config['handler']['receive']);
+        $server->on('close',   $config['handler']['close']);
+        $server->start();
     }
 
     public static function StartUdpServer(array $config)
     {
-
+        $config = static::_getConfig(static::UDP_SERVER, $config);
+        $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_UDP);
+        $server->set($config);
+        $server->on('connect', $config['handler']['connect']);
+        $server->on('receive', $config['handler']['receive']);
+        $server->on('close',   $config['handler']['close']);
+        $server->start();
     }
 
     /**

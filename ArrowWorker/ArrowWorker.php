@@ -113,7 +113,9 @@ class ArrowWorker
             $class = APP_PATH.DIRECTORY_SEPARATOR.str_replace(['\\',explode('\\', $class)[0]],"/",$class).static::classExt;
             if( !file_exists($class) )
             {
-                throw new \Exception("Auto load class error : ".$class." does not exists.");
+                $msg = "Auto load class error : ".$class." does not exists.";
+                Log::Error($msg);
+                Log::DumpExit($msg);
             }
         }
         require $class;
