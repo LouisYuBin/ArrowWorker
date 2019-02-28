@@ -16,8 +16,10 @@ class Swoole
 {
     const WEB_SERVER        = 1;
     const WEB_SOCKET_SERVER = 2;
-    const TCP_SERVER    = 3;
-    const UDP_SERVER    = 4;
+    const TCP_SERVER        = 3;
+    const UDP_SERVER        = 4;
+
+    const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
     public static $defaultHttpConfig = [
         'port'      => 8888,
@@ -139,9 +141,9 @@ class Swoole
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
         $server = new WebSocket('0.0.0.0', $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
-        $server->on('connect', $config['handler']['connect']);
-        $server->on('receive', $config['handler']['receive']);
-        $server->on('close',   $config['handler']['close']);
+        $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
+        $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
+        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }
 
@@ -151,9 +153,9 @@ class Swoole
         $config = static::_getConfig(static::TCP_SERVER, $config);
         $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
-        $server->on('connect', $config['handler']['connect']);
-        $server->on('receive', $config['handler']['receive']);
-        $server->on('close',   $config['handler']['close']);
+        $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
+        $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
+        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }
 
@@ -162,9 +164,9 @@ class Swoole
         $config = static::_getConfig(static::UDP_SERVER, $config);
         $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
-        $server->on('connect', $config['handler']['connect']);
-        $server->on('receive', $config['handler']['receive']);
-        $server->on('close',   $config['handler']['close']);
+        $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
+        $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
+        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }
 
