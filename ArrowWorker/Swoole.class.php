@@ -61,7 +61,6 @@ class Swoole
         'reactorNum'       => 4,
         'maxContentLength' => 2088960,
         'maxCoroutine'     => 10000,
-        'mode'             => SWOOLE_PROCESS
     ];
 
 
@@ -110,7 +109,8 @@ class Swoole
             'enable_coroutine'   => $config['enableCoroutine'],
             'max_coroutine'      => $config['maxCoroutine'],
             'document_root'      => $config['documentRoot'],
-            'log_file'           => Log::$StdoutFile
+            'log_file'           => Log::$StdoutFile,
+            'handler'            => $config['handler']
         ];
     }
 
@@ -139,7 +139,7 @@ class Swoole
     public static function StartWebSocketServer(array $config)
     {
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
-        $server = new WebSocket('0.0.0.0', $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
+        $server = new WebSocket('0.0.0.0', $config['port']);
         $server->set($config);
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);

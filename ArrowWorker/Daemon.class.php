@@ -177,10 +177,11 @@ class Daemon
         foreach ($configs as $index=>$config)
         {
             //必要配置不完整则不开启
-            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','websocket','tcp','udp']) )
+            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','webSocket','tcp','udp']) )
             {
                 continue;
             }
+
 
             if( $pointedIndex==0 )  //start all swoole server
             {
@@ -469,17 +470,7 @@ class Daemon
         $results = LoadAverage::GetCommandResult($commend);
         foreach ($results as $key=>$item)
         {
-            $param = preg_split('/\s{1,}/',$item);
-            if(false===$param || count($param)<8)
-            {
-                continue;
-            }
-            $output .= str_pad($param[0],10).
-                str_pad($param[1],10).
-                str_pad($param[2],10).
-                str_pad($param[3].' '.$param[4].' '.$param[5],25).
-                str_pad($param[6].'%',15).
-                str_pad($param[7].'%',15).PHP_EOL;
+            $output .= $item.PHP_EOL;
         }
         return $output;
     }
