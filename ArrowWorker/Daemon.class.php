@@ -100,7 +100,7 @@ class Daemon
     {
         $this->_startLogProcess();
 
-        if ( is_array(APP_TYPE) )
+        if ( !is_array(APP_TYPE) )
         {
             Log::Error('APP_TYPE is incorrect.');
         }
@@ -127,7 +127,7 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-           Log::Dump(static::LOG_PREFIX.'starting log process');
+            Log::Dump(static::LOG_PREFIX.'starting log process');
             static::_setProcessName('log');
             Log::Start();
         }
@@ -588,7 +588,7 @@ class Daemon
         fwrite($fp, posix_getpid());
         fclose($fp);
 
-       Log::Dump(static::LOG_PREFIX."creating pid file " . self::$pid);
+        Log::Dump(static::LOG_PREFIX."creating pid file " . self::$pid);
     }
 
     /**

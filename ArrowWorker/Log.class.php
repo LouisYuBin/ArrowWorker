@@ -154,6 +154,8 @@ class Log
      */
     private static $outputLevel = 30719;
 
+    private static $_function   = '_writeToFile';
+
 
 
     /**
@@ -163,8 +165,8 @@ class Log
     {
         static::_checkExtension();
         static::_initConfig();
-        static::_resetStd();
         static::_initHandler();
+        static::_resetStd();
     }
 
     private static function _checkExtension()
@@ -189,10 +191,12 @@ class Log
             ],
                 'log'
             );
+            static::$_function = '_writeToRedis';
         }
         else if( static::$writeType==static::TO_FILE )
         {
             static::_initFile();
+            static::$_function = '_writeToFile';
         }
         else if( static::$writeType==static::TO_ALL )
         {
@@ -205,6 +209,7 @@ class Log
             );
 
             static::_initFile();
+            static::$_function = '_writeToAll';
         }
     }
 
@@ -449,6 +454,7 @@ class Log
     {
         static::_setSignalHandler();
         pcntl_alarm(static::SIZE_CHECK_PERIOD);
+        $function = static::$_function;
         while( true )
         {
             if( static::$isTerminate )
@@ -457,18 +463,7 @@ class Log
             }
 
             pcntl_signal_dispatch();
-            if( static::$writeType==static::TO_FILE )
-            {
-                static::_writeToFile();
-            }
-            else if( static::$writeType==static::TO_REDIS )
-            {
-                static::_writeToRedis();
-            }
-            else if( static::$writeType==static::TO_ALL )
-            {
-                static::_writeToAll();
-            }
+            static::$function();
             pcntl_signal_dispatch();
         }
     }
