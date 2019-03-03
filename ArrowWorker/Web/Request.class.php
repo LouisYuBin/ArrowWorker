@@ -5,7 +5,7 @@
  * Date:   18-1-1
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Web;
 
 
 /**

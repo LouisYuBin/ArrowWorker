@@ -11,6 +11,11 @@ use \Swoole\Http\Server as Http;
 use \Swoole\Server as SocketServer;
 use \Swoole\WebSocket\Server as WebSocket;
 
+use \ArrowWorker\Web\Response;
+use \ArrowWorker\Web\Request;
+use \ArrowWorker\Web\Router;
+use \ArrowWorker\Web\Session;
+use \ArrowWorker\Web\Cookie;
 
 class Swoole
 {

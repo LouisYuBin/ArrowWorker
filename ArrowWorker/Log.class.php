@@ -69,7 +69,7 @@ class Log
      * write log to file
      * @var string
      */
-    private static $writeType = 'File';
+    private static $_writeType = 'File';
 
     /**
      * host ip of redis
@@ -182,35 +182,41 @@ class Log
      */
     private static function _initHandler()
     {
-        if(static::$writeType==static::TO_REDIS)
+        switch( static::$_writeType)
         {
-            static::$redis = Redis::Init([
-                'host' => static::$host,
-                'port' => static::$port,
-                'password' => static::$password
-            ],
-                'log'
-            );
-            static::$_function = '_writeToRedis';
-        }
-        else if( static::$writeType==static::TO_FILE )
-        {
-            static::_initFile();
-            static::$_function = '_writeToFile';
-        }
-        else if( static::$writeType==static::TO_ALL )
-        {
-            static::$redis = Redis::Init([
-                'host' => static::$host,
-                'port' => static::$port,
-                'password' => static::$password
-            ],
-                'log'
-            );
+            case static::TO_REDIS:
+                static::$redis = Redis::Init([
+                    'host' => static::$host,
+                    'port' => static::$port,
+                    'password' => static::$password
+                ],
+                    'log'
+                );
+                static::$_function = '_writeToRedis';
+                break;
+            case static::TO_FILE;
+                static::_initFile();
+                static::$_function = '_writeToFile';
+                break;
+            case static::TO_ALL;
+                static::$redis = Redis::Init([
+                    'host' => static::$host,
+                    'port' => static::$port,
+                    'password' => static::$password
+                ],
+                    'log'
+                );
 
-            static::_initFile();
-            static::$_function = '_writeToAll';
+                static::_initFile();
+                static::$_function = '_writeToAll';
+                break;
+            default:
+                static::_initFile();
+                static::$_function = '_writeToFile';
+
         }
+        static::_selectLogChan();
+
     }
 
     /**
@@ -273,7 +279,7 @@ class Log
 
         static::$bufSize = $config['bufSize'] ?? static::$bufSize;
         static::$baseDir = $config['baseDir'] ?? static::$baseDir;
-        static::$writeType = $config['type'] ?? static::$writeType;
+        static::$_writeType = $config['type'] ?? static::$_writeType;
         static::$host = $config['host'] ?? static::$host;
         static::$port = $config['port'] ?? static::$port;
         static::$password = $config['password'] ?? static::$password;
@@ -387,6 +393,7 @@ class Log
         $log = static::_selectLogChan()->Read();
         if( $log !== false )
         {
+            usleep(100000);
            return ;
         }
 
@@ -408,7 +415,7 @@ class Log
         $log = static::_selectLogChan()->Read();
         if( $log === false )
         {
-            usleep(1000);
+            usleep(100000);
             return ;
         }
 
@@ -429,6 +436,7 @@ class Log
         $log = static::_selectLogChan()->Read();
         if( $log === false )
         {
+            usleep(100000);
             return ;
         }
 

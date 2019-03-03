@@ -5,7 +5,8 @@
  * Time: 上午12:51
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Web;
+
 use ArrowWorker\Config;
 
 

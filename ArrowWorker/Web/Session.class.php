@@ -5,7 +5,7 @@
  * Date:   17-12-31
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Web;
 use ArrowWorker\Driver\Session\MemcachedSession;
 use ArrowWorker\Driver\Session\RedisSession;
 

@@ -4,7 +4,7 @@
  * Time: 18-5-11 上午10:34
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Web;
 
 /**
  * Class Upload

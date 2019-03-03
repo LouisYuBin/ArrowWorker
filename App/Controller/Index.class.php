@@ -6,14 +6,14 @@
  */
 
 namespace App\Controller;
-use ArrowWorker\Cookie;
+use ArrowWorker\Web\Cookie;
 use ArrowWorker\Driver;
 use ArrowWorker\Lib\Validation\ValidateImg;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
-use ArrowWorker\Request;
-use ArrowWorker\Response;
-use ArrowWorker\Session;
+use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Response;
+use ArrowWorker\Web\Session;
 
 
 class Index
