@@ -7,6 +7,8 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Swoole;
+
 
 /**
  * Class Request

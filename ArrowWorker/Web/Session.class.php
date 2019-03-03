@@ -6,6 +6,8 @@
  */
 
 namespace ArrowWorker\Web;
+
+use ArrowWorker\Swoole;
 use ArrowWorker\Driver\Session\MemcachedSession;
 use ArrowWorker\Driver\Session\RedisSession;
 

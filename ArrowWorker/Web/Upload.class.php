@@ -6,6 +6,8 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Swoole;
+
 /**
  * Class Upload
  * @package ArrowWorker

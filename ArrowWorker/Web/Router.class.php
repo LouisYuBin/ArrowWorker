@@ -9,7 +9,6 @@ namespace ArrowWorker\Web;
 
 use ArrowWorker\Config;
 
-
 /**
  * Class Router
  * @package ArrowWorker

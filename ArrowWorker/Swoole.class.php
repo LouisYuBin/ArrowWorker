@@ -126,7 +126,7 @@ class Swoole
         $server = new Http("0.0.0.0", $config['port']);
         $server->set($config);
         $server->on('Request', function($request, $response) {
-            Cookie::Init(is_array($request->cookie) ? $request->cookie : [], $response);
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],

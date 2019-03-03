@@ -6,42 +6,33 @@
  * Time: 下午6:30
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Lib\Client;
 
-use \Swoole\Http\Client;
+use \Swoole\Coroutine\Http\Client;
 
 
 class WebSocket
 {
     private $_instance = null;
+    private $_uri      = '/';
+    private $_message  = '';
 
     private function __construct(string $host, int $port=80)
     {
         $this->_instance = new Client($host, $port);
     }
 
+
     public static function Connect(string $host, int $port)
     {
-        return new self($host,$port);
+        return new self($host, $port);
     }
 
-    public  function Push(string $data,int $type=WEBSOCKET_OPCODE_TEXT, $fin=1)
+    public function Push(string $data,string $uri='/') : bool
     {
-        $this->_instance->push($data, $type, $fin);
+        $this->_instance->upgrade( $uri );
+        return  $this->_instance->push($data);
     }
 
-    public function Post(string $uri='',array $data)
-    {
-        $return = '';
-        $this->_instance->post('uri', $data, function (&$return) {
-            $return = $this->_instance->body;
-        });
-        return $return;
-    }
-
-    public function Get()
-    {
-
-    }
 
 }

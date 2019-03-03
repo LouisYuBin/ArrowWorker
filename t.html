@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+
+
+        var ws = new WebSocket("ws://localhost:9503/");
+
+        ws.onopen = function(evt) {
+            console.log("Connection open ...");
+            ws.send("Hello WebSockets!");
+        };
+
+        ws.onmessage = function(evt) {
+            console.log("Received Message: " + evt.data);
+        };
+
+        ws.onclose = function(evt) {
+            console.log("Connection closed.");
+
+        }
+
+        ws.send("data from h5 client");
+        ws.send("data from h5 client_1");
+    </script>
+</head>
+<body>
+
+</body>
+</html>

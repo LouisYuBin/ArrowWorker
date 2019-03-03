@@ -7,6 +7,8 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Swoole;
+
 
 /**
  * Class Response
@@ -63,6 +65,13 @@ class Response
     public static function Header(string $key, string $val)
     {
         static::$response[Swoole::GetCid()]->header($key,$val);
+    }
+
+
+    public static function Cookie(string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
+    {
+        static::$repsonse[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        return true;
     }
 
 }

@@ -143,7 +143,6 @@ class ArrowWorker
             'ArrowWorker\Log'        => ArrowWorker . '/Log'  . self::classExt,
             'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
             'ArrowWorker\Worker'     => ArrowWorker . '/Worker'  . self::classExt,
-            'ArrowWorker\Client'     => ArrowWorker . '/Client'  . self::classExt,
 
             'ArrowWorker\Web\Session'    => ArrowWorker . '/Web/Session'  . self::classExt,
             'ArrowWorker\Web\Cookie'     => ArrowWorker . '/Web/Cookie'   . self::classExt,
@@ -151,7 +150,6 @@ class ArrowWorker
             'ArrowWorker\Web\Request'    => ArrowWorker . '/Web/Request'  . self::classExt,
             'ArrowWorker\Web\Router'     => ArrowWorker . '/Web/Router'   . self::classExt,
             'ArrowWorker\Web\Upload'     => ArrowWorker . '/Web/Upload'   . self::classExt,
-
 
 
             'ArrowWorker\Lib\Bytes'                  => ArrowWorker  . '/Lib/Crypto/Bytes' . self::classExt,
@@ -164,6 +162,7 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifHelper'     => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage' . self::classExt,
+            'ArrowWorker\Lib\Client\WebSocket'     => ArrowWorker . '/Lib/Client/WebSocket'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,

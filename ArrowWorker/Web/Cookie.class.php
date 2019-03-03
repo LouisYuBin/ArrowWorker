@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Swoole;
 use ArrowWorker\Lib\Crypto\CryptoArrow;
 
 /**
@@ -36,12 +37,10 @@ class Cookie
     /**
      * Init : init cookie and swoole response handler
      * @param array $cookies
-     * @param \Swoole\Http\Response $response
      */
-    public static function Init(array $cookies, \Swoole\Http\Response $response)
+    public static function Init(array $cookies)
     {
-        $_COOKIE = $cookies;
-        static::$repsonse = $response;
+        $_COOKIE[ Swoole::GetCid() ] = $cookies;
     }
 
     /**
@@ -51,9 +50,9 @@ class Cookie
      */
     public static function Get(string $key)
 	{
-		if( isset($_COOKIE[$key]) )
+		if( isset($_COOKIE[Swoole::GetCid()][$key]) )
 		{
-			return CryptoArrow::Decrypt($_COOKIE[$key]);
+			return CryptoArrow::Decrypt($_COOKIE[Swoole::GetCid()][$key]);
 		}
 		return false;
 	}
@@ -67,11 +66,11 @@ class Cookie
      * @param null $domain
      * @return bool
      */
-    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httponly=true) : bool
+    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
 	{
 		$expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
 		$val    = CryptoArrow::Encrypt($val);
-		return static::SetByDriver($name, $val, $expire, $path, $domain, $secure, $httponly);
+        return Response::Cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
 	}
 
     /**
@@ -80,28 +79,9 @@ class Cookie
      */
     public static function All() : array
 	{
-		return $_COOKIE;
+		return $_COOKIE[ Swoole::GetCid() ];
 	}
 
 
-    /**
-     * SetByDriver : set cookie by app type
-     * @param string $name
-     * @param string $val
-     * @param int $expire
-     * @param string $path
-     * @param null $domain
-     * @return bool
-     */
-    private static function SetByDriver(string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
-    {
-        if( is_null(static::$repsonse) )
-        {
-            return setcookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
-        }
-
-        static::$repsonse->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
-        return true;
-    }
 
 }
