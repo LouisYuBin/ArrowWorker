@@ -82,6 +82,11 @@ class Cookie
 		return $_COOKIE[ Swoole::GetCid() ];
 	}
 
+	public static function Release()
+    {
+        unset($_COOKIE[Swoole::GetCid()]);
+    }
+
 
 
 }

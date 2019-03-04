@@ -14,10 +14,11 @@ use \Swoole\WebSocket\Frame  as WebSocketFrame;
 class WebSocket
 {
 
-    public static function Open(WebSocketServer $server, $req)
+    public static function Open(WebSocketServer $server, \Swoole\Http\Request $req)
     {
         $memory = Memory::Get('clients');
         $memory->IsKeyExists($req->fd);
+        var_dump($req);
  /*       var_dump( $memory->Write($req->fd, $req->fd) );
         var_dump($memory->IsKeyExists($req->fd));*/
         Log::Info( "connection open: {$req->fd}");

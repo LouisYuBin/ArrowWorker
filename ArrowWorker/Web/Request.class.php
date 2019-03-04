@@ -117,4 +117,13 @@ class Request
         return $_FILES[ Swoole::GetCid() ];
     }
 
+    /**
+     * release resource for request
+     */
+    public static function Release()
+    {
+        $coId = Swoole::GetCid();
+        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId],$_SERVER[$coId]);
+    }
+
 }

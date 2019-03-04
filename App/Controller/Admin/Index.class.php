@@ -19,9 +19,14 @@ class Index
 
     public function get()
     {
-        $cli = WebSocket::Connect('127.0.0.1',9503);
-        $cli->Push(mt_rand(1,1000).'_from http');
+        $this->_webSocketClient();
         Response::Write('rest get');
+    }
+
+    private function _webSocketClient()
+    {
+        $cli = WebSocket::Connect('127.0.0.1',9503);
+        $cli->Push(mt_rand(1,1000).'_from http','/?a=a&b=b');
     }
 
     public function put()

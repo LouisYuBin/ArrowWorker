@@ -121,12 +121,12 @@ class Swoole
 
     public static function StartHttpServer(array $config)
     {
-        $config = static::_getConfig(static::WEB_SERVER, $config);
         Router::Init();
+        $config = static::_getConfig(static::WEB_SERVER, $config);
         $server = new Http("0.0.0.0", $config['port']);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
-            Log::Dump("swoole http server started ,listing at port : ".$config['port']);
+            Log::Dump("swoole http server started ,listening at port : ".$config['port']);
         });
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
@@ -139,6 +139,11 @@ class Swoole
             Session::Reset();
             Response::Init($response);
             Router::Go();
+            defer(function() {
+                Cookie::Release();
+                Request::Release();
+                Response::Release();
+            });
         });
 
         $server->start();
@@ -146,11 +151,12 @@ class Swoole
 
     public static function StartWebSocketServer(array $config)
     {
+        Router::Init();
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
         $server = new WebSocket('0.0.0.0', $config['port']);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
-            Log::Dump("swoole websocket server started ,listing at port : ".$config['port']);
+            Log::Dump("swoole websocket server started ,listening at port : ".$config['port']);
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
@@ -165,6 +171,11 @@ class Swoole
             Session::Reset();
             Response::Init($response);
             Router::Go();
+            defer(function(){
+                Cookie::Release();
+                Request::Release();
+                Response::Release();
+            });
         });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();

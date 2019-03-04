@@ -20,15 +20,15 @@ class Response
      * response handler for swoole
      * @var null
      */
-    private static $response = [];
+    private static $_response = [];
 
     /**
      * Init : init swoole response handler
-     * @param \Swoole\Http\Response $response
+     * @param \Swoole\Http\Response $_response
      */
     public static function Init(\Swoole\Http\Response $response)
     {
-        static::$response[Swoole::GetCid()] = $response;
+        static::$_response[Swoole::GetCid()] = $response;
     }
 
     /**
@@ -53,7 +53,7 @@ class Response
      */
     public static function Write(string $msg)
     {
-        static::$response[Swoole::GetCid()]->end( $msg );
+        static::$_response[Swoole::GetCid()]->end( $msg );
     }
 
     /**
@@ -64,14 +64,19 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        static::$response[Swoole::GetCid()]->header($key,$val);
+        static::$_response[Swoole::GetCid()]->header($key,$val);
     }
 
 
     public static function Cookie(string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
     {
-        static::$repsonse[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        static::$_response[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
+    }
+    
+    public static function Release()
+    {
+        unset(static::$_response[Swoole::GetCid()]);
     }
 
 }
