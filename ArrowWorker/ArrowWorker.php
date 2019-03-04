@@ -153,6 +153,8 @@ class ArrowWorker
             'ArrowWorker\Web\Request'    => ArrowWorker . '/Web/Request'  . self::classExt,
             'ArrowWorker\Web\Router'     => ArrowWorker . '/Web/Router'   . self::classExt,
             'ArrowWorker\Web\Upload'     => ArrowWorker . '/Web/Upload'   . self::classExt,
+            'ArrowWorker\Web\Ws'         => ArrowWorker . '/Web/Ws'       . self::classExt,
+
 
             'ArrowWorker\Lib\Bytes'                  => ArrowWorker  . '/Lib/Crypto/Bytes' . self::classExt,
             'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,
