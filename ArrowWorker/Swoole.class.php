@@ -154,6 +154,18 @@ class Swoole
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
+        $server->on('Request', function($request, $response) {
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
+            Request::Init(
+                is_array($request->get)   ? $request->get : [],
+                is_array($request->post) ? $request->post : [],
+                is_array($request->server) ? $request->server : [],
+                is_array($request->files) ? $request->files : []
+            );
+            Session::Reset();
+            Response::Init($response);
+            Router::Go();
+        });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }

@@ -19,7 +19,6 @@ class Index
 
     public function get()
     {
-        var_dump(Loader::Model('ArrowWorker')->GetOne());
         $cli = WebSocket::Connect('127.0.0.1',9503);
         $cli->Push(mt_rand(1,1000).'_from http');
         Response::Write('rest get');

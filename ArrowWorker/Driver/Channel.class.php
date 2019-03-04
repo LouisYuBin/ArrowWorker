@@ -31,7 +31,7 @@ class Channel
 	protected static $current = '';
 
 
-    protected static $chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Channel/';
+    protected static $chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Chan/';
 
 
     /**
