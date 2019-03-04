@@ -155,11 +155,8 @@ class SqlBuilder
 	 */
 	public function Find(bool $isMaster=false, int $slaveIndex=0)
     {
-        $result =  $this->getDb()->Query( $this->parseSelect(), $isMaster, $slaveIndex );
-        return [
-            'sql'  => $this->parseSelect(),
-            'data' => $result
-        ];
+        $result = $this->getDb()->Query( $this->parseSelect(), $isMaster, $slaveIndex );
+        return $result===false ? [] : $result;
     }
 
 
@@ -170,11 +167,8 @@ class SqlBuilder
 	 */
 	public function Get(bool $isMaster=false, int $slaveIndex=0 )
     {
-        $result = $this->getDb()->Query( $this->parseSelect() ,$isMaster, $slaveIndex );
-        return [
-            'sql'  => $this->parseSelect(),
-            'data' => $result ? $result[0] : $result
-        ];
+        $data = $this->getDb()->Query( $this->parseSelect() ,$isMaster, $slaveIndex );
+        return ($data===false) ? [] : ( count($data)>0 ? $data[0] : [] );
     }
 
 	/**

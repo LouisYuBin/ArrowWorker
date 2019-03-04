@@ -6,6 +6,7 @@
 
 namespace ArrowWorker;
 
+use \ArrowWorker\Driver\Worker\ArrowDaemon;
 
 class Worker
 {
@@ -14,12 +15,6 @@ class Worker
 
     private static function _getConfig() : array
     {
-        $input = getopt('a:');
-        $app   = static::$defaultProcessApp;
-        if( isset($input['a']) )
-        {
-            $app = $input['a'];
-        }
         //verify whether the daemon is configured
         $config = Config::Get('Worker');
         if( false===$config )
@@ -27,29 +22,20 @@ class Worker
             Log::DumpExit("worker configuration is not exists.");
         }
 
-        //check whether the specified deamon app configuration exists
-        if( !isset($config[$app]) )
-        {
-            Log::DumpExit("configuration for {$app}  does not exists.");
-        }
-
-        $appConfig = $config[$app];
-
         //verify if the processor configuration is correct
-        if( !isset($appConfig['processor']) || !is_array($appConfig['processor']) || count($appConfig['processor'])==0 )
+        if( !isset($config['group']) || !is_array($config['group']) || count($config['group'])==0 )
         {
             Log::DumpExit("daemon processor configuration is not correct");
         }
 
-        return [$app, $appConfig];
+        return $config;
     }
 
     public static function Start()
     {
-        list($app, $config) = static::_getConfig();
-
-        $daemon = Driver::Worker( $app );
-        foreach ($config['processor'] as $item)
+        $config = static::_getConfig();
+        $daemon = ArrowDaemon::Init($config);
+        foreach ($config['group'] as $item)
         {
             if( !isset($item['function']) || !is_array($item['function']) || count($item['function'])<2 )
             {

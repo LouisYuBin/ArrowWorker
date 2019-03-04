@@ -22,17 +22,7 @@ class Driver
 	/**
 	 * @var string 驱动器所在目录
 	 */
-	private static $driverDir   = 'ArrowWorker\\Driver';
-
-    /**
-     * 数据库驱动
-     * @param string $alias
-     * @return \ArrowWorker\Driver\Db\Mysqli
-     */
-    public static function Db(string $alias='app' )
-    {
-        return self::_init(__FUNCTION__, $alias);
-    }
+	const DRIVER_DIR = 'ArrowWorker\\Driver';
 
     /**
      * 缓存驱动
@@ -40,16 +30,6 @@ class Driver
      * @return \ArrowWorker\Driver\Cache\Redis
      */
     public static function Cache( string $alias='app' )
-    {
-        return self::_init(__FUNCTION__, $alias);
-    }
-
-    /**
-     * ArrowWorker驱动
-     * @param string $alias
-     * @return \ArrowWorker\Driver\Worker\ArrowDaemon
-     */
-    public static function Worker( string $alias='app' )
     {
         return self::_init(__FUNCTION__, $alias);
     }
@@ -65,34 +45,22 @@ class Driver
     }
 
     /**
-     * 加载view驱动
-     * @param string $alias
-     * @return \ArrowWorker\Driver\View
-     */
-    public static function View( string $alias='app' )
-    {
-        $class  = self::$driverDir.'\\View';
-        return $class::Init( Config::Get('view') );
-    }
-
-
-    /**
      * _init 加载框架驱动器
      * @author Louis
      * @param string $driverType
      * @param string $alias
-     * @return mixed
-     * @throws \Exception
+     * @return \ArrowWorker\Driver\Channel\Queue
      */
-    private static function _init(string $driverType, string $alias)
+    protected static function _init(string $driverType, string $alias)
     {
         $config = Config::Get($driverType);
         if ( !isset( $config[$alias] ) )
         {
-            throw new \Exception("driver {$driverType}->{$alias} config does not exists.");
+            Log::Error("driver {$driverType}->{$alias} config does not exists.");
         }
-        $driver = self::$driverDir.'\\'.$driverType."\\".$config[$alias]['driver'];
-        return $driver::Init( $config[$alias], $alias );
+        $class = self::DRIVER_DIR.'\\'.$driverType."\\".$config[$alias]['driver'];
+        return $class::Init( $config[$alias], $alias );
     }
+
 
 }

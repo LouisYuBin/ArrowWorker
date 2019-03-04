@@ -26,7 +26,7 @@ class Loader
      * Model 加载用户model
      * @author Louis
      * @param string $name
-     * @return mixed
+     * @return \App\Model\*
      */
     public static function Model( string $name )
     {
@@ -38,7 +38,7 @@ class Loader
      * Classes 加载用户定义类
      * @author Louis
      * @param string $name
-     * @return mixed
+     * @return \App\Classes\*
      */
     public static function Classes( string $name )
     {
@@ -48,7 +48,7 @@ class Loader
 	/**
      * Service 加载用户 service
 	 * @param string $name
-	 * @return \App\Service\DbService
+	 * @return \App\Service\*
 	 */
     public static function Service( string $name )
     {
@@ -58,7 +58,7 @@ class Loader
     /**
      * _appModule 加载用户模块
      * @param $name
-     * @return \App\Service\DbService
+     * @return \App\Model\*|\App\Service\*|\App\Classes\*
      */
     private static function _appModule(string $name, string $type=APP_MODEL_DIR )
     {

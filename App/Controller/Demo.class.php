@@ -10,6 +10,7 @@ namespace App\Controller;
 use ArrowWorker\Driver;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
+use ArrowWorker\Chan;
 
 
 class Demo
@@ -45,23 +46,19 @@ class Demo
         $cacheService -> testRedisBrpop();
         $classService -> testMethod();*/
 
-        $randamNum = 10000;
-
-        $appChannel   = Driver::Channel();
-        $writeResult = $appChannel->Write("app".$randamNum);
+        $writeResult = Chan::Get()->Write("app".mt_rand(1,1000));
         Log::Info($writeResult);
     }
 
     public function channelApp()
     {
 
-        $channel = Driver::Channel();
-        $result  = $channel->Read();
+        $result  = Chan::Get()->Read();
         if( !$result )
         {
             return false;
         }
-		Driver::Channel('arrow')->Write($result);
+        Chan::Get('arrow')->Write($result);
         return true;
     }
 
@@ -75,15 +72,13 @@ class Demo
         {
             return false;
         }
-		Driver::Channel('test')->Write($result);
+		Chan::Get('test')->Write($result);
         return true;
     }
 
 	public function channelTest()
 	{
-
-		$channel = Driver::Channel('test');
-		$result  = $channel->Read();
+	    $result  = Chan::Get('test')->Read();
 		if( !$result )
 		{
 			return false;

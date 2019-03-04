@@ -143,6 +143,8 @@ class ArrowWorker
             'ArrowWorker\Log'        => ArrowWorker . '/Log'  . self::classExt,
             'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'  . self::classExt,
             'ArrowWorker\Worker'     => ArrowWorker . '/Worker'  . self::classExt,
+            'ArrowWorker\Db'         => ArrowWorker . '/Db'      . self::classExt,
+            'ArrowWorker\Chan'       => ArrowWorker . '/Chan'    . self::classExt,
 
             'ArrowWorker\Web\Session'    => ArrowWorker . '/Web/Session'  . self::classExt,
             'ArrowWorker\Web\Cookie'     => ArrowWorker . '/Web/Cookie'   . self::classExt,
@@ -150,7 +152,6 @@ class ArrowWorker
             'ArrowWorker\Web\Request'    => ArrowWorker . '/Web/Request'  . self::classExt,
             'ArrowWorker\Web\Router'     => ArrowWorker . '/Web/Router'   . self::classExt,
             'ArrowWorker\Web\Upload'     => ArrowWorker . '/Web/Upload'   . self::classExt,
-
 
             'ArrowWorker\Lib\Bytes'                  => ArrowWorker  . '/Lib/Crypto/Bytes' . self::classExt,
             'ArrowWorker\Lib\Crypto\CryptoArrow'     => ArrowWorker  . '/Lib/Crypto/CryptoArrow' . self::classExt,

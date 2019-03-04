@@ -9,7 +9,7 @@
 namespace App\Model;
 
 
-use ArrowWorker\Driver;
+use ArrowWorker\Db;
 
 /**
  * Class ArrowWorker
@@ -20,19 +20,19 @@ class ArrowWorker
 
 	/**
 	 * 查询单条记录
-	 * @return mixed
+	 * @return array
 	 */
 	public function GetOne()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Driver::Db()->Table("project")->Where('id=1')->Col($column)->Get();
+        return Db::Table("project")->Where('id>1')->Col($column)->Limit(0,1)->Get();
     }
 
     //查询单条记录
     public function GetList()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Driver::Db()->Table("project")->Where('id>0')->Col($column)->Limit(0,20)->Find();
+        return Db::Table("project")->Where('id>0')->Col($column)->Limit(0,20)->Find();
     }
 
     //写入数据
@@ -42,7 +42,7 @@ class ArrowWorker
             'itemName' => 'ArrowWorker',
             'itemIntro' => "An efficient and easy-using php daemon framework."
         ];
-        return Driver::Db()->Table("project")->Where('id>0')->Insert($data);
+        return Db::Table("project")->Where('id>0')->Insert($data);
     }
 
     //写入数据
@@ -52,12 +52,12 @@ class ArrowWorker
             'itemName' => 'ArrowWorker',
             'itemIntro' => "A php demonize framework "
         ];
-        return Driver::Db()->Table("project")->Where("id={$id}")->Update($data);
+        return Db::Table("project")->Where("id={$id}")->Update($data);
     }
 
     //删除数据
     public function DeleteById($id)
     {
-        return Driver::Db()->Table("project")->Where("id={$id}")->Delete();
+        return Db::Table("project")->Where("id={$id}")->Delete();
     }
 }

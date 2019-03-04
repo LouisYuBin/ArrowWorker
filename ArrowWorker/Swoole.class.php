@@ -125,6 +125,9 @@ class Swoole
         Router::Init();
         $server = new Http("0.0.0.0", $config['port']);
         $server->set($config);
+        $server->on('start', function($server) use ($config) {
+            Log::Dump("swoole http server started ,listing at port : ".$config['port']);
+        });
         $server->on('Request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
@@ -146,6 +149,9 @@ class Swoole
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
         $server = new WebSocket('0.0.0.0', $config['port']);
         $server->set($config);
+        $server->on('start', function($server) use ($config) {
+            Log::Dump("swoole websocket server started ,listing at port : ".$config['port']);
+        });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);

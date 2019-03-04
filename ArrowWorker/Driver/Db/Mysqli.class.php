@@ -124,8 +124,9 @@ class Mysqli extends db
         $result = $this->_getConnection($isMaster,$connectNum)->query($sql);
         if($result)
         {
-            $return = [];
+            Log::Info($sql);
             $field  = $this->_parseFieldType($result);
+            $return = [];
             while($row = $result->fetch_assoc())
             {
                 foreach ($row as $key=>&$val)
@@ -138,16 +139,17 @@ class Mysqli extends db
         }
         else
         {
+            Log::Error("sql error:{$sql}");
             return false;
         }
 
     }
 
     /**
-     * @param mysqli_result $result
+     * @param \mysqli_result $result
      * @return array
      */
-    private function _parseFieldType(mysqli_result $result): array
+    private function _parseFieldType(\mysqli_result $result): array
     {
         $fields = [];
         while ($info = $result->fetch_field()) {
@@ -232,18 +234,6 @@ class Mysqli extends db
 	public function Autocommit(bool $flag)
     {
         $this->_getConnection(true)->autocommit($flag);
-    }
-
-
-	/**
-	 * Table 启动sql组合
-	 * @param string $table
-	 * @return SqlBuilder
-	 */
-	public static function Table(string $table)
-    {
-        $sqlBuilder = new SqlBuilder();
-        return $sqlBuilder->Table($table, self::$config[self::$dbCurrent]['driver']);
     }
 
 

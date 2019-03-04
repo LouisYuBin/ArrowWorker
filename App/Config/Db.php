@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'app' => [
+    'default' => [
         //驱动类型
         'driver'      => 'Mysqli',
         //是否进行主从分离 1支持，2不支持

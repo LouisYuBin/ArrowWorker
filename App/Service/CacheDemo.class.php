@@ -4,7 +4,6 @@ namespace App\Service;
 
 use ArrowWorker\Config;
 use ArrowWorker\Driver;
-use ArrowWorker\Loader;
 use ArrowWorker\Log;
 
 class CacheDemo
