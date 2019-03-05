@@ -70,7 +70,6 @@ class Daemon
 
         $this -> _environmentCheck();
         $this -> _checkPidfile();
-        Log::Init();
 
         $this -> _demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
@@ -89,8 +88,15 @@ class Daemon
 
         $daemon = new self($config);
         $daemon->_setSignalHandler();
+        $daemon->_initComponent();
         $daemon->_startProcess();
         $daemon->_startMonitor();
+    }
+
+    private function _initComponent()
+    {
+        Memory::Init();
+        Log::Init();
     }
 
     /**
@@ -362,21 +368,24 @@ class Daemon
 
         $action = $argv[1];
 
-        if( !in_array($action, ['start', 'stop', 'status']) )
+        if( !in_array($action, ['start', 'stop', 'status', 'restart']) )
         {
-            Log::DumpExit('unknown action, use << php index.php start/stop/status >> to start or stop Arrow Server');
+            Log::DumpExit("unknown operation, use << php {$argv[0]} start/stop/status/restart >> to start/stop/restart Arrow");
         }
 
         switch ($action)
         {
             case 'stop':
-                static::_stop();
+                static::_restart(true);
                 break;
             case 'start':
                 static::_start();
                 break;
             case 'status':
                 static::_status();
+                break;
+            case 'restart':
+                static::_restart(false);
                 break;
             default:
         }
@@ -385,10 +394,10 @@ class Daemon
 
     private static function _start()
     {
-        Log::Hint('Arrow starting...');
+        Log::Hint('Arrow starting.');
     }
 
-    private static function _stop()
+    private static function _restart(bool $isStop=true)
     {
         $pid = static::_getDaemonPid();
         for($i=1; $i>0; $i++ )
@@ -397,60 +406,35 @@ class Daemon
             {
                 if( posix_kill($pid,SIGTERM) )
                 {
-                    echo ('Arrow process is exiting...'.PHP_EOL);
+                    Log::Hint('Arrow exiting.');
                 }
                 else
                 {
-                    Log::DumpExit('Arrow process does not exists.');
+                    Log::Hint('Arrow is not running.');
+                    break ;
                 }
             }
             else
             {
                 if( !posix_kill($pid,SIGTERM) )
                 {
-                    Log::DumpExit('Arrow process is been stopped.');
+                    Log::Hint('Arrow stopped.');
+                    break;
                 }
                 sleep(1);
             }
         }
-    }
 
+        if( $isStop )
+        {
+            exit(0);
+        }
+
+        static::_start();
+    }
     private static function _status()
     {
-        $output = static::_processStatus();
-        Log::DumpExit($output);
-    }
-
-    private static function _netStatus()
-    {
-        $keyword = static::$appName;
-        if( PHP_OS=='Darwin')
-        {
-            $keyword = 'index.php' ;
-        }
-        $commend = "ps -e -o 'user,pid,ppid,args,pcpu,%mem' | grep {$keyword}";
-        $output  = str_pad('user',10).
-            str_pad('pid',10).
-            str_pad('ppid',10).
-            str_pad('process name',25).
-            str_pad('cpu usage',15).
-            str_pad('memory usage',15).PHP_EOL;
-        $results = LoadAverage::GetCommandResult($commend);
-        foreach ($results as $key=>$item)
-        {
-            $param = preg_split('/\s{1,}/',$item);
-            if(false===$param || count($param)<8)
-            {
-                continue;
-            }
-            $output .= str_pad($param[0],10).
-                str_pad($param[1],10).
-                str_pad($param[2],10).
-                str_pad($param[3].' '.$param[4].' '.$param[5],25).
-                str_pad($param[6].'%',15).
-                str_pad($param[7].'%',15).PHP_EOL;
-        }
-        return $output;
+        Log::DumpExit(static::_processStatus());
     }
 
     private static function _processStatus()
@@ -467,7 +451,7 @@ class Daemon
             str_pad('process name',25).
             str_pad('cpu usage',15).
             str_pad('memory usage',15).PHP_EOL;
-        $results = LoadAverage::GetCommandResult($commend);
+        $results = LoadAverage::Exec($commend);
         foreach ($results as $key=>$item)
         {
             $output .= $item.PHP_EOL;
@@ -578,7 +562,6 @@ class Daemon
      */
     private function _createPidfile()
     {
-
         if (!is_dir(self::$pidDir))
         {
             mkdir(self::$pidDir);
@@ -587,8 +570,6 @@ class Daemon
         $fp = fopen(self::$pid, 'w') or die("cannot create pid file".PHP_EOL);
         fwrite($fp, posix_getpid());
         fclose($fp);
-
-        Log::Dump(static::LOG_PREFIX."creating pid file " . self::$pid);
     }
 
     /**

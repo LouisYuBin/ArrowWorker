@@ -128,7 +128,7 @@ class Swoole
         $server->on('start', function($server) use ($config) {
             Log::Dump("swoole http server started ,listening at port : ".$config['port']);
         });
-        $server->on('Request', function($request, $response) {
+        $server->on('Request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -139,11 +139,11 @@ class Swoole
             Session::Reset();
             Response::Init($response);
             Router::Go();
-            defer(function() {
-                Cookie::Release();
-                Request::Release();
-                Response::Release();
-            });
+
+            Cookie::Release();
+            Request::Release();
+            Response::Release();
+            Memory::Release();
         });
 
         $server->start();
@@ -171,11 +171,11 @@ class Swoole
             Session::Reset();
             Response::Init($response);
             Router::Go();
-            defer(function(){
-                Cookie::Release();
-                Request::Release();
-                Response::Release();
-            });
+
+            Cookie::Release();
+            Request::Release();
+            Response::Release();
+            Memory::Release();
         });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();

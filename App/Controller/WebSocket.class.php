@@ -16,9 +16,11 @@ class WebSocket
 
     public static function Open(WebSocketServer $server, \Swoole\Http\Request $req)
     {
-        $memory = Memory::Get('clients');
-        $memory->IsKeyExists($req->fd);
-        var_dump($req);
+        $memory = Memory::Get('default');
+        //$memory->Write('spicy',['id'=>3,'token'=>'5566666']);
+        $map = $memory->Read('louis');
+        $map1 = $memory->Read('spicy');
+        var_dump($map,$map1);
  /*       var_dump( $memory->Write($req->fd, $req->fd) );
         var_dump($memory->IsKeyExists($req->fd));*/
         Log::Info( "connection open: {$req->fd}");
@@ -26,6 +28,9 @@ class WebSocket
 
     public static function Message(WebSocketServer $server, WebSocketFrame $frame)
     {
+        $memory = Memory::Get('default');
+        $memory->Write('spicy',['id'=>3,'token'=>'5566666']);
+        $map = $memory->Read('louis');
         //$memory = Memory::Get('clients');
         //var_dump($memory->IsKeyExists($frame->fd));
         Log::Info( "received message: {$frame->fd}_{$frame->data}");

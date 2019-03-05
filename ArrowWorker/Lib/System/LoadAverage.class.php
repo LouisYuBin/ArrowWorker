@@ -68,7 +68,7 @@ class LoadAverage
     private static function _getCpuMemoryInfo()
     {
         //$loadAvgCommand = ( $this->_sysType == "centos" ) ? 'top -b -d 1 -n 2 | grep -E "^(\s+Cpu|Mem|Tasks)"' : 'top -b -d 1 -n 2 | grep -E "^(%Cpu|KiB Mem|Tasks)"';
-        $sysArray  = static::GetCommandResult('top -b -d 1 -n 2 | grep -E "(Cpu|Mem|Tasks)"');
+        $sysArray  = static::Exec('top -b -d 1 -n 2 | grep -E "(Cpu|Mem|Tasks)"');
 
         if( count($sysArray)==1 )
         {
@@ -112,7 +112,7 @@ class LoadAverage
         return (int)preg_replace("/[a-zA-Z\(\)\:\%\s]/","", $oraString);
     }
 
-    public static function GetCommandResult(string $command) : array
+    public static function Exec(string $command) : array
     {
         $result     = [];
         exec($command,$result,$status);

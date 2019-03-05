@@ -17,6 +17,8 @@ use ArrowWorker\Swoole;
 class Request
 {
 
+    private static $_parameters = [];
+
     /**
      * Init : init request data(post/get/files...)
      * @param array $get

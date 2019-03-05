@@ -6,6 +6,7 @@
 namespace App\Controller\Admin;
 
 use ArrowWorker\Loader;
+use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
 use ArrowWorker\Lib\Client\WebSocket;
 
@@ -20,7 +21,7 @@ class Index
     public function get()
     {
         $this->_webSocketClient();
-        Response::Write('rest get');
+        Response::Write('rest get  '.Request::Server('REQUEST_URI'));
     }
 
     private function _webSocketClient()

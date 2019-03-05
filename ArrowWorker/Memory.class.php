@@ -5,9 +5,20 @@
 
 namespace ArrowWorker;
 
+use \Swoole\Table;
 
 class Memory
 {
+    /**
+     *
+     */
+    const CONFIG_NAME = 'Memory';
+
+    /**
+     *
+     */
+    const DATA_TYPE   = ['int', 'string', 'float'];
+
     /**
      * @var
      */
@@ -21,85 +32,101 @@ class Memory
     /**
      * @var string
      */
-    private static $_path = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Memory/';
+    private static $_current = [];
 
-    /**
-     * @var string
-     */
-    private static $_current = '';
-
-    private $_defaultSize = 1024*1024*15;
 
     /**
      * Memory constructor.
-     * @param string $name
      */
-    private function __construct(string $name)
+    private function __construct()
     {
-        if( !$this->_isExtensionLoaded() )
-        {
-            return ;
-        }
-
-        $key = $this->_getKey($name);
-        if( $key==-1 )
-        {
-            return ;
-        }
-
-        $size = $this->_getSize();
-        $resource = shm_attach($key,'10M');
-        var_dump('shm_attach',$size, $resource);
-
-        static::$_pool[$name] = $resource;
+        //todo
     }
 
     /**
-     * @return bool
+     *
      */
-    private function _isExtensionLoaded()
+    public static function Init()
     {
-        if( !extension_loaded('sysvshm') )
+        $config = Config::Get(static::CONFIG_NAME);
+        foreach ($config as $key=>$value)
         {
-            Log::Error("sysvshm not loaded while using in shm_attach");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * @param string $name
-     * @return int
-     */
-    private function _getKey(string $name) : int
-    {
-        $file = static::$_path.$name.'.memory';
-        if( !file_exists($file) )
-        {
-            if( false===touch($file) )
+            if( !isset($value['size']) || !isset($value['column']) || count($value['column'])==0 )
             {
-                Log::Error("touch memory key-file failed : {$file}.");
-                return -1;
+                Log::Error("memory Table(key:{$key}) config is incorrect.");
+                continue ;
+            }
+
+            $structure = static::_parseTableColumn($value['column']);
+            if( count($structure)==0)
+            {
+                continue ;
+            }
+            static::$_pool[$key] = static::_initOneTable($value['size'], $structure);
+        }
+    }
+
+    /**
+     * @param array $columns
+     * @return array
+     */
+    private static function _parseTableColumn(array $columns) : array
+    {
+        $structure = [];
+        foreach ($columns as $name=>$type)
+        {
+            if( !in_array($type,static::DATA_TYPE) )
+            {
+                Log::Error('memory column type is incorrect.');
+                continue;
+            }
+            switch($type)
+            {
+                case 'int':
+                    $structure[$name] = [
+                        'type' => Table::TYPE_INT,
+                        'len'  => 8,
+                    ];
+                    break;
+                case 'string':
+                    $structure[$name] = [
+                        'type' => Table::TYPE_STRING,
+                        'len'  => 128,
+                    ];
+                    break;
+                default:
+                    $structure[$name] = [
+                        'type' => Table::TYPE_FLOAT,
+                        'len'  => 8,
+                    ];
             }
         }
-
-        $key = ftok($file,'a');
-        if( $key==-1 )
-        {
-            Log::Error("ftok({$file},'a') failed.");
-            return -1;
-        }
-        return $key;
+        return $structure;
     }
 
-    private function _getSize() : int
+    /**
+     * @param int   $size
+     * @param array $structure
+     * @return Table
+     */
+    private static function _initOneTable(int $size, array $structure) : Table
     {
-        $config = Config::Get('Memory');
-        if( false===$config || !isset($config['size']) )
+        $table = new Table($size);
+        foreach ($structure as $name=>$property)
         {
-            return $this->_defaultSize;
+            if( $property['type']==Table::TYPE_FLOAT)
+            {
+                $table->column($name, $property['type']);
+                continue ;
+            }
+            $table->column($name, $property['type'], $property['len']);
         }
-        return (int)$config['size'];
+
+        if( !$table->create() )
+        {
+            Log::Error('create memory table failed, config is : '.json_encode($structure));
+        }
+        return $table;
     }
 
     /**
@@ -108,57 +135,51 @@ class Memory
      */
     public static function Get(string $name)
     {
-        if( isset(static::$_pool[$name]) )
-        {
-            static::$_current = $name;
-            return static::$_instance;
-        }
+        static::$_current[Swoole::GetCid()] = $name;
 
-        if( !static::$_instance )
+        if( !is_object(static::$_instance) )
         {
-            static::$_instance = new self($name);
+            static::$_instance = new self();
         }
 
         return static::$_instance;
     }
 
     /**
-     * @param int $key
-     * @return bool|mixed
+     * @param string $key
+     * @return array
      */
-    public function Read(int $key)
+    public function Read(string $key)
     {
-        $shmId = $this->_getCurrent();
-        if( false===$shmId )
-        {
-            return false;
-        }
-        return shm_get_var($this->_getCurrent(), $key);
+        return $this->_getCurrent()->get($key);
+    }
+
+    /**
+     * @param string $key
+     * @param array  $value
+     * @return bool
+     */
+    public function Write(string $key, array $value) : bool
+    {
+        return $this->_getCurrent()->set($key, $value);
+    }
+
+    /**
+     * @param string $key
+     * @return bool
+     */
+    public function IsKeyExists(string $key) : bool
+    {
+        return $this->_getCurrent()->exist($key);
     }
 
     /**
      * @param int $key
-     * @param     $value
-     * @return bool
+     * @return int
      */
-    public function Write(int $key, $value) : bool
+    public function Count(int $key) : int
     {
-        $shmId = $this->_getCurrent();
-        if( false===$shmId )
-        {
-            return false;
-        }
-        return shm_put_var($shmId, $key, $value);
-    }
-
-    public function IsKeyExists(int $key) : bool
-    {
-        $shmId = $this->_getCurrent();
-        if( false===$shmId )
-        {
-            return false;
-        }
-        return shm_has_var( $shmId , $key);
+        return $this->_getCurrent()->count($key);
     }
 
     /**
@@ -166,25 +187,21 @@ class Memory
      */
     private function _getCurrent()
     {
-        if( !is_resource(static::$_pool[static::$_current]) )
-        {
-            Log::Error("memory resource does not exists.");
-            return false;
-        }
-        return static::$_pool[static::$_current];
+        return static::$_pool[static::$_current[Swoole::GetCid()]];
     }
 
     /**
-     *
+     * @param string $key
+     * @return bool
      */
-    public static function Remove()
+    public function Delete(string $key) : bool
     {
-        foreach (static::$_pool as $key=>$value)
-        {
-            shm_remove($value);
-            shm_detach($value);
-        }
+        return $this->_getCurrent()->del($key);
     }
 
+    public static function Release()
+    {
+        unset( static::$_current[Swoole::GetCid()] );
+    }
 
 }

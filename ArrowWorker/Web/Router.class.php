@@ -8,6 +8,7 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Config;
+use ArrowWorker\Log;
 
 /**
  * Class Router
@@ -26,9 +27,12 @@ class Router
 
 	private static $_restApiConfig = [];
 
+	private static $_pregAlias = [];
+
 	public static function Init()
     {
         self::_loadRestConfig();
+        self::_analyseUri();
     }
 
     private static function _loadRestConfig()
@@ -37,10 +41,72 @@ class Router
         if( false===$config )
         {
             Log::Warning("Load rest api configuration failed");
+            return ;
+        }
+        if( !is_array($config) )
+        {
+            Log::Warning(" rest api configuration format is incorrect.");
+            return ;
         }
         static::$_restApiConfig = $config;
     }
 
+    private static function _analyseUri()
+    {
+        foreach (static::$_restApiConfig as $uri=>$alias)
+        {
+            $nodes    = explode('/', $uri);
+            $match    = preg_replace(['/:\w+/','/\//'], ['\w+','\\/'], $uri);
+            $colonPos = strpos($uri, ':');
+            $key      = (false===$colonPos) ? $uri : substr($uri, 0, $colonPos-1);
+            $params   = [];
+            foreach ($nodes as $index=>$param)
+            {
+                if( false===strpos($param, ':') )
+                {
+                    continue;
+                }
+                $params[$index] = str_replace(':', '', $param);
+            }
+            static::$_pregAlias[$key]["/^{$match}$/"] = [
+                'uri'    => $uri,
+                'params' => $params
+            ];
+        }
+    }
+
+    public static function _getRestUriKey() : string
+    {
+        $uri     = Request::Server('REQUEST_URI');
+        $nodes   = explode('/', $uri);
+        $nodeLen = count($nodes);
+
+        for($i=$nodeLen; $i>1; $i--)
+        {
+            $key = '';
+            for ($j=1; $j<$i; $j++)
+            {
+                $key .= "/{$nodes[$j]}";
+            }
+
+            if( !isset(static::$_pregAlias[$key]) )
+            {
+                continue ;
+            }
+
+            $nodeMap = static::$_pregAlias[$key];
+            foreach ( $nodeMap as $match=>$eachNode )
+            {
+                if( false===preg_match($match, $uri) )
+                {
+                    continue ;
+                }
+                var_dump($eachNode['uri']);
+                return $eachNode['uri'];
+            }
+        }
+        return '';
+    }
 
 	/**
 	 * Go 返回要调用的控制器和方法
@@ -65,19 +131,20 @@ class Router
 
     private static function _restRouter()
     {
-        $uri    = Request::Server('REQUEST_URI');
+        $key    = static::_getRestUriKey();
         $method = strtolower(Request::Method());
-        if( !isset(static::$_restApiConfig[$uri]) )
+
+        if( empty($key) )
         {
             return false;
         }
 
-        if( !isset(static::$_restApiConfig[$uri][$method]) )
+        if( !isset(static::$_restApiConfig[$key][$method]) )
         {
             return false;
         }
 
-        list($class, $function) = explode('::',static::$_restApiConfig[$uri][$method]);
+        list($class, $function) = explode('::',static::$_restApiConfig[$key][$method]);
         $class = self::CONTROLLER_NAMESPACE.$class;
         return static::_routeToFunction($class, $function);
     }

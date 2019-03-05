@@ -2,9 +2,21 @@
 
 return [
     'default' =>[
-        'size' => 1024*1024*1,
+        'size'   => 1000000,
+        'column' => [
+            'id'        => 'int',
+            'token'     => 'string',
+            'name'      => 'string',
+            'loginTime' => 'string'
+        ]
     ],
     'clients' =>[
-        'size' => 1024*1024*1,
+        'size'   => 1000000,
+        'column' => [
+            'id'        => 'int',
+            'token'     => 'string',
+            'name'      => 'string',
+            'loginTime' => 'string'
+        ]
     ]
 ];
