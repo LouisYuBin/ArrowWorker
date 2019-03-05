@@ -56,7 +56,7 @@ class Router
         foreach (static::$_restApiConfig as $uri=>$alias)
         {
             $nodes    = explode('/', $uri);
-            $match    = preg_replace(['/:\w+/','/\//'], ['\w+','\\/'], $uri);
+            $match    = preg_replace(['/:\w+/','/\//'], ['[a-zA-Z0-9_-]+','\\/'], $uri);
             $colonPos = strpos($uri, ':');
             $key      = (false===$colonPos) ? $uri : substr($uri, 0, $colonPos-1);
             $params   = [];
@@ -93,15 +93,17 @@ class Router
             {
                 continue ;
             }
-
             $nodeMap = static::$_pregAlias[$key];
             foreach ( $nodeMap as $match=>$eachNode )
             {
-                if( false===preg_match($match, $uri) )
+                var_dump($match, preg_match($match, $uri));
+                $isMatched = preg_match($match, $uri);
+                if( false===$isMatched || $isMatched===0)
                 {
                     continue ;
                 }
-                var_dump($eachNode['uri']);
+                var_dump("match result : ", $eachNode['uri']);
+
                 return $eachNode['uri'];
             }
         }
