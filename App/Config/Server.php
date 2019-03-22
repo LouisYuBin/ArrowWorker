@@ -15,7 +15,7 @@ return [
         'enableStaticHandler' => true,
         'documentRoot' => APP_PATH.'/Static/Web',
     ],
-    /*[
+    [
         'type'             => 'webSocket',
         'port'             => 9503,
         'workerNum'        => 8,
@@ -33,8 +33,7 @@ return [
             'message' => 'WebSocket::Message',
             'close'   => 'WebSocket::Close'
         ]
-    ],*/
-/*
+    ],
     [
         'type'             => 'tcp',
         'port'             => 9505,
@@ -52,6 +51,7 @@ return [
             'close'   => 'Tcp::Close'
         ]
     ],
+/*
     [
         'type'             => 'udp',
         'port'             => 9506,

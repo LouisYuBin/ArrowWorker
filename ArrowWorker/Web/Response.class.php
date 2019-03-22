@@ -24,7 +24,7 @@ class Response
 
     /**
      * Init : init swoole response handler
-     * @param \Swoole\Http\Response $_response
+     * @param \Swoole\Http\Response $response
      */
     public static function Init(\Swoole\Http\Response $response)
     {

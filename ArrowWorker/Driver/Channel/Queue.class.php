@@ -89,7 +89,7 @@ class Queue extends Channel
             Log::DumpExit("msg_get_queue({$key},066) failed");
         }
         static::$pool[self::$current] = $queue;
-        msg_set_queue(static::$pool[self::$current],['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
+        msg_set_queue(static::$pool[self::$current], ['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
     }
 
     /**

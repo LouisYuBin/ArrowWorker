@@ -28,10 +28,12 @@ class Request
      */
     public static function Init(array $get, array $post, array $server, array $files)
     {
-        $_GET[    Swoole::GetCid() ]  = $get;
-        $_POST[   Swoole::GetCid() ]  = $post;
-        $_FILES[  Swoole::GetCid() ]  = $files;
-        $_SERVER[ Swoole::GetCid() ]  = array_change_key_case($server,CASE_UPPER);
+        $coId = Swoole::GetCid();
+        $_GET[    $coId ]  = $get;
+        $_POST[   $coId ]  = $post;
+        $_FILES[  $coId ]  = $files;
+        $_SERVER[ $coId ]  = array_change_key_case($server,CASE_UPPER);
+        static::$_parameters[$coId] = [];
     }
 
     /**
@@ -61,6 +63,26 @@ class Request
     public static function Post(string $key) : string
     {
         return ( !isset($_POST[Swoole::GetCid()][$key]) ) ? '' : $_POST[Swoole::GetCid()][$key];
+    }
+
+
+    /**
+     * Param : return specified post data
+     * @param string $key
+     * @return string
+     */
+    public static function Param(string $key) : string
+    {
+        return ( !isset(static::$_parameters[Swoole::GetCid()][$key]) ) ? '' : static::$_parameters[Swoole::GetCid()][$key];
+    }
+
+    /**
+     * Params : return specified post data
+     * @return array
+     */
+    public static function Params() : array
+    {
+        return static::$_parameters[Swoole::GetCid()];
     }
 
     /**
@@ -119,13 +141,18 @@ class Request
         return $_FILES[ Swoole::GetCid() ];
     }
 
+    public static function SetParams(array $params)
+    {
+        static::$_parameters[Swoole::GetCid()] = $params;
+    }
+
     /**
      * release resource for request
      */
     public static function Release()
     {
         $coId = Swoole::GetCid();
-        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId],$_SERVER[$coId]);
+        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId], $_SERVER[$coId], static::$_parameters[$coId]);
     }
 
 }

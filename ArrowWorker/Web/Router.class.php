@@ -83,32 +83,34 @@ class Router
 
         for($i=$nodeLen; $i>1; $i--)
         {
-            $key = '';
-            for ($j=1; $j<$i; $j++)
-            {
-                $key .= "/{$nodes[$j]}";
-            }
-
+            $key = '/'.implode('/', array_slice($nodes,1, $i-1));
             if( !isset(static::$_pregAlias[$key]) )
             {
                 continue ;
             }
+
             $nodeMap = static::$_pregAlias[$key];
             foreach ( $nodeMap as $match=>$eachNode )
             {
-                var_dump($match, preg_match($match, $uri));
                 $isMatched = preg_match($match, $uri);
                 if( false===$isMatched || $isMatched===0)
                 {
                     continue ;
                 }
-                var_dump("match result : ", $eachNode['uri']);
 
+                //获取对应参数值
+                $params = [];
+                foreach ($eachNode['params'] as $index=>$param)
+                {
+                    $params[$param] = $nodes[$index];
+                }
+                Request::SetParams($params);
                 return $eachNode['uri'];
             }
         }
         return '';
     }
+
 
 	/**
 	 * Go 返回要调用的控制器和方法
@@ -146,7 +148,9 @@ class Router
             return false;
         }
 
-        list($class, $function) = explode('::',static::$_restApiConfig[$key][$method]);
+        var_dump(static::$_restApiConfig[$key]);
+
+        list($class, $function) = explode('::', static::$_restApiConfig[$key][$method]);
         $class = self::CONTROLLER_NAMESPACE.$class;
         return static::_routeToFunction($class, $function);
     }

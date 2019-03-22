@@ -21,7 +21,7 @@ class Index
     public function get()
     {
         $this->_webSocketClient();
-        Response::Write('rest get  '.Request::Server('REQUEST_URI'));
+        Response::Write('rest get  '.Request::Server('REQUEST_URI').json_encode(Request::Params()));
     }
 
     private function _webSocketClient()
