@@ -185,7 +185,7 @@ class Swoole
     public static function StartTcpServer(array $config)
     {
         $config = static::_getConfig(static::TCP_SERVER, $config);
-        $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_TCP);
+        $server = new SocketServer('0.0.0.0', $config['port'], SWOOLE_BASE, SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -196,7 +196,7 @@ class Swoole
     public static function StartUdpServer(array $config)
     {
         $config = static::_getConfig(static::UDP_SERVER, $config);
-        $server = new SocketServer('0.0.0.0',$config['port'], $config['mode'], SWOOLE_SOCK_UDP);
+        $server = new SocketServer('0.0.0.0', $config['port'], SWOOLE_BASE, SWOOLE_SOCK_UDP);
         $server->set($config);
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
