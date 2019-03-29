@@ -7,6 +7,8 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Swoole;
+use ArrowWorker\Config;
+use ArrowWorker\Log;
 
 /**
  * Class Upload
@@ -120,7 +122,7 @@ class Upload
 
     /**
      * GetTmpName
-     * @return array
+     * @return string
      */
     public function GetTmpName() : string
     {
@@ -129,7 +131,7 @@ class Upload
 
     /**
      * GetName
-     * @return array
+     * @return string
      */
     public function GetName() : string
     {

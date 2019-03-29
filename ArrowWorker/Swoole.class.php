@@ -210,6 +210,6 @@ class Swoole
      */
     public static function GetCid() : int
     {
-        return Co::getuid();
+        return (int)(posix_getpid().Co::getuid());
     }
 }

@@ -136,7 +136,7 @@ class Memory
     public static function Get(string $name)
     {
         static::$_current[Swoole::GetCid()] = $name;
-
+        var_dump(static::$_current);
         if( !is_object(static::$_instance) )
         {
             static::$_instance = new self();
@@ -152,6 +152,20 @@ class Memory
     public function Read(string $key)
     {
         return $this->_getCurrent()->get($key);
+    }
+
+    /**
+     * @return array
+     */
+    public function ReadAll()
+    {
+        $list     = [];
+        $instance = $this->_getCurrent();
+        foreach ($instance as $key=>$value)
+        {
+            $list[$key] = $value;
+        }
+        return $list;
     }
 
     /**

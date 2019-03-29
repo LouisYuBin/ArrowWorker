@@ -45,7 +45,7 @@ class Cookie
 
     /**
      * Get : get specified cookie by $key
-     * @param string $name
+     * @param string $key
      * @return bool|string
      */
     public static function Get(string $key)
@@ -63,7 +63,9 @@ class Cookie
      * @param string $val
      * @param int $expireSeconds
      * @param string $path
-     * @param null $domain
+     * @param string $domain
+     * @param bool $secure
+     * @param bool $httpOnly
      * @return bool
      */
     public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
