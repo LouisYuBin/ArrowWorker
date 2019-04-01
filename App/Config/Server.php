@@ -3,7 +3,7 @@
 return [
     [
         'type'             => 'web',
-        'port'             => 9502,
+        'port'             => 80,
         'workerNum'        => 8,
         'reactorNum'       => 4,
         'backlog'          => 20000,
@@ -13,7 +13,9 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
-        'documentRoot' => APP_PATH.'/Static/Web',
+        'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.crt',
+        'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.key',
+        'documentRoot'     => APP_PATH.'/Static/Web',
     ],
     [
         'type'             => 'webSocket',
