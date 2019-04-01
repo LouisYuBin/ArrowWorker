@@ -130,12 +130,21 @@ class Upload
     }
 
     /**
-     * GetName
+     * GetOraName
      * @return string
      */
-    public function GetName() : string
+    public function GetOraName() : string
     {
         return (string)$this->file['name'];
+    }
+
+    /**
+     * GetNewName
+     * @return string
+     */
+    public function GetNewName() : string
+    {
+        return $this->newFileName;
     }
 
     /**
@@ -159,9 +168,9 @@ class Upload
      */
     public function Save(string $savePath = '' )
     {
-        if( empty( $this->newFileName) )
+        if( empty($this->newFileName) )
         {
-            $this->newFileName = dechex(getmypid()).microtime(true).mt_rand(1000,1000000);
+            $this->newFileName = dechex(Swoole::GetCid()).dechex(time()).dechex(mt_rand(100,999));
         }
         $savePath = empty($savePath) ? $this->config['savePath'] : $savePath;
 
