@@ -148,8 +148,6 @@ class Router
             return false;
         }
 
-        var_dump(static::$_restApiConfig[$key]);
-
         list($class, $function) = explode('::', static::$_restApiConfig[$key][$method]);
         $class = self::CONTROLLER_NAMESPACE.$class;
         return static::_routeToFunction($class, $function);

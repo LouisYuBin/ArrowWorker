@@ -20,7 +20,7 @@ class WebSocket
         //$memory->Write('spicy',['id'=>3,'token'=>'5566666']);
         $map = $memory->Read('louis');
         $map1 = $memory->Read('spicy');
-        var_dump($map,$map1);
+        //var_dump($map,$map1);
  /*       var_dump( $memory->Write($req->fd, $req->fd) );
         var_dump($memory->IsKeyExists($req->fd));*/
         Log::Info( "connection open: {$req->fd}");

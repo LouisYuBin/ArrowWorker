@@ -3,7 +3,8 @@
 return [
     [
         'type'             => 'web',
-        'port'             => 80,
+        'host'             => '0.0.0.0',
+        'port'             => 8088,
         'workerNum'        => 8,
         'reactorNum'       => 4,
         'backlog'          => 20000,
@@ -13,12 +14,13 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
-        'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.crt',
-        'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.key',
+        'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
+        'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
     ],
     [
         'type'             => 'webSocket',
+        'host'             => '0.0.0.0',
         'port'             => 9503,
         'workerNum'        => 8,
         'reactorNum'       => 4,
@@ -38,6 +40,7 @@ return [
     ],
     [
         'type'             => 'tcp',
+        'host'             => '0.0.0.0',
         'port'             => 9505,
         'workerNum'        => 8,
         'reactorNum'       => 4,
@@ -56,6 +59,7 @@ return [
 /*
     [
         'type'             => 'udp',
+        'host'             => '0.0.0.0',
         'port'             => 9506,
         'workerNum'        => 8,
         'reactorNum'       => 4,

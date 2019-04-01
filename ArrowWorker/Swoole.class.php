@@ -27,6 +27,7 @@ class Swoole
     const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
     public static $defaultHttpConfig = [
+        'host'      => '0.0.0.0',
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
@@ -38,10 +39,15 @@ class Swoole
         'maxCoroutine'     => 10000,
         'enableCoroutine'  => true,
         'enableStaticHandler' => false,
-        'documentRoot'     => ''
+        'sslCertFile'      => '',
+        'sslKeyFile'       => '',
+        'documentRoot'     => '',
+        'mode'             => SWOOLE_PROCESS
+
     ];
 
     public static $defaultTcpConfig = [
+        'host'      => '0.0.0.0',
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
@@ -56,6 +62,7 @@ class Swoole
     ];
 
     public static $defaultWebSocketConfig = [
+        'host'      => '0.0.0.0',
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
@@ -66,6 +73,7 @@ class Swoole
         'reactorNum'       => 4,
         'maxContentLength' => 2088960,
         'maxCoroutine'     => 10000,
+        'mode'             => SWOOLE_PROCESS
     ];
 
 
@@ -100,6 +108,8 @@ class Swoole
                 $defaultConfig = static::$defaultUdpConfig;
         }
         $config = array_merge($defaultConfig, $config);
+        $config['enableSsl'] = empty($config['sslCertFile']) ? false : true;
+
         return [
             'port'       => $config['port'],
             'worker_num' => $config['workerNum'],
@@ -115,7 +125,10 @@ class Swoole
             'max_coroutine'      => $config['maxCoroutine'],
             'document_root'      => $config['documentRoot'],
             'log_file'           => Log::$StdoutFile,
-            'handler'            => $config['handler']
+            'handler'            => $config['handler'],
+            'ssl_cert_file'      => $config['sslCertFile'],
+            'ssl_key_file'       => $config['sslKeyFile'],
+            'mode'               => $config['mode'],
         ];
     }
 
@@ -123,7 +136,7 @@ class Swoole
     {
         Router::Init();
         $config = static::_getConfig(static::WEB_SERVER, $config);
-        $server = new Http("0.0.0.0", $config['port']);
+        $server = new Http($config['host'], $config['port'], $config['mode'],  empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
             Log::Dump("swoole http server started ,listening at port : ".$config['port']);
@@ -153,14 +166,15 @@ class Swoole
     {
         Router::Init();
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
-        $server = new WebSocket('0.0.0.0', $config['port']);
+
+        $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
             Log::Dump("swoole websocket server started ,listening at port : ".$config['port']);
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
-        $server->on('Request', function($request, $response) {
+        $server->on('request', function($request, $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -185,7 +199,7 @@ class Swoole
     public static function StartTcpServer(array $config)
     {
         $config = static::_getConfig(static::TCP_SERVER, $config);
-        $server = new SocketServer('0.0.0.0', $config['port'], SWOOLE_BASE, SWOOLE_SOCK_TCP);
+        $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -196,7 +210,7 @@ class Swoole
     public static function StartUdpServer(array $config)
     {
         $config = static::_getConfig(static::UDP_SERVER, $config);
-        $server = new SocketServer('0.0.0.0', $config['port'], SWOOLE_BASE, SWOOLE_SOCK_UDP);
+        $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
