@@ -4,7 +4,7 @@ return [
     [
         'type'             => 'web',
         'host'             => '0.0.0.0',
-        'port'             => 8088,
+        'port'             => 443,
         'workerNum'        => 8,
         'reactorNum'       => 4,
         'backlog'          => 20000,
@@ -17,11 +17,12 @@ return [
         'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
+        ''
     ],
     [
         'type'             => 'webSocket',
         'host'             => '0.0.0.0',
-        'port'             => 9503,
+        'port'             => 80,
         'workerNum'        => 8,
         'reactorNum'       => 4,
         'backlog'          => 20000,
