@@ -165,6 +165,7 @@ class Log
     {
         static::_checkExtension();
         static::_initConfig();
+        static::_checkLogDir();
         static::_initHandler();
         static::_resetStd();
     }
@@ -174,6 +175,17 @@ class Log
         if( !extension_loaded('sysvmsg') )
         {
             static::DumpExit('extension sysvmsg does not installed/loaded.');
+        }
+    }
+
+    private static function _checkLogDir()
+    {
+        if( !is_dir(static::$baseDir) )
+        {
+            if( !mkdir(static::$baseDir) )
+            {
+                static::DumpExit('creating log directory failed.');
+            }
         }
     }
 

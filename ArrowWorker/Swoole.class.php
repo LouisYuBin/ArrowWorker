@@ -147,7 +147,8 @@ class Swoole
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
                 is_array($request->server) ? $request->server : [],
-                is_array($request->files) ? $request->files : []
+                is_array($request->files) ? $request->files : [],
+                    is_array($request->header) ? $request->header : []
             );
             Session::Reset();
             Response::Init($response);
@@ -180,7 +181,9 @@ class Swoole
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
                 is_array($request->server) ? $request->server : [],
-                is_array($request->files) ? $request->files : []
+                is_array($request->files) ? $request->files : [],
+                is_array($request->header) ? $request->header : []
+
             );
             Session::Reset();
             Response::Init($response);

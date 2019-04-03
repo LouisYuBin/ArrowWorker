@@ -18,6 +18,7 @@ class Request
 {
 
     private static $_parameters = [];
+    private static $_header     = [];
 
     /**
      * Init : init request data(post/get/files...)
@@ -26,14 +27,15 @@ class Request
      * @param array $server
      * @param array $files
      */
-    public static function Init(array $get, array $post, array $server, array $files)
+    public static function Init(array $get, array $post, array $server, array $files, array $header)
     {
         $coId = Swoole::GetCid();
         $_GET[    $coId ]  = $get;
         $_POST[   $coId ]  = $post;
         $_FILES[  $coId ]  = $files;
-        $_SERVER[ $coId ]  = array_change_key_case($server,CASE_UPPER);
+        $_SERVER[ $coId ]  = $server;
         static::$_parameters[$coId] = [];
+        static::$_header[$coId]     = $header;
     }
 
     /**
@@ -42,7 +44,7 @@ class Request
      */
     public static function Method() : string
     {
-        return $_SERVER[ Swoole::GetCid() ]['REQUEST_METHOD'];
+        return $_SERVER[ Swoole::GetCid() ]['request_method'];
     }
 
     /**
@@ -83,6 +85,25 @@ class Request
     public static function Params() : array
     {
         return static::$_parameters[Swoole::GetCid()];
+    }
+
+    /**
+     * Header : return specified post data
+     * @param string $key
+     * @return string
+     */
+    public static function Header(string $key) : string
+    {
+        return ( !isset(static::$_header[Swoole::GetCid()][$key]) ) ? '' : static::$_header[Swoole::GetCid()][$key];
+    }
+
+    /**
+     * Headers : return specified post data
+     * @return array
+     */
+    public static function Headers() : array
+    {
+        return static::$_header[Swoole::GetCid()];
     }
 
     /**

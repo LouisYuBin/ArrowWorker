@@ -87,8 +87,8 @@ class Daemon
         static::_handleAction();
 
         $daemon = new self($config);
-        $daemon->_setSignalHandler();
         $daemon->_initComponent();
+        $daemon->_setSignalHandler();
         $daemon->_startProcess();
         $daemon->_startMonitor();
     }
@@ -591,7 +591,8 @@ class Daemon
         }
         else
         {
-            Log::DumpExit("Arrow hint : process ended abnormally , Check your program." . self::$pid);
+            unlink(self::$pid);
+            //Log::DumpExit('Arrow hint : process ended abnormally , please delete pid file '. self::$pid.' and try again.');
         }
 
     }

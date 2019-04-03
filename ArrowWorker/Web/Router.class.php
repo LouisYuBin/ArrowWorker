@@ -48,48 +48,62 @@ class Router
             Log::Warning(" rest api configuration format is incorrect.");
             return ;
         }
-        static::$_restApiConfig = $config;
+
+        foreach ($config as $serverNames=>$restMap)
+        {
+            $serverNameArray = explode(',', $serverNames);
+            foreach ( $serverNameArray as $serverName)
+            {
+                static::$_restApiConfig[$serverName] = $restMap;
+            }
+        }
+
     }
 
     private static function _analyseUri()
     {
-        foreach (static::$_restApiConfig as $uri=>$alias)
+        foreach (static::$_restApiConfig as $serverName=>$restMap)
         {
-            $nodes    = explode('/', $uri);
-            $match    = preg_replace(['/:\w+/','/\//'], ['[a-zA-Z0-9_-]+','\\/'], $uri);
-            $colonPos = strpos($uri, ':');
-            $key      = (false===$colonPos) ? $uri : substr($uri, 0, $colonPos-1);
-            $params   = [];
-            foreach ($nodes as $index=>$param)
+            foreach ($restMap as $uri=>$alias)
             {
-                if( false===strpos($param, ':') )
+                $nodes    = explode('/', $uri);
+                $match    = preg_replace(['/:\w+/','/\//'], ['[a-zA-Z0-9_-]+','\\/'], $uri);
+                $colonPos = strpos($uri, ':');
+                $key      = (false===$colonPos) ? $uri : substr($uri, 0, $colonPos-1);
+                $params   = [];
+                foreach ($nodes as $index=>$param)
                 {
-                    continue;
+                    if( false===strpos($param, ':') )
+                    {
+                        continue;
+                    }
+                    $params[$index] = str_replace(':', '', $param);
                 }
-                $params[$index] = str_replace(':', '', $param);
+                static::$_pregAlias[$serverName][$key]["/^{$match}$/"] = [
+                    'uri'    => $uri,
+                    'params' => $params
+                ];
             }
-            static::$_pregAlias[$key]["/^{$match}$/"] = [
-                'uri'    => $uri,
-                'params' => $params
-            ];
         }
+
     }
 
     public static function _getRestUriKey() : string
     {
-        $uri     = Request::Server('REQUEST_URI');
-        $nodes   = explode('/', $uri);
-        $nodeLen = count($nodes);
+        $uri        = Request::Server('request_uri');
+        $nodes      = explode('/', $uri);
+        $nodeLen    = count($nodes);
+        $serverName = Request::Header('host');
 
         for($i=$nodeLen; $i>1; $i--)
         {
             $key = '/'.implode('/', array_slice($nodes,1, $i-1));
-            if( !isset(static::$_pregAlias[$key]) )
+            if( !isset(static::$_pregAlias[$serverName][$key]) )
             {
                 continue ;
             }
 
-            $nodeMap = static::$_pregAlias[$key];
+            $nodeMap = static::$_pregAlias[$serverName][$key];
             foreach ( $nodeMap as $match=>$eachNode )
             {
                 $isMatched = preg_match($match, $uri);
@@ -122,7 +136,7 @@ class Router
             return ;
         }
 
-        if( static::_pathInfoRouter() )
+        if( static::_pathRouter() )
         {
             return ;
         }
@@ -135,39 +149,48 @@ class Router
 
     private static function _restRouter()
     {
-        $key    = static::_getRestUriKey();
-        $method = strtolower(Request::Method());
+        $key        = static::_getRestUriKey();
+        $method     = strtolower(Request::Method());
+        $serverName = Request::Header('host');
 
         if( empty($key) )
         {
             return false;
         }
 
-        if( !isset(static::$_restApiConfig[$key][$method]) )
+        if( !isset(static::$_restApiConfig[$serverName][$key][$method]) )
         {
             return false;
         }
 
-        list($class, $function) = explode('::', static::$_restApiConfig[$key][$method]);
+        list($class, $function) = explode('::', static::$_restApiConfig[$serverName][$key][$method]);
         $class = self::CONTROLLER_NAMESPACE.$class;
         return static::_routeToFunction($class, $function);
     }
 
-    private static function _pathInfoRouter()
+    private static function _pathRouter()
     {
-        $uri      = Request::Server('REQUEST_URI');
+        $uri      = Request::Server('request_uri');
         $pathInfo = explode('/', $uri);
         $pathLen  = count($pathInfo);
-        if( $pathLen>=3 )
+
+        if( $pathLen<3 )
         {
-            $class = self::CONTROLLER_NAMESPACE.$pathInfo[0].'\\'.$pathInfo[1];
+            return false;
+        }
+
+        if( $pathLen==4 && $pathInfo[1]!='' && $pathInfo[2]!='' && $pathInfo[3]!='' )
+        {
+            $class = self::CONTROLLER_NAMESPACE.$pathInfo[1].'\\'.$pathInfo[2];
+            return static::_routeToFunction($class, $pathInfo[3]);
+        }
+
+        if( $pathLen>=3 && $pathInfo[1]!='' && $pathInfo[2]!='' )
+        {
+            $class = self::CONTROLLER_NAMESPACE.$pathInfo[1];
             return static::_routeToFunction($class, $pathInfo[2]);
         }
-        else if( $pathLen==2 )
-        {
-            $class = self::CONTROLLER_NAMESPACE.$pathInfo[0];
-            return static::_routeToFunction($class, $pathInfo[1]);
-        }
+
         return false;
     }
 
@@ -181,13 +204,13 @@ class Router
     {
         if( !class_exists($class) )
         {
-            static::_logAndResponse("rest api : {$class} does not exists.");
+            static::_logAndResponse("class : {$class} does not exists.");
         }
 
         $controller = new $class;
         if( !method_exists($controller, $function) )
         {
-            static::_logAndResponse("rest api : {$class}->{$function} does not exists.");
+            static::_logAndResponse("function : {$class}->{$function} does not exists.");
         }
         $controller->$function();
         return true;
