@@ -139,7 +139,7 @@ class Swoole
         $server = new Http($config['host'], $config['port'], $config['mode'],  empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
-            Log::Dump("swoole http server started ,listening at port : ".$config['port']);
+            Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
@@ -171,7 +171,7 @@ class Swoole
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
-            Log::Dump("swoole websocket server started ,listening at port : ".$config['port']);
+            Log::Dump("Websocket server is listening at port : ".$config['port']);
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
