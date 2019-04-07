@@ -54,7 +54,7 @@ class Router
             $serverNameArray = explode(',', $serverNames);
             foreach ( $serverNameArray as $serverName)
             {
-                static::$_restApiConfig[$serverName] = $restMap;
+                static::$_restApiConfig[trim($serverName)] = $restMap;
             }
         }
 

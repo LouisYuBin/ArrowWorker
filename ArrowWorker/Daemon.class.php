@@ -263,7 +263,7 @@ class Daemon
             $pid = pcntl_wait($status, WUNTRACED);
             $this->_handleExitedProcess($pid, $status);
             pcntl_signal_dispatch();
-            usleep(1000);
+            usleep(100000);
         }
     }
 
