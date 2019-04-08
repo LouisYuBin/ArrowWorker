@@ -209,7 +209,7 @@ class Daemon
         $pid = pcntl_fork();
         if($pid == 0)
         {
-            $processName = "swoole-{$config['type']}-{$index} : {$config['port']}";
+            $processName = "{$config['type']}-{$index} : {$config['port']}";
             Log::Dump(static::LOG_PREFIX."starting {$processName} process");
             static::_setProcessName($processName);
             if( $config['type']=='web' )
@@ -263,7 +263,7 @@ class Daemon
             $pid = pcntl_wait($status, WUNTRACED);
             $this->_handleExitedProcess($pid, $status);
             pcntl_signal_dispatch();
-            usleep(1000);
+            usleep(100000);
         }
     }
 
