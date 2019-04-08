@@ -47,10 +47,10 @@ class Swoole
     ];
 
     public static $defaultTcpConfig = [
-        'host'      => '0.0.0.0',
-        'port'      => 8888,
-        'workerNum' => 4,
-        'backlog'   => 1000,
+        'host'             => '0.0.0.0',
+        'port'             => 8888,
+        'workerNum'        => 4,
+        'backlog'          => 1000,
         'pipeBufferSize'   => 1024*1024*100,
         'socketBufferSize' => 1024*1024*100,
         'enableCoroutine'  => true,
@@ -58,7 +58,11 @@ class Swoole
         'reactorNum'       => 4,
         'maxContentLength' => 2088960,
         'maxCoroutine'     => 10000,
-        'mode'             => SWOOLE_PROCESS
+        'heartbeatCheckInterval' => 30,
+        'heartbeatIdleTime' => 60,
+        'openEofCheck'      => false,
+        'packageEof'        => '\r\n',
+        'mode'              => SWOOLE_PROCESS
     ];
 
     public static $defaultWebSocketConfig = [
@@ -108,9 +112,7 @@ class Swoole
                 $defaultConfig = static::$defaultUdpConfig;
         }
         $config = array_merge($defaultConfig, $config);
-        $config['enableSsl'] = empty($config['sslCertFile']) ? false : true;
-
-        return [
+        $serverConfig = [
             'port'       => $config['port'],
             'worker_num' => $config['workerNum'],
             'daemonize'  => false,
@@ -130,6 +132,19 @@ class Swoole
             'ssl_key_file'       => $config['sslKeyFile'],
             'mode'               => $config['mode'],
         ];
+
+        if( $type==static::TCP_SERVER )
+        {
+            $serverConfig['heartbeat_check_interval'] = $config['heartbeatCheckInterval'];
+            $serverConfig['heartbeat_idle_time']      = $config['heartbeatIdleTime'];
+
+            $serverConfig['open_eof_check']           = $config['openEofCheck'];
+            $serverConfig['package_eof']              = $config['packageEof'];
+            $serverConfig['open_eof_split']           = $config['openEofSplit'];
+
+        }
+
+        return $serverConfig;
     }
 
     public static function StartHttpServer(array $config)
@@ -171,7 +186,7 @@ class Swoole
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
-            Log::Dump("Websocket server is listening at port : ".$config['port']);
+            Log::Dump("Websocket server, port : ".$config['port']);
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);

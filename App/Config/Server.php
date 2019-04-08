@@ -51,7 +51,12 @@ return [
         'maxRequest'       => 100000,
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
-        'handler'          => [
+        'heartbeatCheckInterval' => 30,
+        'heartbeatIdleTime' => 60,
+        'openEofCheck'      => false,
+        'packageEof'        => '\r\n',
+        'openEofSplit'      => false,
+        'handler'           => [
             'connect' => 'Tcp::Connect',
             'receive' => 'Tcp::Receive',
             'close'   => 'Tcp::Close'
