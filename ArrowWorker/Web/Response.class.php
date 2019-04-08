@@ -29,6 +29,7 @@ class Response
     public static function Init(\Swoole\Http\Response $response)
     {
         static::$_response[Swoole::GetCid()] = $response;
+        static::Header('Server','Arrow Web Server, By Louis.');
     }
 
     /**
