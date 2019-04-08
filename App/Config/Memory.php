@@ -2,7 +2,7 @@
 
 return [
     'default' =>[
-        'size'   => 1000000,
+        'size'   => 10000,
         'column' => [
             'id'        => 'int',
             'token'     => 'string',
@@ -11,7 +11,7 @@ return [
         ]
     ],
     'clients' =>[
-        'size'   => 1000000,
+        'size'   => 100000,
         'column' => [
             'id'        => 'int',
             'token'     => 'string',
