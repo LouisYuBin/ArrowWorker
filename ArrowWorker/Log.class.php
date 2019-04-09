@@ -166,6 +166,7 @@ class Log
         static::_checkExtension();
         static::_initConfig();
         static::_checkLogDir();
+        static::_initLogSetting();
         static::_initHandler();
         static::_resetStd();
     }
@@ -175,6 +176,11 @@ class Log
         if( !extension_loaded('sysvmsg') )
         {
             static::DumpExit('extension sysvmsg does not installed/loaded.');
+        }
+
+        if( !extension_loaded('SeasLog') )
+        {
+            static::DumpExit('extension SeasLog does not installed/loaded.');
         }
     }
 
@@ -232,53 +238,6 @@ class Log
     }
 
     /**
-     * _initFile :initialize log file handler
-     */
-    private static function _initFile()
-    {
-        for( $i=1; $i<3; $i++ )
-        {
-            static::$file = fopen(static::$filePath,'a');
-            if( false !== static::$file )
-            {
-                break ;
-            }
-        }
-    }
-
-    /**
-     * _resetLogFile : check log file and reset log file
-     */
-    private static function _resetLogFile()
-    {
-        clearstatcache(true,static::$filePath);
-        $size = filesize(static::$filePath);
-        if( $size===false )
-        {
-            static::Dump('get log file size error : '.static::$filePath);
-            return ;
-        }
-
-        if( (int)$size < static::$logFileSize )
-        {
-            return;
-        }
-        
-        if( !fclose(static::$file) )
-        {
-            static::Dump('close log file failed');
-            return ;
-        }
-
-        static::Dump('starting rename log file ('.$size.'/'.static::$logFileSize.')');
-        rename(static::$filePath, static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'_'.date('Y-m-d H:i:s').'.log');
-
-        static::_initFile();
-
-    }
-
-
-    /**
      * _initConfig : init log configuration
      */
     private static function _initConfig()
@@ -304,6 +263,18 @@ class Log
         static::$StdoutFile = static::$baseDir.DIRECTORY_SEPARATOR.'ArrowWorker.output';
         error_reporting((int)static::$outputLevel);
         date_default_timezone_set(self::$logTimeZone);
+    }
+
+    private static function _initLogSetting()
+    {
+        ini_set('seaslog.default_basepath', static::$baseDir);
+        ini_set('seaslog.default_template', "%L | %T | %M | %F");
+        ini_set('seaslog.level', 7);
+        ini_set('seaslog.buffer_disabled_in_cli', 1);
+        ini_set('seaslog.use_buffer', 0);
+        ini_set('seaslog.disting_type',1);
+        ini_set('seaslog.disting_folder',0);
+        ini_set('seaslog.default_logger','Arrow');
 
     }
 
@@ -320,42 +291,91 @@ class Log
     /**
      * Info write an information log
      * @param string $log
+     * @param string $module
+     * @return void
      */
-    public static function Info(string $log)
+    public static function Info(string $log, string $module='')
     {
-        static::_selectLogChan()->Write('I '.static::_getTime().' '.$log.PHP_EOL);
+        static::_selectLogChan()->Write("I|{$module}|{$log}");
     }
 
+    /**
+     * Info write an information log
+     * @param string $log
+     * @param string $module
+     * @return void
+     */
+    public static function Alert(string $log, string $module='')
+    {
+        static::_selectLogChan()->Write("A|{$module}|{$log}");
+    }
+
+    /**
+     * @param string $log
+     * @param string $module
+     * @return void
+     */
+    public static function Debug(string $log, string $module='')
+    {
+        static::_selectLogChan()->Write("D|{$module}|{$log}");
+    }
 
     /**
      * Notice : write an notice log
      * @param string $log
+     * @param string $module
+     * @return void
      */
-    public static function Notice(string $log)
+    public static function Notice(string $log, string $module='')
     {
-        static::_selectLogChan()->Write('N '.static::_getTime().' '.$log.PHP_EOL);
+        static::_selectLogChan()->Write("N|{$module}|{$log}");
     }
 
 
     /**
      * Warning : write an warning log
      * @param string $log
+     * @param string $module
+     * @return void
      */
-    public static function Warning(string $log)
+    public static function Warning(string $log, string $module='')
     {
-        static::_selectLogChan()->Write('W '.static::_getTime().' '.$log.PHP_EOL);
+        static::_selectLogChan()->Write("W|{$module}|{$log}");
+    }
+
+    /**
+     * Error : write an error log
+     * @param string $log
+     * @param string $module
+     * @return void
+     */
+    public static function Error(string $log, string $module='')
+    {
+        static::_selectLogChan()->Write("E|{$module}|{$log}");
+    }
+
+    /**
+     * Emergency : write an Emergency log
+     * @param string $log
+     * @param string $module
+     * @return void
+     */
+    public static function Emergency(string $log, string $module='')
+    {
+        static::_selectLogChan()->Write("EM|{$module}|{$log}");
     }
 
 
     /**
-     * Error : write and error log
+     * Critical : write a Critical log
      * @param string $log
+     * @param string $module
+     * @return void
      */
-    public static function Error(string $log)
+    public static function Critical(string $log, string $module='')
     {
-        static::_selectLogChan()->Write('E '.static::_getTime().' '.$log.PHP_EOL);
+        static::_selectLogChan()->Write("C|{$module}|{$log}");
     }
-
 
     /**
      * Dump : echo log to standard output
@@ -364,6 +384,11 @@ class Log
     public static function Dump(string $log)
     {
         echo sprintf("%s - %s".PHP_EOL,static::_getTime(), $log);
+    }
+
+    private static function _getTime()
+    {
+        return date('Y-m-d H:i:s');
     }
 
     /**
@@ -395,7 +420,6 @@ class Log
             'log'
         );
     }
-
 
     /**
      * _writeToRedis : write log to redis queue
@@ -431,11 +455,47 @@ class Log
             return ;
         }
 
-        for($i=0; $i<3; $i++)
+        $logInfo  = explode('|', $log);
+        $level    = $logInfo[0];
+        $module   = $logInfo[1];
+        $message  = substr($log, strlen($level.$module)+2);
+
+        $tryTimes = 0;
+        RETRY:
+        switch ($level)
         {
-            if( false!==fwrite(static::$file, $log) )
+            case 'A':
+                $result = SeasLog::alert($message, [], $module);
+                break;
+            case 'D':
+                $result = SeasLog::debug($message, [], $module);
+                break;
+            case 'E':
+                $result = SeasLog::error($message, [], $module);
+                break;
+            case 'W':
+                $result = SeasLog::warning($message, [], $module);
+                break;
+            case 'N':
+                $result = SeasLog::notice($message, [], $module);
+                break;
+            case 'C':
+                $result = SeasLog::critical($message, [], $module);
+                break;
+            case 'EM':
+                $result = SeasLog::emergency($message, [], $module);
+                break;
+            default:
+                $result = SeasLog::info($message);
+        }
+
+        //写日志失败则重试，重试3次
+        if( $result==false )
+        {
+            $tryTimes++;
+            if( $tryTimes<3 )
             {
-                return ;
+                goto RETRY;
             }
         }
     }
@@ -500,15 +560,6 @@ class Log
     }
 
     /**
-     * _getTime : get specified date format
-     * @return false|string
-     */
-    private static function _getTime()
-    {
-        return date('Y-m-d H:i:s');
-    }
-
-    /**
      * _resetStd reset standard output and error log
      * @author Louis
      */
@@ -529,14 +580,6 @@ class Log
         {
             die("ArrowWorker hint : can not open stdoutFile".PHP_EOL);
         }
-    }
-
-    /**
-     * @param string $msg
-     */
-    private static function _outputToFile(string $msg)
-    {
-        fwrite( static::$_stdout, $msg);
     }
 
     /**
@@ -563,11 +606,6 @@ class Log
         if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;
-        }
-        else if($signal==SIGALRM)
-        {
-            static::_resetLogFile();
-            pcntl_alarm(static::SIZE_CHECK_PERIOD);
         }
     }
 

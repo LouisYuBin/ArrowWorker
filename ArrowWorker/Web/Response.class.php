@@ -29,7 +29,7 @@ class Response
     public static function Init(\Swoole\Http\Response $response)
     {
         static::$_response[Swoole::GetCid()] = $response;
-        static::Header('Server','Arrow Web Server, By Louis.');
+        static::Header('Server','Arrow Web Server, V2.0, By Louis');
     }
 
     /**
@@ -65,7 +65,20 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        static::$_response[Swoole::GetCid()]->header($key,$val);
+        static::$_response[Swoole::GetCid()]->header($key, $val);
+    }
+
+    /**
+     * Header : set response header
+     * @param array $data
+     * @return void
+     */
+    public static function Headers(array $data)
+    {
+        foreach ($data as $key=>$val)
+        {
+            static::$_response[Swoole::GetCid()]->header($key, $val);
+        }
     }
 
 
