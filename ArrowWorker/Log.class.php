@@ -9,6 +9,7 @@ namespace ArrowWorker;
 
 use ArrowWorker\Driver\Cache\Redis;
 use ArrowWorker\Driver\Channel\Queue;
+use ArrowWorker\Driver\Channel\SwChannel;
 
 /**
  * Class Log
@@ -57,7 +58,7 @@ class Log
      * msgSize : a single log size
      * @var int
      */
-    private static $msgSize = 512;
+    private static $msgSize = 65535;
 
     /**
      * directory for store log files
@@ -173,15 +174,26 @@ class Log
 
     private static function _checkExtension()
     {
-        if( !extension_loaded('sysvmsg') )
+        if( !extension_loaded('swoole') )
         {
-            static::DumpExit('extension sysvmsg does not installed/loaded.');
+            static::DumpExit('extension swoole does not installed/loaded.');
         }
 
         if( !extension_loaded('SeasLog') )
         {
             static::DumpExit('extension SeasLog does not installed/loaded.');
         }
+
+        if( (int)str_replace('.', '',(new \ReflectionExtension('swoole'))->getVersion())<400 )
+        {
+            static::DumpExit('swoole version must be newer than 4.0 .');
+        }
+
+        if( (int)str_replace('.', '',(new \ReflectionExtension('SeasLog'))->getVersion())<202 )
+        {
+            static::DumpExit('seaslog version should be 2.0.2 or newer.');
+        }
+
     }
 
     private static function _checkLogDir()
@@ -213,7 +225,6 @@ class Log
                 static::$_function = '_writeToRedis';
                 break;
             case static::TO_FILE;
-                static::_initFile();
                 static::$_function = '_writeToFile';
                 break;
             case static::TO_ALL;
@@ -225,11 +236,9 @@ class Log
                     'log'
                 );
 
-                static::_initFile();
                 static::$_function = '_writeToAll';
                 break;
             default:
-                static::_initFile();
                 static::$_function = '_writeToFile';
 
         }
@@ -256,7 +265,6 @@ class Log
         static::$password = $config['password'] ?? static::$password;
         static::$userName = $config['userName'] ?? static::$userName;
         static::$queue    = $config['queue'] ?? static::$queue;
-        static::$logFileSize = $config['fileSize'] ?? static::$logFileSize;
         static::$outputLevel = $config['errorLevel'] ??  static::$outputLevel;
         static::$logTimeZone = $config['timeZone'] ??  static::TIME_ZONE;
         static::$filePath   = static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'.log';
@@ -267,15 +275,46 @@ class Log
 
     private static function _initLogSetting()
     {
-        ini_set('seaslog.default_basepath', static::$baseDir);
-        ini_set('seaslog.default_template', "%L | %T | %M | %F");
-        ini_set('seaslog.level', 7);
-        ini_set('seaslog.buffer_disabled_in_cli', 1);
-        ini_set('seaslog.use_buffer', 0);
-        ini_set('seaslog.disting_type',1);
-        ini_set('seaslog.disting_folder',0);
-        ini_set('seaslog.default_logger','Arrow');
+        if( ini_get('seaslog.default_template')!='%T | %M' )
+        {
+            static::DumpExit("Value for seaslog.default_template in php.ini should be set to  %T | %M");
+        }
 
+        if( ini_get('seaslog.disting_type')!='1' )
+        {
+            static::DumpExit("Value for seaslog.disting_type in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.trace_notice')!='1' )
+        {
+            static::DumpExit("Value for seaslog.trace_notice in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.trace_warning')!= '1' )
+        {
+            static::DumpExit("Value for seaslog.trace_warning in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.trace_exception')!='1' )
+        {
+            static::DumpExit("Value for seaslog.trace_exception in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.trace_error')!='1' )
+        {
+            static::DumpExit("Value for seaslog.trace_error in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.buffer_disabled_in_cli')!= '1' )
+        {
+            static::DumpExit("Value for seaslog.buffer_disabled_in_cli in php.ini should be set to 1");
+        }
+
+        if( ini_get('seaslog.buffer_disabled_in_cli')!= '1' )
+        {
+            static::DumpExit("Value for seaslog.buffer_disabled_in_cli in php.ini should be set to 1");
+        }
+        \SeasLog::setBasePath(static::$baseDir);
     }
 
     private static function _getLogFileName() : string
@@ -397,7 +436,7 @@ class Log
      */
     public static function DumpExit(string $log)
     {
-        exit($log.PHP_EOL);
+        exit(PHP_EOL.$log.PHP_EOL);
     }
 
     public static function Hint(string $log)
@@ -426,8 +465,8 @@ class Log
      */
     private static function _writeToRedis()
     {
-        $log = static::_selectLogChan()->Read();
-        if( $log !== false )
+        $log = static::_selectLogChan()->Read(1);
+        if( $log === false )
         {
             usleep(100000);
            return ;
@@ -448,13 +487,18 @@ class Log
      */
     private static function _writeToFile()
     {
-        $log = static::_selectLogChan()->Read();
+        $log = static::_selectLogChan()->Read(1);
         if( $log === false )
         {
             usleep(100000);
             return ;
         }
+        static::_seaslogWrite($log);
 
+    }
+
+    private static function _seaslogWrite(string $log)
+    {
         $logInfo  = explode('|', $log);
         $level    = $logInfo[0];
         $module   = $logInfo[1];
@@ -465,28 +509,28 @@ class Log
         switch ($level)
         {
             case 'A':
-                $result = SeasLog::alert($message, [], $module);
+                $result = \SeasLog::alert($message, [], $module);
                 break;
             case 'D':
-                $result = SeasLog::debug($message, [], $module);
+                $result = \SeasLog::debug($message, [], $module);
                 break;
             case 'E':
-                $result = SeasLog::error($message, [], $module);
+                $result = \SeasLog::error($message, [], $module);
                 break;
             case 'W':
-                $result = SeasLog::warning($message, [], $module);
+                $result = \SeasLog::warning($message, [], $module);
                 break;
             case 'N':
-                $result = SeasLog::notice($message, [], $module);
+                $result = \SeasLog::notice($message, [], $module);
                 break;
             case 'C':
-                $result = SeasLog::critical($message, [], $module);
+                $result = \SeasLog::critical($message, [], $module);
                 break;
             case 'EM':
-                $result = SeasLog::emergency($message, [], $module);
+                $result = \SeasLog::emergency($message, [], $module);
                 break;
             default:
-                $result = SeasLog::info($message);
+                $result = \SeasLog::info($message, [], $module);
         }
 
         //写日志失败则重试，重试3次
@@ -505,25 +549,22 @@ class Log
      */
     private static function _writeToAll()
     {
-        $log = static::_selectLogChan()->Read();
+        $log = static::_selectLogChan()->Read(1);
         if( $log === false )
         {
             usleep(100000);
             return ;
         }
 
-        for($i=0; $i<3; $i++)
-        {
-            if( false!==fwrite(static::$file, $log) )
-            {
-                goto WriteRedis;
-            }
 
-            WriteRedis:
-            if( false !== static::$redis->Lpush(static::$queue, $log) )
-            {
-                break;
-            }
+        static::_seaslogWrite($log);
+
+        $tryTimes = 0;
+        WriteRedis:
+        $tryTimes++;
+        if( false === static::$redis->Lpush(static::$queue, $log) && $tryTimes<3 )
+        {
+            goto WriteRedis;
         }
     }
 
@@ -533,19 +574,22 @@ class Log
     public static function Start()
     {
         static::_setSignalHandler();
-        pcntl_alarm(static::SIZE_CHECK_PERIOD);
         $function = static::$_function;
-        while( true )
-        {
-            if( static::$isTerminate )
-            {
-                static::_exit();
-            }
 
-            pcntl_signal_dispatch();
-            static::$function();
-            pcntl_signal_dispatch();
-        }
+        go(function() use ($function) {
+            while( true )
+            {
+                if( static::$isTerminate )
+                {
+                    static::_exit();
+                }
+
+                pcntl_signal_dispatch();
+                static::$function();
+                pcntl_signal_dispatch();
+            }
+        });
+
     }
 
     /**
@@ -553,6 +597,8 @@ class Log
      */
     private static function _exit()
     {
+        var_dump(static::_selectLogChan()->Status());
+        exit;
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
             static::DumpExit('Log queue status : '.json_encode(static::_selectLogChan()->Status()));
@@ -603,6 +649,7 @@ class Log
      */
     public static function signalHandler(int $signal)
     {
+        var_dump($signal);
         if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;
