@@ -117,7 +117,9 @@ class Queue extends Channel
      */
     public function Write( string $message, string $chan='', int $msgType=1 )
     {
-        return msg_send( static::_getQueue($chan), $msgType, (string)$message,true, true, $errorCode);
+        $result =  msg_send( static::_getQueue($chan), $msgType, (string)$message,false, true, $errorCode);
+        var_dump($result);
+        return $result;
 	}
 
     /**
