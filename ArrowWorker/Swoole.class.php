@@ -157,8 +157,6 @@ class Swoole
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
-            Router::Go();
-            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
@@ -166,6 +164,10 @@ class Swoole
                 is_array($request->files) ? $request->files : [],
                     is_array($request->header) ? $request->header : []
             );
+
+            Router::Go();
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
+
             Session::Reset();
             Response::Init($response);
 
