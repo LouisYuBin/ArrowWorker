@@ -117,9 +117,22 @@ class Queue extends Channel
      */
     public function Write( string $message, string $chan='', int $msgType=1 )
     {
-        $result =  msg_send( static::_getQueue($chan), $msgType, (string)$message,false, true, $errorCode);
-        var_dump($result);
-        return $result;
+        $retryTimes = 0;
+        RETRY:
+        if( false==msg_send( static::_getQueue($chan), $msgType, (string)$message,false, true, $errorCode))
+        {
+            $retryTimes++;
+            if( $retryTimes<=3 )
+            {
+                goto RETRY;
+            }
+        }
+        else
+        {
+            return true;
+        }
+
+        return false;
 	}
 
     /**

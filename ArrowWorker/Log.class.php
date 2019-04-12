@@ -597,8 +597,6 @@ class Log
      */
     private static function _exit()
     {
-        var_dump(static::_selectLogChan()->Status());
-        exit;
         if( static::_selectLogChan()->Status()['msg_qnum']===0 )
         {
             static::DumpExit('Log queue status : '.json_encode(static::_selectLogChan()->Status()));
