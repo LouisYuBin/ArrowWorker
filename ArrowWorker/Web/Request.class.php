@@ -41,9 +41,8 @@ class Request
         $get    = json_encode($_GET[ $coId ], JSON_UNESCAPED_UNICODE);
         $post   = json_encode($_POST[ $coId ], JSON_UNESCAPED_UNICODE);
         $files  = json_encode($_FILES[ $coId ], JSON_UNESCAPED_UNICODE);
-        $params = json_encode(static::$_parameters[$coId], JSON_UNESCAPED_UNICODE);
         $header = json_encode(static::$_header[$coId], JSON_UNESCAPED_UNICODE);
-        Log::Debug("get : {$get} \n post : {$post} \n files : {$files} \n param : {$params} \n header : {$header}",'request');
+        Log::Debug("get : {$get} \n post : {$post} \n files : {$files} \n header : {$header}",'request');
         unset($get, $post, $files, $params, $header);
     }
 
@@ -174,6 +173,8 @@ class Request
     public static function SetParams(array $params)
     {
         static::$_parameters[Swoole::GetCid()] = $params;
+        $params = json_encode($params, JSON_UNESCAPED_UNICODE);
+        Log::Debug("\n Params : {$params}",'request');
     }
 
     /**

@@ -191,8 +191,6 @@ class Swoole
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('request', function($request, $response) {
-            Router::Go();
-            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
@@ -201,7 +199,11 @@ class Swoole
                 is_array($request->header) ? $request->header : []
 
             );
+            Router::Go();
+
+            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Session::Reset();
+
             Response::Init($response);
 
             Cookie::Release();
