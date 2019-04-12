@@ -157,6 +157,7 @@ class Swoole
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+            Router::Go();
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -167,7 +168,6 @@ class Swoole
             );
             Session::Reset();
             Response::Init($response);
-            Router::Go();
 
             Cookie::Release();
             Request::Release();
@@ -191,6 +191,7 @@ class Swoole
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('request', function($request, $response) {
+            Router::Go();
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -202,7 +203,6 @@ class Swoole
             );
             Session::Reset();
             Response::Init($response);
-            Router::Go();
 
             Cookie::Release();
             Request::Release();
