@@ -147,7 +147,7 @@ class Queue extends Channel
 		    static::_getQueue($chan),
             $msgType,
             $messageType,
-            65535,
+            1048576,
             $message,
             false,
             MSG_IPC_NOWAIT,
