@@ -42,7 +42,7 @@ class Request
         $post   = json_encode($_POST[ $coId ], JSON_UNESCAPED_UNICODE);
         $files  = json_encode($_FILES[ $coId ], JSON_UNESCAPED_UNICODE);
         $header = json_encode(static::$_header[$coId], JSON_UNESCAPED_UNICODE);
-        Log::Debug("get : {$get} \n post : {$post} \n files : {$files} \n header : {$header}",'request');
+        Log::Debug("\n get : {$get} \n post : {$post} \n files : {$files} \n header : {$header}",'request');
         unset($get, $post, $files, $params, $header);
     }
 
