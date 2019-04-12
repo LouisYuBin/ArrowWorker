@@ -213,6 +213,7 @@ class Router
             static::_logAndResponse("function : {$class}->{$function} does not exists.");
         }
         $controller->$function();
+        unset($controller);
         return true;
     }
 
