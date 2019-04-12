@@ -49,16 +49,16 @@ class Log
     const SIZE_CHECK_PERIOD = 10;
 
     /**
-     * bufSize : log buffer size
+     * bufSize : log buffer size 10M
      * @var int
      */
-    private static $bufSize = 10240000;
+    private static $bufSize = 10485760;
 
     /**
-     * msgSize : a single log size
+     * msgSize : a single log size 1M
      * @var int
      */
-    private static $msgSize = 65535;
+    private static $msgSize = 1048576;
 
     /**
      * directory for store log files
