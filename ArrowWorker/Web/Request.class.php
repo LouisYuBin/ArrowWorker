@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Log;
 use ArrowWorker\Swoole;
 
 
@@ -36,6 +37,14 @@ class Request
         $_SERVER[ $coId ]  = $server;
         static::$_parameters[$coId] = [];
         static::$_header[$coId]     = $header;
+
+        $get    = json_decode($_GET[ $coId ]);
+        $post   = json_decode($_POST[ $coId ]);
+        $files  = json_decode($_FILES[ $coId ]);
+        $params = json_decode(static::$_parameters[$coId]);
+        $header = json_decode(static::$_header[$coId]);
+        Log::Debug("Get : {$get} \n Post : {$post} \n files : {$files} \n param : {$params} header : {$header}",'request');
+        unset($get, $post, $files, $params, $header);
     }
 
     /**
