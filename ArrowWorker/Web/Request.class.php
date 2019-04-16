@@ -153,6 +153,14 @@ class Request
     }
 
     /**
+     * @return string
+     */
+    public static function ClientIp() : string
+    {
+        return $_SERVER[Swoole::GetCid()]['remote_addr'];
+    }
+
+    /**
      * Servers : return all server data
      * @param string $name
      * @return Upload|false
