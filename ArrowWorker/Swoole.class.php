@@ -163,7 +163,8 @@ class Swoole
                 is_array($request->post) ? $request->post : [],
                 is_array($request->server) ? $request->server : [],
                 is_array($request->files) ? $request->files : [],
-                    is_array($request->header) ? $request->header : []
+                    is_array($request->header) ? $request->header : [],
+                $request->rawContent()
             );
             Session::Reset();
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
@@ -190,14 +191,15 @@ class Swoole
         });
         $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
-        $server->on('request', function($request, $response) {
+        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Response::Init($response);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
                 is_array($request->server) ? $request->server : [],
                 is_array($request->files) ? $request->files : [],
-                is_array($request->header) ? $request->header : []
+                is_array($request->header) ? $request->header : [],
+                $request->rawContent()
 
             );
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);

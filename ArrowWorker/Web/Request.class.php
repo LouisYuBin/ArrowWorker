@@ -18,8 +18,22 @@ use ArrowWorker\Swoole;
 class Request
 {
 
+    /**
+     * @var array
+     */
     private static $_parameters = [];
+
+    /**
+     * @var array
+     */
     private static $_header     = [];
+
+    /**
+     * @var array
+     */
+    private static $_raw        = [];
+
+    private static $_urlPost    = [];
 
     /**
      * Init : init request data(post/get/files...)
@@ -27,24 +41,42 @@ class Request
      * @param array $post
      * @param array $server
      * @param array $files
+     * @param array $header
+     * @param string $raw
      */
-    public static function Init(array $get, array $post, array $server, array $files, array $header)
+    public static function Init(array $get, array $post, array $server, array $files, array $header, string $raw='')
     {
         $coId = Swoole::GetCid();
         $_GET[    $coId ]  = $get;
         $_POST[   $coId ]  = $post;
         $_FILES[  $coId ]  = $files;
         $_SERVER[ $coId ]  = $server;
-        static::$_parameters[$coId] = [];
-        static::$_header[$coId]     = $header;
 
-        $get    = json_encode($_GET[ $coId ], JSON_UNESCAPED_UNICODE);
-        $post   = json_encode($_POST[ $coId ], JSON_UNESCAPED_UNICODE);
-        $files  = json_encode($_FILES[ $coId ], JSON_UNESCAPED_UNICODE);
-        $server = json_encode($_SERVER[ $coId ], JSON_UNESCAPED_UNICODE);
-        $header = json_encode(static::$_header[$coId], JSON_UNESCAPED_UNICODE);
-        Log::Debug("\n get : {$get} \n post : {$post} \n files : {$files} \n header : {$header} \n server : {$server}",'request');
-        unset($get, $post, $files, $params, $header, $server);
+        static::$_raw[$coId]        = $raw;
+        static::$_header[$coId]     = $header;
+        static::$_parameters[$coId] = [];
+
+
+        $getString    = json_encode($get, JSON_UNESCAPED_UNICODE);
+        $postString   = json_encode($post, JSON_UNESCAPED_UNICODE);
+        $filesString  = json_encode($files, JSON_UNESCAPED_UNICODE);
+        $serverString = json_encode($server, JSON_UNESCAPED_UNICODE);
+        $headerString = json_encode($header, JSON_UNESCAPED_UNICODE);
+        $method       = $_SERVER[ Swoole::GetCid() ]['request_method'];
+        Log::Debug("[{$method}] \n get : {$getString} \n post : {$postString} \n header : {$headerString} \n server : {$serverString} \n raw : {$raw} \n files : {$filesString} ",'request');
+        unset($method, $getString, $postString, $filesString, $paramsString, $headerString, $serverString);
+        static::InitUrlPostParams();
+    }
+
+    private static function InitUrlPostParams()
+    {
+        $coId = Swoole::GetCid();
+        if( !empty(static::$_raw[$coId]) )
+        {
+            parse_str(static::$_raw[$coId],$postParam);
+            var_dump($postParam);
+            static::$_urlPost[$coId] = $postParam;
+        }
     }
 
     /**
@@ -94,6 +126,25 @@ class Request
     public static function Params() : array
     {
         return static::$_parameters[Swoole::GetCid()];
+    }
+
+    /**
+     * Param : return specified post data
+     * @param string $key
+     * @return string
+     */
+    public static function UrlPost(string $key) : string
+    {
+        return ( !isset(static::$_urlPost[Swoole::GetCid()][$key]) ) ? '' : static::$_urlPost[Swoole::GetCid()][$key];
+    }
+
+    /**
+     * Params : return specified post data
+     * @return array
+     */
+    public static function UrlPosts() : array
+    {
+        return static::$_urlPost[Swoole::GetCid()];
     }
 
     /**
@@ -179,6 +230,9 @@ class Request
         return $_FILES[ Swoole::GetCid() ];
     }
 
+    /**
+     * @param array $params
+     */
     public static function SetParams(array $params)
     {
         static::$_parameters[Swoole::GetCid()] = $params;
