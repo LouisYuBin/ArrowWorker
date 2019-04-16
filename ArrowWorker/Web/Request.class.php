@@ -71,11 +71,25 @@ class Request
     private static function InitUrlPostParams()
     {
         $coId = Swoole::GetCid();
-        if( !empty(static::$_raw[$coId]) )
+        $raw  = static::$_raw[$coId];
+        if( empty($raw) )
         {
-            parse_str(static::$_raw[$coId],$postParam);
-            var_dump($postParam);
+            return ;
+        }
+
+        // normal x-www-form-urlencoded data
+        if( substr($raw,0,1)!='{' )
+        {
+            parse_str($raw,$postParam);
             static::$_urlPost[$coId] = $postParam;
+        }
+        else // json data
+        {
+            $postParam = json_decode($raw,true);
+            if( is_array($postParam) )
+            {
+                static::$_urlPost[$coId] = $postParam;
+            }
         }
     }
 
