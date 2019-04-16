@@ -6,6 +6,7 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Web\Response;
 
 /**
  * Class Exception
@@ -60,15 +61,13 @@ class Exception
         //ob_clean();
         if( APP_TYPE=='fpm' && APP_STATUS=='debug' )
         {
-            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!",'');
             Response::Write("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
         }
         else if( APP_TYPE=='fpm' && APP_STATUS!='debug' )
         {
-            Response::Header("HTTP/1.1 500 Something must be wrong with your program,by ArrowWorker!");
             Response::Json( 500, ['msg' => 'something is wrong with the server...'] );
         }
-        else if( in_array(APP_TYPE,['worker','swHttp']) )
+        else if( in_array(APP_TYPE, ['worker','server']) )
         {
             static::_removePidFile();
             exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);

@@ -204,13 +204,13 @@ class Router
     {
         if( !class_exists($class) )
         {
-            static::_logAndResponse("class : {$class} does not exists.");
+            return static::_logAndResponse("class : {$class} does not exists.");
         }
 
         $controller = new $class;
         if( !method_exists($controller, $function) )
         {
-            static::_logAndResponse("function : {$class}->{$function} does not exists.");
+            return static::_logAndResponse("function : {$class}->{$function} does not exists.");
         }
         $controller->$function();
         unset($controller);
@@ -221,6 +221,7 @@ class Router
     {
         Log::Warning($msg);
         Response::Write($msg);
+        return true;
     }
 
 
