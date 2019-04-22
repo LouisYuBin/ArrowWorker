@@ -199,7 +199,6 @@ class Swoole
                 is_array($request->header) ? $request->header : [],
                 $request->rawContent()
             );
-            Router::Go();
             $function($server, $request->fd);
         });
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
