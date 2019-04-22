@@ -115,7 +115,7 @@ class ArrowWorker
             {
                 $msg = "Auto load class error : ".$class." does not exists.";
                 Log::Error($msg);
-                Log::DumpExit($msg);
+                return ;
             }
         }
         require $class;
@@ -166,7 +166,8 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifHelper'     => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage' . self::classExt,
-            'ArrowWorker\Lib\Client\WebSocket'     => ArrowWorker . '/Lib/Client/WebSocket'  . self::classExt,
+            'ArrowWorker\Lib\Client\WebSocket'        => ArrowWorker . '/Lib/Client/WebSocket'  . self::classExt,
+            'ArrowWorker\Lib\Client\Http'             => ArrowWorker . '/Lib/Client/Http'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
