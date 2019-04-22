@@ -200,7 +200,7 @@ class Swoole
                 $request->rawContent()
             );
             Router::Go();
-            $function($server);
+            $function($server, $request->fd);
         });
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
