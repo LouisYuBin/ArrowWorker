@@ -189,7 +189,19 @@ class Swoole
         $server->on('start', function($server) use ($config) {
             Log::Dump("Websocket server, port : ".$config['port']);
         });
-        $server->on('open', static::CONTROLLER_NAMESPACE.$config['handler']['open']);
+        $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
+            Request::Init(
+                is_array($request->get)   ? $request->get : [],
+                is_array($request->post) ? $request->post : [],
+                is_array($request->server) ? $request->server : [],
+                is_array($request->files) ? $request->files : [],
+                is_array($request->header) ? $request->header : [],
+                $request->rawContent()
+            );
+            Router::Go();
+            $function($server);
+        });
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Response::Init($response);
@@ -200,7 +212,6 @@ class Swoole
                 is_array($request->files) ? $request->files : [],
                 is_array($request->header) ? $request->header : [],
                 $request->rawContent()
-
             );
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Session::Reset();
@@ -214,7 +225,6 @@ class Swoole
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }
-
 
     public static function StartTcpServer(array $config)
     {

@@ -140,10 +140,12 @@ class Router
         {
             return ;
         }
+
         if( static::_routeToDefault() )
         {
             return ;
         }
+
         static::_logAndResponse("request does not match any router");
     }
 

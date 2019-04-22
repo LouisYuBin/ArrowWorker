@@ -14,7 +14,7 @@ use \Swoole\WebSocket\Frame  as WebSocketFrame;
 class WebSocket
 {
 
-    public static function Open(WebSocketServer $server, \Swoole\Http\Request $req)
+    public static function Open(WebSocketServer $server)
     {
         $memory = Memory::Get('default');
         //$memory->Write('spicy',['id'=>3,'token'=>'5566666']);
