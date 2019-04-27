@@ -113,14 +113,14 @@ class Http
      * @param string $path
      * @return array
      */
-    public function Post(array $data, string $path='')
+    public function Post(array $data, string $path='') : array
     {
         if( $this->_responseStatus==static::ERROR_URL )
         {
             return [];
         }
         $this->_client->setHeaders($this->_header);
-        $this->_client->Post($data, $path=='' ? $this->_path : $path );
+        $this->_client->Post($path=='' ? $this->_path : $path, $data);
         return $this->_Response();
     }
 
@@ -128,7 +128,7 @@ class Http
      * @param string $path
      * @return array
      */
-    public function Get(string $path='')
+    public function Get(string $path='') : array
     {
         if( $this->_responseStatus==static::ERROR_URL )
         {
@@ -159,7 +159,7 @@ class Http
     {
         return [
             'httpCode' => $this->_client->statusCode,
-            'data'     => $this->_client->body
+            'data'     => (string)$this->_client->body
         ];
     }
 

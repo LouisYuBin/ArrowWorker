@@ -9,6 +9,7 @@ return [
     'port'     => 6379,
     'userName' => 'root',
     'password' => 'louis',
-    'queue'    => 'ArrowWorkerLog'
+    'queue'    => 'ArrowWorkerLog',
+    'timeZone' => 'Asia/Shanghai'
 
 ];

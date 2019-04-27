@@ -8,6 +8,7 @@
 
 namespace ArrowWorker\Lib\Client;
 
+use ArrowWorker\Log;
 use \Swoole\Coroutine\Http\Client;
 
 
@@ -23,34 +24,58 @@ class WebSocket
     private $_instance = null;
 
     /**
+     * @var string
+     */
+    private $_logName = 'webSocket_client';
+
+    /**
      * WebSocket constructor.
      * @param string $host
      * @param int    $port
+     * @param bool $isSsl
      */
-    private function __construct(string $host, int $port=80)
+    private function __construct(string $host, int $port=80, bool $isSsl=false)
     {
-        $this->_instance = new Client($host, $port);
+        $this->_instance = new Client($host, $port, $isSsl);
     }
 
     /**
      * @param string $host
      * @param int    $port
+     * @param bool $isSsl;
      * @return WebSocket
      */
-    public static function Connect(string $host, int $port)
+    public static function Connect(string $host, int $port, bool $isSsl=false)
     {
-        return new self($host, $port);
+        return new self($host, $port, $isSsl);
     }
 
     /**
      * @param string $data
      * @param string $uri
+     * @param int $retryTimes
      * @return bool
      */
-    public function Push(string $data, string $uri='/') : bool
+    public function Push(string $data, string $uri='/', int $retryTimes=3) : bool
     {
-        $this->_instance->upgrade( $uri );
-        return $this->_instance->push($data);
+        for( $i=0; $i<$retryTimes; $i++)
+        {
+            if( true==$this->_instance->upgrade( $uri ) )
+            {
+                break ;
+            }
+            Log::Error("upgrade failed : {$i}", $this->_logName);
+        }
+
+        for ($i=0; $i<$retryTimes; $i++)
+        {
+            if( true==$this->_instance->push($data) )
+            {
+                return true;
+            }
+            Log::Error("push failed : {$i}", $this->_logName);
+        }
+        return false;
     }
 
     /**
@@ -60,6 +85,14 @@ class WebSocket
     public function Receive(float $timeout)
     {
         return $this->_instance->recv($timeout);
+    }
+
+    /**
+     * @return bool
+     */
+    public function Close()
+    {
+        return $this->_instance->close();
     }
 
 

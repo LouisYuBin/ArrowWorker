@@ -6,7 +6,7 @@
     <script>
 
 
-        var ws = new WebSocket("ws://114.116.25.44:9011/order/msg?a=louis");
+        var ws = new WebSocket("ws://114.116.25.44:9011/order/message");
 
         ws.onopen = function(evt) {
             console.log("Connection open ...");
@@ -14,16 +14,15 @@
         };
 
         ws.onmessage = function(evt) {
-            console.log("Received Message: " + evt.data);
+            console.log('onmessage');
+            console.log(evt.data);
         };
 
         ws.onclose = function(evt) {
             console.log("Connection closed.");
 
         }
-
-        ws.send("data from h5 client");
-        ws.send("data from h5 client_1");
+        ws.send('sdf');
     </script>
 </head>
 <body>
