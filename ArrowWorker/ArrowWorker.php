@@ -166,8 +166,14 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifHelper'     => ArrowWorker  . '/Lib/Image/Gif/GifHelper' . self::classExt,
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::classExt,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage' . self::classExt,
-            'ArrowWorker\Lib\Client\WebSocket'        => ArrowWorker . '/Lib/Client/WebSocket'  . self::classExt,
-            'ArrowWorker\Lib\Client\Http'             => ArrowWorker . '/Lib/Client/Http'  . self::classExt,
+
+            'ArrowWorker\Lib\Client\WebSocket' => ArrowWorker . '/Lib/Client/WebSocket'  . self::classExt,
+            'ArrowWorker\Lib\Client\Http'      => ArrowWorker . '/Lib/Client/Http' . self::classExt,
+            'ArrowWorker\Lib\Client\Tcp'       => ArrowWorker . '/Lib/Client/Tcp'  . self::classExt,
+
+            'ArrowWorker\Lib\Xml\Writer'    => ArrowWorker . '/Lib/Xml/Writer'  . self::classExt,
+            'ArrowWorker\Lib\Xml\Reader'    => ArrowWorker . '/Lib/Xml/Reader'  . self::classExt,
+            'ArrowWorker\Lib\Xml\Converter' => ArrowWorker . '/Lib/Xml/Converter'  . self::classExt,
 
             'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db' .      self::classExt,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
