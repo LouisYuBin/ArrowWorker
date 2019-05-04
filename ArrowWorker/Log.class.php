@@ -436,7 +436,8 @@ class Log
      */
     public static function DumpExit(string $log)
     {
-        exit(PHP_EOL.$log.PHP_EOL);
+        echo (PHP_EOL.$log.PHP_EOL);
+        exit(0);
     }
 
     public static function Hint(string $log)
@@ -576,19 +577,17 @@ class Log
         static::_setSignalHandler();
         $function = static::$_function;
 
-        go(function() use ($function) {
-            while( true )
+        while( true )
+        {
+            if( static::$isTerminate )
             {
-                if( static::$isTerminate )
-                {
-                    static::_exit();
-                }
-
-                pcntl_signal_dispatch();
-                static::$function();
-                pcntl_signal_dispatch();
+                static::_exit();
             }
-        });
+
+            pcntl_signal_dispatch();
+            static::$function();
+            pcntl_signal_dispatch();
+        }
 
     }
 
