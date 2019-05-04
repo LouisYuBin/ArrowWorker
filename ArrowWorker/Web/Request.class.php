@@ -103,6 +103,23 @@ class Request
     }
 
     /**
+     * @return string
+     */
+    public static function Uri() : string
+    {
+        return $_SERVER[ Swoole::GetCid() ]['request_uri'];
+    }
+
+
+    /**
+     * @return string
+     */
+    public static function ClientIp() : string
+    {
+        return $_SERVER[ Swoole::GetCid() ]['remote_addr'];
+    }
+
+    /**
      * Get : return specified get data
      * @param string $key
      * @return string|bool
@@ -218,14 +235,6 @@ class Request
     }
 
     /**
-     * @return string
-     */
-    public static function ClientIp() : string
-    {
-        return $_SERVER[Swoole::GetCid()]['remote_addr'];
-    }
-
-    /**
      * Servers : return all server data
      * @param string $name
      * @return Upload|false
@@ -260,7 +269,7 @@ class Request
     public static function Release()
     {
         $coId = Swoole::GetCid();
-        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId], $_SERVER[$coId], static::$_parameters[$coId]);
+        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId], $_SERVER[$coId], static::$_parameters[$coId], static::$_header[$coId], static::$_urlPost[$coId], $coId);
     }
 
 }
