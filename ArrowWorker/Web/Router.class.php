@@ -29,10 +29,13 @@ class Router
 
 	private static $_pregAlias = [];
 
-	public static function Init()
+	private static $_404       = 'page not found(该页面不存在).';
+
+	public static function Init(string $_404)
     {
         self::_loadRestConfig();
         self::_analyseUri();
+        self::_load404($_404);
     }
 
     private static function _loadRestConfig()
@@ -172,7 +175,7 @@ class Router
 
     private static function _pathRouter()
     {
-        $uri      = Request::Server('request_uri');
+        $uri      = Request::Uri();
         $pathInfo = explode('/', $uri);
         $pathLen  = count($pathInfo);
 
@@ -222,8 +225,23 @@ class Router
     private static function _logAndResponse(string $msg)
     {
         Log::Warning($msg);
+        if( !DEBUG )
+        {
+            $msg = static::$_404;
+        }
         Response::Write($msg);
         return true;
+    }
+
+    private static function _load404(string $_404)
+    {
+        if( empty($_404) || !file_exists($_404) )
+        {
+            static::$_404 = file_get_contents(ArrowWorker.'/Static/404.html');
+            return ;
+        }
+
+        static::$_404 = file_get_contents($_404);
     }
 
 

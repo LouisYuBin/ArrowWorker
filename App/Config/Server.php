@@ -17,7 +17,7 @@ return [
         //'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         //'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
-        ''
+        '404'              => APP_PATH.'/Static/Web/404.html'
     ],
     [
         'type'             => 'webSocket',
@@ -33,6 +33,7 @@ return [
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
         'documentRoot' => APP_PATH.'/Static/Web',
+        '404'          => APP_PATH.'/Static/Web/404.html',
         'handler'      => [
             'open'    => 'WebSocket::Open',
             'message' => 'WebSocket::Message',

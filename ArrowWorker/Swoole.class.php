@@ -149,7 +149,7 @@ class Swoole
 
     public static function StartHttpServer(array $config)
     {
-        Router::Init();
+        Router::Init(isset($config['404']) ? (string)$config['404'] : '');
         $config = static::_getConfig(static::WEB_SERVER, $config);
         $server = new Http($config['host'], $config['port'], $config['mode'],  empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
@@ -181,7 +181,7 @@ class Swoole
 
     public static function StartWebSocketServer(array $config)
     {
-        Router::Init();
+        Router::Init( isset($config['404']) ? (string)$config['404'] : '' );
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
 
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);

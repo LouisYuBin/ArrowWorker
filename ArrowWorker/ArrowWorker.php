@@ -55,6 +55,8 @@ defined('DEFAULT_METHOD') or define('DEFAULT_METHOD','index');
 //file name for default configuration
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','App');
 
+defined('DEBUG') or define('DEBUG', true);
+
 
 /**
  * Class ArrowWorker

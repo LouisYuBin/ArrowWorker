@@ -10,6 +10,9 @@ define('APP_PATH',__DIR__.'/App');
 //define('APP_TYPE',['worker','server']);
 define('APP_TYPE',['server']);
 
+//开发调试模式
+define('DEBUG', false);
+
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
 arrow::Start();
 
