@@ -45,7 +45,7 @@ class WebSocket
      * @param bool $isSsl;
      * @return WebSocket
      */
-    public static function Connect(string $host, int $port, bool $isSsl=false)
+    public static function Init(string $host, int $port, bool $isSsl=false)
     {
         return new self($host, $port, $isSsl);
     }

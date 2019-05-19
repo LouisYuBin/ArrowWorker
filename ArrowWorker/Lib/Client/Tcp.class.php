@@ -6,6 +6,7 @@
 namespace ArrowWorker\Lib\Client;
 
 use \swoole\client as Client;
+use \ArrowWorker\Log;
 
 /**
  * Class Tcp
@@ -16,7 +17,7 @@ class Tcp
     /**
      * @var Client
      */
-    private $_client = null;
+    private $_client;
 
     /**
      * @var string
@@ -34,62 +35,119 @@ class Tcp
     private $_timeout = 3;
 
     /**
+     * @var string
+     */
+    private $_logName = 'Tcp_Client';
+
+    /*
+     * 13 connect refused
+     * 32 pipe broken
+     * */
+
+
+    /**
      * @param string $host
      * @param int    $port
      * @param float  $timeout
+     * @param int    $connRetryTimes
+     *
      * @return Tcp
      */
-    public static function Init(string $host, int $port, float $timeout=3)
+    public static function Init(string $host, int $port, float $timeout = 3, int $connRetryTimes = 3)
     {
-        return new self($host, $port, $timeout);
+        return new self($host, $port, $timeout, $connRetryTimes);
     }
 
     /**
      * Tcp constructor.
+     *
      * @param string $host
      * @param int    $port
      * @param float  $timeout
+     * @param int    $connTryTimes
      */
-    private function __construct(string $host, int $port, float $timeout)
+    private function __construct(string $host, int $port, float $timeout, int $connTryTimes = 3)
     {
-        $this->_host    = $host;
-        $this->_port    = $port;
+        $this->_host = $host;
+        $this->_port = $port;
         $this->_timeout = $timeout;
 
-        $this->_initClient();
+        $this->InitClient($connTryTimes);
+    }
+
+    /**
+     * @param int $connTryTimes
+     *
+     * @return bool
+     */
+    public function InitClient(int $connTryTimes = 3)
+    {
+        $result = false;
+        $this->_client = new Client(SWOOLE_SOCK_TCP);
+
+        for ($i = 0; $i < $connTryTimes; $i++)
+        {
+            try
+            {
+                $result = @$this->_client->connect($this->_host, $this->_port, $this->_timeout);
+            }
+            catch (\Exception $e)
+            {
+                Log::Error("connect failed : {$this->_host}:{$this->_port}, error code : {$this->_client->errCode}", $this->_logName);
+            }
+        }
+
+        return $result;
     }
 
     /**
      * @return bool
      */
-    private function _initClient()
+    public function IsConnected(): bool
     {
-        $client = new Client(SWOOLE_SOCK_TCP);
-        if ( @!$client->connect($this->_host, $this->_port, 3) )
+        if ($this->_client->errCode > 0)
         {
             return false;
         }
-        $this->_client = $client;
+
         return true;
     }
 
     /**
      * @param string $data
+     * @param int    $retryTimes
+     *
      * @return mixed
      */
-    public function Send(string $data, int $retryTimes=3)
+    public function Send(string $data, int $retryTimes = 3)
     {
-        if( is_null($this->_client) )
+        if (!$this->IsConnected())
         {
-            false;
+            if (!$this->InitClient($retryTimes))
+            {
+                return false;
+            }
         }
-        for( $i=0; $i<3; $i++ )
+
+        for ($i = 0; $i < $retryTimes; $i++)
         {
-            if( true==$this->_client->send($data) )
+            try
+            {
+                $result = @$this->_client->send($data);
+            }
+            catch (\Exception $e)
+            {
+                Log::Error("send data failed : {$this->_host}:{$this->_port}, error code : {$this->_client->errCode} , data : {$data}", $this->_logName);
+                $this->InitClient($retryTimes);
+                $result = false;
+            }
+
+            if (true == $result)
             {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -98,10 +156,11 @@ class Tcp
      */
     public function Receive()
     {
-        if( is_null($this->_client) )
+        if (!$this->IsConnected())
         {
             false;
         }
+
         return $this->_client->recv();
     }
 
@@ -110,10 +169,6 @@ class Tcp
      */
     public function Close()
     {
-        if( is_null($this->_client) )
-        {
-            false;
-        }
         return $this->_client->close();
     }
 

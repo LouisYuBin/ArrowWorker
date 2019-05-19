@@ -9,7 +9,8 @@ namespace ArrowWorker;
 
 use ArrowWorker\Driver\Cache\Redis;
 use ArrowWorker\Driver\Channel\Queue;
-use ArrowWorker\Driver\Channel\SwChannel;
+use \Swoole\Coroutine\Channel as swChan;
+use \Swoole\Event as swEvent;
 
 /**
  * Class Log
@@ -110,12 +111,6 @@ class Log
 
 
     /**
-     * logFileSize : single log file size
-     * @var int
-     */
-    private static $logFileSize = 1073741824;
-
-    /**
      * @var string
      */
     private static $logTimeZone='UTC';
@@ -137,17 +132,6 @@ class Log
      */
     private static $redis;
 
-    /**
-     * log file resource
-     * @var resource
-     * */
-    private static $file;
-
-    /**
-     * path of log file
-     * @var string
-     */
-    private static $filePath = '';
 
     //日志等级，1:E_ERROR , 2:E_WARNING , 8:E_NOTICE , 2048:E_STRICT , 30719:all
     /**
@@ -155,7 +139,25 @@ class Log
      */
     private static $outputLevel = 30719;
 
-    private static $_function   = '_writeToFile';
+    /**
+     * @var string
+     */
+    private static $_function = '_writeToFile';
+
+    /**
+     * @var \Swoole\Coroutine\Channel;
+     */
+    private static $_toFileChan;
+
+    /**
+     * @var \Swoole\Coroutine\Channel
+     */
+    private static $_toTcpChan;
+
+    /**
+     * @var \Swoole\Coroutine\Channel
+     */
+    private static $_toRedisChan;
 
 
 
@@ -170,8 +172,12 @@ class Log
         static::_initLogSetting();
         static::_initHandler();
         static::_resetStd();
+        static::_initBufferChan();
     }
 
+    /**
+     *
+     */
     private static function _checkExtension()
     {
         if( !extension_loaded('swoole') )
@@ -196,6 +202,9 @@ class Log
 
     }
 
+    /**
+     *
+     */
     private static function _checkLogDir()
     {
         if( !is_dir(static::$baseDir) )
@@ -212,7 +221,7 @@ class Log
      */
     private static function _initHandler()
     {
-        switch( static::$_writeType)
+        switch( static::$_writeType )
         {
             case static::TO_REDIS:
                 static::$redis = Redis::Init([
@@ -267,12 +276,14 @@ class Log
         static::$queue    = $config['queue'] ?? static::$queue;
         static::$outputLevel = $config['errorLevel'] ??  static::$outputLevel;
         static::$logTimeZone = $config['timeZone'] ??  static::TIME_ZONE;
-        static::$filePath   = static::$baseDir.DIRECTORY_SEPARATOR.static::_getLogFileName().'.log';
         static::$StdoutFile = static::$baseDir.DIRECTORY_SEPARATOR.'ArrowWorker.output';
         error_reporting((int)static::$outputLevel);
         date_default_timezone_set(self::$logTimeZone);
     }
 
+    /**
+     *
+     */
     private static function _initLogSetting()
     {
         if( ini_get('seaslog.default_template')!='%T | %M' )
@@ -315,15 +326,6 @@ class Log
             static::DumpExit("Value for seaslog.buffer_disabled_in_cli in php.ini should be set to 1");
         }
         \SeasLog::setBasePath(static::$baseDir);
-    }
-
-    private static function _getLogFileName() : string
-    {
-        if ( is_array(APP_TYPE) )
-        {
-            return implode('_',APP_TYPE);
-        }
-        return APP_TYPE;
     }
 
 
@@ -425,6 +427,9 @@ class Log
         echo sprintf("%s - %s".PHP_EOL,static::_getTime(), $log);
     }
 
+    /**
+     * @return false|string
+     */
     private static function _getTime()
     {
         return date('Y-m-d H:i:s');
@@ -440,6 +445,9 @@ class Log
         exit(0);
     }
 
+    /**
+     * @param string $log
+     */
     public static function Hint(string $log)
     {
         echo $log.PHP_EOL;
@@ -459,6 +467,13 @@ class Log
             ],
             'log'
         );
+    }
+
+    private static function _initBufferChan()
+    {
+        static::$_toFileChan  = new swChan();
+        static::$_toRedisChan = new swChan();
+        static::$_toTcpChan   = new swChan();
     }
 
     /**
@@ -498,6 +513,9 @@ class Log
 
     }
 
+    /**
+     * @param string $log
+     */
     private static function _seaslogWrite(string $log)
     {
         $logInfo  = explode('|', $log);
@@ -575,21 +593,47 @@ class Log
     public static function Start()
     {
         static::_setSignalHandler();
-        $function = static::$_function;
 
+        go( static::_dispatch() );
+        go( static::_writeFile() );
+        go( static::_writeToTcp() );
+
+        swEvent::wait();
+        static::_exit();
+    }
+
+    private static function _dispatch()
+    {
         while( true )
         {
             if( static::$isTerminate )
             {
-                static::_exit();
+                break ;
             }
 
-            pcntl_signal_dispatch();
-            static::$function();
+            $log = static::_selectLogChan()->Read(1);
+            if( $log === false )
+            {
+                usleep(100000);
+                continue ;
+            }
+
+            static::$_toFileChan->push($log,1);
+
             pcntl_signal_dispatch();
         }
+    }
+
+    private function _writeFile()
+    {
 
     }
+
+    private function _writeToTcp()
+    {
+
+    }
+
 
     /**
      * _exit : exit log process while there are no message in log queue
@@ -646,7 +690,6 @@ class Log
      */
     public static function signalHandler(int $signal)
     {
-        var_dump($signal);
         if( $signal==SIGTERM  )
         {
             self::$isTerminate = true;
