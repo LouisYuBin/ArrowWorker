@@ -18,6 +18,16 @@ class Daemon
 {
     const LOG_PREFIX = 'monitor : ';
 
+    const PROCESS_LOG = 'log';
+
+    const PROCESS_TCP = 'tcp';
+
+    const PROCESS_UDP = 'udp';
+
+    const PROCESS_HTTP = 'web';
+
+    const PROCESS_WEBSOCKET = 'websocket';
+
     /**
      * running user
      * @var string
@@ -134,14 +144,14 @@ class Daemon
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting log process');
-            static::_setProcessName('log');
+            static::_setProcessName(static::PROCESS_LOG);
             Log::Start();
         }
         else
         {
             static::$pidMap[] = [
                 'pid'   => $pid,
-                'type'  => 'log',
+                'type'  => static::PROCESS_LOG,
                 'index' => 0
             ];
         }
@@ -187,7 +197,6 @@ class Daemon
             {
                 continue;
             }
-
 
             if( $pointedIndex==0 )  //start all swoole server
             {
@@ -252,7 +261,8 @@ class Daemon
         {
             if( self::$terminate )
             {
-                $this->_exitWorker();
+                $this->_exitWorkerProcess();
+                $this->_exitLogProcess();
                 $this->_exitMonitor();
             }
 
@@ -288,13 +298,13 @@ class Daemon
 
             if( self::$terminate )
             {
-                Log::Dump(static::LOG_PREFIX.$appType.' process exited at status : '.$status);
+                Log::Dump(static::LOG_PREFIX."{$appType}. process : {$pid} exited at status : {$status}.");
                 return ;
             }
 
             Log::Dump(static::LOG_PREFIX.$appType.' process restarting at status : '.$status);
 
-            if( $appType=='log' )
+            if( $appType==static::PROCESS_LOG )
             {
                 $this->_startLogProcess();
             }
@@ -313,17 +323,52 @@ class Daemon
     /**
      * _exitWorker
      */
-    private function _exitWorker()
+    private function _exitWorkerProcess()
     {
         foreach (static::$pidMap as $eachProcess)
         {
-            $this->_exitProcess($eachProcess['type'], $eachProcess['pid']);
+            if( $eachProcess['type']!=static::PROCESS_LOG )
+            {
+                $this->_exitProcess($eachProcess['type'], $eachProcess['pid']);
+            }
         }
     }
 
-    private function _exitProcess(string $appType, int $pid)
+    /**
+     * _exitLogProcess
+     */
+    private function _exitLogProcess()
     {
-        Log::Dump(static::LOG_PREFIX.'sending SIGTERM signal to '.$appType.' process');
+        //check whether there are only one process left
+        if( count(static::$pidMap)>1 )
+        {
+            return ;
+        }
+
+        //check whether the process left is log process
+        $logProcessId = 0;
+        foreach (static::$pidMap as $eachProcess)
+        {
+            if( $eachProcess['type']==static::PROCESS_LOG )
+            {
+                $logProcessId = $eachProcess['pid'];
+            }
+        }
+
+        //exit log process if only log process left
+        if( $logProcessId>0 )
+        {
+            $this->_exitProcess(static::PROCESS_LOG, $logProcessId);
+        }
+    }
+
+    /**
+     * @param string $appType
+     * @param int    $pid
+     */
+    private function _exitProcess( string $appType, int $pid)
+    {
+        Log::Dump(static::LOG_PREFIX." sending SIGTERM signal to {$appType}:{$pid} process");
         for($i=0; $i<3; $i++)
         {
             if( posix_kill($pid,SIGTERM) )

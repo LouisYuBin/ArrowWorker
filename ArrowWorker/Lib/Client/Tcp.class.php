@@ -117,7 +117,7 @@ class Tcp
      * @param string $data
      * @param int    $retryTimes
      *
-     * @return mixed
+     * @return bool
      */
     public function Send(string $data, int $retryTimes = 3)
     {
