@@ -478,7 +478,6 @@ class Log
         $level   = $logInfo[0];
         $module  = $logInfo[1];
         $message = substr( $log, strlen( $level . $module ) + 2 );
-
         $tryTimes = 0;
         RETRY:
         switch ( $level )
@@ -570,6 +569,7 @@ class Log
             static::$_toTcpChan->push( $log, 1 );
 
             pcntl_signal_dispatch();
+
         }
 
         static::$isTerminateChan = true;
@@ -583,9 +583,7 @@ class Log
     {
         while ( true )
         {
-            pcntl_signal_dispatch();
-
-            $data = static::$_toFileChan->pop( 0.05  );
+            $data = static::$_toFileChan->pop( 0.3 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -599,8 +597,6 @@ class Log
 
             static::_seaslogWrite( $data );
 
-            pcntl_signal_dispatch();
-
         }
         self::Dump( 'log file-writing coroutine exited' );
     }
@@ -612,9 +608,7 @@ class Log
     {
         while ( true )
         {
-            pcntl_signal_dispatch();
-
-            $data = static::$_toTcpChan->pop( 0.05 );
+            $data = static::$_toTcpChan->pop( 0.3 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -622,7 +616,6 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep(1);
                 continue;
             }
 
@@ -630,9 +623,6 @@ class Log
             {
                 Log::Dump("write tcp client failed. data : {$data}");
             }
-
-            pcntl_signal_dispatch();
-
         }
         self::Dump( 'log tcp-writing coroutine exited' );
     }
@@ -644,17 +634,14 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toRedisChan->pop(0.05 );
+            $data = static::$_toRedisChan->pop(0.3 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
             }
 
-            pcntl_signal_dispatch();
-
             if ( $data === false )
             {
-                Co::sleep(1);
                 continue;
             }
 
@@ -665,8 +652,6 @@ class Log
                     break;
                 }
             }
-
-            pcntl_signal_dispatch();
 
         }
 
