@@ -526,7 +526,7 @@ class Log
         static::_setSignalHandler();
 
         $logClass = __CLASS__;
-        Co::create( "{$logClass}::Dispatch" );
+
         Co::create( "{$logClass}::WriteToFile" );
         if ( in_array( static::TO_TCP, static::$_writeType ) )
         {
@@ -537,6 +537,8 @@ class Log
         {
             Co::create( "{$logClass}::WriteToRedis" );
         }
+
+        Co::create( "{$logClass}::Dispatch" );
 
         swEvent::wait();
         static::_exit();
@@ -559,14 +561,24 @@ class Log
 
             pcntl_signal_dispatch();
 
-            $log = static::_selectLogChan()->Read( 1 );
+            $log = static::_selectLogChan()->Read( 10000 );
             if ( $log === false )
             {
                 continue;
             }
 
+
             static::$_toFileChan->push( $log, 1 );
-            static::$_toTcpChan->push( $log, 1 );
+
+            if( in_array(static::TO_TCP,static::$_writeType) )
+            {
+                static::$_toTcpChan->push( $log, 1 );
+            }
+
+            if( in_array(static::TO_REDIS,static::$_writeType) )
+            {
+                static::$_toRedisChan->push( $log, 1 );
+            }
 
             pcntl_signal_dispatch();
 
@@ -583,7 +595,8 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 0.3 );
+            $data = static::$_toFileChan->pop( 0.5 );
+
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -597,6 +610,8 @@ class Log
 
             static::_seaslogWrite( $data );
 
+
+
         }
         self::Dump( 'log file-writing coroutine exited' );
     }
@@ -608,7 +623,8 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toTcpChan->pop( 0.3 );
+            $data = static::$_toTcpChan->pop( 0.5 );
+
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -616,6 +632,7 @@ class Log
 
             if ( $data === false )
             {
+                Co::sleep(1);
                 continue;
             }
 
@@ -634,7 +651,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toRedisChan->pop(0.3 );
+            $data = static::$_toRedisChan->pop(0.5 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -642,6 +659,7 @@ class Log
 
             if ( $data === false )
             {
+                Co::sleep(1);
                 continue;
             }
 
@@ -663,8 +681,7 @@ class Log
      */
     private static function _exit()
     {
-        static::DumpExit( 'Log queue status : ' . json_encode( static::_selectLogChan()
-                                                                     ->Status() ) );
+        static::DumpExit( 'Log queue status : ' . json_encode( static::_selectLogChan()->Status() ) );
     }
 
     /**
