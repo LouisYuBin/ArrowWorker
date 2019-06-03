@@ -130,7 +130,7 @@ class Log
     /**
      * @var string
      */
-    private static $logTimeZone = 'UTC';
+    private static $logTimeZone = 'Asia/Shanghai';
 
     /**
      * @var

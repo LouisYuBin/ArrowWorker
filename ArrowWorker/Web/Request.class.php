@@ -110,6 +110,22 @@ class Request
         return $_SERVER[ Swoole::GetCid() ]['request_uri'];
     }
 
+    /**
+     * @return string
+     */
+    public static function QueryString() : string
+    {
+        return $_SERVER[ Swoole::GetCid() ]['query_string'];
+    }
+
+    /**
+     * @return string
+     */
+    public static function UserAgent() : string
+    {
+        return static::$_header[ Swoole::GetCid() ]['user-agent'];
+    }
+
 
     /**
      * @return string
