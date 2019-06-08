@@ -21,23 +21,44 @@ class Router
 	 */
 	const DEFAULT_CONTROLLER  = 'Index';
 
-	const DEFAULT_METHOD = 'index';
+    /**
+     *
+     */
+    const DEFAULT_METHOD = 'index';
 
-	const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
+    /**
+     *
+     */
+    const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
 
-	private static $_restApiConfig = [];
+    /**
+     * @var array
+     */
+    private static $_restApiConfig = [];
 
-	private static $_pregAlias = [];
+    /**
+     * @var array
+     */
+    private static $_pregAlias = [];
 
-	private static $_404       = 'page not found(该页面不存在).';
+    /**
+     * @var string
+     */
+    private static $_404 = 'page not found(该页面不存在).';
 
-	public static function Init(string $_404)
+    /**
+     * @param string $_404
+     */
+    public static function Init(string $_404)
     {
         self::_loadRestConfig();
         self::_analyseUri();
         self::_load404($_404);
     }
 
+    /**
+     *
+     */
     private static function _loadRestConfig()
     {
         $config = Config::Get('Rest');
@@ -63,6 +84,9 @@ class Router
 
     }
 
+    /**
+     *
+     */
     private static function _analyseUri()
     {
         foreach (static::$_restApiConfig as $serverName=>$restMap)
@@ -91,9 +115,12 @@ class Router
 
     }
 
+    /**
+     * @return string
+     */
     public static function _getRestUriKey() : string
     {
-        $uri        = Request::Server('request_uri');
+        $uri        = Request::Uri();
         $nodes      = explode('/', $uri);
         $nodeLen    = count($nodes);
         $serverName = Request::Header('host');
@@ -121,7 +148,7 @@ class Router
                 {
                     $params[$param] = $nodes[$index];
                 }
-                Request::SetParams($params);
+                Request::SetParams($params, 'REST');
                 return $eachNode['uri'];
             }
         }
@@ -152,6 +179,9 @@ class Router
         static::_logAndResponse("request does not match any router");
     }
 
+    /**
+     * @return bool
+     */
     private static function _restRouter()
     {
         $key        = static::_getRestUriKey();
@@ -173,11 +203,15 @@ class Router
         return static::_routeToFunction($class, $function);
     }
 
+    /**
+     * @return bool
+     */
     private static function _pathRouter()
     {
         $uri      = Request::Uri();
         $pathInfo = explode('/', $uri);
         $pathLen  = count($pathInfo);
+        Request::SetParams([], 'PATH');
 
         if( $pathLen<3 )
         {
@@ -199,12 +233,21 @@ class Router
         return false;
     }
 
+    /**
+     * @return bool
+     */
     private static function _routeToDefault()
     {
         $class = self::CONTROLLER_NAMESPACE.DEFAULT_CONTROLLER;
         return static::_routeToFunction($class, DEFAULT_METHOD);
     }
 
+    /**
+     * @param string $class
+     * @param string $function
+     *
+     * @return bool
+     */
     private static function _routeToFunction(string $class, string $function)
     {
         if( !class_exists($class) )
@@ -222,6 +265,11 @@ class Router
         return true;
     }
 
+    /**
+     * @param string $msg
+     *
+     * @return bool
+     */
     private static function _logAndResponse(string $msg)
     {
         Log::Warning($msg);
@@ -233,6 +281,9 @@ class Router
         return true;
     }
 
+    /**
+     * @param string $_404
+     */
     private static function _load404(string $_404)
     {
         if( empty($_404) || !file_exists($_404) )

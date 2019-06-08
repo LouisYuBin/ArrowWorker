@@ -26,69 +26,68 @@ class Request
     /**
      * @var array
      */
-    private static $_header     = [];
+    private static $_header = [];
 
     /**
      * @var array
      */
-    private static $_raw        = [];
+    private static $_raw = [];
 
-    private static $_urlPost    = [];
+    private static $_routeType = [];
 
     /**
      * Init : init request data(post/get/files...)
-     * @param array $get
-     * @param array $post
-     * @param array $server
-     * @param array $files
-     * @param array $header
+     *
+     * @param array  $get
+     * @param array  $post
+     * @param array  $server
+     * @param array  $files
+     * @param array  $header
      * @param string $raw
      */
-    public static function Init(array $get, array $post, array $server, array $files, array $header, string $raw='')
+    public static function Init(array $get, array $post, array $server, array $files, array $header, string $raw = '')
     {
         $coId = Swoole::GetCid();
-        $_GET[    $coId ]  = $get;
-        $_POST[   $coId ]  = $post;
-        $_FILES[  $coId ]  = $files;
-        $_SERVER[ $coId ]  = $server;
+        $_GET[ $coId ]    = $get;
+        $_POST[ $coId ]   = $post;
+        $_FILES[ $coId ]  = $files;
+        $_SERVER[ $coId ] = $server;
 
-        static::$_raw[$coId]        = $raw;
-        static::$_header[$coId]     = $header;
-        static::$_parameters[$coId] = [];
+        static::$_raw[ $coId ]        = $raw;
+        static::$_header[ $coId ]     = $header;
+        static::$_parameters[ $coId ] = [];
 
-
-        $getString    = json_encode($get, JSON_UNESCAPED_UNICODE);
-        $postString   = json_encode($post, JSON_UNESCAPED_UNICODE);
-        $filesString  = json_encode($files, JSON_UNESCAPED_UNICODE);
-        $serverString = json_encode($server, JSON_UNESCAPED_UNICODE);
-        $headerString = json_encode($header, JSON_UNESCAPED_UNICODE);
-        $method       = $_SERVER[ Swoole::GetCid() ]['request_method'];
-        Log::Debug("[{$method}] \n get : {$getString} \n post : {$postString} \n header : {$headerString} \n server : {$serverString} \n raw : {$raw} \n files : {$filesString} ",'request');
-        unset($method, $getString, $postString, $filesString, $paramsString, $headerString, $serverString);
         static::InitUrlPostParams();
+
     }
 
     private static function InitUrlPostParams()
     {
         $coId = Swoole::GetCid();
-        $raw  = static::$_raw[$coId];
-        if( empty($raw) )
+
+        if (count($_POST[ $coId ]) > 0)
         {
-            return ;
+            return;
+        }
+
+        $raw = static::$_raw[ $coId ];
+        if (empty($raw))
+        {
+            return;
         }
 
         // normal x-www-form-urlencoded data
-        if( substr($raw,0,1)!='{' )
+        if (substr($raw, 0, 1) != '{')
         {
-            parse_str($raw,$postParam);
-            static::$_urlPost[$coId] = $postParam;
+            parse_str($raw, $postParam);
+            $_POST[ $coId ] = $postParam;
         }
         else // json data
         {
-            $postParam = json_decode($raw,true);
-            if( is_array($postParam) )
+            $postParam = json_decode($raw, true);
+            if (is_array($postParam))
             {
-                static::$_urlPost[$coId] = $postParam;
+                $_POST[ $coId ] = $postParam;
             }
         }
     }
@@ -97,7 +96,7 @@ class Request
      * Method:return current request method(get/post/put/delete...)
      * @return string
      */
-    public static function Method() : string
+    public static function Method(): string
     {
         return $_SERVER[ Swoole::GetCid() ]['request_method'];
     }
@@ -105,15 +104,32 @@ class Request
     /**
      * @return string
      */
-    public static function Uri() : string
+    public static function Uri(): string
     {
         return $_SERVER[ Swoole::GetCid() ]['request_uri'];
+    }
+
+
+    /**
+     * @return string
+     */
+    public static function Raw(): string
+    {
+        return static::$_raw[ Swoole::GetCid() ];
     }
 
     /**
      * @return string
      */
-    public static function QueryString() : string
+    public static function RouteType(): string
+    {
+        return static::$_routeType[ Swoole::GetCid() ];
+    }
+
+    /**
+     * @return string
+     */
+    public static function QueryString(): string
     {
         return $_SERVER[ Swoole::GetCid() ]['query_string'];
     }
@@ -121,7 +137,7 @@ class Request
     /**
      * @return string
      */
-    public static function UserAgent() : string
+    public static function UserAgent(): string
     {
         return static::$_header[ Swoole::GetCid() ]['user-agent'];
     }
@@ -130,94 +146,85 @@ class Request
     /**
      * @return string
      */
-    public static function ClientIp() : string
+    public static function ClientIp(): string
     {
         return $_SERVER[ Swoole::GetCid() ]['remote_addr'];
     }
 
     /**
      * Get : return specified get data
+     *
      * @param string $key
+     *
      * @return string|bool
      */
-    public static function Get(string $key) : string
+    public static function Get(string $key): string
     {
-        return isset($_GET[Swoole::GetCid()][$key]) ? $_GET[Swoole::GetCid()][$key] : '';
+        return isset($_GET[ Swoole::GetCid() ][ $key ]) ? $_GET[ Swoole::GetCid() ][ $key ] : '';
     }
 
     /**
      * Post : return specified post data
+     *
      * @param string $key
+     *
      * @return string
      */
-    public static function Post(string $key) : string
+    public static function Post(string $key): string
     {
-        return ( !isset($_POST[Swoole::GetCid()][$key]) ) ? '' : $_POST[Swoole::GetCid()][$key];
+        return (!isset($_POST[ Swoole::GetCid() ][ $key ])) ? '' : $_POST[ Swoole::GetCid() ][ $key ];
     }
 
 
     /**
      * Param : return specified post data
+     *
      * @param string $key
+     *
      * @return string
      */
-    public static function Param(string $key) : string
+    public static function Param(string $key): string
     {
-        return ( !isset(static::$_parameters[Swoole::GetCid()][$key]) ) ? '' : static::$_parameters[Swoole::GetCid()][$key];
+        return (!isset(static::$_parameters[ Swoole::GetCid() ][ $key ])) ? '' :
+            static::$_parameters[ Swoole::GetCid() ][ $key ];
     }
 
     /**
      * Params : return specified post data
      * @return array
      */
-    public static function Params() : array
+    public static function Params(): array
     {
-        return static::$_parameters[Swoole::GetCid()];
-    }
-
-    /**
-     * Param : return specified post data
-     * @param string $key
-     * @return string
-     */
-    public static function UrlPost(string $key) : string
-    {
-        return ( !isset(static::$_urlPost[Swoole::GetCid()][$key]) ) ? '' : static::$_urlPost[Swoole::GetCid()][$key];
-    }
-
-    /**
-     * Params : return specified post data
-     * @return array
-     */
-    public static function UrlPosts() : array
-    {
-        return static::$_urlPost[Swoole::GetCid()];
+        return static::$_parameters[ Swoole::GetCid() ];
     }
 
     /**
      * Header : return specified post data
+     *
      * @param string $key
+     *
      * @return string
      */
-    public static function Header(string $key) : string
+    public static function Header(string $key): string
     {
-        return ( !isset(static::$_header[Swoole::GetCid()][$key]) ) ? '' : static::$_header[Swoole::GetCid()][$key];
+        return (!isset(static::$_header[ Swoole::GetCid() ][ $key ])) ? '' :
+            static::$_header[ Swoole::GetCid() ][ $key ];
     }
 
     /**
      * Headers : return specified post data
      * @return array
      */
-    public static function Headers() : array
+    public static function Headers(): array
     {
-        return static::$_header[Swoole::GetCid()];
+        return static::$_header[ Swoole::GetCid() ];
     }
 
     /**
      * Gets : return all get data
      * @return array
      */
-    public static function Gets() : array
+    public static function Gets(): array
     {
         return $_GET[ Swoole::GetCid() ];
     }
@@ -226,19 +233,21 @@ class Request
      * Posts : return all post data
      * @return array
      */
-    public static function Posts() : array
+    public static function Posts(): array
     {
-        return $_POST[ Swoole::GetCid() ] ;
+        return $_POST[ Swoole::GetCid() ];
     }
 
     /**
      * Server : return specified server data
+     *
      * @param string $key
+     *
      * @return string|bool
      */
     public static function Server(string $key)
     {
-        return ( !isset($_SERVER[Swoole::GetCid()][$key]) ) ? false : $_SERVER[Swoole::GetCid()][$key];
+        return (!isset($_SERVER[ Swoole::GetCid() ][ $key ])) ? false : $_SERVER[ Swoole::GetCid() ][ $key ];
     }
 
     /**
@@ -252,12 +261,14 @@ class Request
 
     /**
      * Servers : return all server data
+     *
      * @param string $name
+     *
      * @return Upload|false
      */
     public static function File(string $name)
     {
-        return ( !isset($_FILES[Swoole::GetCid()][$name]) ) ? false : new Upload($name);
+        return (!isset($_FILES[ Swoole::GetCid() ][ $name ])) ? false : new Upload($name);
     }
 
     /**
@@ -271,12 +282,14 @@ class Request
 
     /**
      * @param array $params
+     * @param string $routeType path/rest
      */
-    public static function SetParams(array $params)
+    public static function SetParams(array $params, string $routeType='path')
     {
-        static::$_parameters[Swoole::GetCid()] = $params;
-        $params = json_encode($params, JSON_UNESCAPED_UNICODE);
-        Log::Debug("\n Params : {$params}",'request');
+        static::$_parameters[ Swoole::GetCid() ] = $params;
+        static::$_routeType[ Swoole::GetCid() ]  = $routeType;
+
+        self::_logRequest();
     }
 
     /**
@@ -285,7 +298,26 @@ class Request
     public static function Release()
     {
         $coId = Swoole::GetCid();
-        unset( $_GET[$coId], $_POST[$coId], $_FILES[$coId], $_SERVER[$coId], static::$_parameters[$coId], static::$_header[$coId], static::$_urlPost[$coId], $coId);
+        unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], static::$_parameters[ $coId ], static::$_header[ $coId ], $coId);
+    }
+
+    private static function _logRequest()
+    {
+        $coId = Swoole::GetCid();
+        $uri    = self::Uri();
+        $raw    = self::Raw();
+        $method = self::Method();
+        $params = json_encode(self::$_parameters[$coId], JSON_UNESCAPED_UNICODE);
+        $get    = json_encode($_GET[$coId], JSON_UNESCAPED_UNICODE);
+        $post   = json_encode($_POST[$coId], JSON_UNESCAPED_UNICODE);
+        $files  = json_encode($_FILES[$coId], JSON_UNESCAPED_UNICODE);
+        $server = json_encode($_SERVER[$coId], JSON_UNESCAPED_UNICODE);
+        $header = json_encode(self::$_header[$coId], JSON_UNESCAPED_UNICODE);
+
+        $routeType = self::RouteType();
+
+        Log::Debug(" {$uri} [{$method}:$routeType] \n Params : {$params} \n Get : {$get} \n Post : {$post} \n Header : {$header} \n Server : {$server} \n raw : {$raw} \n Files : {$files} ", 'request');
+        unset($method, $get, $post, $files, $params, $header, $server);
     }
 
 }
