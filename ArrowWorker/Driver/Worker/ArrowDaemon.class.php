@@ -3,12 +3,11 @@
  * User: Arrow
  * Date: 2016/8/1
  * Time: 19:52
- * Modified by louis at 2017/02/03 23:58
+ * Modified by louis at 2019/06/13 22:33:58
  */
 
 namespace ArrowWorker\Driver\Worker;
 
-use ArrowWorker\Driver;
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
 use Swoole\Coroutine as Co;
@@ -345,19 +344,18 @@ class ArrowDaemon extends Worker
         //开启最终队列消费进程
         $this->_startChannelFinishProcess();
 
-        $exitGroupQuantity = [];
+        $processesExitSign = [];
         for ( $i = 0; $i < static::$jobNum; $i++ )
         {
             if ( !self::$jobs[$i]['isChanReadProc'] )
             {
+                $processesExitSign[$i] = true;
                 continue;
             }
-            $exitGroupQuantity[$i] = 0;
+            $processesExitSign[$i] = false;
         }
 
-        $procSentSig = [];
-
-        //等待未退出进程退出
+        //wait for to be exited process
         $consumeProcessNum = count( static::$consumePidMap );
         for ( $i = 0; $i < $consumeProcessNum; $i++ )
         {
@@ -370,7 +368,7 @@ class ArrowDaemon extends Worker
                 goto RETRY;
             }
 
-            //兼容mac 拿到的子进程pid比原始pid少10的不过
+            //兼容mac 拿到的子进程pid比原始pid少10的bug
             if ( !isset( static::$consumePidMap[$pid] ) )
             {
                 if ( !isset( static::$consumePidMap[$pid + 10] ) )
@@ -383,77 +381,57 @@ class ArrowDaemon extends Worker
             //通过退出的进程id获取 对应的进程组id
             $groupId = static::$consumePidMap[$pid];
 
-            //进程组中，退出的进程计数
-            $exitGroupQuantity[$groupId]++;
-            $this->_sendExitedSignalToChild( $exitGroupQuantity, $procSentSig );
+            //change sign for exited process
+            $processesExitSign[$groupId] = true;
+            $this->_sendExitedSignalToConsumer( $processesExitSign, $groupId );
             Log::Dump( static::LOG_PREFIX .
-                       "chan consumer process : " .
+                       "chan-consumer-process : " .
                        self::$jobs[$groupId]["processName"] .
-                       "(" .
-                       $pid .
-                       ") exited at status : " .
-                       $status
+                       "({$pid}) exited at status : {$status}"
             );
         }
-        Log::Dump( static::LOG_PREFIX . "chan consumer processes are all exited." );
+        Log::Dump( static::LOG_PREFIX . "chan-consumer-processes are all exited." );
     }
 
 
     /**
-     * @param array $exitGroupQuantity
-     * @param       $procSentSig
+     * @param array $processesExitSign
+     * @param int $groupId
      */
-    private function _sendExitedSignalToChild( array $exitGroupQuantity, &$procSentSig )
+    private function _sendExitedSignalToConsumer( array $processesExitSign, int $groupId )
     {
-        for ( $groupId = 0; $groupId < static::$jobNum; $groupId++ )
+        $consumerId = $groupId+1;
+
+        //consumer process does not exists
+        if( !isset($processesExitSign[$consumerId]) )
         {
-            //ignore the first group process
-            if ( !self::$jobs[$groupId]['isChanReadProc'] || $groupId == 0 )
+            return ;
+        }
+
+        //consumer is already exited
+        if( $processesExitSign[$consumerId] )
+        {
+            return ;
+        }
+
+        foreach ( static::$consumePidMap as $pid => $eachConsumerId )
+        {
+            //退出的进程组非某消费队列对应的生产队列
+            if ( $eachConsumerId != $consumerId )
             {
                 continue;
             }
 
-            $lastGroupId = $groupId - 1;
-            if ( !isset( $exitGroupQuantity[$lastGroupId] ) )
+            Log::Dump( 'Sending SIGUSR2 to chan consumer process ' . $pid );
+            for ( $i = 0; $i < 3; $i++ )
             {
-                continue;
-            }
-            //队列生产进程未全部退出
-            if ( static::$jobs[$lastGroupId]['coQuantity'] != $exitGroupQuantity[$lastGroupId] )
-            {
-                continue;
-            }
-
-            foreach ( static::$consumePidMap as $pid => $consumerGroupId )
-            {
-                //退出的进程组非某消费队列对应的生产队列
-                if ( $consumerGroupId != $groupId )
+                if ( posix_kill( $pid, SIGUSR2 ) )
                 {
-                    continue;
+                    break;
                 }
-
-                //已向当前进程发送过退出信号，则不重新发送
-                if ( isset( $procSentSig[$pid] ) )
-                {
-                    continue;
-                }
-
-                Log::Dump( 'Sending SIGUSR2 to chan consumer process ' . $pid );
-                for ( $i = 0; $i < 3; $i++ )
-                {
-                    if ( posix_kill( $pid, SIGUSR2 ) )
-                    {
-                        $procSentSig[$pid] = 1;
-                        break;
-                    }
-
-                }
-
-
             }
 
         }
-
 
     }
 
@@ -613,11 +591,9 @@ class ArrowDaemon extends Worker
             }
 
             $pid = pcntl_fork();
-
             if ( $pid > 0 )
             {
                 static::$consumePidMap[$pid] = $i;
-                self::$jobs[$i]['pidCount']++;
             }
             else if ( $pid == 0 )
             {
@@ -625,22 +601,20 @@ class ArrowDaemon extends Worker
                 static::$terminate = false;
                 $this->_setSignalHandler( 'chanHandler' );
                 $this->_setProcessName( self::$jobs[$i]['processName'] );
-                Log::Dump( static::LOG_PREFIX .'channel-finish ' .
-                           self::$jobs[$i]['processName'] .
-                           ' starting work' );
+                Log::Dump( static::LOG_PREFIX .'chan-consumer-process ' .self::$jobs[$i]['processName'] .' starting work' );
 
-                $this->_consumeChannelTask( $i, $newGroupNum );
                 while ( self::$jobs[$i]['coCount'] < self::$jobs[$i]['coQuantity'] )
                 {
-
+                    Co::create([$this,'_consumeChanTask'], $i, $newGroupNum);
                 }
+                SwEvent::wait();
             }
 
             $newGroupNum++;
             usleep( 10000 );
         }
         Log::Dump( json_encode( static::$consumePidMap ) );
-        Log::Dump( static::LOG_PREFIX . "channel-finish Processes are all started." );
+        Log::Dump( static::LOG_PREFIX . "chan-consumer-processes are all started." );
     }
 
     /**
@@ -649,55 +623,53 @@ class ArrowDaemon extends Worker
      * @param int $index
      * @param int $newJobIndex
      */
-    private function _consumeChannelTask( int $index, int $newJobIndex )
+    private function _consumeChanTask( int $index, int $newJobIndex )
     {
-        self::$workerStat['start'] = time();
-        $retryTimes                = 0;
-
-        while ( 1 )
-        {
-            pcntl_signal_dispatch();
-
-            if ( isset( self::$jobs[$index]['argv'] ) )
+            $timeStart = time();
+            $workCount = 0;
+            while ( 1 )
             {
-                $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
-            }
-            else
-            {
-                $channelStatus = call_user_func( self::$jobs[$index]['function'] );
-            }
-            self::$workerStat['count']++;
+                pcntl_signal_dispatch();
 
-            if ( $channelStatus )
-            {
-                $retryTimes = 0;
-                continue;
+                if ( isset( self::$jobs[$index]['argv'] ) )
+                {
+                    $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
+                }
+                else
+                {
+                    $channelStatus = call_user_func( self::$jobs[$index]['function'] );
+                }
+                $workCount['count']++;
+
+                if ( $channelStatus )
+                {
+                    $retryTimes = 0;
+                    continue;
+                }
+
+                //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
+                if ( !$channelStatus && $retryTimes > 0 && ($newJobIndex == 0 || static::$terminate) )
+                {
+                    break;
+                }
+
+                if ( !$channelStatus && ($newJobIndex == 0 || static::$terminate) )
+                {
+                    $retryTimes++;
+                }
+                pcntl_signal_dispatch();
+
             }
-
-            //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
-            if ( !$channelStatus && $retryTimes > 0 && ($newJobIndex == 0 || static::$terminate) )
-            {
-                break;
-            }
-
-            if ( !$channelStatus && ($newJobIndex == 0 || static::$terminate) )
-            {
-                $retryTimes++;
-            }
-            pcntl_signal_dispatch();
-
-        }
-
-        self::$workerStat['end'] = time();
-        $proWorkerTimeSum        = self::$workerStat['end'] - self::$workerStat['start'];
-        Log::DumpExit( static::LOG_PREFIX .
-                       'channel-finish ' .
-                       self::$jobs[$index]['processName'] .
-                       ' finished ' .
-                       self::$workerStat['count'] .
-                       ' times of its work in ' .
-                       $proWorkerTimeSum .
-                       ' seconds.' );
+            $timeEnd = time();
+            $proWorkerTimeSum = $timeEnd - $timeStart;
+            Log::DumpExit( static::LOG_PREFIX .
+                           'chan-finish ' .
+                           self::$jobs[$index]['processName'] .
+                           ' finished ' .
+                           $workCount .
+                           ' times of its work in ' .
+                           $proWorkerTimeSum .
+                           ' seconds.' );
     }
 
 
@@ -723,7 +695,6 @@ class ArrowDaemon extends Worker
             Log::DumpExit( static::LOG_PREFIX . " one Task at least is needed." );
         }
 
-        $job['pidCount']       = 0;
         $job['coCount']        = 0;
         $job['coQuantity']     = (isset( $job['coQuantity'] ) && (int)$job['coQuantity'] > 0) ? $job['coQuantity'] : static::COROUTINE_QUANTITY;
         $job['processName']    = (isset( $job['procName'] ) && !empty( $job['procName'] )) ? $job['procName'] : static::PROCESS_NAME;

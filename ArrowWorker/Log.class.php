@@ -610,8 +610,6 @@ class Log
 
             static::_seaslogWrite( $data );
 
-
-
         }
         self::Dump( 'log file-writing coroutine exited' );
     }
