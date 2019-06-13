@@ -7,7 +7,7 @@
 namespace ArrowWorker;
 
 
-use ArrowWorker\Driver\Channel\Queue;
+use ArrowWorker\Driver\Channel;
 use ArrowWorker\Lib\System\LoadAverage;
 
 /**
@@ -395,7 +395,7 @@ class Daemon
         }
 
         $this->_cleanChannelPath();
-        Queue::Close();
+        Channel::Close();
 
         Log::DumpExit(static::LOG_PREFIX.'Monitor process exited!');
     }

@@ -8,7 +8,6 @@
 
 namespace ArrowWorker\Driver\Channel;
 
-use ArrowWorker\Driver\Channel;
 use ArrowWorker\Log;
 
 
@@ -16,65 +15,25 @@ use ArrowWorker\Log;
  * Class Queue  队列类
  * @package ArrowWorker\Driver\Channel
  */
-class Queue extends Channel
+class Queue
 {
 
     /**
      * 打开方式
      */
-    const mode = 0666;
+    const MODE = 0666;
 
-    /**
-     * Pipe constructor.
-     * @param array $config
-     */
-    public function __construct(array $config)
+    private $_queue;
+
+    private $_config = [];
+
+    private $_chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Chan/';
+
+
+    public function __construct(array $config, string $name)
     {
-       //todo
-    }
-
-    /**
-     * Init 初始化 对外提供
-     * @author Louis
-     * @param array $config
-     * @param string $alias
-     * @return Queue
-     */
-    public static function Init(array $config, string $alias)
-    {
-        //设置当前
-        self::$current = $alias;
-
-        //如果已经创建并做了相关检测则直接跳过
-        if( isset( static::$pool[self::$current] ) )
-        {
-            return self::$instance;
-        }
-
-        //存储配置
-        if ( !isset( self::$config[$alias] ) )
-        {
-            self::$config[$alias] = $config;
-        }
-
-        if( !self::$instance )
-        {
-            self::$instance = new self($config);
-        }
-
-        static::_initQueue();
-
-        return static::$instance;
-    }
-
-
-    /**
-     * _initHandle  create queue
-     * @author Louis
-     */
-    private static function _initQueue()
-    {
-        $chanFile = static::$chanFileDir.self::$current.'.chan';
+        $this->_config = $config;
+        $chanFile = $this->_chanFileDir.$name.'.chan';
 		if (!file_exists($chanFile))
 		{
 		    if( !touch($chanFile) )
@@ -83,43 +42,26 @@ class Queue extends Channel
             }
 		}
 		$key   = ftok($chanFile, 'A');
-		$queue = msg_get_queue($key, static::mode);
-		if( !$queue )
+		$this->_queue = msg_get_queue($key, self::MODE);
+		if( !$this->_queue )
         {
-            Log::DumpExit("msg_get_queue({$key},066) failed");
+            Log::DumpExit("msg_get_queue({$key},0666) failed");
         }
-        static::$pool[self::$current] = $queue;
-        msg_set_queue(static::$pool[self::$current], ['msg_qbytes'=>self::$config[self::$current]['bufSize']]);
+        msg_set_queue($this->_queue, ['msg_qbytes'=>$this->_config['bufSize']]);
     }
-
-    /**
-     * _getQueue 获取队列
-     * @author Louis
-     * @param string $alias
-     * @return mixed
-     */
-    private function _getQueue(string $alias='')
-	{
-	    if( !empty($alias) && isset(static::$pool[$alias]) )
-        {
-            return static::$pool[$alias];
-        }
-		return static::$pool[self::$current];
-	}
 
     /**
      * Write  写入消息
      * @author Louis
      * @param string $message 要写入的消息
-     * @param string $chan channel name
      * @param int $msgType 消息类型
      * @return bool
      */
-    public function Write( string $message, string $chan='', int $msgType=1 )
+    public function Write( string $message, int $msgType=1 )
     {
         $retryTimes = 0;
         RETRY:
-        if( false==msg_send( static::_getQueue($chan), $msgType, (string)$message,false, true, $errorCode))
+        if( false==msg_send( $this->_queue, $msgType, (string)$message,false, true, $errorCode))
         {
             $retryTimes++;
             if( $retryTimes<=3 )
@@ -137,30 +79,27 @@ class Queue extends Channel
 
     /**
      * Status  获取队列状态
-     * @author Louis
-     * @param string $alias 队列配置名
      * @return array
      */
-    public function Status( string $alias='' )
+    public function Status()
     {
-        return msg_stat_queue( static::_getQueue($alias) );
+        return msg_stat_queue( $this->_queue );
     }
 
     /**
      * Read 写消息
      * @author Louis
      * @param int $waitSecond seconds to wait while there is no message in channel
-     * @param string $chan channel name to read from
      * @param int $msgType message type to be read
      * @return bool|string
      */
-    public function Read(int $waitSecond=500, string $chan='', int $msgType=1)
+    public function Read(int $waitSecond=500, int $msgType=1)
     {
 		$result = msg_receive(
-		    static::_getQueue($chan),
+		    $this->_queue,
             $msgType,
             $messageType,
-            self::$config[self::$current]['msgSize'],
+            $this->_config['msgSize'],
             $message,
             false,
             MSG_IPC_NOWAIT,
@@ -173,16 +112,9 @@ class Queue extends Channel
 		return $result ? $message : $result;
     }
 
-    /**
-     * Close 关闭管道
-     * @author Louis
-     */
-    public static function Close()
+    public function Close()
     {
-        foreach (static::$pool as $eachQueue)
-        {
-            Log::Dump("msg_remove_queue result : ".(int)msg_remove_queue($eachQueue));
-        }
+        return (int)msg_remove_queue($this->_queue);
     }
 
     /**

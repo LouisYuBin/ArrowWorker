@@ -1,6 +1,8 @@
 <?php
 namespace ArrowWorker\Driver;
 
+use ArrowWorker\Log;
+use ArrowWorker\Driver\Channel\Queue;
 /**
  * Class Message
  */
@@ -14,32 +16,41 @@ class Channel
 	protected static $pool = [];
 
 	/**
-	 * 单例模式对象
-	 * @var
-	 */
-	protected static $instance;
-
-	/**
 	 * 消息配置
 	 * @var array
 	 */
 	protected static $config = [];
 
-	/**
-	 * @var string
-	 */
-	protected static $current = '';
+    /**
+     * Init 初始化 对外提供
+     * @author Louis
+     * @param array $config
+     * @param string $alias
+     * @return Queue
+     */
+    public static function Init(array $config, string $alias)
+    {
+        //如果已经创建并做了相关检测则直接跳过
+        if( isset( static::$pool[$alias] ) )
+        {
+            return static::$pool[$alias];
+        }
 
+        static::$pool[$alias] = new Queue($config,$alias);
 
-    protected static $chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Chan/';
-
+        return static::$pool[$alias];
+    }
 
     /**
-	 * Message constructor.
-	 */
-	private function __construct()
-	{
-		//todo
-	}
+     * Close 关闭管道
+     * @author Louis
+     */
+    public static function Close()
+    {
+        foreach (static::$pool as $eachQueue)
+        {
+            Log::Dump("msg_remove_queue result : ".$eachQueue->Close());
+        }
+    }
 
 }
