@@ -7,7 +7,6 @@
  */
 
 namespace ArrowWorker;
-use function PHPSTORM_META\type;
 
 /**
  * Class Config
@@ -15,90 +14,73 @@ use function PHPSTORM_META\type;
  */
 class Config
 {
-    /**
-     * app class map file
-     * @var string
-     */
-    public static $AppFileMap  = 'alias';
 
     /**
      * 配置文件路径
      * @var string
      */
-    private static $path          = '';
+    private static $path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR;
 
     /**
      * 配置文件记录
      * @var array
      */
-    private static $configFileMap = [];
+    private static $configMap = [];
 
     /**
      * 配置文件后缀
      * @var array
      */
-    private static $configExt     = '.php';
+    private static $configExt = '.php';
 
     /**
      * Init
      * @author Louis
-     * @param string $configFilePath
+     * @param string $subPath
+     * @return string
      */
-    public static function Init(string $configFilePath='')
+    private static function _getPath( string $subPath = '' )
     {
-        if( empty(self::$path) && empty($configFilePath) )
+        if ( empty( $configFilePath ) )
         {
-            self::$path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR;
+            return self::$path;
         }
-        else if( !empty($configFilePath) )
-        {
-            self::$path = $configFilePath;
-        }
+
+        return self::$path . $subPath . DIRECTORY_SEPARATOR;
     }
 
     /**
      * Get
      * @author Louis
-     * @param string $configFileName
+     * @param string $configName
      * @return bool|mixed
      */
-    public static function Get(string $configFileName=APP_CONFIG_FILE )
+    public static function Get( string $configName = APP_CONFIG_FILE )
     {
-        try
+        if ( isset( self::$configMap[$configName] ) )
         {
-            return self::Load( $configFileName );
+            return self::$configMap[$configName];
         }
-        catch (\Exception $e)
-        {
-            Log::Error($e->getMessage());
-            return false;
-        }
+        return self::Load( $configName );
     }
 
     /**
      * Load
      * @author Louis
-     * @param string $fileName
-     * @param string $filePath
+     * @param string $configName
+     * @param string $subPath
      * @return mixed
-     * @throws \Exception
      */
-    public static function Load(string $fileName, string $filePath='' )
+    private static function Load( string $configName, string $subPath = '' )
     {
-        if( isset( self::$configFileMap[$fileName] ) )
+        $pathName = self::_getPath( $subPath ) . $configName . self::$configExt;
+        if ( !file_exists( $pathName ) )
         {
-            return self::$configFileMap[$fileName];
+            Log::Error( "Config File : {$pathName} does not exists.", __CLASS__ );
+            return false;
         }
-
-        static::Init($filePath);
-
-        $configFile = self::$path.$fileName.self::$configExt;
-        if( !file_exists($configFile) )
-        {
-            throw new \Exception( "Config File : {$configFile} does not exists.");
-        }
-        self::$configFileMap[$fileName] = require( $configFile );
-        return self::$configFileMap[$fileName];
+        self::$configMap[$configName] = require($pathName);
+        return self::$configMap[$configName];
     }
 
 }

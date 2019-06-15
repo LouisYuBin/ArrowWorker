@@ -395,7 +395,7 @@ class Daemon
         }
 
         $this->_cleanChannelPath();
-        Channel::Close();
+        Chan::Close();
 
         Log::DumpExit(static::LOG_PREFIX.'Monitor process exited!');
     }

@@ -181,7 +181,6 @@ class ArrowWorker
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View' .    self::classExt,
             'ArrowWorker\Driver\Cache'   => ArrowWorker . '/Driver/Cache' .   self::classExt,
             'ArrowWorker\Driver\Worker'  => ArrowWorker . '/Driver/Worker' .  self::classExt,
-            'ArrowWorker\Driver\Channel' => ArrowWorker . '/Driver/Channel'.  self::classExt,
             'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session'.  self::classExt,
 
             'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' .          self::classExt,

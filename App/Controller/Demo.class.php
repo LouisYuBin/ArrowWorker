@@ -7,7 +7,7 @@
 
 namespace App\Controller;
 
-use ArrowWorker\Driver;
+use ArrowWorker;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;
@@ -65,7 +65,7 @@ class Demo
     public function channelArrow()
     {
 
-        $channel = Driver::Channel('arrow');
+        $channel = Chan::Get('arrow');
         $result  = $channel->Read();
         //var_dump($result);
         if( !$result )

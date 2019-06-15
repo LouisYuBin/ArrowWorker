@@ -75,6 +75,12 @@ class Log
      */
     private static $_msgSize = 1048576;
 
+
+    /**
+     * @var Queue
+     */
+    private static $_msgObject;
+
     /**
      * directory for store log files
      * @var string
@@ -184,12 +190,13 @@ class Log
      */
     public static function Init()
     {
-        static::_checkExtension();
-        static::_initConfig();
-        static::_checkLogDir();
-        static::_initLogSetting();
-        static::_initHandler();
-        static::_resetStd();
+        self::_checkExtension();
+        self::_initConfig();
+        self::_checkLogDir();
+        self::_initLogSetting();
+        self::_initHandler();
+        self::_resetStd();
+        self::_initMsgObject();
     }
 
     /**
@@ -199,22 +206,22 @@ class Log
     {
         if ( !extension_loaded( 'swoole' ) )
         {
-            static::DumpExit( 'extension swoole does not installed/loaded.' );
+            self::DumpExit( 'extension swoole does not installed/loaded.' );
         }
 
         if ( !extension_loaded( 'SeasLog' ) )
         {
-            static::DumpExit( 'extension SeasLog does not installed/loaded.' );
+            self::DumpExit( 'extension SeasLog does not installed/loaded.' );
         }
 
         if ( (int)str_replace( '.', '', (new \ReflectionExtension( 'swoole' ))->getVersion() ) < 400 )
         {
-            static::DumpExit( 'swoole version must be newer than 4.0 .' );
+            self::DumpExit( 'swoole version must be newer than 4.0 .' );
         }
 
         if ( (int)str_replace( '.', '', (new \ReflectionExtension( 'SeasLog' ))->getVersion() ) < 202 )
         {
-            static::DumpExit( 'seaslog version should be 2.0.2 or newer.' );
+            self::DumpExit( 'seaslog version should be 2.0.2 or newer.' );
         }
 
     }
@@ -224,11 +231,11 @@ class Log
      */
     private static function _checkLogDir()
     {
-        if ( !is_dir( static::$_baseDir ) )
+        if ( !is_dir( self::$_baseDir ) )
         {
-            if ( !mkdir( static::$_baseDir ) )
+            if ( !mkdir( self::$_baseDir ) )
             {
-                static::DumpExit( 'creating log directory failed.' );
+                self::DumpExit( 'creating log directory failed.' );
             }
         }
     }
@@ -298,7 +305,6 @@ class Log
             }
         }
 
-        static::_selectLogChan();
     }
 
     /**
@@ -329,8 +335,7 @@ class Log
      */
     public static function Info( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "I|{$module}|{$log}" );
+        self::$_msgObject->Write( "I|{$module}|{$log}" );
     }
 
     /**
@@ -341,8 +346,7 @@ class Log
      */
     public static function Alert( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "A|{$module}|{$log}" );
+        self::$_msgObject->Write( "A|{$module}|{$log}" );
     }
 
     /**
@@ -352,8 +356,7 @@ class Log
      */
     public static function Debug( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "D|{$module}|{$log}" );
+        self::$_msgObject->Write( "D|{$module}|{$log}" );
     }
 
     /**
@@ -364,8 +367,7 @@ class Log
      */
     public static function Notice( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "N|{$module}|{$log}" );
+        self::$_msgObject->Write( "N|{$module}|{$log}" );
     }
 
 
@@ -377,8 +379,7 @@ class Log
      */
     public static function Warning( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "W|{$module}|{$log}" );
+        self::$_msgObject->Write( "W|{$module}|{$log}" );
     }
 
     /**
@@ -389,8 +390,7 @@ class Log
      */
     public static function Error( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "E|{$module}|{$log}" );
+        self::$_msgObject->Write( "E|{$module}|{$log}" );
     }
 
     /**
@@ -401,8 +401,7 @@ class Log
      */
     public static function Emergency( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "EM|{$module}|{$log}" );
+        self::$_msgObject->Write( "EM|{$module}|{$log}" );
     }
 
 
@@ -414,8 +413,7 @@ class Log
      */
     public static function Critical( string $log, string $module = '' )
     {
-        static::_selectLogChan()
-              ->Write( "C|{$module}|{$log}" );
+        self::$_msgObject->Write( "C|{$module}|{$log}" );
     }
 
     /**
@@ -458,15 +456,18 @@ class Log
      * _selectLogChan : select the log chan
      * @return Queue
      */
-    private static function _selectLogChan() : Queue
+    private static function _initMsgObject() : Queue
     {
-        return Queue::Init(
-            [
-                'msgSize' => static::$_msgSize,
-                'bufSize' => static::$_bufSize
-            ],
-            'log'
-        );
+        if( is_object(self::$_msgObject) )
+        {
+            self::$_msgObject = Chan::Get(
+                [
+                    'msgSize' => static::$_msgSize,
+                    'bufSize' => static::$_bufSize
+                ],
+                'log'
+            );
+        }
     }
 
     /**
@@ -553,7 +554,7 @@ class Log
         {
             if (
                 static::$isTerminate &&
-                static::_selectLogChan()->Status()['msg_qnum'] == 0
+                self::$_msgObject->Status()['msg_qnum'] == 0
             )
             {
                 break;
@@ -561,7 +562,7 @@ class Log
 
             pcntl_signal_dispatch();
 
-            $log = static::_selectLogChan()->Read( 10000 );
+            $log = self::$_msgObject->Read( 10000 );
             if ( $log === false )
             {
                 continue;
@@ -679,7 +680,7 @@ class Log
      */
     private static function _exit()
     {
-        static::DumpExit( 'Log queue status : ' . json_encode( static::_selectLogChan()->Status() ) );
+        static::DumpExit( 'Log queue status : ' . json_encode( self::$_msgObject->Status() ) );
     }
 
     /**
