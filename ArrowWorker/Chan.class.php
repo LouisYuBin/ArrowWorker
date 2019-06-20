@@ -10,28 +10,27 @@ use ArrowWorker\Driver\Channel\Queue;
 class Chan
 {
 
+    /**
+     * channel config file name
+     */
     const CONFIG_NAME = 'Chan';
 
+    /**
+     * default config for each channel
+     */
     const DEFAULT_CONFIG = [
-        //default message size bytes
         'msgSize' => 128,
-        //default channel buffer size bytes
         'bufSize' => 10240000
     ];
+
     /**
-     * 消息实例连接池
+     * channel pool
      * @var array
      */
     protected static $pool = [];
 
     /**
-     * 消息配置
-     * @var array
-     */
-    protected static $config = [];
-
-    /**
-     * Get 初始化 对外提供
+     * initialize channel and return channel object
      * @author Louis
      * @param string $alias
      * @param array  $userConfig
@@ -41,11 +40,10 @@ class Chan
     {
         if ( isset( static::$pool[$alias] ) )
         {
-            //channel is already been initialized
-            return static::$pool[$alias];
+            return static::$pool[$alias];  //channel is already been initialized
         }
 
-        if( 0==count($userConfig) )
+        if ( 0 == count( $userConfig ) )
         {
             $configs = Config::Get( self::CONFIG_NAME );
             if ( isset( $configs[$alias] ) && is_array( $configs[$alias] ) )
@@ -58,8 +56,7 @@ class Chan
             }
         }
 
-        $config = array_merge( self::DEFAULT_CONFIG, $userConfig );
-        self::$pool[$alias] = new Queue( $config, $alias );
+        self::$pool[$alias] = new Queue( array_merge( self::DEFAULT_CONFIG, $userConfig ), $alias );
 
         return static::$pool[$alias];
     }

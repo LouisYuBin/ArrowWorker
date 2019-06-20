@@ -58,6 +58,11 @@ class Log
     const SIZE_CHECK_PERIOD = 10;
 
     /**
+     * tcp client heartbeat period
+     */
+    const TCP_HEARTBEAT_PERIOD = 30;
+
+    /**
      * bufSize : log buffer size 10M
      * @var int
      */
@@ -196,7 +201,7 @@ class Log
         self::_initLogSetting();
         self::_initHandler();
         self::_resetStd();
-        self::_initMsgObject();
+        self::_initMsgInstance();
     }
 
     /**
@@ -454,18 +459,18 @@ class Log
 
     /**
      * _selectLogChan : select the log chan
-     * @return Queue
+     * @return void
      */
-    private static function _initMsgObject() : Queue
+    private static function _initMsgInstance()
     {
-        if( is_object(self::$_msgObject) )
+        if( !is_object(self::$_msgObject) )
         {
             self::$_msgObject = Chan::Get(
+                'log',
                 [
                     'msgSize' => static::$_msgSize,
                     'bufSize' => static::$_bufSize
-                ],
-                'log'
+                ]
             );
         }
     }
@@ -571,12 +576,12 @@ class Log
 
             static::$_toFileChan->push( $log, 1 );
 
-            if( in_array(static::TO_TCP,static::$_writeType) )
+            if( in_array(static::TO_TCP, static::$_writeType) )
             {
                 static::$_toTcpChan->push( $log, 1 );
             }
 
-            if( in_array(static::TO_REDIS,static::$_writeType) )
+            if( in_array(static::TO_REDIS, static::$_writeType) )
             {
                 static::$_toRedisChan->push( $log, 1 );
             }
@@ -596,7 +601,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 0.5 );
+            $data = static::$_toFileChan->pop( 0.2 );
 
             if ( static::$isTerminateChan && $data === false )
             {
@@ -620,10 +625,10 @@ class Log
      */
     public static function WriteToTcp()
     {
+        $time = time();
         while ( true )
         {
-            $data = static::$_toTcpChan->pop( 0.5 );
-
+            $data = static::$_toTcpChan->pop( 1 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -723,6 +728,8 @@ class Log
 
         pcntl_signal( SIGCHLD, SIG_IGN, false );
         pcntl_signal( SIGQUIT, SIG_IGN, false );
+
+        pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
     }
 
 
@@ -733,10 +740,25 @@ class Log
      */
     public static function signalHandler( int $signal )
     {
-        if ( $signal == SIGTERM )
+        switch ($signal)
         {
-            self::$isTerminate = true;
+            case SIGALRM:
+                self::_handleAlarm();
+                break;
+            case SIGTERM:
+                self::$isTerminate = true;
+                break;
+            default:
         }
+    }
+
+    /**
+     * handle log process alarm signal
+     */
+    private static function _handleAlarm()
+    {
+        self::$_tcpClient->Send('heartbeat');
+        pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
     }
 
 }
