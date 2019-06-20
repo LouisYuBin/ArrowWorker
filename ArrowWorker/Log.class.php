@@ -601,9 +601,7 @@ class Log
     {
         while ( true )
         {
-            var_dump('WriteToFile before pop');
             $data = static::$_toFileChan->pop( 0.5 );
-            var_dump('WriteToFile after pop');
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -628,11 +626,7 @@ class Log
     {
         while ( true )
         {
-            var_dump('WriteToTcp  before pop');
-
             $data = static::$_toTcpChan->pop( 0.5 );
-            var_dump('WriteToTcp  after pop');
-
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
