@@ -48,7 +48,7 @@ class Demo
 
         $writeResult = Chan::Get()->Write("app".mt_rand(1,1000));
         Log::Info($writeResult);
-        Coroutine::sleep(2);
+        Coroutine::sleep(1);
     }
 
     public function channelApp()
