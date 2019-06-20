@@ -10,6 +10,7 @@ namespace App\Controller;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;
+use Swoole\Coroutine;
 
 
 class Demo
@@ -47,6 +48,7 @@ class Demo
 
         $writeResult = Chan::Get()->Write("app".mt_rand(1,1000));
         Log::Info($writeResult);
+        Coroutine::sleep(2);
     }
 
     public function channelApp()
