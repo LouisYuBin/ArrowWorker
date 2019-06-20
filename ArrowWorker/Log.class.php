@@ -601,8 +601,9 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 1 );
-            var_dump('WriteToFile');
+            var_dump('WriteToFile before pop');
+            $data = static::$_toFileChan->pop( 0.5 );
+            var_dump('WriteToFile after pop');
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -627,8 +628,10 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toTcpChan->pop( 1 );
-            var_dump('WriteToTcp');
+            var_dump('WriteToTcp  before pop');
+
+            $data = static::$_toTcpChan->pop( 0.5 );
+            var_dump('WriteToTcp  after pop');
 
             if ( static::$isTerminateChan && $data === false )
             {
@@ -656,7 +659,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toRedisChan->pop(1 );
+            $data = static::$_toRedisChan->pop(0.5 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
