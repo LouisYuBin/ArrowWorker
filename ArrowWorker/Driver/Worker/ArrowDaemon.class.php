@@ -559,7 +559,7 @@ class ArrowDaemon extends Worker
 
         SwEvent::wait();
         $execPeriod = time() - $timeStart;
-        Log::DumpExit( self::LOG_PREFIX . ' : ' . self::$jobs[$index]['processName'] . ' finished ' . self::$execCount . ' times / ' . $execPeriod . ' S.' );
+        Log::DumpExit( self::LOG_PREFIX . self::$jobs[$index]['processName'] . ' finished ' . self::$execCount . ' times / ' . $execPeriod . ' S.' );
     }
 
     /**

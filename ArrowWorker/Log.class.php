@@ -444,7 +444,7 @@ class Log
      */
     public static function DumpExit( string $log )
     {
-        echo(PHP_EOL . $log . PHP_EOL);
+        echo(PHP_EOL . static::_getTime().' '.$log . PHP_EOL);
         exit( 0 );
     }
 
