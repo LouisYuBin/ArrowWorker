@@ -75,14 +75,10 @@ class ArrowDaemon extends Worker
     private static $consumePidMap = [];
 
     /**
-     * 进程内任务执行状态 开始时间、运行次数、结束时间
+     * 进程内任务执行次数
      * @var array
      */
-    private static $workerStat = [
-        'start' => null,
-        'count' => 0,
-        'end'   => null
-    ];
+    private static $execCount = 0;
 
 
     /**
@@ -396,22 +392,22 @@ class ArrowDaemon extends Worker
 
     /**
      * @param array $processesExitSign
-     * @param int $groupId
+     * @param int   $groupId
      */
     private function _sendExitedSignalToConsumer( array $processesExitSign, int $groupId )
     {
-        $consumerId = $groupId+1;
+        $consumerId = $groupId + 1;
 
         //consumer process does not exists
-        if( !isset($processesExitSign[$consumerId]) )
+        if ( !isset( $processesExitSign[$consumerId] ) )
         {
-            return ;
+            return;
         }
 
         //consumer is already exited
-        if( $processesExitSign[$consumerId] )
+        if ( $processesExitSign[$consumerId] )
         {
-            return ;
+            return;
         }
 
         foreach ( static::$consumePidMap as $pid => $eachConsumerId )
@@ -520,19 +516,19 @@ class ArrowDaemon extends Worker
         $this->_setSignalHandler( 'workerHandler' );
         $this->_setProcessAlarm( $lifecycle );
         $this->_setProcessName( self::$jobs[$index]['processName'] );
-        $this->_processRunTask( $index );
+        $this->_runProcessTask( $index );
     }
 
 
     /**
-     * _processRunTask 进程形式执行任务
+     * _runProcessTask 进程形式执行任务
      * @author Louis
      * @param int $index
      */
-    private function _processRunTask( int $index )
+    private function _runProcessTask( int $index )
     {
-        self::$workerStat['start'] = time();
-        Log::Dump( static::LOG_PREFIX . 'process : ' . self::$jobs[$index]['processName'] . ' started.' );
+        $timeStart = time();
+        Log::Dump( self::LOG_PREFIX . 'process : ' . self::$jobs[$index]['processName'] . ' started.' );
 
         while ( self::$jobs[$index]['coCount'] < self::$jobs[$index]['coQuantity'] )
         {
@@ -540,7 +536,7 @@ class ArrowDaemon extends Worker
             {
                 while ( true )
                 {
-                    if ( static::$terminate )
+                    if ( self::$terminate )
                     {
                         break;
                     }
@@ -553,7 +549,7 @@ class ArrowDaemon extends Worker
                     {
                         call_user_func( self::$jobs[$index]['function'] );
                     }
-                    self::$workerStat['count']++;
+                    self::$execCount++;
                     pcntl_signal_dispatch();
 
                 }
@@ -562,17 +558,8 @@ class ArrowDaemon extends Worker
         }
 
         SwEvent::wait();
-        self::$workerStat['end'] = time();
-        $proWorkerTimeSum        = self::$workerStat['end'] - self::$workerStat['start'];
-        Log::DumpExit( static::LOG_PREFIX .
-                       'process : ' .
-                       self::$jobs[$index]['processName'] .
-                       ' finished ' .
-                       self::$workerStat['count'] .
-                       ' times of its work in ' .
-                       $proWorkerTimeSum .
-                       ' seconds.'
-        );
+        $execPeriod = time() - $timeStart;
+        Log::DumpExit( self::LOG_PREFIX . ' : ' . self::$jobs[$index]['processName'] . ' finished ' . self::$execCount . ' times / ' . $execPeriod . ' S.' );
     }
 
     /**
@@ -580,7 +567,7 @@ class ArrowDaemon extends Worker
      */
     private function _startChannelFinishProcess()
     {
-        Log::Dump( static::LOG_PREFIX . "starting chan consumer Process" );
+        Log::Dump( self::LOG_PREFIX . "starting chan consumer Process" );
 
         $newGroupNum = 0;
         for ( $i = 0; $i < self::$jobNum; $i++ )
@@ -593,19 +580,22 @@ class ArrowDaemon extends Worker
             $pid = pcntl_fork();
             if ( $pid > 0 )
             {
-                static::$consumePidMap[$pid] = $i;
+                self::$consumePidMap[$pid] = $i;
             }
             else if ( $pid == 0 )
             {
                 //重置退出标识为不退出
-                static::$terminate = false;
+                self::$terminate = false;
                 $this->_setSignalHandler( 'chanHandler' );
                 $this->_setProcessName( self::$jobs[$i]['processName'] );
-                Log::Dump( static::LOG_PREFIX .'chan-consumer-process ' .self::$jobs[$i]['processName'] .' starting work' );
+                Log::Dump( self::LOG_PREFIX . 'chan-consumer ' . self::$jobs[$i]['processName'] . ' starting work' );
 
                 while ( self::$jobs[$i]['coCount'] < self::$jobs[$i]['coQuantity'] )
                 {
-                    Co::create([$this,'_consumeChanTask'], $i, $newGroupNum);
+                    Co::create( [
+                                    $this,
+                                    '_consumeChanTask'
+                                ], $i, $newGroupNum );
                 }
                 SwEvent::wait();
             }
@@ -613,63 +603,62 @@ class ArrowDaemon extends Worker
             $newGroupNum++;
             usleep( 10000 );
         }
-        Log::Dump( json_encode( static::$consumePidMap ) );
-        Log::Dump( static::LOG_PREFIX . "chan-consumer-processes are all started." );
+        Log::Dump( json_encode( self::$consumePidMap ) );
+        Log::Dump( self::LOG_PREFIX . "chan-consumer are all started." );
     }
 
     /**
-     * _processRunTask 进程形式执行任务
      * @author Louis
      * @param int $index
      * @param int $newJobIndex
      */
     private function _consumeChanTask( int $index, int $newJobIndex )
     {
-            $timeStart = time();
-            $workCount = 0;
-            while ( 1 )
+        $timeStart = time();
+        $workCount = 0;
+        while ( 1 )
+        {
+            pcntl_signal_dispatch();
+
+            if ( isset( self::$jobs[$index]['argv'] ) )
             {
-                pcntl_signal_dispatch();
-
-                if ( isset( self::$jobs[$index]['argv'] ) )
-                {
-                    $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
-                }
-                else
-                {
-                    $channelStatus = call_user_func( self::$jobs[$index]['function'] );
-                }
-                $workCount['count']++;
-
-                if ( $channelStatus )
-                {
-                    $retryTimes = 0;
-                    continue;
-                }
-
-                //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
-                if ( !$channelStatus && $retryTimes > 0 && ($newJobIndex == 0 || static::$terminate) )
-                {
-                    break;
-                }
-
-                if ( !$channelStatus && ($newJobIndex == 0 || static::$terminate) )
-                {
-                    $retryTimes++;
-                }
-                pcntl_signal_dispatch();
-
+                $channelStatus = call_user_func_array( self::$jobs[$index]['function'], self::$jobs[$index]['argv'] );
             }
-            $timeEnd = time();
-            $proWorkerTimeSum = $timeEnd - $timeStart;
-            Log::DumpExit( static::LOG_PREFIX .
-                           'chan-finish ' .
-                           self::$jobs[$index]['processName'] .
-                           ' finished ' .
-                           $workCount .
-                           ' times of its work in ' .
-                           $proWorkerTimeSum .
-                           ' seconds.' );
+            else
+            {
+                $channelStatus = call_user_func( self::$jobs[$index]['function'] );
+            }
+            $workCount['count']++;
+
+            if ( $channelStatus )
+            {
+                $retryTimes = 0;
+                continue;
+            }
+
+            //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
+            if ( !$channelStatus && $retryTimes > 0 && ($newJobIndex == 0 || self::$terminate) )
+            {
+                break;
+            }
+
+            if ( !$channelStatus && ($newJobIndex == 0 || self::$terminate) )
+            {
+                $retryTimes++;
+            }
+            pcntl_signal_dispatch();
+
+        }
+        $timeEnd          = time();
+        $proWorkerTimeSum = $timeEnd - $timeStart;
+        Log::DumpExit( self::LOG_PREFIX .
+                       'chan-finish ' .
+                       self::$jobs[$index]['processName'] .
+                       ' finished ' .
+                       $workCount .
+                       ' times / ' .
+                       $proWorkerTimeSum .
+                       ' S.' );
     }
 
 
@@ -696,8 +685,10 @@ class ArrowDaemon extends Worker
         }
 
         $job['coCount']        = 0;
-        $job['coQuantity']     = (isset( $job['coQuantity'] ) && (int)$job['coQuantity'] > 0) ? $job['coQuantity'] : static::COROUTINE_QUANTITY;
-        $job['processName']    = (isset( $job['procName'] ) && !empty( $job['procName'] )) ? $job['procName'] : static::PROCESS_NAME;
+        $job['coQuantity']     = (isset( $job['coQuantity'] ) &&
+                                  (int)$job['coQuantity'] > 0) ? $job['coQuantity'] : static::COROUTINE_QUANTITY;
+        $job['processName']    = (isset( $job['procName'] ) &&
+                                  !empty( $job['procName'] )) ? $job['procName'] : static::PROCESS_NAME;
         $job['isChanReadProc'] = isset( $job['isChanReadProc'] ) ? true : false;
         self::$jobs[]          = $job;
     }

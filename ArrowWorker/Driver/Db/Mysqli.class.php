@@ -14,11 +14,30 @@ use ArrowWorker\Log;
  * Class Mysqli
  * @package ArrowWorker\Driver\Db
  */
-class Mysqli extends db
+class Mysqli
 {
 
+    //数据库连接池
+    protected static $connPool = [];
 
-	/**
+    protected static $instance;
+
+    protected static $config = [];
+
+    protected static $dbCurrent = null;
+
+    protected function __construct($config)
+    {
+        //Todo
+    }
+
+    public static function GetDb()
+    {
+        return self::$instance;
+    }
+
+
+    /**
 	 * 初始化数据库连接类
 	 * @param array $config
 	 * @param string $alias

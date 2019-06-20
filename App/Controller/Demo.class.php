@@ -7,7 +7,6 @@
 
 namespace App\Controller;
 
-use ArrowWorker;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;

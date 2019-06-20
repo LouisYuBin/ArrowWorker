@@ -601,7 +601,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 0.2 );
+            $data = static::$_toFileChan->pop( 1 );
 
             if ( static::$isTerminateChan && $data === false )
             {
@@ -655,7 +655,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toRedisChan->pop(0.5 );
+            $data = static::$_toRedisChan->pop(1 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;

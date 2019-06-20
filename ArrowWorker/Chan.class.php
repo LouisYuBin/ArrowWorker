@@ -56,7 +56,7 @@ class Chan
             }
         }
 
-        self::$pool[$alias] = new Queue( array_merge( self::DEFAULT_CONFIG, $userConfig ), $alias );
+        self::$pool[$alias] = Queue::Init( array_merge( self::DEFAULT_CONFIG, $userConfig ), $alias );
 
         return static::$pool[$alias];
     }

@@ -30,7 +30,7 @@ class Queue
     private $_chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Chan/';
 
 
-    public function __construct(array $config, string $name)
+    private function __construct(array $config, string $name)
     {
         $this->_config = $config;
         $chanFile = $this->_chanFileDir.$name.'.chan';
@@ -48,6 +48,11 @@ class Queue
             Log::DumpExit("msg_get_queue({$key},0666) failed");
         }
         msg_set_queue($this->_queue, ['msg_qbytes'=>$this->_config['bufSize']]);
+    }
+
+    public static function Init(array $config, string $name) : Queue
+    {
+        return new self($config, $name);
     }
 
     /**
