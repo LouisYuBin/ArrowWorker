@@ -10,7 +10,7 @@ return [
                 'Demo'
             ],
             'argv'       => [ 100 ],
-            'coQuantity' => 500,
+            'coQuantity' => 5000,
             'procName'   => 'Demo'
 
         ],
@@ -21,7 +21,7 @@ return [
             ],
             'argv'           => [ 100 ],
             'procName'       => 'channelApp',
-            'coQuantity'     => 1500,
+            'coQuantity'     => 15000,
             'isChanReadProc' => true,
         ],
         [
@@ -31,7 +31,7 @@ return [
             ],
             'argv'           => [ 100 ],
             'procName'       => 'channelArrow',
-            'coQuantity'     => 1500,
+            'coQuantity'     => 15000,
             'isChanReadProc' => true,
         ],
         [
@@ -41,7 +41,7 @@ return [
             ],
             'argv'           => [ 100 ],
             'procName'       => 'channeltest',
-            'coQuantity'     => 1500,
+            'coQuantity'     => 15000,
             'isChanReadProc' => true,
         ],
     ]
