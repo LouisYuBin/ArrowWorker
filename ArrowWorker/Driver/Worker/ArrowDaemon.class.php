@@ -381,12 +381,12 @@ class ArrowDaemon extends Worker
             $processesExitSign[$groupId] = true;
             $this->_sendExitedSignalToConsumer( $processesExitSign, $groupId );
             Log::Dump( static::LOG_PREFIX .
-                       "chan-consumer-process : " .
+                       "chan-consumer: " .
                        self::$jobs[$groupId]["processName"] .
                        "({$pid}) exited at status : {$status}"
             );
         }
-        Log::Dump( static::LOG_PREFIX . "chan-consumer-processes are all exited." );
+        Log::Dump( static::LOG_PREFIX . "chan-consumer are all exited." );
     }
 
 

@@ -602,7 +602,7 @@ class Log
         while ( true )
         {
             $data = static::$_toFileChan->pop( 1 );
-
+            var_dump('WriteToFile');
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -625,10 +625,11 @@ class Log
      */
     public static function WriteToTcp()
     {
-        $time = time();
         while ( true )
         {
             $data = static::$_toTcpChan->pop( 1 );
+            var_dump('WriteToTcp');
+
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
