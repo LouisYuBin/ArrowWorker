@@ -10,7 +10,7 @@ return [
                 'Demo'
             ],
             'argv'       => [ 100 ],
-            'coQuantity' => 5000,
+            'coQuantity' => 15000,
             'procName'   => 'Demo'
 
         ],
