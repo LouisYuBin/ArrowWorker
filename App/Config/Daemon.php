@@ -1,5 +1,5 @@
 <?php
 
 return  [
-    'user' => 'yubin',
+    'user' => 'root',
 ];

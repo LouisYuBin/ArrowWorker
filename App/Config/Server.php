@@ -4,7 +4,7 @@ return [
     [
         'type'             => 'web',
         'host'             => '0.0.0.0',
-        'port'             => 8088,
+        'port'             => 443,
         'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
@@ -14,15 +14,15 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
-        //'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
-        //'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
+        'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
+        'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
         '404'              => APP_PATH.'/Static/Web/404.html'
     ],
     [
         'type'             => 'webSocket',
         'host'             => '0.0.0.0',
-        'port'             => 8089,
+        'port'             => 80,
         'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
