@@ -28,7 +28,6 @@ class Db extends Driver
      */
     public static function Table(string $table, string $alias=self::DEFAULT_ALIAS)
     {
-        static::_init(static::COMPONENT_TYPE, $alias);
         return (new SqlBuilder())->Table($table);
     }
 

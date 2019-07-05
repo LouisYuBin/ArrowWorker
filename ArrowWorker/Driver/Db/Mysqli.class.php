@@ -6,8 +6,10 @@
  */
 
 namespace ArrowWorker\Driver\Db;
-use ArrowWorker\Driver\Db AS db;
+
+use ArrowWorker\Config;
 use ArrowWorker\Log;
+use \Swoole\Coroutine\Channel as swChan;
 
 
 /**
@@ -16,163 +18,120 @@ use ArrowWorker\Log;
  */
 class Mysqli
 {
+    const LOG_NAME          = 'Db';
+    const CONFIG_NAME       = 'Db';
+    const SQL_LOG_NAME      = 'Sql';
+    const DEFAULT_POOL_SIZE = 10;
 
     //数据库连接池
-    protected static $connPool = [];
-
-    protected static $instance;
-
-    protected static $config = [];
-
-    protected static $dbCurrent = null;
-
-    protected function __construct($config)
-    {
-        //Todo
-    }
-
-    public static function GetDb()
-    {
-        return self::$instance;
-    }
-
+    private static $pool = [];
 
     /**
-	 * 初始化数据库连接类
-	 * @param array $config
-	 * @param string $alias
-	 * @return Mysqli
-	 */
-	static function Init(array $config, string $alias)
+     * @var mysqli
+     */
+    private $_conn;
+
+    private $_config = [];
+
+    private function __construct( array $config )
     {
-        //存储配置
-        if ( !isset( self::$config[$alias] ) )
+        $this->_config = $config;
+        @$this->_conn = new \mysqli( $config['host'], $config['userName'], $config['password'], $config['dbName'], $config['port'] );
+        if ( $this->_conn->connect_errno )
         {
-            self::$config[$alias] = $config;
+            Log::DumpExit( "connecting to mysql failed : " . $this->_conn->connect_error );
         }
 
-        //设置当前
-        self::$dbCurrent = $alias;
-
-        if(!self::$instance)
+        if ( false === $this->_conn->query( "set names '" . $config['charset'] . "'" ) )
         {
-            self::$instance = new self($config);
+            Log::Warning( "mysqi set names(charset) failed.", self::LOG_NAME );
         }
-
-        return self::$instance;
     }
 
-	/**
-	 * @param array $config
-	 * @return \mysqli
-	 */
-	private function _initConnection(array $config)
+    public static function GetConnection( $alias = 'default' )
     {
-        //建立连接
-        @$conn = new \mysqli($config['host'],$config['userName'],$config['password'],$config['dbName'],$config['port']);
-        //捕捉错误
-        if($conn->connect_errno)
+        _RETRY:
+        $conn = self::$pool[$alias]->pop( 1 );
+        if ( false === $conn )
         {
-            Log::DumpExit("connecting to mysql failed : ".$conn->connect_error);
-        }
-        //初始化字符集
-        if( false===$conn->query("set names '".self::$config[self::$dbCurrent]['charset']."'") )
-        {
-            Log::Warning("mysqi set names(charset) failed.");
+            goto _RETRY;
         }
         return $conn;
     }
 
-	/**
-	 * 连接数据库
-	 * @param bool $isMaster
-	 * @param int $connectNum
-	 * @return \mysqli
-	 */
-	protected function _getConnection(bool $isMaster=false, int $connectNum=0)
+    /**
+     * 初始化数据库连接类
+     */
+    public static function Init()
     {
-        if( $isMaster==true || self::$config[self::$dbCurrent]['seperate']==0 )
+        //存储配置
+        $config = Config::Get( self::CONFIG_NAME );
+        if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            return $this->_connectMaster();
+            Log::Error( 'incorrect config', self::LOG_NAME );
+            return ;
         }
-        return $this->_connectSlave($connectNum);
-    }
 
-
-	/**
-	 * 检测并连接主库
-     * @return \mysqli
-	 */
-	private function _connectMaster()
-    {
-        if( !isset( self::$connPool[self::$dbCurrent]['master'] ) )
+        foreach ( $config as $index => $value )
         {
-            self::$connPool[self::$dbCurrent]['master'] = $this->_initConnection( self::$config[self::$dbCurrent]['master'] );
-        }
-        return self::$connPool[self::$dbCurrent]['master'];
-    }
+            self::$pool[$index] = new swChan( isset( $value['port'] ) ? (int)$value['port'] : self::DEFAULT_POOL_SIZE );
 
-
-	/**
-	 * 检测并连接从库
-	 * @param int $slaveIndex
-	 * @return \mysqli
-	 */
-	private function _connectSlave(int $slaveIndex=0)
-    {
-        $slaveCount = count(self::$config[self::$dbCurrent]['slave']);
-        $slave = ( $slaveIndex==0 || $slaveIndex>=$slaveCount || $slaveIndex<0 ) ? mt_rand( 0, $slaveCount-1 ) : $slaveIndex;
-
-        if ( !isset( self::$connPool[self::$dbCurrent]['slave'][$slave] ) )
-        {
-            self::$connPool[self::$dbCurrent]['slave'][$slave] = $this->_initConnection(self::$config[self::$dbCurrent]['slave'][$slave]);
-        }
-        return self::$connPool[self::$dbCurrent]['slave'][$slave];
-    }
-
-
-	/**
-	 * 查询
-	 * @param string $sql
-	 * @param bool $isMaster
-	 * @param int $connectNum
-	 * @return array|bool
-	 */
-	public function Query(string $sql, bool $isMaster=false, int $connectNum=0)
-    {
-        $result = $this->_getConnection($isMaster,$connectNum)->query($sql);
-        if($result)
-        {
-            Log::Info($sql);
-            $field  = $this->_parseFieldType($result);
-            $return = [];
-            while($row = $result->fetch_assoc())
+            if ( !isset( $value['host'] ) ||
+                 !isset( $value['dbName'] ) ||
+                 !isset( $value['userName'] ) ||
+                 !isset( $value['password'] ) ||
+                 !isset( $value['port'] ) ||
+                 !isset( $value['charset'] ) )
             {
-                foreach ($row as $key=>&$val)
-                {
-                    settype($val, $field[$key]);
-                }
-                $return[] = $row;
+                Log::Error( "configuration for {$index} is incorrect.", self::LOG_NAME );
+                continue;
             }
-            return $return;
+
+            self::$pool[$index]->push( new self( $value ) );
         }
-        else
+
+    }
+
+    /**
+     * 查询
+     * @param string $sql
+     * @return array|bool
+     */
+    public function Query( string $sql )
+    {
+        Log::Debug( $sql, self::SQL_LOG_NAME );
+
+        $result = $this->_conn->query( $sql );
+        if ( !$result )
         {
-            Log::Error("sql error:{$sql}");
+            Log::Error( $sql, self::SQL_LOG_NAME );
             return false;
         }
 
+        $field  = $this->_parseFieldType( $result );
+        $return = [];
+        while ( $row = $result->fetch_assoc() )
+        {
+            foreach ( $row as $key => &$val )
+            {
+                settype( $val, $field[$key] );
+            }
+            $return[] = $row;
+        }
+        return $return;
     }
 
     /**
      * @param \mysqli_result $result
      * @return array
      */
-    private function _parseFieldType(\mysqli_result $result): array
+    private function _parseFieldType( \mysqli_result $result ) : array
     {
         $fields = [];
-        while ($info = $result->fetch_field()) {
-            switch ($info->type) {
+        while ( $info = $result->fetch_field() )
+        {
+            switch ( $info->type )
+            {
                 case MYSQLI_TYPE_BIT:
                 case MYSQLI_TYPE_TINY:
                 case MYSQLI_TYPE_SHORT:
@@ -196,64 +155,87 @@ class Mysqli
     }
 
 
-	/**
-	 * execute 写入或更新
-	 * @param string $sql
-	 * @return array
-	 */
-	public function Execute(string $sql)
+    /**
+     * execute 写入或更新
+     * @param string $sql
+     * @return array
+     */
+    public function Execute( string $sql )
     {
-        $conn = $this->_getConnection(true);
+        $result = $this->_conn->query( $sql );
+
+        Log::Debug( $sql, self::SQL_LOG_NAME );
+        if ( false === $result )
+        {
+            Log::Error( $sql, self::SQL_LOG_NAME );
+        }
+
         return [
-            'result'       => $conn->query($sql),
-            'affectedRows' => $conn->affected_rows,
-            'insertId'     => $conn->insert_id
+            'result'       => $result,
+            'affectedRows' => $this->_conn->affected_rows,
+            'insertId'     => $this->_conn->insert_id
         ];
     }
 
-
-	/**
-	 * Begin 开始事务
-	 */
-	public function Begin()
+    /**
+     * Begin 开始事务
+     */
+    public function Begin()
     {
-        $conn = $this->_getConnection(true);
-        $conn->autocommit(false);
-        $conn->begin_transaction();
+        $this->_conn->autocommit( false );
+        for ( $i = 0; $i < 6; $i++ )
+        {
+            if ( $this->_conn->begin_transaction() )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
-
-
-	/**
-	 * Commit 提交事务
-	 */
-	public function Commit()
+    /**
+     * Commit 提交事务
+     */
+    public function Commit()
     {
-        $conn = $this->_getConnection(true);
-        $conn->commit();
-        $conn->autocommit(true);
+        $result = false;
+        for ( $i = 0; $i < 6; $i++ )
+        {
+            $result = $this->_conn->commit();
+            if ( $result )
+            {
+                break;
+            }
+        }
+        $this->_conn->autocommit( true );
+        return $result;
     }
 
-
-	/**
-	 * Rollback 事务回滚
-	 */
-	public function Rollback()
+    /**
+     * Rollback 事务回滚
+     */
+    public function Rollback()
     {
-        $conn = $this->_getConnection(true);
-        $conn->rollback();
-        $conn->autocommit(true);
+        $result = false;
+        for ( $i = 0; $i < 6; $i++ )
+        {
+            $result = $this->_conn->rollback();
+            if ( $result )
+            {
+                break;
+            }
+        }
+        $this->_conn->autocommit( true );
+        return $result;
     }
 
-
-	/**
-	 * Autocommit 是否自动提交
-	 * @param bool $flag
-	 */
-	public function Autocommit(bool $flag)
+    /**
+     * Autocommit 是否自动提交
+     * @param bool $flag
+     */
+    public function Autocommit( bool $flag )
     {
-        $this->_getConnection(true)->autocommit($flag);
+        $this->_conn->autocommit( $flag );
     }
-
 
 }

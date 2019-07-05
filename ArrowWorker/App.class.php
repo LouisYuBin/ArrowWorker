@@ -20,14 +20,9 @@ class App
      */
     public static function RunApp()
     {
-
         set_time_limit(0);
-        ini_set('memory_limit', '128M');
+        ini_set('memory_limit', '512M');
         Daemon::Start();
-
     }
-
-
-
 
 }
