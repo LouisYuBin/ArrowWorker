@@ -8,7 +8,7 @@
 
 namespace ArrowWorker\Driver\Db;
 
-use ArrowWorker\Driver\Db;
+use ArrowWorker\Driver\Db\Mysqli;
 
 /**
  * Class SqlBuilder sql语句组合、执行类
@@ -16,6 +16,13 @@ use ArrowWorker\Driver\Db;
  */
 class SqlBuilder
 {
+
+    private $alias = 'default';
+
+    /**
+     * @var Mysqli;
+     */
+    private $driver = 'Mysqli';
 
     /**
      * @var string
@@ -64,11 +71,13 @@ class SqlBuilder
 
     /**
      * SqlBuilder constructor.
-     * @param null $instance
+     * @param string $alias
+     * @param string $driver
      */
-    public function __construct( $instance = null )
+    public function __construct( string $alias = 'default', string $driver='Mysqli' )
     {
-        //todo
+        $this->alias  = $alias;
+        $this->driver = $driver;
     }
 
     /**
@@ -76,7 +85,7 @@ class SqlBuilder
      */
     private function _getDb()
     {
-        return Db::GetConnection();
+        return $this->driver::GetConnection($this->alias);
     }
 
 
@@ -173,26 +182,22 @@ class SqlBuilder
     }
 
     /**
-     * @param bool $isMaster
-     * @param int  $slaveIndex
-     * @return array
+
+     * @return false|array
      */
-    public function Find( bool $isMaster = false, int $slaveIndex = 0 )
+    public function Find()
     {
-        $result = $this->_getDb()->Query( $this->_parseSelect(), $isMaster, $slaveIndex );
-        return $result === false ? [] : $result;
+        return $this->_getDb()->Query( $this->_parseSelect() );
     }
 
 
     /**
-     * @param bool $isMaster
-     * @param int  $slaveIndex
-     * @return array
+     * @return false|array
      */
-    public function Get( bool $isMaster = false, int $slaveIndex = 0 )
+    public function Get()
     {
-        $data = $this->_getDb()->Query( $this->_parseSelect(), $isMaster, $slaveIndex );
-        return ($data === false) ? [] : (count( $data ) > 0 ? $data[0] : []);
+        $data = $this->_getDb()->Query( $this->_parseSelect() );
+        return ($data === false) ? false : (count( $data ) > 0 ? $data[0] : []);
     }
 
     /**
@@ -209,14 +214,13 @@ class SqlBuilder
     /**
      * @param array $data
      * @return array
-     * @throws \Exception
      */
     public function Update( array $data )
     {
         $update = '';
         foreach ( $data as $key => $val )
         {
-            $update .= is_array( $val ) && count( $val ) > 0 ? "{$key}={$key}{$val}, " : "{$key}='{$val}', ";
+            $update .= is_array( $val ) && count( $val ) > 0 ? "{$key}={$key}{$val[0]}, " : "{$key}='{$val}', ";
         }
         $update = substr( $update, 0, -1 );
         return $this->_getDb()->Execute( "update {$this->table} set {$update} {$this->where}" );

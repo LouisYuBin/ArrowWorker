@@ -7,13 +7,19 @@ namespace ArrowWorker;
 
 
 use ArrowWorker\Driver\Db\SqlBuilder;
+use ArrowWorker\Driver\Db\Mysqli;
 
+/**
+ * Class Db
+ * @package ArrowWorker
+ */
 class Db extends Driver
 {
+
     /**
      *
      */
-    const COMPONENT_TYPE = 'Db';
+    const DEFAULT_DRIVER = 'Mysqli';
 
     /**
      *
@@ -24,11 +30,31 @@ class Db extends Driver
     /**
      * @param string $table
      * @param string $alias
+     * @param string $driver
      * @return \ArrowWorker\Driver\Db\SqlBuilder
      */
-    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS)
+    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER)
     {
-        return (new SqlBuilder())->Table($table);
+        return (new SqlBuilder($alias, $driver))->Table($table);
+    }
+
+    /**
+     * @param string $driver
+     */
+    public static function Init( string $driver=self::DEFAULT_DRIVER)
+    {
+        $driver::Init();
+    }
+
+    /**
+     * @param string $driver
+     */
+    public static function FillPool( string $driver=self::DEFAULT_DRIVER)
+    {
+        while (true)
+        {
+            $driver::FillPool();
+        }
     }
 
 }

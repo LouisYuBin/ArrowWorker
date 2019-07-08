@@ -34,6 +34,8 @@ class Daemon
      */
     private static $user = 'root';
 
+    private static $components = [];
+
     /**
      * 需要去除的进程执行权限
      * @var int
@@ -105,8 +107,24 @@ class Daemon
 
     private function _initComponent()
     {
-        Memory::Init();
         Log::Init();
+        foreach (self::$components as $component)
+        {
+            switch ($component)
+            {
+                case 'Db':
+                case 'db':
+                case 'DB':
+                    Db::Init();
+                    break;
+                case 'Memory':
+                case 'MEMORY':
+                case "memory":
+                    Memory::Init();
+                    break;
+                default:
+            }
+        }
     }
 
     /**
@@ -547,7 +565,8 @@ class Daemon
             Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
             return [];
         }
-        self::$user = $config['user'] ?? self::$user;
+        self::$user       = $config['user'] ?? self::$user;
+        self::$components = $config['components'] ?? [];
         self::$pid  = static::$pidDir.static::$appName.'.pid';
         return $config;
     }

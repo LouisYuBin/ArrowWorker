@@ -17,15 +17,37 @@ use \ArrowWorker\Web\Router;
 use \ArrowWorker\Web\Session;
 use \ArrowWorker\Web\Cookie;
 
+/**
+ * Class Swoole
+ * @package ArrowWorker
+ */
 class Swoole
 {
+    /**
+     *
+     */
     const WEB_SERVER        = 1;
+    /**
+     *
+     */
     const WEB_SOCKET_SERVER = 2;
-    const TCP_SERVER        = 3;
-    const UDP_SERVER        = 4;
+    /**
+     *
+     */
+    const TCP_SERVER = 3;
+    /**
+     *
+     */
+    const UDP_SERVER = 4;
 
-    const CONTROLLER_NAMESPACE = '\\'.APP_DIR.'\\'.APP_CONTROLLER_DIR.'\\';
+    /**
+     *
+     */
+    const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
 
+    /**
+     * @var array
+     */
     public static $defaultHttpConfig = [
         'host'      => '0.0.0.0',
         'port'      => 8888,
@@ -46,6 +68,9 @@ class Swoole
 
     ];
 
+    /**
+     * @var array
+     */
     public static $defaultTcpConfig = [
         'host'             => '0.0.0.0',
         'port'             => 8888,
@@ -65,6 +90,9 @@ class Swoole
         'mode'              => SWOOLE_PROCESS
     ];
 
+    /**
+     * @var array
+     */
     public static $defaultWebSocketConfig = [
         'host'      => '0.0.0.0',
         'port'      => 8888,
@@ -81,6 +109,9 @@ class Swoole
     ];
 
 
+    /**
+     * @var array
+     */
     public static $defaultUdpConfig = [
         'port'      => 8888,
         'workerNum' => 4,
@@ -95,7 +126,12 @@ class Swoole
         'mode'             => SWOOLE_PROCESS
     ];
 
-    private static function _getConfig(int $type, array $config) : array
+    /**
+     * @param int   $type
+     * @param array $config
+     * @return array
+     */
+    private static function _getConfig( int $type, array $config) : array
     {
         switch ($type)
         {
@@ -147,7 +183,10 @@ class Swoole
         return $serverConfig;
     }
 
-    public static function StartHttpServer(array $config)
+    /**
+     * @param array $config
+     */
+    public static function StartHttpServer( array $config)
     {
         Router::Init(isset($config['404']) ? (string)$config['404'] : '');
         $config = static::_getConfig(static::WEB_SERVER, $config);
@@ -155,6 +194,9 @@ class Swoole
         $server->set($config);
         $server->on('start', function($server) use ($config) {
             Log::Dump("Http server is listening at port : ".$config['port']);
+        });
+        $server->on('WorkerStart', function(){
+            self::_workerStart();
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Response::Init($response);
@@ -179,7 +221,10 @@ class Swoole
         $server->start();
     }
 
-    public static function StartWebSocketServer(array $config)
+    /**
+     * @param array $config
+     */
+    public static function StartWebSocketServer( array $config)
     {
         Router::Init( isset($config['404']) ? (string)$config['404'] : '' );
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
@@ -188,6 +233,9 @@ class Swoole
         $server->set($config);
         $server->on('start', function($server) use ($config) {
             Log::Dump("Websocket server, port : ".$config['port']);
+        });
+        $server->on('WorkerStart', function(){
+            self::_workerStart();
         });
         $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
@@ -225,22 +273,34 @@ class Swoole
         $server->start();
     }
 
-    public static function StartTcpServer(array $config)
+    /**
+     * @param array $config
+     */
+    public static function StartTcpServer( array $config)
     {
         $config = static::_getConfig(static::TCP_SERVER, $config);
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
+        $server->on('WorkerStart', function(){
+            self::_workerStart();
+        });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
     }
 
-    public static function StartUdpServer(array $config)
+    /**
+     * @param array $config
+     */
+    public static function StartUdpServer( array $config)
     {
         $config = static::_getConfig(static::UDP_SERVER, $config);
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
+        $server->on('WorkerStart', function(){
+            self::_workerStart();
+        });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
@@ -254,5 +314,23 @@ class Swoole
     public static function GetCid() : int
     {
         return (int)(posix_getpid().Co::getuid());
+    }
+
+    /**
+     *
+     */
+    private static function _workerStart()
+    {
+        $config = Config::Get('Daemon');
+        if( is_array($config) && isset($config['components']) && is_array($config['components']))
+        {
+            foreach ($config['components'] as $component)
+            {
+                if( in_array($component, ['Db','db','DB']))
+                {
+                    Db::FillPool();
+                }
+            }
+        }
     }
 }

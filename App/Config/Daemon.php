@@ -1,5 +1,9 @@
 <?php
 
 return  [
-    'user' => 'root',
+    'user'       => 'root',
+    'components' => [
+        'Db',
+        'Memory'
+    ]
 ];

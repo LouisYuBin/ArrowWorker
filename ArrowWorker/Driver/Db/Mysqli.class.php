@@ -18,36 +18,74 @@ use \Swoole\Coroutine\Channel as swChan;
  */
 class Mysqli
 {
+    /**
+     *
+     */
     const LOG_NAME          = 'Db';
+    /**
+     *
+     */
     const CONFIG_NAME       = 'Db';
+    /**
+     *
+     */
     const SQL_LOG_NAME      = 'Sql';
+    /**
+     *
+     */
     const DEFAULT_POOL_SIZE = 10;
 
-    //数据库连接池
-    private static $pool = [];
+    /**
+     * @var array
+     */
+    private static $pool   = [];
+    /**
+     * @var array
+     */
+    private static $config = [];
 
     /**
      * @var mysqli
      */
     private $_conn;
 
+    /**
+     * @var array
+     */
     private $_config = [];
 
+    /**
+     * Mysqli constructor.
+     * @param array $config
+     */
     private function __construct( array $config )
     {
         $this->_config = $config;
-        @$this->_conn = new \mysqli( $config['host'], $config['userName'], $config['password'], $config['dbName'], $config['port'] );
+    }
+
+    /**
+     * @return bool
+     */
+    private function _initConnection()
+    {
+        @$this->_conn = new \mysqli( $this->config['host'],  $this->config['userName'],  $this->config['password'],  $this->config['dbName'],  $this->config['port'] );
         if ( $this->_conn->connect_errno )
         {
             Log::DumpExit( "connecting to mysql failed : " . $this->_conn->connect_error );
+            return false;
         }
 
-        if ( false === $this->_conn->query( "set names '" . $config['charset'] . "'" ) )
+        if ( false === $this->_conn->query( "set names '" .  $this->config['charset'] . "'" ) )
         {
             Log::Warning( "mysqi set names(charset) failed.", self::LOG_NAME );
         }
+        return true;
     }
 
+    /**
+     * @param string $alias
+     * @return mixed
+     */
     public static function GetConnection( $alias = 'default' )
     {
         _RETRY:
@@ -59,12 +97,12 @@ class Mysqli
         return $conn;
     }
 
+
     /**
-     * 初始化数据库连接类
+     * check config and initialize connection chan
      */
     public static function Init()
     {
-        //存储配置
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
@@ -74,8 +112,6 @@ class Mysqli
 
         foreach ( $config as $index => $value )
         {
-            self::$pool[$index] = new swChan( isset( $value['port'] ) ? (int)$value['port'] : self::DEFAULT_POOL_SIZE );
-
             if ( !isset( $value['host'] ) ||
                  !isset( $value['dbName'] ) ||
                  !isset( $value['userName'] ) ||
@@ -83,13 +119,36 @@ class Mysqli
                  !isset( $value['port'] ) ||
                  !isset( $value['charset'] ) )
             {
-                Log::Error( "configuration for {$index} is incorrect.", self::LOG_NAME );
+                Log::Error( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
                 continue;
             }
 
-            self::$pool[$index]->push( new self( $value ) );
+            $value['poolSize'] = isset($value['poolSize']) && (int)$value['poolSize']>0 ? (int)$value['poolSize'] : self::DEFAULT_POOL_SIZE;
+            self::$config[$index] = $value;
+            self::$pool[$index] = new swChan( $value['poolSize'] );
         }
+        self::FillPool();
+    }
 
+
+    /**
+     * fill connection pool
+     */
+    public static function FillPool()
+    {
+        foreach (self::$config as $index=>$config)
+        {
+            for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
+            {
+                $conn = (new self( $config ))->_initConnection();
+                if( false==$conn )
+                {
+                    Log::Warning("initialize mysqli connection failed, config : ",json_encode($config));
+                    continue ;
+                }
+                self::$pool[$index]->push( $conn );
+            }
+        }
     }
 
     /**
