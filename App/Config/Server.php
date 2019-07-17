@@ -4,7 +4,7 @@ return [
     [
         'type'             => 'web',
         'host'             => '0.0.0.0',
-        'port'             => 443,
+        'port'             => 4433,
         'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
@@ -22,7 +22,7 @@ return [
     [
         'type'             => 'webSocket',
         'host'             => '0.0.0.0',
-        'port'             => 80,
+        'port'             => 8081,
         'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,

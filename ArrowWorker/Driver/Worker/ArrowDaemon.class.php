@@ -12,6 +12,8 @@ use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
 use Swoole\Coroutine as Co;
 use Swoole\Event as SwEvent;
+use ArrowWorker\Config;
+use ArrowWorker\Db;
 
 
 /**
@@ -108,8 +110,7 @@ class ArrowDaemon extends Worker
     /**
      * _setSignalHandler 进程信号处理设置
      * @author Louis
-     * @param string $type      设置信号类型（子进程/监控进程）
-     * @param int    $lifecycle 闹钟周期
+     * @param string $type 设置信号类型（子进程/监控进程）
      */
     private function _setSignalHandler( string $type = 'parentsQuit' )
     {
@@ -516,7 +517,32 @@ class ArrowDaemon extends Worker
         $this->_setSignalHandler( 'workerHandler' );
         $this->_setProcessAlarm( $lifecycle );
         $this->_setProcessName( self::$jobs[$index]['processName'] );
+        $this->_initComponentPool();
         $this->_runProcessTask( $index );
+    }
+
+    private function _initComponentPool()
+    {
+        $config     = Config::Get( 'Daemon' );
+        $components = [];
+        if ( is_array( $config ) && isset( $config['components'] ) && is_array( $config['components'] ) )
+        {
+            $components = $config['components'];
+        }
+
+        foreach ( $components as $component )
+        {
+            if ( in_array( $component, [
+                'Db',
+                'db',
+                'DB'
+            ] ) )
+            {
+                Db::Init();
+            }
+        }
+
+
     }
 
 
@@ -559,7 +585,13 @@ class ArrowDaemon extends Worker
 
         SwEvent::wait();
         $execPeriod = time() - $timeStart;
-        Log::DumpExit( self::LOG_PREFIX . self::$jobs[$index]['processName'] . ' finished ' . self::$execCount . ' times / ' . $execPeriod . ' S.' );
+        Log::DumpExit( self::LOG_PREFIX .
+                       self::$jobs[$index]['processName'] .
+                       ' finished ' .
+                       self::$execCount .
+                       ' times / ' .
+                       $execPeriod .
+                       ' S.' );
     }
 
     /**

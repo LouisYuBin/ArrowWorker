@@ -6,8 +6,8 @@
 namespace ArrowWorker;
 
 
-use ArrowWorker\Driver\Db\SqlBuilder;
 use ArrowWorker\Driver\Db\Mysqli;
+use ArrowWorker\Driver\Db\SqlBuilder;
 
 /**
  * Class Db
@@ -19,7 +19,7 @@ class Db extends Driver
     /**
      *
      */
-    const DEFAULT_DRIVER = 'Mysqli';
+    const DEFAULT_DRIVER = 'ArrowWorker\Driver\Db\Mysqli';
 
     /**
      *
@@ -41,20 +41,28 @@ class Db extends Driver
     /**
      * @param string $driver
      */
-    public static function Init( string $driver=self::DEFAULT_DRIVER)
+    public static function Init( string $driver=self::DEFAULT_DRIVER )
     {
         $driver::Init();
     }
 
     /**
+     * @param string $alias
+     * @param string $driver
+     * @return Mysqli
+     */
+    public static function Get( string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER )
+    {
+        return $driver::GetConnection($alias);
+    }
+
+    /**
+     * @param string $alias
      * @param string $driver
      */
-    public static function FillPool( string $driver=self::DEFAULT_DRIVER)
+    public static function Release( string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER)
     {
-        while (true)
-        {
-            $driver::FillPool();
-        }
+        $driver::ReturnConnection($alias);
     }
 
 }

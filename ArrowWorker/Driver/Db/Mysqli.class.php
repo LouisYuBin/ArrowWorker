@@ -9,6 +9,7 @@ namespace ArrowWorker\Driver\Db;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
+use ArrowWorker\Swoole;
 use \Swoole\Coroutine\Channel as swChan;
 
 
@@ -42,10 +43,14 @@ class Mysqli
     /**
      * @var array
      */
-    private static $config = [];
+    private static $configs = [];
+
+    private static $chanConnections = [
+
+    ];
 
     /**
-     * @var mysqli
+     * @var \mysqli
      */
     private $_conn;
 
@@ -64,44 +69,63 @@ class Mysqli
     }
 
     /**
-     * @return bool
+     * @return false|Mysqli
      */
     private function _initConnection()
     {
-        @$this->_conn = new \mysqli( $this->config['host'],  $this->config['userName'],  $this->config['password'],  $this->config['dbName'],  $this->config['port'] );
+        @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
             Log::DumpExit( "connecting to mysql failed : " . $this->_conn->connect_error );
             return false;
         }
 
-        if ( false === $this->_conn->query( "set names '" .  $this->config['charset'] . "'" ) )
+        if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
         {
             Log::Warning( "mysqi set names(charset) failed.", self::LOG_NAME );
         }
-        return true;
+        return $this;
     }
 
     /**
      * @param string $alias
-     * @return mixed
+     * @return false|Mysqli
      */
     public static function GetConnection( $alias = 'default' )
     {
+        $coId = Swoole::GetCid();
+        if( isset(self::$chanConnections[$coId]) )
+        {
+            return self::$chanConnections[$coId];
+        }
+
         _RETRY:
         $conn = self::$pool[$alias]->pop( 1 );
         if ( false === $conn )
         {
             goto _RETRY;
         }
+        self::$chanConnections[Swoole::GetCid()] = $conn;
         return $conn;
     }
 
+    public static function ReturnConnection(string $alias)
+    {
+        $coId = Swoole::GetCid();
+        self::$pool[$alias]->push( self::$chanConnections[$coId]);
+        unset(self::$chanConnections[$coId]);
+    }
 
     /**
      * check config and initialize connection chan
      */
     public static function Init()
+    {
+        self::_initConfig();
+        self::_initPool();
+    }
+
+    private static function _initConfig()
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
@@ -124,19 +148,18 @@ class Mysqli
             }
 
             $value['poolSize'] = isset($value['poolSize']) && (int)$value['poolSize']>0 ? (int)$value['poolSize'] : self::DEFAULT_POOL_SIZE;
-            self::$config[$index] = $value;
+            self::$configs[$index] = $value;
             self::$pool[$index] = new swChan( $value['poolSize'] );
         }
-        self::FillPool();
     }
 
 
     /**
      * fill connection pool
      */
-    public static function FillPool()
+    private static function _initPool()
     {
-        foreach (self::$config as $index=>$config)
+        foreach (self::$configs as $index=>$config)
         {
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
@@ -158,15 +181,7 @@ class Mysqli
      */
     public function Query( string $sql )
     {
-        Log::Debug( $sql, self::SQL_LOG_NAME );
-
-        $result = $this->_conn->query( $sql );
-        if ( !$result )
-        {
-            Log::Error( $sql, self::SQL_LOG_NAME );
-            return false;
-        }
-
+        $result = $this->_query( $sql );
         $field  = $this->_parseFieldType( $result );
         $return = [];
         while ( $row = $result->fetch_assoc() )
@@ -221,19 +236,38 @@ class Mysqli
      */
     public function Execute( string $sql )
     {
-        $result = $this->_conn->query( $sql );
-
-        Log::Debug( $sql, self::SQL_LOG_NAME );
-        if ( false === $result )
-        {
-            Log::Error( $sql, self::SQL_LOG_NAME );
-        }
-
         return [
-            'result'       => $result,
+            'result'       => $this->_query( $sql ),
             'affectedRows' => $this->_conn->affected_rows,
             'insertId'     => $this->_conn->insert_id
         ];
+    }
+
+    private function _query(string $sql)
+    {
+        $isRetried = false;
+        _RETRY:
+        $result = $this->_conn->query( $sql );
+        if(false !== $result )
+        {
+            Log::Debug( $sql, self::SQL_LOG_NAME );
+            return $result;
+        }
+
+        if( true===$isRetried )
+        {
+            Log::Error( "Sql Error : {$sql}", self::SQL_LOG_NAME );
+            return false;
+        }
+
+        if( $this->_conn->ping() )  //check and reconnect
+        {
+            $isRetried = true;
+            goto _RETRY;
+        }
+
+        Log::Error( "connection is not available : {$sql}", self::SQL_LOG_NAME );
+        return false;
     }
 
     /**

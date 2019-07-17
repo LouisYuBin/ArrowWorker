@@ -216,6 +216,7 @@ class Swoole
             Request::Release();
             Response::Release();
             Memory::Release();
+            Db::Release();
         });
 
         $server->start();
@@ -268,6 +269,7 @@ class Swoole
             Request::Release();
             Response::Release();
             Memory::Release();
+            Db::Release();
         });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
@@ -313,24 +315,35 @@ class Swoole
      */
     public static function GetCid() : int
     {
-        return (int)(posix_getpid().Co::getuid());
+        return (int)Co::getuid();
     }
+
+    private static function _components()
+    {
+        $config = Config::Get('Daemon');
+        if( is_array($config) && isset($config['components']) && is_array($config['components']))
+        {
+            return $config['components'];
+        }
+        return [];
+    }
+
 
     /**
      *
      */
     private static function _workerStart()
     {
-        $config = Config::Get('Daemon');
-        if( is_array($config) && isset($config['components']) && is_array($config['components']))
+        $components = self::_components();
+        foreach ($components as $component)
         {
-            foreach ($config['components'] as $component)
+            if( in_array($component, ['Db','db','DB']))
             {
-                if( in_array($component, ['Db','db','DB']))
-                {
-                    Db::FillPool();
-                }
+                Db::Init();
             }
+
         }
+
     }
+
 }

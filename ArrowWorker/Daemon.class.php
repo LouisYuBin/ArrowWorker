@@ -108,23 +108,7 @@ class Daemon
     private function _initComponent()
     {
         Log::Init();
-        foreach (self::$components as $component)
-        {
-            switch ($component)
-            {
-                case 'Db':
-                case 'db':
-                case 'DB':
-                    Db::Init();
-                    break;
-                case 'Memory':
-                case 'MEMORY':
-                case "memory":
-                    Memory::Init();
-                    break;
-                default:
-            }
-        }
+        Memory::Init();
     }
 
     /**

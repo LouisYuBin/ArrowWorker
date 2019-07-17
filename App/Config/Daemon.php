@@ -1,7 +1,7 @@
 <?php
 
 return  [
-    'user'       => 'root',
+    'user'       => 'yubin',
     'components' => [
         'Db',
         'Memory'
