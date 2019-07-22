@@ -768,7 +768,7 @@ class Log
 
     public static function SetLogId(string $logId='')
     {
-        self::$_logId = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid() : $logId;
+        self::$_logId = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid().mt_rand(100,999) : $logId;
     }
 
     public static function GetLogId() : string

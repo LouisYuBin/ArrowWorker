@@ -10,6 +10,7 @@ namespace ArrowWorker\Driver\Worker;
 
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
+use ArrowWorker\Swoole;
 use Swoole\Coroutine as Co;
 use Swoole\Event as SwEvent;
 use ArrowWorker\Config;
@@ -560,12 +561,15 @@ class ArrowDaemon extends Worker
         {
             Co::create( function () use ( $index )
             {
+                $pid  = posix_getpid();
+                $coId = Swoole::GetCid();
                 while ( true )
                 {
                     if ( self::$terminate )
                     {
                         break;
                     }
+                    Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));
                     pcntl_signal_dispatch();
                     if ( isset( self::$jobs[$index]['argv'] ) )
                     {
@@ -648,8 +652,11 @@ class ArrowDaemon extends Worker
     {
         $timeStart = time();
         $workCount = 0;
+        $pid  = posix_getpid();
+        $coId = Swoole::GetCid();
         while ( 1 )
         {
+            Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));
             pcntl_signal_dispatch();
 
             if ( isset( self::$jobs[$index]['argv'] ) )
