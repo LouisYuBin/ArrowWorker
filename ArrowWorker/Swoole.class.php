@@ -199,6 +199,7 @@ class Swoole
             self::_workerStart();
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+            Log::SetLogId();
             Response::Init($response);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -240,6 +241,7 @@ class Swoole
         });
         $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
+            Log::SetLogId();
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
@@ -252,6 +254,7 @@ class Swoole
         });
         $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+            Log::SetLogId();
             Response::Init($response);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],

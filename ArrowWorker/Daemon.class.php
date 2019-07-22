@@ -542,7 +542,6 @@ class Daemon
      */
     private static function _getConfig() : array
     {
-
         $config = Config::Get('Daemon');
         if( false===$config  )
         {

@@ -189,6 +189,8 @@ class Log
      */
     private static $_toRedisChan;
 
+    private static $_logId = '';
+
 
     /**
      * Init log process
@@ -340,7 +342,7 @@ class Log
      */
     public static function Info( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "I|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'I');
     }
 
     /**
@@ -351,7 +353,7 @@ class Log
      */
     public static function Alert( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "A|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'A');
     }
 
     /**
@@ -361,7 +363,7 @@ class Log
      */
     public static function Debug( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "D|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'D');
     }
 
     /**
@@ -372,9 +374,8 @@ class Log
      */
     public static function Notice( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "N|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'N');
     }
-
 
     /**
      * Warning : write an warning log
@@ -384,7 +385,7 @@ class Log
      */
     public static function Warning( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "W|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'W');
     }
 
     /**
@@ -395,7 +396,7 @@ class Log
      */
     public static function Error( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "E|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'E');
     }
 
     /**
@@ -406,9 +407,8 @@ class Log
      */
     public static function Emergency( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "EM|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'EM');
     }
-
 
     /**
      * Critical : write a Critical log
@@ -418,7 +418,14 @@ class Log
      */
     public static function Critical( string $log, string $module = '' )
     {
-        self::$_msgObject->Write( "C|{$module}|{$log}" );
+        self::_fillLog($log, $module, 'C');
+    }
+
+    private static function _fillLog(string $log, string $module='', string $level='D')
+    {
+        $time  = date('Y-m-d H:i:s');
+        $logId = self::GetLogId();
+        self::$_msgObject->Write( "{$level}|{$module}| {$time} | {$logId} | $log" );
     }
 
     /**
@@ -757,6 +764,16 @@ class Log
     {
         self::$_tcpClient->Send('heartbeat');
         pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
+    }
+
+    public static function SetLogId(string $logId='')
+    {
+        self::$_logId = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid() : $logId;
+    }
+
+    public static function GetLogId() : string
+    {
+        return self::$_logId;
     }
 
 }
