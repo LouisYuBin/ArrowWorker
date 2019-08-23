@@ -38,6 +38,11 @@ return [
             'open'    => 'WebSocket::Open',
             'message' => 'WebSocket::Message',
             'close'   => 'WebSocket::Close'
+        ],
+        'components' => [
+            'db' => [
+                'default'
+            ]
         ]
     ],
     [

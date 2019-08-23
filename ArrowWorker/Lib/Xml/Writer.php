@@ -52,21 +52,23 @@ class Writer
 
     /**
      * @param array $elementArray
+     * @param string $parentIndex
      * @return $this
      */
-    public function makeFromArray(array $elementArray, string $parentIndex='', array $unsetFields=['ticketOrder'])
+    public function makeFromArray(array $elementArray, string $parentIndex='')
     {
         foreach ($elementArray as $index => $element)
         {
             if(is_array($element))
             {
                 $key = !is_int($index) ? $index : $parentIndex;
-                if( !(in_array($index, $unsetFields) && !is_int($index)) )
+                $isNewNode = !( isset($element[0]) && !is_int($index) );
+                if( $isNewNode )
                 {
                     $this->writer->startElement($key);
                 }
                 $this->makeFromArray($element, $index);
-                if( !(in_array($index, $unsetFields) && !is_int($index)) )
+                if( $isNewNode )
                 {
                     $this->writer->endElement();
                 }

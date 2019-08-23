@@ -94,9 +94,9 @@ class Mysqli
     public static function GetConnection( $alias = 'default' )
     {
         $coId = Swoole::GetCid();
-        if( isset(self::$chanConnections[$coId]) )
+        if( isset(self::$chanConnections[$coId][$alias]) )
         {
-            return self::$chanConnections[$coId];
+            return self::$chanConnections[$coId][$alias];
         }
 
         _RETRY:
@@ -105,27 +105,35 @@ class Mysqli
         {
             goto _RETRY;
         }
-        self::$chanConnections[Swoole::GetCid()] = $conn;
+        self::$chanConnections[$coId][$alias] = $conn;
         return $conn;
     }
 
     public static function ReturnConnection(string $alias)
     {
         $coId = Swoole::GetCid();
-        self::$pool[$alias]->push( self::$chanConnections[$coId]);
-        unset(self::$chanConnections[$coId]);
+        if( isset(self::$chanConnections[$coId][$alias]) )
+        {
+            self::$pool[$alias]->push( self::$chanConnections[$coId][$alias] );
+            unset(self::$chanConnections[$coId][$alias]);
+        }
+        unset($coId);
     }
 
     /**
+     * @var array $appConfig
      * check config and initialize connection chan
      */
-    public static function Init()
+    public static function Init(array $appConfig)
     {
-        self::_initConfig();
+        self::_initConfig($appConfig);
         self::_initPool();
     }
 
-    private static function _initConfig()
+    /**
+     * @param array $appConfig
+     */
+    private static function _initConfig( array $appConfig)
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
@@ -147,7 +155,7 @@ class Mysqli
                 continue;
             }
 
-            $value['poolSize'] = isset($value['poolSize']) && (int)$value['poolSize']>0 ? (int)$value['poolSize'] : self::DEFAULT_POOL_SIZE;
+            $value['poolSize'] = isset($appConfig[$index]) && (int)$appConfig[$index]>0 ? (int)$appConfig[$index] : self::DEFAULT_POOL_SIZE;
             self::$configs[$index] = $value;
             self::$pool[$index] = new swChan( $value['poolSize'] );
         }

@@ -40,6 +40,8 @@ class Swoole
      */
     const UDP_SERVER = 4;
 
+    const CONFIG_COMPONENT_NAME = 'components';
+
     /**
      *
      */
@@ -195,10 +197,10 @@ class Swoole
         $server->on('start', function($server) use ($config) {
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
-        $server->on('WorkerStart', function(){
-            self::_workerStart();
+        $server->on('WorkerStart', function() use ($config) {
+            self::_initializeComponents( $config );
         });
-        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) use ($config) {
             Log::SetLogId();
             Response::Init($response);
             Request::Init(
@@ -236,8 +238,8 @@ class Swoole
         $server->on('start', function($server) use ($config) {
             Log::Dump("Websocket server, port : ".$config['port']);
         });
-        $server->on('WorkerStart', function(){
-            self::_workerStart();
+        $server->on('WorkerStart', function() use ( $config ) {
+            self::_initializeComponents($config);
         });
         $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
@@ -286,8 +288,8 @@ class Swoole
         $config = static::_getConfig(static::TCP_SERVER, $config);
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
-        $server->on('WorkerStart', function(){
-            self::_workerStart();
+        $server->on('WorkerStart', function() use ($config) {
+            self::_initializeComponents($config);
         });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -303,8 +305,8 @@ class Swoole
         $config = static::_getConfig(static::UDP_SERVER, $config);
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
-        $server->on('WorkerStart', function(){
-            self::_workerStart();
+        $server->on('WorkerStart', function() use ($config) {
+            self::_initializeComponents($config);
         });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -321,32 +323,34 @@ class Swoole
         return (int)Co::getuid();
     }
 
-    private static function _components()
-    {
-        $config = Config::Get('Daemon');
-        if( is_array($config) && isset($config['components']) && is_array($config['components']))
-        {
-            return $config['components'];
-        }
-        return [];
-    }
-
-
     /**
-     *
+     * @var array $config
      */
-    private static function _workerStart()
+    private static function _initializeComponents(array $config)
     {
-        $components = self::_components();
-        foreach ($components as $component)
+        if(
+            !isset($config[self::CONFIG_COMPONENT_NAME]) ||
+            !is_array($config[self::CONFIG_COMPONENT_NAME])
+        )
         {
-            if( in_array($component, ['Db','db','DB']))
-            {
-                Db::Init();
-            }
-
+            return ;
         }
 
+        foreach ($config[self::CONFIG_COMPONENT_NAME] as $name=>$component)
+        {
+            switch ($name)
+            {
+                case 'db':
+                case 'DB':
+                case 'Db':
+                    Db::Init($component);
+                    break;
+                case 'redis':
+                case 'REDIS':
+                case 'Redis':
+                    // todo
+            }
+        }
     }
 
 }
