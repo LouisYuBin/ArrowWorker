@@ -11,7 +11,12 @@ return [
             ],
             'argv'       => [ 100 ],
             'coQuantity' => 1,
-            'procName'   => 'Demo'
+            'procName'   => 'Demo',
+            'components' => [
+                'db' => [
+                    'default' => 5
+                ]
+            ]
 
         ],
         [
@@ -23,6 +28,11 @@ return [
             'procName'       => 'channelApp',
             'coQuantity'     => 5,
             'isChanReadProc' => true,
+            'components' => [
+                'db' => [
+                    'default' => 3
+                ]
+            ]
         ],
         [
             'function'       => [
@@ -33,6 +43,11 @@ return [
             'procName'       => 'channelArrow',
             'coQuantity'     => 5,
             'isChanReadProc' => true,
+            'components' => [
+                'db' => [
+                    'default' => 2
+                ]
+            ]
         ],
         [
             'function'       => [
@@ -43,6 +58,11 @@ return [
             'procName'       => 'channeltest',
             'coQuantity'     => 5,
             'isChanReadProc' => true,
+            'components' => [
+                'db' => [
+                    'default' => 2
+                ]
+            ]
         ],
     ]
 ];

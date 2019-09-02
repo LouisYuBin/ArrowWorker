@@ -198,7 +198,7 @@ class Swoole
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ($config) {
-            self::_initializeComponents( $config );
+            self::_initComponents( $config );
         });
         $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) use ($config) {
             Log::SetLogId();
@@ -208,12 +208,12 @@ class Swoole
                 is_array($request->post) ? $request->post : [],
                 is_array($request->server) ? $request->server : [],
                 is_array($request->files) ? $request->files : [],
-                    is_array($request->header) ? $request->header : [],
+                is_array($request->header) ? $request->header : [],
                 $request->rawContent()
             );
             Session::Reset();
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
-            Router::Go();
+            Router::Exec();
 
             Cookie::Release();
             Request::Release();
@@ -239,7 +239,7 @@ class Swoole
             Log::Dump("Websocket server, port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ( $config ) {
-            self::_initializeComponents($config);
+            self::_initComponents($config);
         });
         $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
@@ -268,7 +268,7 @@ class Swoole
             );
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Session::Reset();
-            Router::Go();
+            Router::Exec();
 
             Cookie::Release();
             Request::Release();
@@ -289,7 +289,7 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
-            self::_initializeComponents($config);
+            self::_initComponents($config);
         });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -306,7 +306,7 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
-            self::_initializeComponents($config);
+            self::_initComponents($config);
         });
         $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
         $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
@@ -326,7 +326,7 @@ class Swoole
     /**
      * @var array $config
      */
-    private static function _initializeComponents(array $config)
+    private static function _initComponents(array $config)
     {
         if(
             !isset($config[self::CONFIG_COMPONENT_NAME]) ||
@@ -338,16 +338,13 @@ class Swoole
 
         foreach ($config[self::CONFIG_COMPONENT_NAME] as $name=>$component)
         {
+            $name = strtoupper($name);
             switch ($name)
             {
-                case 'db':
                 case 'DB':
-                case 'Db':
                     Db::Init($component);
                     break;
-                case 'redis':
                 case 'REDIS':
-                case 'Redis':
                     // todo
             }
         }

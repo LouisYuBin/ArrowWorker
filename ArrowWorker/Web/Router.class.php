@@ -157,9 +157,9 @@ class Router
 
 
 	/**
-	 * Go 返回要调用的控制器和方法
+	 * Exec 返回要调用的控制器和方法
 	 */
-	public static function Go()
+	public static function Exec()
     {
         if( static::_restRouter() )
         {

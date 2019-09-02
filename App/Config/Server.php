@@ -41,7 +41,7 @@ return [
         ],
         'components' => [
             'db' => [
-                'default'
+                'default' => 10
             ]
         ]
     ],

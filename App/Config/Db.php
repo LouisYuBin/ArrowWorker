@@ -11,7 +11,7 @@ return [
         //数据库名
         'dbName'   => 'ArrowWorker',
         //编码
-        'charset'  => 'utf8',
+        'charset'  => 'utf8mb4',
         //端口
         'port'     => 3306,
         //连接池大小

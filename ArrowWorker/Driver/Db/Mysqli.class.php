@@ -109,19 +109,23 @@ class Mysqli
         return $conn;
     }
 
-    public static function ReturnConnection(string $alias)
+    public static function ReturnConnection()
     {
         $coId = Swoole::GetCid();
-        if( isset(self::$chanConnections[$coId][$alias]) )
+        if( !isset(self::$chanConnections[$coId]) )
         {
-            self::$pool[$alias]->push( self::$chanConnections[$coId][$alias] );
-            unset(self::$chanConnections[$coId][$alias]);
+            return ;
         }
-        unset($coId);
+
+        foreach ( self::$chanConnections[$coId] as $alias=>$connection )
+        {
+            self::$pool[$alias]->push( $connection );
+        }
+        unset(self::$chanConnections[$coId], $coId);
     }
 
     /**
-     * @var array $appConfig
+     * @var array $appConfig specified keys and pool size
      * check config and initialize connection chan
      */
     public static function Init(array $appConfig)
@@ -131,31 +135,40 @@ class Mysqli
     }
 
     /**
-     * @param array $appConfig
+     * @param array $appConfig specified keys and pool size
      */
     private static function _initConfig( array $appConfig)
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Error( 'incorrect config', self::LOG_NAME );
+            Log::Error( 'incorrect config file', self::LOG_NAME );
             return ;
         }
 
         foreach ( $config as $index => $value )
         {
-            if ( !isset( $value['host'] ) ||
+            if( !isset($appConfig[$index]) )
+            {
+                //initialize specified db config only
+                continue ;
+            }
+
+            //ignore incorrect config
+            if (
+                 !isset( $value['host'] ) ||
                  !isset( $value['dbName'] ) ||
                  !isset( $value['userName'] ) ||
                  !isset( $value['password'] ) ||
                  !isset( $value['port'] ) ||
-                 !isset( $value['charset'] ) )
+                 !isset( $value['charset'] )
+            )
             {
                 Log::Error( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
                 continue;
             }
 
-            $value['poolSize'] = isset($appConfig[$index]) && (int)$appConfig[$index]>0 ? (int)$appConfig[$index] : self::DEFAULT_POOL_SIZE;
+            $value['poolSize'] = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
             self::$configs[$index] = $value;
             self::$pool[$index] = new swChan( $value['poolSize'] );
         }
@@ -163,7 +176,7 @@ class Mysqli
 
 
     /**
-     * fill connection pool
+     * initialize connection pool
      */
     private static function _initPool()
     {
@@ -174,7 +187,7 @@ class Mysqli
                 $conn = (new self( $config ))->_initConnection();
                 if( false==$conn )
                 {
-                    Log::Warning("initialize mysqli connection failed, config : ",json_encode($config));
+                    Log::Warning("initialize mysqli connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
                 self::$pool[$index]->push( $conn );
@@ -200,6 +213,7 @@ class Mysqli
             }
             $return[] = $row;
         }
+        $result->free();
         return $return;
     }
 

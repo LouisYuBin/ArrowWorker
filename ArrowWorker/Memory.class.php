@@ -14,6 +14,8 @@ class Memory
      */
     const CONFIG_NAME = 'Memory';
 
+    const LOG_NAME = 'Memory';
+
     /**
      *
      */
@@ -53,7 +55,7 @@ class Memory
         {
             if( !isset($value['size']) || !isset($value['column']) || count($value['column'])==0 )
             {
-                Log::Error("memory Table(key:{$key}) config is incorrect.");
+                Log::Error("memory Table(key:{$key}) config is incorrect.", self::LOG_NAME);
                 continue ;
             }
 
@@ -77,7 +79,7 @@ class Memory
         {
             if( !in_array($type,static::DATA_TYPE) )
             {
-                Log::Error('memory column type is incorrect.');
+                Log::Error('memory column type is incorrect.', self::LOG_NAME);
                 continue;
             }
             switch($type)
@@ -124,7 +126,7 @@ class Memory
 
         if( !$table->create() )
         {
-            Log::Error('create memory table failed, config is : '.json_encode($structure));
+            Log::Error('create memory table failed, config is : '.json_encode($structure), self::LOG_NAME);
         }
         return $table;
     }

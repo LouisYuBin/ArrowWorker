@@ -31,9 +31,9 @@ class Db extends Driver
      * @param string $table
      * @param string $alias
      * @param string $driver
-     * @return \ArrowWorker\Driver\Db\SqlBuilder
+     * @return SqlBuilder
      */
-    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER)
+    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER) : SqlBuilder
     {
         return (new SqlBuilder($alias, $driver))->Table($table);
     }
@@ -57,12 +57,11 @@ class Db extends Driver
     }
 
     /**
-     * @param string $alias
      * @param string $driver
      */
-    public static function Release( string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER)
+    public static function Release( string $driver=self::DEFAULT_DRIVER )
     {
-        $driver::ReturnConnection($alias);
+        $driver::ReturnConnection();
     }
 
 }
