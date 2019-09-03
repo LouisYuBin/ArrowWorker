@@ -304,6 +304,7 @@ class Mysqli
             {
                 return true;
             }
+            $this->_conn->ping();
         }
         return false;
     }
@@ -321,6 +322,7 @@ class Mysqli
             {
                 break;
             }
+            $this->_conn->ping();
         }
         $this->_conn->autocommit( true );
         return $result;

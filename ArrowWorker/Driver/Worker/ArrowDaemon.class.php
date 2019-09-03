@@ -8,6 +8,7 @@
 
 namespace ArrowWorker\Driver\Worker;
 
+use ArrowWorker\Component;
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
 use ArrowWorker\Swoole;
@@ -27,19 +28,19 @@ class ArrowDaemon extends Worker
     const LOG_PREFIX = 'worker : ';
 
     /**
-     *进程生命周期
+     * process life time
      */
     const LIFE_CYCLE = 300;
 
     /**
-     * 单个任务默认并进程/线程数
+     * concurrence coroutine
      */
     const COROUTINE_QUANTITY = 3;
 
     /**
-     * 默认工作进程名
+     * default process name
      */
-    const PROCESS_NAME = 'untitled';
+    const PROCESS_NAME = 'unnamed';
 
     /**
      * 应用名称
@@ -518,34 +519,9 @@ class ArrowDaemon extends Worker
         $this->_setSignalHandler( 'workerHandler' );
         $this->_setProcessAlarm( $lifecycle );
         $this->_setProcessName( self::$jobs[$index]['processName'] );
-        $this->_initComponentPool();
+        Component::Init(self::$jobs[$index]['components']);
         $this->_runProcessTask( $index );
     }
-
-    private function _initComponentPool()
-    {
-        $config     = Config::Get( 'Daemon' );
-        $components = [];
-        if ( is_array( $config ) && isset( $config['components'] ) && is_array( $config['components'] ) )
-        {
-            $components = $config['components'];
-        }
-
-        foreach ( $components as $component )
-        {
-            if ( in_array( $component, [
-                'Db',
-                'db',
-                'DB'
-            ] ) )
-            {
-                Db::Init();
-            }
-        }
-
-
-    }
-
 
     /**
      * _runProcessTask 进程形式执行任务
@@ -582,19 +558,21 @@ class ArrowDaemon extends Worker
                     self::$execCount++;
                     pcntl_signal_dispatch();
 
+                    //release components resource after finish one work
+                    Component::Release();
                 }
             } );
             self::$jobs[$index]['coCount']++;
         }
 
         SwEvent::wait();
-        $execPeriod = time() - $timeStart;
+        $execTimeSpan = time() - $timeStart;
         Log::DumpExit( self::LOG_PREFIX .
                        self::$jobs[$index]['processName'] .
                        ' finished ' .
                        self::$execCount .
                        ' times / ' .
-                       $execPeriod .
+                       $execTimeSpan .
                        ' S.' );
     }
 
@@ -720,15 +698,14 @@ class ArrowDaemon extends Worker
 
         if ( !isset( $job['function'] ) || empty( $job['function'] ) )
         {
-            Log::DumpExit( static::LOG_PREFIX . " one Task at least is needed." );
+            Log::DumpExit( self::LOG_PREFIX . " one Task at least is needed." );
         }
 
         $job['coCount']        = 0;
-        $job['coQuantity']     = (isset( $job['coQuantity'] ) &&
-                                  (int)$job['coQuantity'] > 0) ? $job['coQuantity'] : static::COROUTINE_QUANTITY;
-        $job['processName']    = (isset( $job['procName'] ) &&
-                                  !empty( $job['procName'] )) ? $job['procName'] : static::PROCESS_NAME;
-        $job['isChanReadProc'] = isset( $job['isChanReadProc'] ) ? true : false;
+        $job['coQuantity']     = (isset( $job['coQuantity'] ) && (int)$job['coQuantity'] > 0)    ? $job['coQuantity'] : self::COROUTINE_QUANTITY;
+        $job['processName']    = (isset( $job['procName'] )   && !empty( $job['procName'] ))     ? $job['procName']   : self::PROCESS_NAME;
+        $job['isChanReadProc'] = isset( $job['isChanReadProc'] ) && true==$job['isChanReadProc'] ? true : false;
+        $job['components']     = isset( $job['components'] ) && is_array($job['components']) ?  $job['components'] : [];
         self::$jobs[]          = $job;
     }
 

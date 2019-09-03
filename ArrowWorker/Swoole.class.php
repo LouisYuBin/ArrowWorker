@@ -27,20 +27,21 @@ class Swoole
      *
      */
     const WEB_SERVER        = 1;
+
     /**
      *
      */
     const WEB_SOCKET_SERVER = 2;
+
     /**
      *
      */
     const TCP_SERVER = 3;
+
     /**
      *
      */
     const UDP_SERVER = 4;
-
-    const CONFIG_COMPONENT_NAME = 'components';
 
     /**
      *
@@ -200,7 +201,7 @@ class Swoole
         $server->on('WorkerStart', function() use ($config) {
             self::_initComponents( $config );
         });
-        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) use ($config) {
+        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
             Log::SetLogId();
             Response::Init($response);
             Request::Init(
@@ -219,7 +220,7 @@ class Swoole
             Request::Release();
             Response::Release();
             Memory::Release();
-            Db::Release();
+            Component::Release();
         });
 
         $server->start();
@@ -274,7 +275,7 @@ class Swoole
             Request::Release();
             Response::Release();
             Memory::Release();
-            Db::Release();
+            Component::Release();
         });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
@@ -329,25 +330,14 @@ class Swoole
     private static function _initComponents(array $config)
     {
         if(
-            !isset($config[self::CONFIG_COMPONENT_NAME]) ||
-            !is_array($config[self::CONFIG_COMPONENT_NAME])
+            !isset($config['components']) ||
+            !is_array($config['components'])
         )
         {
             return ;
         }
 
-        foreach ($config[self::CONFIG_COMPONENT_NAME] as $name=>$component)
-        {
-            $name = strtoupper($name);
-            switch ($name)
-            {
-                case 'DB':
-                    Db::Init($component);
-                    break;
-                case 'REDIS':
-                    // todo
-            }
-        }
+        Component::Init($config['components']);
     }
 
 }
