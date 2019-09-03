@@ -28,6 +28,13 @@ class Daemon
 
     const PROCESS_WEBSOCKET = 'websocket';
 
+
+    /**
+     * appName : application name for service
+     * @var mixed|string
+     */
+    const APP_NAME = 'Arrow';
+
     /**
      * running user
      * @var string
@@ -53,12 +60,6 @@ class Daemon
      * @var mixed|string
      */
     private static $pid = 'Arrow';
-    
-    /**
-     * appName : application name for service
-     * @var mixed|string
-     */
-    private static $appName = 'Arrow';
 
     /**
      * pidMap : child process name
@@ -71,23 +72,16 @@ class Daemon
      * @var bool
      */
     private static $terminate = false;
+
+    public static $identity = '';
     
 
     /**
      * ArrowDaemon constructor.
-     * @param array $config
      */
-    public function __construct($config)
+    public function __construct()
     {
-
-        $this -> _environmentCheck();
-        $this -> _checkPidfile();
-
-        $this -> _demonize();
-        chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        $this -> _setUser(self::$user);
-        $this -> _setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
-        $this -> _createPidfile();
+        //todo
     }
 
     /**
@@ -95,10 +89,17 @@ class Daemon
      */
     public static function Start()
     {
-        $config = static::_getConfig();
-        static::_handleAction();
+        self::_initConfig();
+        self::_handleAction();
+        self::_checkEnvironment();
+        self::_checkPidFile();
+        self::_demonize();
+        chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
+        self::_setUser(self::$user);
+        self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
+        self::_createPidfile();
 
-        $daemon = new self($config);
+        $daemon = new self();
         $daemon->_initComponent();
         $daemon->_setSignalHandler();
         $daemon->_startProcess();
@@ -171,7 +172,7 @@ class Daemon
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting worker process');
-            static::_setProcessName('Worker-group monitor');
+            self::_setProcessName('Worker-group monitor');
             Worker::Start();
         }
         else
@@ -506,7 +507,7 @@ class Daemon
      */
     private static function _processStatus()
     {
-        $keyword = static::$appName;
+        $keyword = self::APP_NAME.'_'.self::$identity;
         if( PHP_OS=='Darwin')
         {
             $keyword = 'index.php' ;
@@ -560,28 +561,25 @@ class Daemon
     }
 
     /**
-     * _getConfig
-     * @return array
+     * _initConfig
      */
-    private static function _getConfig() : array
+    private static function _initConfig() : array
     {
         $config = Config::Get('Daemon');
         if( false===$config  )
         {
             Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
-            return [];
         }
         self::$user       = $config['user'] ?? self::$user;
         self::$components = $config['components'] ?? [];
-        self::$pid  = static::$pidDir.static::$appName.'.pid';
-        return $config;
+        self::$pid        = static::$pidDir.static::APP_NAME.'.pid';
     }
 
     /**
      * _environmentCheck : checkout process running environment
      * @author Louis
      */
-    private function _environmentCheck()
+    private static function _checkEnvironment()
     {
         if ( php_sapi_name() != "cli" )
         {
@@ -609,7 +607,7 @@ class Daemon
      * _daemonMake : demonize the process
      * @author Louis
      */
-    private function _demonize()
+    private static function _demonize()
     {
         umask(self::$umask);
 
@@ -624,13 +622,15 @@ class Daemon
         {
             exit();
         }
+
+        self::$identity = self::APP_NAME.'_'.posix_getpid();
     }
 
     /**
      * _createPidfile : create process pid file
      * @author Louis
      */
-    private function _createPidfile()
+    private static function _createPidfile()
     {
         if (!is_dir(self::$pidDir))
         {
@@ -646,7 +646,7 @@ class Daemon
      * _checkPidfile : checkout process pid file
      * @author Louis
      */
-    private function _checkPidfile()
+    private static function _checkPidFile()
     {
         if ( !file_exists(static::$pid) )
         {
@@ -715,7 +715,7 @@ class Daemon
      * @param string $userName
      * @return void
      */
-    private function _setUser(string $userName)
+    private  static function _setUser(string $userName)
     {
         if (empty($userName))
         {
@@ -740,14 +740,14 @@ class Daemon
      * @author Louis
      * @param string $proName
      */
-    private function _setProcessName(string $proName)
+    private static function _setProcessName(string $proName)
     {
         if( PHP_OS=='Darwin')
         {
             return ;
         }
 
-        $proName = self::$appName.'_'.$proName;
+        $proName = self::APP_NAME.'_'.self::$identity.'_'.$proName;
         if(function_exists('cli_set_process_title'))
         {
             @cli_set_process_title($proName);

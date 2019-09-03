@@ -9,6 +9,7 @@
 namespace ArrowWorker\Driver\Worker;
 
 use ArrowWorker\Component;
+use ArrowWorker\Daemon;
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
 use ArrowWorker\Swoole;
@@ -41,12 +42,6 @@ class ArrowDaemon extends Worker
      * default process name
      */
     const PROCESS_NAME = 'unnamed';
-
-    /**
-     * 应用名称
-     * @var string
-     */
-    private static $App_Name = 'Arrow_worker';
 
     /**
      * 是否退出 标识
@@ -231,7 +226,7 @@ class ArrowDaemon extends Worker
         {
             return;
         }
-        $proName = self::$App_Name . '_' . $proName;
+        $proName = Daemon::$identity . '_Worker_' . $proName;
         if ( function_exists( 'cli_set_process_title' ) )
         {
             @cli_set_process_title( $proName );
