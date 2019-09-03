@@ -105,6 +105,9 @@ class Daemon
         $daemon->_startMonitor();
     }
 
+    /**
+     *
+     */
     private function _initComponent()
     {
         Log::Init();
@@ -215,7 +218,11 @@ class Daemon
         }
     }
 
-    private function _startPointedSwooleServer(array $config, int $index)
+    /**
+     * @param array $config
+     * @param int   $index
+     */
+    private function _startPointedSwooleServer( array $config, int $index)
     {
         $pid = pcntl_fork();
         if($pid == 0)
@@ -439,12 +446,18 @@ class Daemon
 
     }
 
+    /**
+     *
+     */
     private static function _start()
     {
         Log::Hint('Arrow starting.');
     }
 
-    private static function _restart(bool $isStop=true)
+    /**
+     * @param bool $isStop
+     */
+    private static function _restart( bool $isStop=true)
     {
         $pid = static::_getDaemonPid();
         for($i=1; $i>0; $i++ )
@@ -479,11 +492,18 @@ class Daemon
 
         static::_start();
     }
+
+    /**
+     *
+     */
     private static function _status()
     {
         Log::DumpExit(static::_processStatus());
     }
 
+    /**
+     * @return string
+     */
     private static function _processStatus()
     {
         $keyword = static::$appName;
@@ -506,6 +526,9 @@ class Daemon
         return $output;
     }
 
+    /**
+     * @return int
+     */
     private static function _getDaemonPid() : int
     {
         $pid = (int)file_get_contents(static::$pid);
