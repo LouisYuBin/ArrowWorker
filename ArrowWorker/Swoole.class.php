@@ -9,7 +9,11 @@ namespace ArrowWorker;
 use \Swoole\Coroutine as Co;
 use \Swoole\Http\Server as Http;
 use \Swoole\Server as SocketServer;
+use \Swoole\Server;
 use \Swoole\WebSocket\Server as WebSocket;
+use \Swoole\WebSocket\Frame;
+use \Swoole\Http\Request as SwRequest;
+use \Swoole\Http\Response as SwResponse;
 
 use \ArrowWorker\Web\Response;
 use \ArrowWorker\Web\Request;
@@ -201,7 +205,7 @@ class Swoole
         $server->on('WorkerStart', function() use ($config) {
             self::_initComponents( $config );
         });
-        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+        $server->on('request', function(SwRequest $request, SwResponse $response) {
             Log::SetLogId();
             Response::Init($response);
             Request::Init(
@@ -221,6 +225,7 @@ class Swoole
             Response::Release();
             Memory::Release();
             Component::Release();
+            Log::ReleaseLogId();
         });
 
         $server->start();
@@ -236,13 +241,13 @@ class Swoole
 
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
-        $server->on('start', function($server) use ($config) {
+        $server->on('start', function($server) use ( $config ) {
             Log::Dump("Websocket server, port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ( $config ) {
             self::_initComponents($config);
         });
-        $server->on('open', function(\Swoole\WebSocket\Server $server, \Swoole\Http\Request $request) use ($config) {
+        $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['open'];
             Log::SetLogId();
             Request::Init(
@@ -254,9 +259,17 @@ class Swoole
                 $request->rawContent()
             );
             $function($server, $request->fd);
+            Component::Release();
+            Log::ReleaseLogId();
         });
-        $server->on('message', static::CONTROLLER_NAMESPACE.$config['handler']['message']);
-        $server->on('request', function(\Swoole\Http\Request $request, \Swoole\Http\Response $response) {
+        $server->on('message', function(WebSocket $server, Frame $frame) use ( $config ) {
+            Log::SetLogId();
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['message'];
+            $function($server, $frame);
+            Component::Release();
+            Log::ReleaseLogId();
+        });
+        $server->on('request', function( SwRequest $request, SwResponse $response ) {
             Log::SetLogId();
             Response::Init($response);
             Request::Init(
@@ -276,6 +289,7 @@ class Swoole
             Response::Release();
             Memory::Release();
             Component::Release();
+            Log::ReleaseLogId();
         });
         $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
         $server->start();
@@ -292,9 +306,27 @@ class Swoole
         $server->on('WorkerStart', function() use ($config) {
             self::_initComponents($config);
         });
-        $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
-        $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
-        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
+        $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['connect'];
+            Log::SetLogId();
+            $function($server, $fd);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
+        $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['receive'];
+            Log::SetLogId();
+            $function($server, $fd, $data);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
+        $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
+            Log::SetLogId();
+            $function($server, $fd);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
         $server->start();
     }
 
@@ -309,9 +341,27 @@ class Swoole
         $server->on('WorkerStart', function() use ($config) {
             self::_initComponents($config);
         });
-        $server->on('connect', static::CONTROLLER_NAMESPACE.$config['handler']['connect']);
-        $server->on('receive', static::CONTROLLER_NAMESPACE.$config['handler']['receive']);
-        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
+        $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['connect'];
+            Log::SetLogId();
+            $function($server, $fd);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
+        $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['receive'];
+            Log::SetLogId();
+            $function($server, $fd, $data);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
+        $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
+            Log::SetLogId();
+            $function($server, $fd);
+            Log::ReleaseLogId();
+            Component::Release();
+        });
         $server->start();
     }
 

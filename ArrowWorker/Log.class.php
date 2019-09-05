@@ -189,7 +189,15 @@ class Log
      */
     private static $_toRedisChan;
 
+    /**
+     * @var string
+     */
     private static $_logId = '';
+
+    /**
+     * @var array
+     */
+    private static $_fileHandlerMap = [];
 
 
     /**
@@ -200,7 +208,6 @@ class Log
         self::_checkExtension();
         self::_initConfig();
         self::_checkLogDir();
-        self::_initLogSetting();
         self::_initHandler();
         self::_resetStd();
         self::_initMsgInstance();
@@ -216,19 +223,9 @@ class Log
             self::DumpExit( 'extension swoole does not installed/loaded.' );
         }
 
-        if ( !extension_loaded( 'SeasLog' ) )
-        {
-            self::DumpExit( 'extension SeasLog does not installed/loaded.' );
-        }
-
         if ( (int)str_replace( '.', '', (new \ReflectionExtension( 'swoole' ))->getVersion() ) < 400 )
         {
             self::DumpExit( 'swoole version must be newer than 4.0 .' );
-        }
-
-        if ( (int)str_replace( '.', '', (new \ReflectionExtension( 'SeasLog' ))->getVersion() ) < 202 )
-        {
-            self::DumpExit( 'seaslog version should be 2.0.2 or newer.' );
         }
 
     }
@@ -313,26 +310,6 @@ class Log
         }
 
     }
-
-    /**
-     *
-     */
-    private static function _initLogSetting()
-    {
-
-        if ( ini_get( 'seaslog.buffer_disabled_in_cli' ) != '1' )
-        {
-            static::DumpExit( "Value for seaslog.buffer_disabled_in_cli in php.ini should be set to 1" );
-        }
-
-        if ( ini_get( 'seaslog.buffer_disabled_in_cli' ) != '1' )
-        {
-            static::DumpExit( "Value for seaslog.buffer_disabled_in_cli in php.ini should be set to 1" );
-        }
-
-        \SeasLog::setBasePath( static::$_baseDir );
-    }
-
 
     /**
      * Info write an information log
@@ -421,7 +398,12 @@ class Log
         self::_fillLog($log, $module, 'C');
     }
 
-    private static function _fillLog(string $log, string $module='', string $level='D')
+    /**
+     * @param string $log
+     * @param string $module
+     * @param string $level
+     */
+    private static function _fillLog( string $log, string $module='', string $level='D')
     {
         $time  = date('Y-m-d H:i:s');
         $logId = self::GetLogId();
@@ -485,49 +467,99 @@ class Log
     /**
      * @param string $log
      */
-    private static function _seaslogWrite( string $log )
+    private static function _writeLogFile( string $log )
     {
         $logInfo = explode( '|', $log );
         $level   = $logInfo[0];
         $module  = $logInfo[1];
         $message = substr( $log, strlen( $level . $module ) + 2 );
+
         $tryTimes = 0;
         RETRY:
-        switch ( $level )
-        {
-            case 'A':
-                $result = \SeasLog::alert( $message, [], $module );
-                break;
-            case 'D':
-                $result = \SeasLog::debug( $message, [], $module );
-                break;
-            case 'E':
-                $result = \SeasLog::error( $message, [], $module );
-                break;
-            case 'W':
-                $result = \SeasLog::warning( $message, [], $module );
-                break;
-            case 'N':
-                $result = \SeasLog::notice( $message, [], $module );
-                break;
-            case 'C':
-                $result = \SeasLog::critical( $message, [], $module );
-                break;
-            case 'EM':
-                $result = \SeasLog::emergency( $message, [], $module );
-                break;
-            default:
-                $result = \SeasLog::info( $message, [], $module );
-        }
-
         //写日志失败则重试，重试3次
-        if ( $result == false )
+        if ( !self::_writeFile($module, $level, $message) == false )
         {
             $tryTimes++;
             if ( $tryTimes < 3 )
             {
                 goto RETRY;
             }
+        }
+    }
+
+    /**
+     * @param string $module
+     * @param string $level
+     * @param string $message
+     * @return bool|int
+     */
+    private static function _writeFile( string $module, string $level, string $message)
+    {
+        $fileExt  = self::_getFileExt($level);
+        $fileDir  = self::$_baseDir.$module.'/';
+        $filePath = $fileDir.date('YmdHis').'.'.$fileExt;
+        if( isset(self::$_fileHandlerMap[$module]) )
+        {
+            $result = fwrite(self::$_fileHandlerMap[$module], $message);
+            if( false===$result )
+            {
+                goto _INIT;
+            }
+            return $result;
+        }
+
+        _INIT:
+        if( !is_dir($fileDir) )
+        {
+            if( !mkdir($fileDir,0660, true) )
+            {
+                Log::Dump(" [ EMERGENCY ] make directory:{$fileDir} failed . ");
+                return false;
+            }
+        }
+
+        $fileRes = fopen($filePath,'w+');
+        if( false===$fileRes )
+        {
+            Log::Dump(" [ EMERGENCY ] fopen file:{$filePath} failed failed . ");
+            return false;
+        }
+        self::$_fileHandlerMap[$module] = $fileRes;
+        return fwrite($fileRes, $message);
+    }
+
+    /**
+     * @param string $level
+     * @return string
+     */
+    private static function _getFileExt( string $level)
+    {
+        $ext = '.log';
+        switch ( $level )
+        {
+            case 'A':
+                return "Alert{$ext}";
+                break;
+            case 'D':
+                return "Debug{$ext}";
+                break;
+            case 'E':
+                return "Error{$ext}";
+                break;
+            case 'W':
+                return "Warning{$ext}";
+                break;
+            case 'N':
+                return "Notice{$ext}";
+                break;
+            case 'C':
+                return "Critical{$ext}";
+                break;
+            case 'EM':
+                return "Emergency{$ext}";
+                break;
+            default:
+                return "Info{$ext}";
         }
     }
 
@@ -620,7 +652,7 @@ class Log
                 continue;
             }
 
-            static::_seaslogWrite( $data );
+            static::_writeLogFile( $data );
 
         }
         self::Dump( 'log file-writing coroutine exited' );
@@ -766,14 +798,28 @@ class Log
         pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
     }
 
-    public static function SetLogId(string $logId='')
+    /**
+     * @param string $logId
+     */
+    public static function SetLogId( string $logId='')
     {
-        self::$_logId = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid().mt_rand(100,999) : $logId;
+        self::$_logId[Swoole::GetCid()] = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid().mt_rand(100,999) : $logId;
     }
 
+    /**
+     * @return string
+     */
     public static function GetLogId() : string
     {
-        return self::$_logId;
+        return self::$_logId[Swoole::GetCid()];
+    }
+
+    /**
+     *
+     */
+    public static function ReleaseLogId()
+    {
+        unset(self::$_logId[Swoole::GetCid()]);
     }
 
 }
