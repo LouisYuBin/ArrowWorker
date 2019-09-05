@@ -192,7 +192,7 @@ class Log
     /**
      * @var string
      */
-    private static $_logId = '';
+    private static $_logId = [];
 
     /**
      * @var array
@@ -407,7 +407,7 @@ class Log
     {
         $time  = date('Y-m-d H:i:s');
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}|{$module}| {$time} | {$logId} | $log" );
+        self::$_msgObject->Write( "{$level}|{$module}|{$time} | {$logId} | $log".PHP_EOL );
     }
 
     /**
@@ -477,7 +477,7 @@ class Log
         $tryTimes = 0;
         RETRY:
         //写日志失败则重试，重试3次
-        if ( !self::_writeFile($module, $level, $message) == false )
+        if ( false===self::_writeFile($module, $level, $message) )
         {
             $tryTimes++;
             if ( $tryTimes < 3 )
@@ -497,7 +497,7 @@ class Log
     {
         $fileExt  = self::_getFileExt($level);
         $fileDir  = self::$_baseDir.$module.'/';
-        $filePath = $fileDir.date('YmdHis').'.'.$fileExt;
+        $filePath = $fileDir.date('Ymd').'.'.$fileExt;
         if( isset(self::$_fileHandlerMap[$module]) )
         {
             $result = fwrite(self::$_fileHandlerMap[$module], $message);
@@ -518,7 +518,7 @@ class Log
             }
         }
 
-        $fileRes = fopen($filePath,'w+');
+        $fileRes = fopen($filePath,'a');
         if( false===$fileRes )
         {
             Log::Dump(" [ EMERGENCY ] fopen file:{$filePath} failed failed . ");
@@ -794,7 +794,10 @@ class Log
      */
     private static function _handleAlarm()
     {
-        self::$_tcpClient->Send('heartbeat');
+        if( is_object(self::$_tcpClient) )
+        {
+            self::$_tcpClient->Send('heartbeat');
+        }
         pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
     }
 

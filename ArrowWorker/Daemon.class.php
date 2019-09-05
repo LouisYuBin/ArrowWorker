@@ -563,7 +563,7 @@ class Daemon
     /**
      * _initConfig
      */
-    private static function _initConfig() : array
+    private static function _initConfig()
     {
         $config = Config::Get('Daemon');
         if( false===$config  )

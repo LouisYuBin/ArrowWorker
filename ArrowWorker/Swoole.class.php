@@ -174,6 +174,7 @@ class Swoole
             'ssl_cert_file'      => $config['sslCertFile'],
             'ssl_key_file'       => $config['sslKeyFile'],
             'mode'               => $config['mode'],
+            'components'         => isset($config['components']) ? $config['components'] : []
         ];
 
         if( $type==static::TCP_SERVER )
@@ -291,7 +292,12 @@ class Swoole
             Component::Release();
             Log::ReleaseLogId();
         });
-        $server->on('close',   static::CONTROLLER_NAMESPACE.$config['handler']['close']);
+        $server->on('close',   function(WebSocket $server, int $fd) use ($config) {
+            Log::SetLogId();
+            $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
+            $function($server, $fd);
+            Log::ReleaseLogId();
+        });
         $server->start();
     }
 
@@ -379,6 +385,7 @@ class Swoole
      */
     private static function _initComponents(array $config)
     {
+        var_dump($config);
         if(
             !isset($config['components']) ||
             !is_array($config['components'])

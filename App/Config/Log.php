@@ -7,7 +7,7 @@ return [
     'chanSize' => 1024,
     'type'     => [
         'file',
-        'tcp',
+        //'tcp',
         //'redis'
     ],
     'tcp'      => [

@@ -148,6 +148,7 @@ class ArrowWorker
             'ArrowWorker\Db'         => ArrowWorker . '/Db'      . self::classExt,
             'ArrowWorker\Chan'       => ArrowWorker . '/Chan'    . self::classExt,
             'ArrowWorker\Memory'     => ArrowWorker . '/Memory'  . self::classExt,
+            'ArrowWorker\Component'  => ArrowWorker . '/Component'  . self::classExt,
 
             'ArrowWorker\Web\Session'    => ArrowWorker . '/Web/Session'  . self::classExt,
             'ArrowWorker\Web\Cookie'     => ArrowWorker . '/Web/Cookie'   . self::classExt,
