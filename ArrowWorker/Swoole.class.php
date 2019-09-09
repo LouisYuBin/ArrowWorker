@@ -60,6 +60,8 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
+        'user'      => 'root',
+        'group'     => 'root',
         'pipeBufferSize'   => 1024*1024*100,
         'socketBufferSize' => 1024*1024*100,
         'maxRequest'       => 20000,
@@ -83,6 +85,8 @@ class Swoole
         'port'             => 8888,
         'workerNum'        => 4,
         'backlog'          => 1000,
+        'user'             => 'root',
+        'group'            => 'root',
         'pipeBufferSize'   => 1024*1024*100,
         'socketBufferSize' => 1024*1024*100,
         'enableCoroutine'  => true,
@@ -105,6 +109,8 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
+        'user'      => 'root',
+        'group'     => 'root',
         'pipeBufferSize'   => 1024*1024*100,
         'socketBufferSize' => 1024*1024*100,
         'enableCoroutine'  => true,
@@ -123,6 +129,8 @@ class Swoole
         'port'      => 8888,
         'workerNum' => 4,
         'backlog'   => 1000,
+        'user'      => 'root',
+        'group'     => 'root',
         'pipeBufferSize'   => 1024*1024*100,
         'socketBufferSize' => 1024*1024*100,
         'enableCoroutine'  => true,
@@ -160,6 +168,8 @@ class Swoole
             'worker_num' => $config['workerNum'],
             'daemonize'  => false,
             'backlog'    => $config['backlog'],
+            'user'       => $config['user'],
+            'group'      => $config['group'],
             'package_max_length'    => $config['maxContentLength'],
             'enable_static_handler' => $config['enableStaticHandler'],
             'reactor_num'        => $config['reactorNum'],
@@ -204,7 +214,6 @@ class Swoole
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ($config) {
-            Daemon::SetUser();
             self::_initComponents( $config );
         });
         $server->on('request', function(SwRequest $request, SwResponse $response) {
@@ -247,7 +256,6 @@ class Swoole
             Log::Dump("Websocket server, port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ( $config ) {
-            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
@@ -312,7 +320,6 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
-            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
@@ -348,7 +355,6 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
-            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {

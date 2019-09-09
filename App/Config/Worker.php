@@ -3,7 +3,9 @@
 return [
     //驱动类型
     'driver' => 'ArrowDaemon',
-    'group'  => [
+    'user'   => 'www',
+    'group'  => 'www',
+    'worker' => [
         [
             'function'   => [
                 '\\App\\Controller\\Demo',

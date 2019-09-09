@@ -12,7 +12,6 @@ class Worker
 {
     private static $defaultProcessApp = 'app';
 
-
     private static function _getConfig() : array
     {
         //verify whether the daemon is configured
@@ -23,9 +22,10 @@ class Worker
         }
 
         //verify if the processor configuration is correct
-        if( !isset($config['group']) || !is_array($config['group']) || count($config['group'])==0 )
+        if( !is_array($config) || !isset($config['worker']) || !is_array($config['worker']) || count($config['worker'])==0 )
         {
             Log::DumpExit("daemon processor configuration is not correct");
+            usleep(1000000);
         }
 
         return $config;
@@ -35,7 +35,7 @@ class Worker
     {
         $config = static::_getConfig();
         $daemon = ArrowDaemon::Init($config);
-        foreach ($config['group'] as $item)
+        foreach ($config['worker'] as $item)
         {
             if( !isset($item['function']) || !is_array($item['function']) || count($item['function'])<2 )
             {

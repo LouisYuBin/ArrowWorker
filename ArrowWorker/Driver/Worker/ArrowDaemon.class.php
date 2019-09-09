@@ -95,8 +95,11 @@ class ArrowDaemon extends Worker
      * @param $config
      * @return ArrowDaemon
      */
-    static function Init( $config ) : self
+    public static function Init( $config ) : self
     {
+        self::$_user  = $config['user']  ?? 'root';
+        self::$_group = $config['group'] ?? 'root';
+
         if ( !self::$daemonObj )
         {
             self::$daemonObj = new self( $config );
@@ -514,8 +517,35 @@ class ArrowDaemon extends Worker
         $this->_setSignalHandler( 'workerHandler' );
         $this->_setProcessAlarm( $lifecycle );
         $this->_setProcessName( self::$jobs[$index]['processName'] );
+        self::_setUser();
         Component::Init(self::$jobs[$index]['components']);
         $this->_runProcessTask( $index );
+    }
+
+    /**
+     * set process running user
+     * @author Louis
+     * @return void
+     */
+    private  static function _setUser()
+    {
+        if (empty($userName))
+        {
+            return ;
+        }
+
+        $user  = posix_getpwnam( static::$_user );
+        $group = posix_getgrnam( self::$_group );
+
+        if( !$user || !$group )
+        {
+            Log::DumpExit("Arrow hint : set process user : posix_getpwnam/posix_getgrnam failed！");
+        }
+
+        if( !posix_setuid($user['uid']) || !posix_setgid($group['gid']) )
+        {
+            Log::DumpExit("Arrow hint : Setting process user failed！");
+        }
     }
 
     /**
@@ -597,6 +627,7 @@ class ArrowDaemon extends Worker
                 self::$terminate = false;
                 $this->_setSignalHandler( 'chanHandler' );
                 $this->_setProcessName( self::$jobs[$i]['processName'] );
+                self::_setUser();
                 Log::Dump( self::LOG_PREFIX . 'chan-consumer ' . self::$jobs[$i]['processName'] . ' starting work' );
 
                 while ( self::$jobs[$i]['coCount'] < self::$jobs[$i]['coQuantity'] )

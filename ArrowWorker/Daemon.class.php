@@ -35,18 +35,6 @@ class Daemon
      */
     const APP_NAME = 'Arrow';
 
-    /**
-     * running user
-     * @var string
-     */
-    private static $_user = 'root';
-
-    /**
-     * running group
-     * @var string
-     */
-    private static $_group = 'root';
-
     private static $components = [];
 
     /**
@@ -570,16 +558,7 @@ class Daemon
      */
     private static function _initConfig()
     {
-        $config = Config::Get('Daemon');
-        if( false===$config  )
-        {
-            Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
-        }
-        self::$_user      = $config['user'] ?? self::$_user;
-        self::$_group     = $config['group'] ?? self::$_group;
-
-        self::$components = $config['components'] ?? [];
-        self::$pid        = static::$pidDir.static::APP_NAME.'.pid';
+        self::$pid = static::$pidDir.static::APP_NAME.'.pid';
     }
 
     /**
@@ -714,32 +693,6 @@ class Daemon
                 return false;
         }
         return false;
-    }
-
-    /**
-     * set process running user
-     * @author Louis
-     * @return void
-     */
-    public  static function SetUser()
-    {
-        if (empty($userName))
-        {
-            return ;
-        }
-
-        $user  = posix_getpwnam( self::$_user );
-        $group = posix_getgrnam( self::$_group );
-
-        if( !$user || !$group )
-        {
-            Log::DumpExit("Arrow hint : set process user : posix_getpwnam/posix_getgrnam failed！");
-        }
-
-        if( !posix_setuid($user['uid']) || !posix_setgid($group['gid']) )
-        {
-            Log::DumpExit("Arrow hint : Setting process user failed！");
-        }
     }
 
 
