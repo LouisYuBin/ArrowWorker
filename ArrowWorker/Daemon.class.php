@@ -99,9 +99,9 @@ class Daemon
         self::_handleAction();
         self::_checkEnvironment();
         self::_checkPidFile();
+        self::_setUser();
         self::_demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        self::_setUser();
         self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         self::_createPidfile();
 
