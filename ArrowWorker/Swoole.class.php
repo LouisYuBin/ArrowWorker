@@ -204,6 +204,7 @@ class Swoole
             Log::Dump("Http server is listening at port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ($config) {
+            Daemon::SetUser();
             self::_initComponents( $config );
         });
         $server->on('request', function(SwRequest $request, SwResponse $response) {
@@ -246,6 +247,7 @@ class Swoole
             Log::Dump("Websocket server, port : ".$config['port']);
         });
         $server->on('WorkerStart', function() use ( $config ) {
+            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
@@ -310,6 +312,7 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
+            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
@@ -345,6 +348,7 @@ class Swoole
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
         $server->on('WorkerStart', function() use ($config) {
+            Daemon::SetUser();
             self::_initComponents($config);
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {

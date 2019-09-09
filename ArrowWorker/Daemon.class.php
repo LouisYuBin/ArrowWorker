@@ -99,7 +99,6 @@ class Daemon
         self::_handleAction();
         self::_checkEnvironment();
         self::_checkPidFile();
-        self::_setUser();
         self::_demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
         self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
@@ -718,11 +717,11 @@ class Daemon
     }
 
     /**
-     * _setUser set process running user
+     * set process running user
      * @author Louis
      * @return void
      */
-    private  static function _setUser()
+    public  static function SetUser()
     {
         if (empty($userName))
         {
