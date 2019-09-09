@@ -98,8 +98,6 @@ class Mysqli
         {
             return self::$chanConnections[$coId][$alias];
         }
-        var_dump('GetConnection');
-
 
         _RETRY:
         $conn = self::$pool[$alias]->pop( 1 );
@@ -113,7 +111,6 @@ class Mysqli
 
     public static function ReturnConnection()
     {
-        var_dump('ReturnConnection');
         $coId = Swoole::GetCid();
         if( !isset(self::$chanConnections[$coId]) )
         {
