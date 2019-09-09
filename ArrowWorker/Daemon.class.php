@@ -708,7 +708,7 @@ class Daemon
             return ;
         }
 
-        $proName = self::APP_NAME.'_'.self::$identity.'_'.$proName;
+        $proName = self::$identity.'_'.$proName;
         if(function_exists('cli_set_process_title'))
         {
             @cli_set_process_title($proName);
