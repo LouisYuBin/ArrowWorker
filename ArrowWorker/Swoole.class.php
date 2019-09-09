@@ -392,7 +392,7 @@ class Swoole
         {
             return ;
         }
-
+        Log::SetLogId();
         Component::Init($config['components']);
     }
 
