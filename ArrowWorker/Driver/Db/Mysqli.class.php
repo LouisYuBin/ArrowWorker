@@ -76,7 +76,7 @@ class Mysqli
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
-            Log::DumpExit( "connecting to mysql failed : " . $this->_conn->connect_error );
+            Log::Error( "connecting to mysql failed : " . $this->_conn->connect_error, self::LOG_NAME );
             return false;
         }
 
