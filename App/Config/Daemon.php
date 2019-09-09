@@ -2,4 +2,5 @@
 
 return  [
     'user'       => 'yubin',
+    'group'      => 'yubin',
 ];

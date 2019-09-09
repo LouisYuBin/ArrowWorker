@@ -39,7 +39,13 @@ class Daemon
      * running user
      * @var string
      */
-    private static $user = 'root';
+    private static $_user = 'root';
+
+    /**
+     * running group
+     * @var string
+     */
+    private static $_group = 'root';
 
     private static $components = [];
 
@@ -95,7 +101,7 @@ class Daemon
         self::_checkPidFile();
         self::_demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        self::_setUser(self::$user);
+        self::_setUser();
         self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
         self::_createPidfile();
 
@@ -570,7 +576,9 @@ class Daemon
         {
             Log::Dump(static::LOG_PREFIX.'Daemon configuration not found');
         }
-        self::$user       = $config['user'] ?? self::$user;
+        self::$_user      = $config['user'] ?? self::$_user;
+        self::$_group     = $config['group'] ?? self::$_group;
+
         self::$components = $config['components'] ?? [];
         self::$pid        = static::$pidDir.static::APP_NAME.'.pid';
     }
@@ -712,23 +720,24 @@ class Daemon
     /**
      * _setUser set process running user
      * @author Louis
-     * @param string $userName
      * @return void
      */
-    private  static function _setUser(string $userName)
+    private  static function _setUser()
     {
         if (empty($userName))
         {
             return ;
         }
 
-        $userInfo = posix_getpwnam($userName);
-        if( !$userInfo )
+        $user  = posix_getpwnam( self::$_user );
+        $group = posix_getgrnam( self::$_group );
+
+        if( !$user || !$group )
         {
-            Log::DumpExit("Arrow hint : Setting process user failed！");
+            Log::DumpExit("Arrow hint : set process user : posix_getpwnam/posix_getgrnam failed！");
         }
 
-        if( !posix_setuid($userInfo['uid']) || !posix_setgid($userInfo['gid']) )
+        if( !posix_setuid($user['uid']) || !posix_setgid($group['gid']) )
         {
             Log::DumpExit("Arrow hint : Setting process user failed！");
         }
