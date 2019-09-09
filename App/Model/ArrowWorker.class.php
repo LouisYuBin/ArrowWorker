@@ -22,17 +22,17 @@ class ArrowWorker
 	 * 查询单条记录
 	 * @return array
 	 */
-	public function GetOne()
+	public static function GetOne()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Db::Table("project")->Where('id>1')->Col($column)->Limit(0,1)->Get();
+        return Db::Table("project")->Where('id>1')->Column($column)->Limit(0,1)->Get();
     }
 
     //查询单条记录
-    public function GetList()
+    public static function GetList()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Db::Table("project")->Where('id>0')->Col($column)->Limit(0,20)->Find();
+        return Db::Table("project")->Where('id>0')->Column($column)->Limit(0,10)->Find();
     }
 
     //写入数据

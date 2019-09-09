@@ -23,7 +23,7 @@ return [
         'type'             => 'webSocket',
         'host'             => '0.0.0.0',
         'port'             => 8081,
-        'workerNum'        => 4,
+        'workerNum'        => 1,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'pipeBufferSize'   => 1024*1024*200,
@@ -41,7 +41,7 @@ return [
         ],
         'components' => [
             'db' => [
-                'default' => 10
+                'default' => 5
             ]
         ]
     ],

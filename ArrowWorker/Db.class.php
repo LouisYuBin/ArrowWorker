@@ -39,11 +39,12 @@ class Db extends Driver
     }
 
     /**
+     * @param array $config
      * @param string $driver
      */
-    public static function Init( string $driver=self::DEFAULT_DRIVER )
+    public static function Init( array $config, string $driver=self::DEFAULT_DRIVER )
     {
-        $driver::Init();
+        $driver::Init($config);
     }
 
     /**

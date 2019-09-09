@@ -385,7 +385,6 @@ class Swoole
      */
     private static function _initComponents(array $config)
     {
-        var_dump($config);
         if(
             !isset($config['components']) ||
             !is_array($config['components'])

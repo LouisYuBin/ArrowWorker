@@ -98,6 +98,8 @@ class Mysqli
         {
             return self::$chanConnections[$coId][$alias];
         }
+        var_dump('GetConnection');
+
 
         _RETRY:
         $conn = self::$pool[$alias]->pop( 1 );
@@ -111,6 +113,7 @@ class Mysqli
 
     public static function ReturnConnection()
     {
+        var_dump('ReturnConnection');
         $coId = Swoole::GetCid();
         if( !isset(self::$chanConnections[$coId]) )
         {
@@ -169,6 +172,7 @@ class Mysqli
             }
 
             $value['poolSize'] = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
+
             self::$configs[$index] = $value;
             self::$pool[$index] = new swChan( $value['poolSize'] );
         }

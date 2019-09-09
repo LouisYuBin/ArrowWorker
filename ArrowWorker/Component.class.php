@@ -10,15 +10,13 @@ class Component
 {
     public static function Init(array $components)
     {
-        var_dump($components);
-        foreach ( $components as $component )
+        foreach ( $components as $key=>$config )
         {
-            $component = strtoupper($component);
+            $component = strtoupper($key);
             switch ($component)
             {
                 case 'DB':
-                    var_dump('Db::Init');
-                    Db::Init();
+                    Db::Init($config);
                     break;
             }
         }
