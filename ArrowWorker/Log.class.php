@@ -510,7 +510,7 @@ class Log
         }
 
         _INIT:
-        $fileRes = self::_initFileHandle( self::$_baseDir . $module . '/', self::_getFileExt( $level ) );
+        $fileRes = self::_initFileHandle( self::$_baseDir . $module . '/', $date.self::_getFileExt( $level ) );
         self::$_fileHandlerMap[ $alias ] = $fileRes;
         return fwrite( $fileRes, $message );
     }
