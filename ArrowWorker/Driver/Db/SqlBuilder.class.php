@@ -20,11 +20,6 @@ class SqlBuilder
     private $alias = 'default';
 
     /**
-     * @var Mysqli;
-     */
-    private $driver = 'Mysqli';
-
-    /**
      * @var string
      */
     private $where = "";
@@ -74,10 +69,9 @@ class SqlBuilder
      * @param string $alias
      * @param string $driver
      */
-    public function __construct( string $alias = 'default', string $driver='Mysqli' )
+    public function __construct( string $alias = 'default' )
     {
         $this->alias  = $alias;
-        $this->driver = $driver;
     }
 
     /**
@@ -85,7 +79,7 @@ class SqlBuilder
      */
     private function _getDb()
     {
-        return $this->driver::GetConnection($this->alias);
+        return Pool::GetConnection($this->alias);
     }
 
 

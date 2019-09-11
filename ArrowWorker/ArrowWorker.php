@@ -46,12 +46,6 @@ defined('APP_LANG_DIR') or define('APP_LANG_DIR','Lang');
 //folder name for application view-tpl
 defined('APP_TPL_DIR') or define('APP_TPL_DIR','Tpl');
 
-//default controller Class name
-defined('DEFAULT_CONTROLLER') or define('DEFAULT_CONTROLLER','Index');
-
-//default controller method name in default controller class
-defined('DEFAULT_METHOD') or define('DEFAULT_METHOD','index');
-
 //file name for default configuration
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','App');
 
@@ -185,6 +179,7 @@ class ArrowWorker
             'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session'.  self::classExt,
 
             'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' .          self::classExt,
+            'ArrowWorker\Driver\Db\Pool'            => ArrowWorker . '/Driver/Db/Pool' .            self::classExt,
             'ArrowWorker\Driver\Db\SqlBuilder'      => ArrowWorker . '/Driver/Db/SqlBuilder' .      self::classExt,
             'ArrowWorker\Driver\Cache\Redis'        => ArrowWorker . '/Driver/Cache/Redis' .        self::classExt,
             'ArrowWorker\Driver\View\Smarty'        => ArrowWorker . '/Driver/View/Smarty' .        self::classExt,

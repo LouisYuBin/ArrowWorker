@@ -171,11 +171,6 @@ class Router
             return ;
         }
 
-        if( static::_routeToDefault() )
-        {
-            return ;
-        }
-
         static::_logAndResponse("request does not match any router");
     }
 
@@ -233,14 +228,6 @@ class Router
         return false;
     }
 
-    /**
-     * @return bool
-     */
-    private static function _routeToDefault()
-    {
-        $class = self::CONTROLLER_NAMESPACE.DEFAULT_CONTROLLER;
-        return static::_routeToFunction($class, DEFAULT_METHOD);
-    }
 
     /**
      * @param string $class

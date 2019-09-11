@@ -7,6 +7,7 @@ namespace ArrowWorker;
 
 
 use ArrowWorker\Driver\Db\Mysqli;
+use ArrowWorker\Driver\Db\Pool;
 use ArrowWorker\Driver\Db\SqlBuilder;
 
 /**
@@ -30,39 +31,36 @@ class Db extends Driver
     /**
      * @param string $table
      * @param string $alias
-     * @param string $driver
      * @return SqlBuilder
      */
-    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER) : SqlBuilder
+    public static function Table(string $table, string $alias=self::DEFAULT_ALIAS) : SqlBuilder
     {
-        return (new SqlBuilder($alias, $driver))->Table($table);
+        return (new SqlBuilder($alias))->Table($table);
     }
 
     /**
      * @param array $config
-     * @param string $driver
      */
-    public static function Init( array $config, string $driver=self::DEFAULT_DRIVER )
+    public static function Init( array $config )
     {
-        $driver::Init($config);
+        Pool::Init($config);
     }
 
     /**
      * @param string $alias
-     * @param string $driver
      * @return Mysqli
      */
-    public static function Get( string $alias=self::DEFAULT_ALIAS, string $driver=self::DEFAULT_DRIVER )
+    public static function Get( string $alias=self::DEFAULT_ALIAS )
     {
-        return $driver::GetConnection($alias);
+        return Pool::GetConnection($alias);
     }
 
     /**
-     * @param string $driver
+     *
      */
-    public static function Release( string $driver=self::DEFAULT_DRIVER )
+    public static function Release()
     {
-        $driver::ReturnConnection();
+        Pool::ReturnConnection();
     }
 
 }

@@ -2,6 +2,8 @@
 
 return [
     'default' => [
+        //驱动器类型
+        'driver'   => 'Mysqli',
         //地址
         'host'     => '127.0.0.1',
         //用户名
