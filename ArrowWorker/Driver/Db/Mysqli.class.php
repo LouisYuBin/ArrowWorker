@@ -73,6 +73,11 @@ class Mysqli
     public function Query( string $sql )
     {
         $result = $this->_query( $sql );
+        if( false===$result )
+        {
+            return $result;
+        }
+
         $field  = $this->_parseFieldType( $result );
         $return = [];
         while ( $row = $result->fetch_assoc() )
@@ -146,9 +151,9 @@ class Mysqli
             return $result;
         }
 
-        if( true===$isRetried )
+        if( $isRetried )
         {
-            Log::Error( "Sql Error : {$sql}", self::SQL_LOG_NAME );
+            Log::Error( "Sql Error : {$sql}, error no : {$this->_conn->error}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
             return false;
         }
 

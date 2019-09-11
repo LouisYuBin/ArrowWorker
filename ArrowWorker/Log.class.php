@@ -50,6 +50,11 @@ class Log
      */
     const TIME_ZONE = 'UTC';
 
+    /**
+     *
+     */
+    const DEFAULT_LOG_DIR = 'default';
+
 
     /**
      * period for checkout log file size
@@ -62,7 +67,12 @@ class Log
      */
     const TCP_HEARTBEAT_PERIOD = 30;
 
-    const MODULE = __CLASS__;
+    /**
+     *
+     */
+    const LOG_NAME = __CLASS__;
+
+
 
     /**
      * bufSize : log buffer size 10M
@@ -473,12 +483,12 @@ class Log
     {
         $logInfo = explode( '|', $log );
         $level   = $logInfo[ 0 ];
-        $module  = $logInfo[ 1 ];
-        $message = substr( $log, strlen( $level . $module ) + 2 );
+        $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
+        $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 2 );
 
         $tryTimes = 0;
         RETRY:
-        //写日志失败则重试，重试3次
+        //try three times if failed
         if ( false === self::_writeFile( $module, $level, $message ) )
         {
             $tryTimes++;
@@ -521,13 +531,17 @@ class Log
         return fwrite( $logRes, $message );
     }
 
+    /**
+     * @param string $fileDir
+     * @param string $fileExt
+     * @return bool|resource
+     */
     private static function _initFileHandle( string $fileDir, string $fileExt )
     {
         $filePath = $fileDir . $fileExt;
-        var_dump($filePath);
         if ( !is_dir( $fileDir ) )
         {
-            if ( !mkdir( $fileDir, 0660, true ) )
+            if ( !mkdir( $fileDir, 0760, true ) )
             {
                 Log::Dump( " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
@@ -732,7 +746,6 @@ class Log
 
     }
 
-
     /**
      * _exit : exit log process while there are no message in log queue
      */
@@ -810,11 +823,45 @@ class Log
      */
     private static function _handleAlarm()
     {
+        self::_sendTcpHeartbeat();
+        self::_cleanUselessFileHandler();
+        pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
+    }
+
+    /**
+     *
+     */
+    private static function _cleanUselessFileHandler()
+    {
+        $time = (int)date('Hi');
+        if( $time>2 )
+        {
+            return ;
+        }
+
+        self::SetLogId();
+        $today = date('Ymd');
+        foreach (self::$_fileHandlerMap as $alias=>$handler)
+        {
+            $aliasDate = substr($alias,strlen($alias)-8,8);
+            if( $today!=$aliasDate )
+            {
+                fclose(self::$_fileHandlerMap[$alias]);
+                unset(self::$_fileHandlerMap[$alias]);
+                Log::Debug("log file handler : {$alias} was cleaned.", self::LOG_NAME);
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    private static function _sendTcpHeartbeat()
+    {
         if ( is_object( self::$_tcpClient ) )
         {
             self::$_tcpClient->Send( 'heartbeat' );
         }
-        pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
     }
 
     /**
@@ -822,7 +869,7 @@ class Log
      */
     public static function SetLogId( string $logId = '' )
     {
-        self::$_logId[ Swoole::GetCid() ] = '' === $logId ? date( 'YmdHis' ) .
+        self::$_logId[ Swoole::GetCid() ] = '' === $logId ? date( 'ymdHis' ) .
                                                             posix_getpid() .
                                                             Swoole::GetCid() .
                                                             mt_rand( 100, 999 ) : $logId;

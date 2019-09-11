@@ -26,7 +26,7 @@ class WebSocket
     /**
      * @var string
      */
-    private $_logName = 'webSocket_client';
+    private $_logName = 'ws_client';
 
     /**
      * WebSocket constructor.
@@ -80,7 +80,7 @@ class WebSocket
 
     /**
      * @param float $timeout
-     * @return bool|string|\Swoole\WebSocket\Frame
+     * @return bool|string
      */
     public function Receive(float $timeout)
     {

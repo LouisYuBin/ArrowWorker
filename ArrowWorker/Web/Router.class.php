@@ -16,15 +16,7 @@ use ArrowWorker\Log;
  */
 class Router
 {
-	/**
-	 * 默认控制器/方法
-	 */
-	const DEFAULT_CONTROLLER  = 'Index';
-
-    /**
-     *
-     */
-    const DEFAULT_METHOD = 'index';
+    const LOG_NAME = 'router';
 
     /**
      *
@@ -239,13 +231,13 @@ class Router
     {
         if( !class_exists($class) )
         {
-            return static::_logAndResponse("class : {$class} does not exists.");
+            return static::_logAndResponse("controller class : {$class} does not exists.");
         }
 
         $controller = new $class;
         if( !method_exists($controller, $function) )
         {
-            return static::_logAndResponse("function : {$class}->{$function} does not exists.");
+            return static::_logAndResponse("controller function : {$class}->{$function} does not exists.");
         }
         $controller->$function();
         unset($controller);
@@ -259,7 +251,7 @@ class Router
      */
     private static function _logAndResponse(string $msg)
     {
-        Log::Warning($msg);
+        Log::Warning($msg, self::LOG_NAME);
         if( !DEBUG )
         {
             $msg = static::$_404;
@@ -281,6 +273,5 @@ class Router
 
         static::$_404 = file_get_contents($_404);
     }
-
 
 }
