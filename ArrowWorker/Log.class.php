@@ -524,6 +524,7 @@ class Log
     private static function _initFileHandle( string $fileDir, string $fileExt )
     {
         $filePath = $fileDir . $fileExt;
+        var_dump($filePath);
         if ( !is_dir( $fileDir ) )
         {
             if ( !mkdir( $fileDir, 0660, true ) )
