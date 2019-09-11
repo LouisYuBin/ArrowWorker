@@ -181,7 +181,12 @@ class SqlBuilder
      */
     public function Find()
     {
-        return $this->_getDb()->Query( $this->_parseSelect() );
+        $conn = $this->_getDb();
+        if( false===$conn )
+        {
+            return false;
+        }
+        return $conn->Query( $this->_parseSelect() );
     }
 
 
@@ -190,42 +195,65 @@ class SqlBuilder
      */
     public function Get()
     {
-        $data = $this->_getDb()->Query( $this->_parseSelect() );
+        $conn = $this->_getDb();
+        if( false===$conn )
+        {
+            return false;
+        }
+        $data = $conn->Query( $this->_parseSelect() );
+        unset($conn);
         return ($data === false) ? false : (count( $data ) > 0 ? $data[0] : []);
     }
 
     /**
      * @param array $data
-     * @return array
+     * @return bool|array
      */
     public function Insert( array $data )
     {
+        $conn = $this->_getDb();
+        if( false===$conn )
+        {
+            return false;
+        }
+
         $column = implode( ',', array_keys( $data ) );
         $values = "'" . implode( "','", $data ) . "'";
-        return $this->_getDb()->Execute( "insert into {$this->table}({$column}) values({$values})" );
+        return $conn->Execute( "insert into {$this->table}({$column}) values({$values})" );
     }
 
     /**
      * @param array $data
-     * @return array
+     * @return bool|array
      */
     public function Update( array $data )
     {
+        $conn = $this->_getDb();
+        if( false===$conn )
+        {
+            return false;
+        }
+
         $update = '';
         foreach ( $data as $key => $val )
         {
             $update .= is_array( $val ) && count( $val ) > 0 ? "{$key}={$key}{$val[0]}, " : "{$key}='{$val}', ";
         }
         $update = substr( $update, 0, -1 );
-        return $this->_getDb()->Execute( "update {$this->table} set {$update} {$this->where}" );
+        return $conn->Execute( "update {$this->table} set {$update} {$this->where}" );
     }
 
     /**
-     * @return array
+     * @return bool|array
      */
     public function Delete()
     {
-        return $this->_getDb()->Execute( "delete from {$this->table} {$this->where}" );
+        $conn = $this->_getDb();
+        if( false===$conn )
+        {
+            return false;
+        }
+        return $conn->Execute( "delete from {$this->table} {$this->where}" );
     }
 
     /**
