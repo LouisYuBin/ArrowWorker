@@ -513,6 +513,10 @@ class Log
         $logDir = self::$_baseDir . $module . '/';
         $logExt = $date.'.'.self::_getFileExt( $level );
         $logRes = self::_initFileHandle( $logDir, $logExt );
+        if( false===$logRes )
+        {
+            return false;
+        }
         self::$_fileHandlerMap[ $alias ] = $logRes;
         return fwrite( $logRes, $message );
     }
