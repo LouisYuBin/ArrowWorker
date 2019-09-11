@@ -62,6 +62,8 @@ class Log
      */
     const TCP_HEARTBEAT_PERIOD = 30;
 
+    const MODULE = __CLASS__;
+
     /**
      * bufSize : log buffer size 10M
      * @var int
@@ -97,7 +99,7 @@ class Log
      * @var array
      */
     private static $_writeType = [
-        'file'
+        'file',
     ];
 
     /**
@@ -116,7 +118,7 @@ class Log
         'host'     => '127.0.0.1',
         'port'     => '6379',
         'queue'    => 'ArrowLog',
-        'password' => ''
+        'password' => '',
     ];
 
     /**
@@ -223,7 +225,7 @@ class Log
             self::DumpExit( 'extension swoole does not installed/loaded.' );
         }
 
-        if ( (int)str_replace( '.', '', (new \ReflectionExtension( 'swoole' ))->getVersion() ) < 400 )
+        if ( (int)str_replace( '.', '', ( new \ReflectionExtension( 'swoole' ) )->getVersion() ) < 400 )
         {
             self::DumpExit( 'swoole version must be newer than 4.0 .' );
         }
@@ -255,20 +257,20 @@ class Log
             return;
         }
 
-        static::$_tcpConfig = isset( $config['tcp'] ) && is_array( $config['tcp'] ) ?
-            array_merge( static::$_tcpConfig, $config['tcp'] ) :
+        static::$_tcpConfig = isset( $config[ 'tcp' ] ) && is_array( $config[ 'tcp' ] ) ?
+            array_merge( static::$_tcpConfig, $config[ 'tcp' ] ) :
             static::$_tcpConfig;
 
-        static::$_redisConfig = isset( $config['redis'] ) && is_array( $config['redis'] ) ?
-            array_merge( static::$_redisConfig, $config['redis'] ) :
+        static::$_redisConfig = isset( $config[ 'redis' ] ) && is_array( $config[ 'redis' ] ) ?
+            array_merge( static::$_redisConfig, $config[ 'redis' ] ) :
             static::$_redisConfig;
 
-        static::$_bufSize    = $config['bufSize'] ?? static::$_bufSize;
-        static::$_chanSize   = $config['chanSize'] ?? static::$_bufSize;
-        static::$_baseDir    = $config['baseDir'] ?? static::$_baseDir;
-        static::$_writeType  = $config['type'] ?? static::$_writeType;
-        static::$outputLevel = $config['errorLevel'] ?? static::$outputLevel;
-        static::$logTimeZone = $config['timeZone'] ?? static::TIME_ZONE;
+        static::$_bufSize    = $config[ 'bufSize' ] ?? static::$_bufSize;
+        static::$_chanSize   = $config[ 'chanSize' ] ?? static::$_bufSize;
+        static::$_baseDir    = $config[ 'baseDir' ] ?? static::$_baseDir;
+        static::$_writeType  = $config[ 'type' ] ?? static::$_writeType;
+        static::$outputLevel = $config[ 'errorLevel' ] ?? static::$outputLevel;
+        static::$logTimeZone = $config[ 'timeZone' ] ?? static::TIME_ZONE;
         static::$StdoutFile  = static::$_baseDir . DIRECTORY_SEPARATOR . 'ArrowWorker.output';
         error_reporting( (int)static::$outputLevel );
         date_default_timezone_set( self::$logTimeZone );
@@ -289,18 +291,18 @@ class Log
 
                     static::$_toRedisChan = new swChan( static::$_chanSize );
                     static::$_redisClient = Redis::Init( [
-                                                             'host'     => static::$_redisConfig['host'],
-                                                             'port'     => static::$_redisConfig['port'],
-                                                             'password' => static::$_redisConfig['password']
-                                                         ],
-                                                         'log'
+                        'host'     => static::$_redisConfig[ 'host' ],
+                        'port'     => static::$_redisConfig[ 'port' ],
+                        'password' => static::$_redisConfig[ 'password' ],
+                    ],
+                        'log'
                     );
                     break;
 
                 case static::TO_TCP;
 
                     static::$_toTcpChan = new swChan( static::$_chanSize );
-                    static::$_tcpClient = Tcp::Init( static::$_tcpConfig['host'], static::$_tcpConfig['port'] );
+                    static::$_tcpClient = Tcp::Init( static::$_tcpConfig[ 'host' ], static::$_tcpConfig[ 'port' ] );
                     break;
 
                 default:
@@ -319,7 +321,7 @@ class Log
      */
     public static function Info( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'I');
+        self::_fillLog( $log, $module, 'I' );
     }
 
     /**
@@ -330,7 +332,7 @@ class Log
      */
     public static function Alert( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'A');
+        self::_fillLog( $log, $module, 'A' );
     }
 
     /**
@@ -340,7 +342,7 @@ class Log
      */
     public static function Debug( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'D');
+        self::_fillLog( $log, $module, 'D' );
     }
 
     /**
@@ -351,7 +353,7 @@ class Log
      */
     public static function Notice( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'N');
+        self::_fillLog( $log, $module, 'N' );
     }
 
     /**
@@ -362,7 +364,7 @@ class Log
      */
     public static function Warning( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'W');
+        self::_fillLog( $log, $module, 'W' );
     }
 
     /**
@@ -373,7 +375,7 @@ class Log
      */
     public static function Error( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'E');
+        self::_fillLog( $log, $module, 'E' );
     }
 
     /**
@@ -384,7 +386,7 @@ class Log
      */
     public static function Emergency( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'EM');
+        self::_fillLog( $log, $module, 'EM' );
     }
 
     /**
@@ -395,7 +397,7 @@ class Log
      */
     public static function Critical( string $log, string $module = '' )
     {
-        self::_fillLog($log, $module, 'C');
+        self::_fillLog( $log, $module, 'C' );
     }
 
     /**
@@ -403,11 +405,11 @@ class Log
      * @param string $module
      * @param string $level
      */
-    private static function _fillLog( string $log, string $module='', string $level='D')
+    private static function _fillLog( string $log, string $module = '', string $level = 'D' )
     {
-        $time  = date('Y-m-d H:i:s');
+        $time  = date( 'Y-m-d H:i:s' );
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}|{$module}|{$time} | {$logId} | $log".PHP_EOL );
+        self::$_msgObject->Write( "{$level}|{$module}|{$time} | {$logId} | $log" . PHP_EOL );
     }
 
     /**
@@ -433,7 +435,7 @@ class Log
      */
     public static function DumpExit( string $log )
     {
-        echo(PHP_EOL . static::_getTime().' '.$log . PHP_EOL);
+        echo( PHP_EOL . static::_getTime() . ' ' . $log . PHP_EOL );
         exit( 0 );
     }
 
@@ -452,13 +454,13 @@ class Log
      */
     private static function _initMsgInstance()
     {
-        if( !is_object(self::$_msgObject) )
+        if ( !is_object( self::$_msgObject ) )
         {
             self::$_msgObject = Chan::Get(
                 'log',
                 [
                     'msgSize' => static::$_msgSize,
-                    'bufSize' => static::$_bufSize
+                    'bufSize' => static::$_bufSize,
                 ]
             );
         }
@@ -470,14 +472,14 @@ class Log
     private static function _writeLogFile( string $log )
     {
         $logInfo = explode( '|', $log );
-        $level   = $logInfo[0];
-        $module  = $logInfo[1];
+        $level   = $logInfo[ 0 ];
+        $module  = $logInfo[ 1 ];
         $message = substr( $log, strlen( $level . $module ) + 2 );
 
         $tryTimes = 0;
         RETRY:
         //写日志失败则重试，重试3次
-        if ( false===self::_writeFile($module, $level, $message) )
+        if ( false === self::_writeFile( $module, $level, $message ) )
         {
             $tryTimes++;
             if ( $tryTimes < 3 )
@@ -493,15 +495,14 @@ class Log
      * @param string $message
      * @return bool|int
      */
-    private static function _writeFile( string $module, string $level, string $message)
+    private static function _writeFile( string $module, string $level, string $message )
     {
-        $fileExt  = self::_getFileExt($level);
-        $fileDir  = self::$_baseDir.$module.'/';
-        $filePath = $fileDir.date('Ymd').'.'.$fileExt;
-        if( isset(self::$_fileHandlerMap[$module]) )
+        $date  = date( 'Ymd' );
+        $alias = $module . $level . $date;
+        if ( isset( self::$_fileHandlerMap[ $alias ] ) )
         {
-            $result = fwrite(self::$_fileHandlerMap[$module], $message);
-            if( false===$result )
+            $result = fwrite( self::$_fileHandlerMap[ $alias ], $message );
+            if ( false === $result )
             {
                 goto _INIT;
             }
@@ -509,30 +510,38 @@ class Log
         }
 
         _INIT:
-        if( !is_dir($fileDir) )
+        $fileRes = self::_initFileHandle( self::$_baseDir . $module . '/', self::_getFileExt( $level ) );
+        self::$_fileHandlerMap[ $alias ] = $fileRes;
+        return fwrite( $fileRes, $message );
+    }
+
+    private static function _initFileHandle( string $fileDir, string $fileExt )
+    {
+        $filePath = $fileDir . $fileExt;
+        if ( !is_dir( $fileDir ) )
         {
-            if( !mkdir($fileDir,0660, true) )
+            if ( !mkdir( $fileDir, 0660, true ) )
             {
-                Log::Dump(" [ EMERGENCY ] make directory:{$fileDir} failed . ");
+                Log::Dump( " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
             }
         }
 
-        $fileRes = fopen($filePath,'a');
-        if( false===$fileRes )
+        $fileRes = fopen( $filePath, 'a' );
+        if ( false === $fileRes )
         {
-            Log::Dump(" [ EMERGENCY ] fopen file:{$filePath} failed failed . ");
+            Log::Dump( " [ EMERGENCY ] fopen log file:{$filePath} failed . " );
             return false;
         }
-        self::$_fileHandlerMap[$module] = $fileRes;
-        return fwrite($fileRes, $message);
+        return $fileRes;
     }
+
 
     /**
      * @param string $level
      * @return string
      */
-    private static function _getFileExt( string $level)
+    private static function _getFileExt( string $level )
     {
         $ext = '.log';
         switch ( $level )
@@ -598,7 +607,7 @@ class Log
         {
             if (
                 static::$isTerminate &&
-                self::$_msgObject->Status()['msg_qnum'] == 0
+                self::$_msgObject->Status()[ 'msg_qnum' ] == 0
             )
             {
                 break;
@@ -615,12 +624,12 @@ class Log
 
             static::$_toFileChan->push( $log, 1 );
 
-            if( in_array(static::TO_TCP, static::$_writeType) )
+            if ( in_array( static::TO_TCP, static::$_writeType ) )
             {
                 static::$_toTcpChan->push( $log, 1 );
             }
 
-            if( in_array(static::TO_REDIS, static::$_writeType) )
+            if ( in_array( static::TO_REDIS, static::$_writeType ) )
             {
                 static::$_toRedisChan->push( $log, 1 );
             }
@@ -648,7 +657,7 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep(1);
+                Co::sleep( 1 );
                 continue;
             }
 
@@ -673,13 +682,13 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep(1);
+                Co::sleep( 1 );
                 continue;
             }
 
-            if( false==static::$_tcpClient->Send( $data, 3) )
+            if ( false == static::$_tcpClient->Send( $data, 3 ) )
             {
-                Log::Dump("write tcp client failed. data : {$data}");
+                Log::Dump( "write tcp client failed. data : {$data}" );
             }
         }
         self::Dump( 'log tcp-writing coroutine exited' );
@@ -692,7 +701,7 @@ class Log
     {
         while ( true )
         {
-            $data = static::$_toRedisChan->pop(0.5 );
+            $data = static::$_toRedisChan->pop( 0.5 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -700,7 +709,7 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep(1);
+                Co::sleep( 1 );
                 continue;
             }
 
@@ -756,28 +765,28 @@ class Log
     {
         pcntl_signal( SIGALRM, [
             __CLASS__,
-            "signalHandler"
+            "signalHandler",
         ], false );
         pcntl_signal( SIGTERM, [
             __CLASS__,
-            "signalHandler"
+            "signalHandler",
         ], false );
 
         pcntl_signal( SIGCHLD, SIG_IGN, false );
         pcntl_signal( SIGQUIT, SIG_IGN, false );
 
-        pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
+        pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
     }
 
 
     /**
      * signalHandler : function for handle signal
-     * @author Louis
      * @param int $signal
+     * @author Louis
      */
     public static function signalHandler( int $signal )
     {
-        switch ($signal)
+        switch ( $signal )
         {
             case SIGALRM:
                 self::_handleAlarm();
@@ -794,19 +803,22 @@ class Log
      */
     private static function _handleAlarm()
     {
-        if( is_object(self::$_tcpClient) )
+        if ( is_object( self::$_tcpClient ) )
         {
-            self::$_tcpClient->Send('heartbeat');
+            self::$_tcpClient->Send( 'heartbeat' );
         }
-        pcntl_alarm(self::TCP_HEARTBEAT_PERIOD);
+        pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
     }
 
     /**
      * @param string $logId
      */
-    public static function SetLogId( string $logId='')
+    public static function SetLogId( string $logId = '' )
     {
-        self::$_logId[Swoole::GetCid()] = ''===$logId ? date('YmdHis').posix_getpid().Swoole::GetCid().mt_rand(100,999) : $logId;
+        self::$_logId[ Swoole::GetCid() ] = '' === $logId ? date( 'YmdHis' ) .
+                                                            posix_getpid() .
+                                                            Swoole::GetCid() .
+                                                            mt_rand( 100, 999 ) : $logId;
     }
 
     /**
@@ -814,7 +826,7 @@ class Log
      */
     public static function GetLogId() : string
     {
-        return self::$_logId[Swoole::GetCid()];
+        return self::$_logId[ Swoole::GetCid() ];
     }
 
     /**
@@ -822,7 +834,7 @@ class Log
      */
     public static function ReleaseLogId()
     {
-        unset(self::$_logId[Swoole::GetCid()]);
+        unset( self::$_logId[ Swoole::GetCid() ] );
     }
 
 }
