@@ -100,6 +100,7 @@ class Mysqli
         }
 
         _RETRY:
+        var_dump(self::$pool[$alias]);
         $conn = self::$pool[$alias]->pop( 1 );
         var_dump($conn);
         if ( false === $conn )
