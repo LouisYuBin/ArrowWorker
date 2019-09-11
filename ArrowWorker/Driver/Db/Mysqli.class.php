@@ -102,7 +102,7 @@ class Mysqli
         _RETRY:
         var_dump('alias',self::$pool[$alias]);
         $conn = self::$pool[$alias]->pop( 1 );
-        var_dump($conn);
+        var_dump('conn ', $conn);
         if ( false === $conn )
         {
             goto _RETRY;
