@@ -511,7 +511,7 @@ class Log
 
         _INIT:
         $logDir = self::$_baseDir . $module . '/';
-        $logExt = $date.self::_getFileExt( $level );
+        $logExt = $date.'.'.self::_getFileExt( $level );
         $logRes = self::_initFileHandle( $logDir, $logExt );
         self::$_fileHandlerMap[ $alias ] = $logRes;
         return fwrite( $logRes, $message );
