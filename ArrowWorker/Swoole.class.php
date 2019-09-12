@@ -15,11 +15,12 @@ use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;
 use \Swoole\Http\Response as SwResponse;
 
+use \ArrowWorker\Web\Router;
 use \ArrowWorker\Web\Response;
 use \ArrowWorker\Web\Request;
-use \ArrowWorker\Web\Router;
 use \ArrowWorker\Web\Session;
 use \ArrowWorker\Web\Cookie;
+
 
 /**
  * Class Swoole
@@ -231,12 +232,7 @@ class Swoole
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Router::Exec();
 
-            Cookie::Release();
-            Request::Release();
-            Response::Release();
-            Memory::Release();
             Component::Release();
-            Log::ReleaseLogId();
         });
 
         $server->start();
@@ -270,15 +266,13 @@ class Swoole
                 $request->rawContent()
             );
             $function($server, $request->fd);
-            Component::Release();
-            Log::ReleaseLogId();
+            Component::Release(2);
         });
         $server->on('message', function(WebSocket $server, Frame $frame) use ( $config ) {
             Log::SetLogId();
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['message'];
             $function($server, $frame);
-            Component::Release();
-            Log::ReleaseLogId();
+            Component::Release(2);
         });
         $server->on('request', function( SwRequest $request, SwResponse $response ) {
             Log::SetLogId();
@@ -294,19 +288,13 @@ class Swoole
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Session::Reset();
             Router::Exec();
-
-            Cookie::Release();
-            Request::Release();
-            Response::Release();
-            Memory::Release();
             Component::Release();
-            Log::ReleaseLogId();
         });
         $server->on('close',   function(WebSocket $server, int $fd) use ($config) {
             Log::SetLogId();
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
             $function($server, $fd);
-            Log::ReleaseLogId();
+            Component::Release(2);
         });
         $server->start();
     }
@@ -326,22 +314,19 @@ class Swoole
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['connect'];
             Log::SetLogId();
             $function($server, $fd);
-            Log::ReleaseLogId();
-            Component::Release();
+            Component::Release(2);
         });
         $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['receive'];
             Log::SetLogId();
             $function($server, $fd, $data);
-            Log::ReleaseLogId();
-            Component::Release();
+            Component::Release(2);
         });
         $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
             Log::SetLogId();
             $function($server, $fd);
-            Log::ReleaseLogId();
-            Component::Release();
+            Component::Release(2);
         });
         $server->start();
     }
@@ -361,22 +346,20 @@ class Swoole
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['connect'];
             Log::SetLogId();
             $function($server, $fd);
-            Log::ReleaseLogId();
-            Component::Release();
+            Log::Release();
+            Component::Release(2);
         });
         $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['receive'];
             Log::SetLogId();
             $function($server, $fd, $data);
-            Log::ReleaseLogId();
-            Component::Release();
+            Component::Release(2);
         });
         $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
             $function = static::CONTROLLER_NAMESPACE.$config['handler']['close'];
             Log::SetLogId();
             $function($server, $fd);
-            Log::ReleaseLogId();
-            Component::Release();
+            Component::Release(2);
         });
         $server->start();
     }

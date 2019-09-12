@@ -69,7 +69,6 @@ class Session
 
     public static function Reset()
     {
-        static::$token = '';
         static::getSessionId();
     }
 
@@ -192,24 +191,25 @@ class Session
      */
     private static function getSessionId()
     {
+        $coId  = Swoole::GetCid();
         $token = Cookie::Get(static::$tokenKey);
         if( false!==$token )
         {
-            static::$token = $token;
+            static::$token[$coId] = $token;
             return ;
         }
 
         $token = Request::Get(static::$tokenKey);
         if( false!==$token )
         {
-            static::$token = $token;
+            static::$token[$coId] = $token;
             return ;
         }
 
         $token = Request::Post(static::$tokenKey);
         if( false!==$token )
         {
-            static::$token = $token;
+            static::$token[$coId] = $token;
             return ;
         }
 
@@ -223,7 +223,7 @@ class Session
     private static function setSessionCookie() : bool
     {
         return Cookie::Set(static::$tokenKey,
-            static::$token,
+            static::$token[Swoole::GetCid()],
             static::$config['cookie']['expire'],
             static::$config['cookie']['path'],
             static::$config['cookie']['domain'],
@@ -237,14 +237,25 @@ class Session
      */
     static function generateSession()
     {
+        $coId = Swoole::GetCid();
         //session id为自动生成
-        if( static::$token != '' )
+        if( static::$token[$coId] != '' )
         {
             return ;
         }
 
-        static::$token = static::$config['prefix'].crc32( Request::Server('REMOTE_ADDR') . microtime(false) . mt_rand(1,1000000) );
+        static::$token[$coId] = static::$config['prefix'].crc32( Request::Server('REMOTE_ADDR') . microtime(false) . mt_rand(1,1000000) );
         static::setSessionCookie();
+    }
+
+    public static function Release()
+    {
+        $coId = Swoole::GetCid();
+
+        if( isset(static::$token[$coId]) )
+        {
+            unset( static::$token[$coId] );
+        }
     }
 
 }

@@ -6,9 +6,36 @@
 namespace ArrowWorker;
 
 
+/**
+ * Class Component
+ * @package ArrowWorker
+ */
 class Component
 {
-    public static function Init(array $components)
+    /**
+     *
+     */
+    const WEB_RELEASE_COMPONENTS = [
+        '\ArrowWorker\Web\Cookie',
+        '\ArrowWorker\Web\Request',
+        '\ArrowWorker\Web\Response',
+        '\ArrowWorker\Web\Session',
+        '\ArrowWorker\Memory',
+        '\ArrowWorker\Log',
+        '\ArrowWorker\Db'
+    ];
+
+    /**
+     *
+     */
+    const BASE_RELEASE_COMPONENTS = [
+        '\ArrowWorker\Log'
+    ];
+
+    /**
+     * @param array $components
+     */
+    public static function Init( array $components)
     {
         foreach ( $components as $key=>$config )
         {
@@ -22,9 +49,16 @@ class Component
         }
     }
 
-    public static function Release()
+    /**
+     * @param int $type
+     */
+    public static function Release( int $type=1)
     {
-        Db::Release();
+        $components = 1==$type ? self::WEB_RELEASE_COMPONENTS : self::BASE_RELEASE_COMPONENTS;
+        foreach ($components as $componentName)
+        {
+            $componentName::Release();
+        }
     }
 
 }

@@ -886,7 +886,7 @@ class Log
     /**
      *
      */
-    public static function ReleaseLogId()
+    public static function Release()
     {
         unset( self::$_logId[ Swoole::GetCid() ] );
     }

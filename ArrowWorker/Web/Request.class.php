@@ -298,7 +298,7 @@ class Request
     public static function Release()
     {
         $coId = Swoole::GetCid();
-        unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], static::$_parameters[ $coId ], static::$_header[ $coId ], $coId);
+        unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], static::$_parameters[ $coId ], static::$_header[ $coId ], static::$_raw[$coId], static::$_routeType[$coId], $coId);
     }
 
     private static function _logRequest()

@@ -75,10 +75,12 @@ class Response
      */
     public static function Headers(array $data)
     {
+        $coId = Swoole::GetCid();
         foreach ($data as $key=>$val)
         {
-            static::$_response[Swoole::GetCid()]->header($key, $val);
+            static::$_response[ $coId ]->header($key, $val);
         }
+        unset($coId);
     }
 
 

@@ -16,23 +16,6 @@ use ArrowWorker\Lib\Crypto\CryptoArrow;
  */
 class Cookie
 {
-    /**
-     * swoole response handler
-     * @var null
-     */
-    private static $repsonse = null;
-
-    /**
-     * cookie prefix
-     * @var string
-     */
-    private static $prefix = "";
-
-    /**
-     * default cookie prefix
-     * @var string
-     */
-    private static $defaultPrefix = "louis";
 
     /**
      * Init : init cookie and swoole response handler
@@ -88,7 +71,6 @@ class Cookie
     {
         unset($_COOKIE[Swoole::GetCid()]);
     }
-
 
 
 }
