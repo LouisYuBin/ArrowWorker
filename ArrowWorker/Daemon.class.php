@@ -492,7 +492,7 @@ class Daemon
      */
     private static function _status()
     {
-        Log::DumpExit(static::_processStatus());
+        exit(static::_processStatus());
     }
 
     /**
