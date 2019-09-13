@@ -506,7 +506,7 @@ class Daemon
             $keyword = 'index.php' ;
         }
         $commend = "ps -e -o 'user,pid,ppid,args,pcpu,%mem' | grep {$keyword}";
-        $output  = 'user / pid / ppid / process name / cpu usage / memory usage'.PHP_EOL;
+        $output  = 'user | pid | ppid | process name | cpu usage | memory usage'.PHP_EOL;
         $results = LoadAverage::Exec($commend);
         foreach ($results as $key=>$item)
         {
