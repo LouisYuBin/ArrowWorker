@@ -5,6 +5,7 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Driver\Memory\SwTable;
 use \Swoole\Table;
 
 class Memory
@@ -19,23 +20,16 @@ class Memory
     /**
      *
      */
-    const DATA_TYPE   = ['int', 'string', 'float'];
-
-    /**
-     * @var
-     */
-    private static $_instance;
+    const DATA_TYPE = [
+        'int',
+        'string',
+        'float',
+    ];
 
     /**
      * @var array
      */
     private static $_pool = [];
-
-    /**
-     * @var string
-     */
-    private static $_current = [];
-
 
     /**
      * Memory constructor.
@@ -50,21 +44,25 @@ class Memory
      */
     public static function Init()
     {
-        $config = Config::Get(static::CONFIG_NAME);
-        foreach ($config as $key=>$value)
+        $config = Config::Get( static::CONFIG_NAME );
+        foreach ( $config as $key => $value )
         {
-            if( !isset($value['size']) || !isset($value['column']) || count($value['column'])==0 )
+            if ( !isset( $value[ 'size' ] ) || !isset( $value[ 'column' ] ) || count( $value[ 'column' ] ) == 0 )
             {
-                Log::Error("memory Table(key:{$key}) config is incorrect.", self::LOG_NAME);
-                continue ;
+                Log::Error( "memory Table( key : {$key} ) config is incorrect.", self::LOG_NAME );
+                continue;
             }
 
-            $structure = static::_parseTableColumn($value['column']);
-            if( count($structure)==0)
+            $structure = self::_parseTableColumn( $value[ 'column' ] );
+            if ( count( $structure ) == 0 )
             {
-                continue ;
+                continue;
             }
-            static::$_pool[$key] = static::_initOneTable($value['size'], $structure);
+            $swTable = new SwTable( $structure,  $value[ 'size' ] );
+            if( $swTable->Create() )
+            {
+                self::$_pool[ $key ] = $swTable;
+            }
         }
     }
 
@@ -72,32 +70,32 @@ class Memory
      * @param array $columns
      * @return array
      */
-    private static function _parseTableColumn(array $columns) : array
+    private static function _parseTableColumn( array $columns ) : array
     {
         $structure = [];
-        foreach ($columns as $name=>$type)
+        foreach ( $columns as $name => $type )
         {
-            if( !in_array($type,static::DATA_TYPE) )
+            if ( !in_array( $type, static::DATA_TYPE ) )
             {
-                Log::Error('memory column type is incorrect.', self::LOG_NAME);
+                Log::Error( 'memory column type is incorrect.', self::LOG_NAME );
                 continue;
             }
-            switch($type)
+            switch ( $type )
             {
                 case 'int':
-                    $structure[$name] = [
+                    $structure[ $name ] = [
                         'type' => Table::TYPE_INT,
                         'len'  => 8,
                     ];
                     break;
                 case 'string':
-                    $structure[$name] = [
+                    $structure[ $name ] = [
                         'type' => Table::TYPE_STRING,
                         'len'  => 128,
                     ];
                     break;
                 default:
-                    $structure[$name] = [
+                    $structure[ $name ] = [
                         'type' => Table::TYPE_FLOAT,
                         'len'  => 8,
                     ];
@@ -107,116 +105,16 @@ class Memory
     }
 
     /**
-     * @param int   $size
-     * @param array $structure
-     * @return Table
-     */
-    private static function _initOneTable(int $size, array $structure) : Table
-    {
-        $table = new Table($size);
-        foreach ($structure as $name=>$property)
-        {
-            if( $property['type']==Table::TYPE_FLOAT)
-            {
-                $table->column($name, $property['type']);
-                continue ;
-            }
-            $table->column($name, $property['type'], $property['len']);
-        }
-
-        if( !$table->create() )
-        {
-            Log::Error('create memory table failed, config is : '.json_encode($structure), self::LOG_NAME);
-        }
-        return $table;
-    }
-
-    /**
      * @param string $name
-     * @return self
+     * @return bool|SwTable
      */
-    public static function Get(string $name)
+    public static function Get( string $name )
     {
-        static::$_current[Swoole::GetCid()] = $name;
-        if( !is_object(static::$_instance) )
+        if( isset(self::$_pool[ $name ]) )
         {
-            static::$_instance = new self();
+            return self::$_pool[ $name ];
         }
-
-        return static::$_instance;
-    }
-
-    /**
-     * @param string $key
-     * @return array
-     */
-    public function Read(string $key)
-    {
-        return $this->_getCurrent()->get($key);
-    }
-
-    /**
-     * @return array
-     */
-    public function ReadAll()
-    {
-        $list     = [];
-        $instance = $this->_getCurrent();
-        foreach ($instance as $key=>$value)
-        {
-            $list[$key] = $value;
-        }
-        return $list;
-    }
-
-    /**
-     * @param string $key
-     * @param array  $value
-     * @return bool
-     */
-    public function Write(string $key, array $value) : bool
-    {
-        return $this->_getCurrent()->set($key, $value);
-    }
-
-    /**
-     * @param string $key
-     * @return bool
-     */
-    public function IsKeyExists(string $key) : bool
-    {
-        return $this->_getCurrent()->exist($key);
-    }
-
-    /**
-     * @param int $key
-     * @return int
-     */
-    public function Count(int $key) : int
-    {
-        return $this->_getCurrent()->count($key);
-    }
-
-    /**
-     * @return mixed
-     */
-    private function _getCurrent()
-    {
-        return static::$_pool[static::$_current[Swoole::GetCid()]];
-    }
-
-    /**
-     * @param string $key
-     * @return bool
-     */
-    public function Delete(string $key) : bool
-    {
-        return $this->_getCurrent()->del($key);
-    }
-
-    public static function Release()
-    {
-        unset( static::$_current[Swoole::GetCid()] );
+        return false;
     }
 
 }

@@ -8,6 +8,7 @@
 namespace App\Controller;
 use App\Model\ArrowWorker;
 use ArrowWorker\Db;
+use ArrowWorker\Memory;
 use ArrowWorker\Web\Cookie;
 use ArrowWorker\Driver;
 use ArrowWorker\Lib\Validation\ValidateImg;
@@ -33,6 +34,19 @@ class Index
              var_dump(ArrowWorker::GetOne());
         }
         var_dump(ArrowWorker::GetList());
+
+        $key = 'memory_test';
+        var_dump(Memory::Get('clients')->Write($key,[
+            'id'        => 1,
+            'token'     => 'token'.mt_rand(100,999),
+            'name'      => 'name'.mt_rand(100,999),
+            'loginTime' => date('Y-m-d H:i:s')
+        ]));
+
+        var_dump(Memory::Get('clients'));
+
+        var_dump(Memory::Get('clients')->Read($key));
+
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 

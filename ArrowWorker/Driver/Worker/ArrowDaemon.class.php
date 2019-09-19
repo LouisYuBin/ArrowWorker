@@ -17,6 +17,7 @@ use Swoole\Coroutine as Co;
 use Swoole\Event as SwEvent;
 use ArrowWorker\Config;
 use ArrowWorker\Db;
+use \swoole\Runtime;
 
 
 /**
@@ -518,6 +519,7 @@ class ArrowDaemon extends Worker
         $this->_setProcessAlarm( $lifecycle );
         $this->_setProcessName( self::$jobs[$index]['processName'] );
         self::_setUser();
+        Runtime::enableCoroutine();
         Component::Init(self::$jobs[$index]['components']);
         $this->_runProcessTask( $index );
     }

@@ -187,6 +187,8 @@ class ArrowWorker
             'ArrowWorker\Driver\Channel\Queue'      => ArrowWorker . '/Driver/Channel/Queue' .      self::classExt,
 			'ArrowWorker\Driver\Session\RedisSession' => ArrowWorker . '/Driver/Session/RedisSession' . self::classExt,
             'ArrowWorker\Driver\Session\MemcachedSession' => ArrowWorker . '/Driver/Session/MemcachedSession' . self::classExt,
+
+            'ArrowWorker\Driver\Memory\SwTable' => ArrowWorker . '/Driver/Memory/SwTable' . self::classExt,
         ];
     }
 

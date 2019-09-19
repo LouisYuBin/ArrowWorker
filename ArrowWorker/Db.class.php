@@ -48,7 +48,7 @@ class Db extends Driver
 
     /**
      * @param string $alias
-     * @return Mysqli
+     * @return false|Mysqli
      */
     public static function Get( string $alias=self::DEFAULT_ALIAS )
     {

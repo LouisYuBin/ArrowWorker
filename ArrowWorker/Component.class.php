@@ -20,7 +20,6 @@ class Component
         '\ArrowWorker\Web\Request',
         '\ArrowWorker\Web\Response',
         '\ArrowWorker\Web\Session',
-        '\ArrowWorker\Memory',
         '\ArrowWorker\Log',
         '\ArrowWorker\Db'
     ];
