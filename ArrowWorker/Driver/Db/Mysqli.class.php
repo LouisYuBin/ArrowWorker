@@ -7,13 +7,14 @@
 
 namespace ArrowWorker\Driver\Db;
 
+use ArrowWorker\Driver\Db;
 use ArrowWorker\Log;
 
 /**
  * Class Mysqli
  * @package ArrowWorker\Driver\Db
  */
-class Mysqli
+class Mysqli implements Db
 {
     /**
      *

@@ -1,32 +1,59 @@
 <?php
 /**
- * User: Arrow
- * Date: 2016/8/1
- * Time: 19:48
+ * By yubin at 2019-09-19 18:00.
  */
 
 namespace ArrowWorker\Driver;
 
 
-class Db
+use ArrowWorker\Log;
+
+interface Db
 {
-    //数据库连接池
-    protected static $connPool = [];
-    //单例模式对象
-    protected static $instance;
-    //数据库配置
-    protected static $config = [];
-    //当前选择的数据库连接
-    protected static $dbCurrent = null;
 
-    protected function __construct($config)
-    {
-        //Todo
-    }
+    public function __construct( array $config );
 
-    public static function GetConnection()
-    {
-        return self::$instance;
-    }
+    /**
+     * @return bool
+     */
+    public function InitConnection();
+
+
+    /**
+     * 查询
+     * @param string $sql
+     * @return array|bool
+     */
+    public function Query( string $sql );
+
+    /**
+     * execute 写入或更新
+     * @param string $sql
+     * @return array
+     */
+    public function Execute( string $sql );
+
+
+    /**
+     * Begin 开始事务
+     */
+    public function Begin();
+
+    /**
+     * Commit 提交事务
+     */
+    public function Commit();
+
+    /**
+     * Rollback 事务回滚
+     */
+    public function Rollback();
+
+
+    /**
+     * Autocommit 是否自动提交
+     * @param bool $flag
+     */
+    public function Autocommit( bool $flag );
 
 }
