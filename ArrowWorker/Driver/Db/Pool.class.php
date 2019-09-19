@@ -118,8 +118,8 @@ class Pool
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
                 $driver = "ArrowWorker\\Driver\\Db\\".$config['driver'];
-                $conn = (new $driver( $config ))->_initConnection();
-                if( false==$conn )
+                $conn = new $driver( $config );
+                if( false===$conn->InitConnection() )
                 {
                     Log::Warning("initialize mysqli connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;

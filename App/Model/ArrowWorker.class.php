@@ -32,7 +32,7 @@ class ArrowWorker
     public static function GetList()
     {
         $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Db::Table("project")->Where('id>0')->Column($column)->Limit(0,10)->Find();
+        return Db::Table("project")->Where('id>0')->Column($column)->Limit(0,2)->Find();
     }
 
     //写入数据

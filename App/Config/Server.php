@@ -5,7 +5,7 @@ return [
         'type'             => 'web',
         'host'             => '0.0.0.0',
         'port'             => 4433,
-        'workerNum'        => 4,
+        'workerNum'        => 1,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
@@ -19,7 +19,12 @@ return [
         'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
-        '404'              => APP_PATH.'/Static/Web/404.html'
+        '404'              => APP_PATH.'/Static/Web/404.html',
+        'components' => [
+            'db' => [
+                'default' => 2
+            ]
+        ]
     ],
     [
         'type'             => 'webSocket',
@@ -53,7 +58,7 @@ return [
         'type'             => 'tcp',
         'host'             => '0.0.0.0',
         'port'             => 9505,
-        'workerNum'        => 4,
+        'workerNum'        => 1,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
@@ -72,6 +77,11 @@ return [
             'connect' => 'Tcp::Connect',
             'receive' => 'Tcp::Receive',
             'close'   => 'Tcp::Close'
+        ],
+        'components' => [
+            'db' => [
+                'default' => 2
+            ]
         ]
     ],
 /*

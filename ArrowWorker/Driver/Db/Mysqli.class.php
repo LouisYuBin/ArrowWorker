@@ -46,9 +46,9 @@ class Mysqli
     }
 
     /**
-     * @return false|Mysqli
+     * @return bool
      */
-    public function _initConnection()
+    public function InitConnection()
     {
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
@@ -61,7 +61,7 @@ class Mysqli
         {
             Log::Warning( "mysqi set names(charset) failed.", self::LOG_NAME );
         }
-        return $this;
+        return true;
     }
 
 
@@ -145,25 +145,21 @@ class Mysqli
         $isRetried = false;
         _RETRY:
         $result = $this->_conn->query( $sql );
-        if(false !== $result )
+        if(false !== $result && !is_null($result) )
         {
             Log::Debug( $sql, self::SQL_LOG_NAME );
             return $result;
         }
 
-        if( $isRetried )
+        if( 0!==$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
-            Log::Error( "Sql Error : {$sql}, error no : {$this->_conn->error}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
-            return false;
-        }
-
-        if( $this->_conn->ping() )  //check and reconnect
-        {
+            Log::Warning( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", self::LOG_NAME );
+            self::InitConnection();
             $isRetried = true;
             goto _RETRY;
         }
 
-        Log::Error( "connection is not available : {$sql}", self::SQL_LOG_NAME );
+        Log::Error( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
         return false;
     }
 

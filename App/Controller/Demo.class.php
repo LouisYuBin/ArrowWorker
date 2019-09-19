@@ -7,6 +7,7 @@
 
 namespace App\Controller;
 
+use App\Model\ArrowWorker;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;
@@ -48,6 +49,11 @@ class Demo
 
         $writeResult = Chan::Get()->Write("app".mt_rand(1,1000));
         Log::Info($writeResult);
+
+
+        var_dump(ArrowWorker::GetOne());
+        var_dump(ArrowWorker::GetList());
+
         Coroutine::sleep(1);
     }
 
@@ -59,6 +65,11 @@ class Demo
         {
             return false;
         }
+
+        var_dump(ArrowWorker::GetOne());
+        var_dump(ArrowWorker::GetList());
+
+
         Chan::Get('arrow')->Write($result);
         return true;
     }
@@ -73,6 +84,10 @@ class Demo
         {
             return false;
         }
+
+        var_dump(ArrowWorker::GetOne());
+        var_dump(ArrowWorker::GetList());
+
 		Chan::Get('test')->Write($result);
         return true;
     }
@@ -84,6 +99,10 @@ class Demo
 		{
 			return false;
 		}
+
+        var_dump(ArrowWorker::GetOne());
+        var_dump(ArrowWorker::GetList());
+
 		return true;
 	}
 
