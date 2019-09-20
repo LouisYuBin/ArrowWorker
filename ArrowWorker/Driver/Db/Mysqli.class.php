@@ -16,15 +16,6 @@ use ArrowWorker\Log;
  */
 class Mysqli implements Db
 {
-    /**
-     *
-     */
-    const LOG_NAME          = 'Db';
-
-    /**
-     *
-     */
-    const SQL_LOG_NAME      = 'Sql';
 
 
     /**

@@ -7,6 +7,7 @@ namespace ArrowWorker;
 
 
 use ArrowWorker\Driver\Db\Mysqli;
+use ArrowWorker\Driver\Db\Pdo;
 use ArrowWorker\Driver\Db\Pool;
 use ArrowWorker\Driver\Db\SqlBuilder;
 
@@ -14,13 +15,9 @@ use ArrowWorker\Driver\Db\SqlBuilder;
  * Class Db
  * @package ArrowWorker
  */
-class Db extends Driver
+class Db
 {
 
-    /**
-     *
-     */
-    const DEFAULT_DRIVER = 'ArrowWorker\Driver\Db\Mysqli';
 
     /**
      *
@@ -48,7 +45,7 @@ class Db extends Driver
 
     /**
      * @param string $alias
-     * @return false|Mysqli
+     * @return false|Mysqli|Pdo
      */
     public static function Get( string $alias=self::DEFAULT_ALIAS )
     {
@@ -60,7 +57,7 @@ class Db extends Driver
      */
     public static function Release()
     {
-        Pool::ReturnConnection();
+        Pool::Release();
     }
 
 }

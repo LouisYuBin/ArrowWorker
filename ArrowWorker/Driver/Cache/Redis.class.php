@@ -6,7 +6,8 @@
  */
 
 namespace ArrowWorker\Driver\Cache;
-use ArrowWorker\Driver\Cache as cache;
+
+use ArrowWorker\Driver\Cache;
 use ArrowWorker\Log;
 
 
@@ -14,72 +15,58 @@ use ArrowWorker\Log;
  * Class Redis
  * @package ArrowWorker\Driver\Cache
  */
-class Redis extends cache
+class Redis implements Cache
 {
 
 
     /**
-     * init 类初始化
-     * @author Louis
-     * @param $config
-     * @param $alias
-     * @return Redis
+     * @var \Redis
      */
-    static function Init($config, $alias) : self
-    {
-        if( !isset( self::$config[$alias] ))
-        {
-            self::$config[$alias] = $config;
-        }
-        self::$current = $alias;
-
-        if(!self::$instance)
-        {
-            self::$instance = new self($config);
-        }
-
-        return self::$instance;
-    }
-
+    private $_conn;
 
     /**
-     * _getConnection 获取redis连接
-     * @author Louis
-     * @return \Redis
+     * @var array
      */
-    private function _getConnection() : \Redis
+    private $_config = [];
+
+    /**
+     * @param array $config
+     */
+    public function __construct( array $config )
     {
-        if( !isset( self::$connPool[self::$current] ) )
-        {
-            $currentConfig = self::$config[self::$current];
-            $conn = new \Redis();
-            if( !$conn->connect($currentConfig['host'],$currentConfig['port']) )
-            {
-                Log::Error("connect redis failed, reason : ".$conn->getLastError());
-            }
-
-            //check authorisation
-            if(isset($currentConfig['password']))
-            {
-                if( !$conn->auth($currentConfig['password']) )
-                {
-                    Log::Error("redis auth failed, reason : ".$conn->getLastError());
-                }
-            }
-
-            //select db
-            if(isset($currentConfig['db']))
-            {
-                if( !$conn->select($currentConfig['db']) )
-                {
-                    Log::Error("redis auth failed, reason : ".$conn->getLastError());
-                }
-            }
-            self::$connPool[self::$current] = $conn;
-        }
-        return self::$connPool[self::$current];
+        $this->_config = $config;
     }
 
+    /**
+     * @return bool
+     */
+    public function InitConnection() : bool
+    {
+        @$this->_conn = new \Redis();
+
+        if ( false === $this->_conn->connect( $this->_config['host'], $this->_config['port'] ) )
+        {
+            Log::Warning( "connect redis failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config), self::LOG_NAME );
+            return false;
+        }
+
+        if( ''==$this->_config['password'] )
+        {
+            return true;
+        }
+
+        if( !$this->_conn->auth( $this->_config['password'] ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _handleFailure()
+    {
+
+    }
 
 	/**
 	 * Db 选择数据库
@@ -88,7 +75,7 @@ class Redis extends cache
 	 */
 	public function Db(int $dbName) : bool
     {
-        return $this->_getConnection()->select( $dbName );
+         $this->_conn->select( $dbName );
     }
 
 
@@ -100,7 +87,7 @@ class Redis extends cache
 	 */
 	public function Set(string $key, string $val) : bool
     {
-        return $this->_getConnection()->set( $key, $val );
+        return $this->_conn->set( $key, $val );
     }
 
 
@@ -111,7 +98,7 @@ class Redis extends cache
 	 */
 	public function Get(string $key)
     {
-        return $this->_getConnection()->get($key);
+        return $this->_conn->get($key);
     }
 
 
@@ -122,9 +109,9 @@ class Redis extends cache
 	 * @param mixed $val
 	 * @return int|false
 	 */
-	public function Lpush(string $queue, string $val)
+	public function LPush(string $queue, string $val)
     {
-        return $this->_getConnection()->lPush( $queue, $val );
+        return $this->_conn->lPush( $queue, $val );
     }
 
 
@@ -135,9 +122,9 @@ class Redis extends cache
 	 * @param mixed $val
 	 * @return int|false
 	 */
-	public function Rpush(string $queue, string $val)
+	public function RPush(string $queue, string $val)
     {
-        return $this->_getConnection()->rPush( $queue, $val );
+        return $this->_conn->rPush( $queue, $val );
     }
 
 
@@ -147,9 +134,9 @@ class Redis extends cache
 	 * @return string|false
 	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
 	 */
-	public function Rpop(string $queue)
+	public function RPop(string $queue)
     {
-        return $this->_getConnection()->rPop( $queue);
+        return $this->_conn->rPop( $queue);
     }
 
 	/**
@@ -158,9 +145,9 @@ class Redis extends cache
 	 * @return string|false
 	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
 	 */
-	public function Lpop(string $queue)
+	public function LPop(string $queue)
     {
-        return $this->_getConnection()->lPop( $queue);
+        return $this->_conn->lPop( $queue);
     }
 
 
@@ -177,7 +164,7 @@ class Redis extends cache
 	 */
 	public function BrPop(int $timeout, string ...$queue )
     {
-        return $this->_getConnection() ->brPop ( $queue, $timeout );
+        return $this->_conn->brPop ( $queue, $timeout );
     }
 
 	/**
@@ -193,7 +180,7 @@ class Redis extends cache
 	 */
 	public function BlPop(int $timeout, string ...$queue)
     {
-        return $this->_getConnection() ->blPop ( $queue, $timeout );
+        return $this->_conn->blPop ( $queue, $timeout );
     }
 
 	/**
@@ -204,9 +191,9 @@ class Redis extends cache
 	 * @return mixed
 	 *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
 	 */
-	public function Hset(string $key, string $hashKey, string $value)
+	public function HSet(string $key, string $hashKey, string $value)
     {
-        return $this->_getConnection() ->Hset ( $key, $hashKey, $value);
+        return $this->_conn->Hset ( $key, $hashKey, $value);
     }
 
 	/**
@@ -216,21 +203,22 @@ class Redis extends cache
 	 * @return mixed
 	 * 		STRING The value, if the command executed successfully BOOL FALSE in case of failure
 	 */
-	public function Hget(string $key, string $hashKey)
+	public function HGet(string $key, string $hashKey)
     {
-        return $this->_getConnection() ->hGet ( $key, $hashKey );
+        return $this->_conn->hGet ( $key, $hashKey );
     }
 
 
 	/**
 	 * Hlen hashTable 长度
 	 * @param string $key
+     * @param string $hashKey
 	 * @return mixed
 	 *     LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
 	 */
-	public function Hlen(string $key)
+	public function Hlen(string $key, string $hashKey)
     {
-        return $this->_getConnection() ->hGet ( $key );
+        return $this->_conn->hGet ( $key, $hashKey);
     }
 
 
@@ -241,7 +229,7 @@ class Redis extends cache
 	 */
 	public function Ping()
     {
-        return $this->_getConnection() ->ping ();
+        return $this->_conn->ping ();
     }
 
 
@@ -251,7 +239,7 @@ class Redis extends cache
 	 */
 	public function close()
     {
-        return $this->_getConnection() ->close();
+        return $this->_conn->close();
     }
 
 }

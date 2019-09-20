@@ -1,9 +1,9 @@
 <?php
 /**
- * By yubin at 2019-09-11 10:53.
+ * By yubin at 2019-09-11 18:02.
  */
 
-namespace ArrowWorker\Driver\Db;
+namespace ArrowWorker\Driver\Cache;
 
 
 use ArrowWorker\Config;
@@ -12,27 +12,24 @@ use ArrowWorker\Swoole;
 use Swoole\Coroutine\Channel as swChan;
 use ArrowWorker\Driver\Pool as ConnPool;
 
-
-/**
- * Class Pool
- * @package ArrowWorker\Driver\Db
- */
 class Pool implements ConnPool
 {
-    /**
-     *
-     */
-    const LOG_NAME          = 'Db';
 
     /**
      *
      */
-    const CONFIG_NAME       = 'Db';
+    const LOG_NAME          = 'Cache';
+
 
     /**
      *
      */
-    const DEFAULT_DRIVER = 'Mysqli';
+    const CONFIG_NAME       = 'Cache';
+
+    /**
+     *
+     */
+    const DEFAULT_DRIVER    = 'Redis';
 
     /**
      * @var array
@@ -83,17 +80,14 @@ class Pool implements ConnPool
 
             //ignore incorrect config
             if (
-                !isset( $value['driver'] )   ||
-                !in_array($value['driver'], ['Mysqli', 'Pdo']) ||
-                !isset( $value['host'] )     ||
-                !isset( $value['dbName'] )   ||
-                !isset( $value['userName'] ) ||
-                !isset( $value['password'] ) ||
-                !isset( $value['port'] )     ||
-                !isset( $value['charset'] )
+                !isset( $value['driver'] ) ||
+                !in_array($value['driver'], ['Redis', 'Memcached'] ) ||
+                !isset( $value['host'] )   ||
+                !isset( $value['port'] )   ||
+                !isset( $value['password'] )
             )
             {
-                Log::Error( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
+                Log::Warning( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
                 continue;
             }
 
@@ -114,7 +108,7 @@ class Pool implements ConnPool
         {
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
-                $driver = "ArrowWorker\\Driver\\Db\\".$config['driver'];
+                $driver = "ArrowWorker\\Driver\\Cache\\".$config['driver'];
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
@@ -128,7 +122,7 @@ class Pool implements ConnPool
 
     /**
      * @param string $alias
-     * @return false|Mysqli|Pdo
+     * @return false|Redis
      */
     public static function GetConnection( $alias = 'default' )
     {
@@ -170,6 +164,7 @@ class Pool implements ConnPool
         }
         unset(self::$chanConnections[$coId], $coId);
     }
+
 
 
 }

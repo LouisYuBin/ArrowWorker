@@ -10,6 +10,16 @@ use ArrowWorker\Log;
 
 interface Db
 {
+    /**
+     *
+     */
+    const LOG_NAME     = 'Db';
+
+    /**
+     *
+     */
+    const SQL_LOG_NAME = 'Sql';
+
 
     public function __construct( array $config );
 

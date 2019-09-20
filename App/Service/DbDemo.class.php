@@ -19,7 +19,7 @@ class DbDemo
     public function testDb()
     {
         $userModel = Loader::Model('ArrowWorker');
-        $db = Driver::Db();
+        $db = Db::G;
         $db -> Begin();
         $oneProject    =  $userModel->GetOne();
         $projectList   =  $userModel->GetList();
