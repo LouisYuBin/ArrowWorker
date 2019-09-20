@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'app' => [
+    'default' => [
         //驱动类型
         'driver'   => 'Redis',
         //地址

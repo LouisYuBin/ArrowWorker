@@ -7,6 +7,7 @@
 
 namespace App\Controller;
 use App\Model\ArrowWorker;
+use ArrowWorker\Cache;
 use ArrowWorker\Db;
 use ArrowWorker\Memory;
 use ArrowWorker\Web\Cookie;
@@ -26,9 +27,17 @@ class Index
     {
         $rnd  = Request::Get("rnd");
         $this->db();
-        //$this->memory();
+        $this->memory();
         $this->log();
+        $this->cache();
         Response::Json(200,['random'=>(int)$rnd],"ok");
+    }
+
+    public function cache()
+    {
+        $cache = Cache::Get();
+        var_dump( $cache->Set('arrow','louis') );
+        var_dump( $cache->Get('arrow') );
     }
 
     public function log()

@@ -21,14 +21,17 @@ class Component
         '\ArrowWorker\Web\Response',
         '\ArrowWorker\Web\Session',
         '\ArrowWorker\Log',
-        '\ArrowWorker\Db'
+        '\ArrowWorker\Db',
+        '\ArrowWorker\Cache'
     ];
 
     /**
      *
      */
     const BASE_RELEASE_COMPONENTS = [
-        '\ArrowWorker\Log'
+        '\ArrowWorker\Log',
+        '\ArrowWorker\Db',
+        '\ArrowWorker\Cache'
     ];
 
     /**
@@ -43,6 +46,9 @@ class Component
             {
                 case 'DB':
                     Db::Init($config);
+                    break;
+                case 'CACHE':
+                    Cache::Init($config);
                     break;
             }
         }
