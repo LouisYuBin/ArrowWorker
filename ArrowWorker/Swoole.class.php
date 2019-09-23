@@ -153,16 +153,16 @@ class Swoole
         switch ($type)
         {
             case static::WEB_SERVER:
-                $defaultConfig = static::$defaultHttpConfig;
+                $defaultConfig = self::$defaultHttpConfig;
                 break;
             case static::WEB_SOCKET_SERVER:
-                $defaultConfig = static::$defaultWebSocketConfig;
+                $defaultConfig = self::$defaultWebSocketConfig;
                 break;
             case static::TCP_SERVER:
-                $defaultConfig = static::$defaultTcpConfig;
+                $defaultConfig = self::$defaultTcpConfig;
                 break;
             default:
-                $defaultConfig = static::$defaultUdpConfig;
+                $defaultConfig = self::$defaultUdpConfig;
         }
         $config = array_merge($defaultConfig, $config);
         $serverConfig = [
@@ -187,7 +187,7 @@ class Swoole
             'ssl_key_file'       => $config['sslKeyFile'],
             'mode'               => $config['mode'],
             'components'         => isset($config['components']) ? $config['components'] : [],
-            'isAllowCORS'        => isset($config['components']) ? (bool)$config['isAllowCORS'] : false
+            'isAllowCORS'        => isset($config['isAllowCORS']) ? (bool)$config['isAllowCORS'] : false
         ];
 
         if( $type==static::TCP_SERVER )
