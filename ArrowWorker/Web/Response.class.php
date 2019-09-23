@@ -25,11 +25,16 @@ class Response
     /**
      * Init : init swoole response handler
      * @param \Swoole\Http\Response $response
+     * @param bool $isAllowCORS
      */
-    public static function Init(\Swoole\Http\Response $response)
+    public static function Init(\Swoole\Http\Response $response, bool $isAllowCORS=false)
     {
-        static::$_response[Swoole::GetCid()] = $response;
-        static::Header('Server','Arrow Web Server, V2.0, By Louis');
+        self::$_response[Swoole::GetCid()] = $response;
+        self::Header('Server','Arrow Web Server, V2.0, By Louis');
+        if( $isAllowCORS )
+        {
+            self::AllowCORS();
+        }
     }
 
     /**
@@ -40,8 +45,8 @@ class Response
      */
     public static function Json(int $code, array $data=[], string $msg='')
     {
-        static::Header("content-type","application/json;charset=utf-8");
-        static::Write(json_encode([
+        self::Header("content-type","application/json;charset=utf-8");
+        self::Write(json_encode([
             'code' => $code,
             'data' => $data,
             'msg'  => $msg
@@ -54,7 +59,7 @@ class Response
      */
     public static function Write(string $msg)
     {
-        static::$_response[Swoole::GetCid()]->end( $msg );
+        self::$_response[Swoole::GetCid()]->end( $msg );
     }
 
     /**
@@ -65,7 +70,7 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        static::$_response[Swoole::GetCid()]->header($key, $val);
+        self::$_response[Swoole::GetCid()]->header($key, $val);
     }
 
     /**
@@ -78,21 +83,46 @@ class Response
         $coId = Swoole::GetCid();
         foreach ($data as $key=>$val)
         {
-            static::$_response[ $coId ]->header($key, $val);
+            self::$_response[ $coId ]->header($key, $val);
         }
         unset($coId);
     }
 
 
-    public static function Cookie(string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
+    /**
+     * @param string      $name
+     * @param string      $val
+     * @param int         $expire
+     * @param string      $path
+     * @param string|null $domain
+     * @param bool        $secure
+     * @param bool        $httpOnly
+     * @return bool
+     */
+    public static function Cookie( string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
     {
-        static::$_response[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        self::$_response[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
     }
-    
+
+    /**
+     *
+     */
+    public static function AllowCORS()
+    {
+        self::Headers([
+            'Access-Control-Allow-Origin'  => '*',
+            'Access-Control-Allow-Headers' => 'Origin,X-Requested-With,x_requested_with,Content-Type,Accept',
+            'Access-Control-Allow-Methods' => 'GET,POST,PUT,DELETE,OPTIONS'
+        ]);
+    }
+
+    /**
+     *
+     */
     public static function Release()
     {
-        unset(static::$_response[Swoole::GetCid()]);
+        unset(self::$_response[Swoole::GetCid()]);
     }
 
 }

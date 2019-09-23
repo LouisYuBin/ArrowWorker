@@ -16,6 +16,7 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
+        'isAllowCORS'      => true,
         'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
@@ -44,6 +45,7 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
+        'isAllowCORS'      => true,
         'documentRoot' => APP_PATH.'/Static/Web',
         '404'          => APP_PATH.'/Static/Web/404.html',
         'handler'      => [

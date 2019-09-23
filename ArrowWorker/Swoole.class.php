@@ -71,11 +71,33 @@ class Swoole
         'maxCoroutine'     => 10000,
         'enableCoroutine'  => true,
         'enableStaticHandler' => false,
+        'isAllowCORS'      => true,
         'sslCertFile'      => '',
         'sslKeyFile'       => '',
         'documentRoot'     => '',
         'mode'             => SWOOLE_PROCESS
 
+    ];
+
+    /**
+     * @var array
+     */
+    public static $defaultWebSocketConfig = [
+        'host'      => '0.0.0.0',
+        'port'      => 8888,
+        'workerNum' => 4,
+        'backlog'   => 1000,
+        'user'      => 'root',
+        'group'     => 'root',
+        'pipeBufferSize'   => 1024*1024*100,
+        'socketBufferSize' => 1024*1024*100,
+        'enableCoroutine'  => true,
+        'isAllowCORS'      => true,
+        'maxRequest'       => 20000,
+        'reactorNum'       => 4,
+        'maxContentLength' => 2088960,
+        'maxCoroutine'     => 10000,
+        'mode'             => SWOOLE_PROCESS
     ];
 
     /**
@@ -101,27 +123,6 @@ class Swoole
         'packageEof'        => '\r\n',
         'mode'              => SWOOLE_PROCESS
     ];
-
-    /**
-     * @var array
-     */
-    public static $defaultWebSocketConfig = [
-        'host'      => '0.0.0.0',
-        'port'      => 8888,
-        'workerNum' => 4,
-        'backlog'   => 1000,
-        'user'      => 'root',
-        'group'     => 'root',
-        'pipeBufferSize'   => 1024*1024*100,
-        'socketBufferSize' => 1024*1024*100,
-        'enableCoroutine'  => true,
-        'maxRequest'       => 20000,
-        'reactorNum'       => 4,
-        'maxContentLength' => 2088960,
-        'maxCoroutine'     => 10000,
-        'mode'             => SWOOLE_PROCESS
-    ];
-
 
     /**
      * @var array
@@ -185,7 +186,8 @@ class Swoole
             'ssl_cert_file'      => $config['sslCertFile'],
             'ssl_key_file'       => $config['sslKeyFile'],
             'mode'               => $config['mode'],
-            'components'         => isset($config['components']) ? $config['components'] : []
+            'components'         => isset($config['components']) ? $config['components'] : [],
+            'isAllowCORS'        => isset($config['components']) ? (bool)$config['isAllowCORS'] : false
         ];
 
         if( $type==static::TCP_SERVER )
@@ -209,6 +211,7 @@ class Swoole
     {
         Router::Init(isset($config['404']) ? (string)$config['404'] : '');
         $config = static::_getConfig(static::WEB_SERVER, $config);
+        $cors   = $config['isAllowCORS'];
         $server = new Http($config['host'], $config['port'], $config['mode'],  empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ($config) {
@@ -217,9 +220,9 @@ class Swoole
         $server->on('WorkerStart', function() use ($config) {
             self::_initComponents( $config );
         });
-        $server->on('request', function(SwRequest $request, SwResponse $response) {
+        $server->on('request', function(SwRequest $request, SwResponse $response) use ($cors) {
             Log::SetLogId();
-            Response::Init($response);
+            Response::Init($response, $cors);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
@@ -245,6 +248,7 @@ class Swoole
     {
         Router::Init( isset($config['404']) ? (string)$config['404'] : '' );
         $config = static::_getConfig(static::WEB_SOCKET_SERVER, $config);
+        $cors   = $config['isAllowCORS'];
 
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
@@ -274,9 +278,9 @@ class Swoole
             $function($server, $frame);
             Component::Release(2);
         });
-        $server->on('request', function( SwRequest $request, SwResponse $response ) {
+        $server->on('request', function( SwRequest $request, SwResponse $response ) use ($cors) {
             Log::SetLogId();
-            Response::Init($response);
+            Response::Init($response, $cors);
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
                 is_array($request->post) ? $request->post : [],
