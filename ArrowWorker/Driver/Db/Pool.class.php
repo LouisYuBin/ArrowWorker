@@ -145,7 +145,7 @@ class Pool implements ConnPool
 
         $retryTimes = 0;
         _RETRY:
-        $conn = self::$pool[$alias]->pop( 1 );
+        $conn = self::$pool[$alias]->pop( 0.5 );
         if ( false === $conn && $retryTimes<=2 )
         {
             $retryTimes++;
