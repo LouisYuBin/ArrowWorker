@@ -29,7 +29,7 @@ class Index
         $this->db();
         $this->memory();
         $this->log();
-        //$this->cache();
+        $this->cache();
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 

@@ -137,10 +137,12 @@ class Pool implements ConnPool
             return false;
         }
 
+        $retryTimes = 0;
         _RETRY:
         $conn = self::$pool[$alias]->pop( 1 );
-        if ( false === $conn )
+        if ( false === $conn && $retryTimes<=2 )
         {
+            $retryTimes++;
             goto _RETRY;
         }
         self::$chanConnections[$coId][$alias] = $conn;
