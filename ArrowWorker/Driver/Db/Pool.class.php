@@ -149,6 +149,7 @@ class Pool implements ConnPool
         if ( false === $conn && $retryTimes<=2 )
         {
             $retryTimes++;
+            Log::Warning("get ( {$alias} : {$retryTimes} ) connection failed.",self::LOG_NAME);
             goto _RETRY;
         }
         self::$chanConnections[$coId][$alias] = $conn;
