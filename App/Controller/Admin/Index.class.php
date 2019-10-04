@@ -8,7 +8,7 @@ namespace App\Controller\Admin;
 use ArrowWorker\Loader;
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
-use ArrowWorker\Lib\Client\WebSocket;
+use ArrowWorker\Client\WebSocket;
 use ArrowWorker\Log;
 
 class Index

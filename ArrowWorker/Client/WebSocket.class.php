@@ -6,7 +6,7 @@
  * Time: 下午6:30
  */
 
-namespace ArrowWorker\Lib\Client;
+namespace ArrowWorker\Client;
 
 use ArrowWorker\Log;
 use \Swoole\Coroutine\Http\Client;

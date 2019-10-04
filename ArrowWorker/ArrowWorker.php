@@ -166,9 +166,9 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::CLASS_EXT,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage'      . self::CLASS_EXT,
 
-            'ArrowWorker\Lib\Client\WebSocket' => ArrowWorker . '/Lib/Client/WebSocket' . self::CLASS_EXT,
-            'ArrowWorker\Lib\Client\Http'      => ArrowWorker . '/Lib/Client/Http'      . self::CLASS_EXT,
-            'ArrowWorker\Lib\Client\Tcp'       => ArrowWorker . '/Lib/Client/Tcp'       . self::CLASS_EXT,
+            'ArrowWorker\Client\WebSocket' => ArrowWorker . '/Client/WebSocket' . self::CLASS_EXT,
+            'ArrowWorker\Client\Http'      => ArrowWorker . '/Client/Http'      . self::CLASS_EXT,
+            'ArrowWorker\Client\Tcp'       => ArrowWorker . '/Client/Tcp'       . self::CLASS_EXT,
 
             'ArrowWorker\Lib\Xml\Writer'    => ArrowWorker . '/Lib/Xml/Writer'    . self::CLASS_EXT,
             'ArrowWorker\Lib\Xml\Reader'    => ArrowWorker . '/Lib/Xml/Reader'    . self::CLASS_EXT,

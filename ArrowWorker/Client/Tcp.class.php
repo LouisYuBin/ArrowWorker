@@ -3,7 +3,7 @@
  * By yubin at 2019/4/17 6:28 AM.
  */
 
-namespace ArrowWorker\Lib\Client;
+namespace ArrowWorker\Client;
 
 use \swoole\client as Client;
 use \ArrowWorker\Log;
