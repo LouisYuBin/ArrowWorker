@@ -1,35 +1,35 @@
 <?php
 /**
- * By yubin at 2019-09-11 18:02.
+ * By yubin at 2019-10-05 11:07.
  */
 
-namespace ArrowWorker\Driver\Cache;
+namespace ArrowWorker\Driver\Client\WebSocket;
+
+use ArrowWorker\Config;
+use ArrowWorker\Driver\Cache\Redis;
+use ArrowWorker\Driver\Pool as ConnPool;
+use ArrowWorker\Log;
+use ArrowWorker\Swoole;
 
 use Swoole\Coroutine\Channel as swChan;
 
-use ArrowWorker\Config;
-use ArrowWorker\Log;
-use ArrowWorker\Swoole;
-use ArrowWorker\Driver\Pool as ConnPool;
-
 class Pool implements ConnPool
 {
+    /**
+     *
+     */
+    const LOG_NAME          = 'WsClient';
+
 
     /**
      *
      */
-    const LOG_NAME          = 'Cache';
-
-
-    /**
-     *
-     */
-    const CONFIG_NAME       = 'Cache';
+    const CONFIG_NAME       = 'WsClient';
 
     /**
      *
      */
-    const DEFAULT_DRIVER    = 'Redis';
+    const DEFAULT_DRIVER    = 'SwWsClient';
 
     /**
      * @var array

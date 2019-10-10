@@ -7,7 +7,6 @@
 
 namespace ArrowWorker\Driver\Cache;
 
-use ArrowWorker\Driver\Cache;
 use ArrowWorker\Log;
 
 

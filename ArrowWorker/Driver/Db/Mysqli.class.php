@@ -7,7 +7,6 @@
 
 namespace ArrowWorker\Driver\Db;
 
-use ArrowWorker\Driver\Db;
 use ArrowWorker\Log;
 
 /**

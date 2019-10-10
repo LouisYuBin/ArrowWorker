@@ -1,67 +1,41 @@
 <?php
 /**
- * By yubin at 2019-09-11 18:02.
+ * By yubin at 2019-10-05 11:05.
  */
 
-namespace ArrowWorker\Driver\Cache;
+namespace ArrowWorker\Driver\Client\Tcp;
 
-use Swoole\Coroutine\Channel as swChan;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 use ArrowWorker\Swoole;
+use Swoole\Coroutine\Channel as swChan;
+use ArrowWorker\Driver\PoolInterface;
 use ArrowWorker\Driver\Pool as ConnPool;
 
-class Pool implements ConnPool
+class Pool extends ConnPool implements PoolInterface
 {
+    /**
+     *
+     */
+    const LOG_NAME          = 'TcpClient';
+
 
     /**
      *
      */
-    const LOG_NAME          = 'Cache';
-
-
-    /**
-     *
-     */
-    const CONFIG_NAME       = 'Cache';
+    const CONFIG_NAME       = 'TcpClient';
 
     /**
      *
      */
     const DEFAULT_DRIVER    = 'Redis';
 
-    /**
-     * @var array
-     */
-    private static $pool   = [];
-
-    /**
-     * @var array
-     */
-    private static $configs = [];
-
-    /**
-     * @var array
-     */
-    private static $chanConnections = [
-
-    ];
-
-    /**
-     * @var array $appConfig specified keys and pool size
-     * check config and initialize connection chan
-     */
-    public static function Init(array $appConfig) : void
-    {
-        self::_initConfig($appConfig);
-        self::_initPool();
-    }
 
     /**
      * @param array $appConfig specified keys and pool size
      */
-    private static function _initConfig( array $appConfig)
+    protected static function _initConfig( array $appConfig)
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )

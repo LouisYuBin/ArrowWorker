@@ -6,7 +6,7 @@
  * Time: 下午6:30
  */
 
-namespace ArrowWorker\Client;
+namespace ArrowWorker\Driver\Client\WebSocket;
 
 use ArrowWorker\Log;
 use \Swoole\Coroutine\Http\Client;
@@ -16,7 +16,7 @@ use \Swoole\Coroutine\Http\Client;
  * Class WebSocket
  * @package ArrowWorker\Lib\Client
  */
-class WebSocket
+class SwWsClient
 {
     /**
      * @var null|Client

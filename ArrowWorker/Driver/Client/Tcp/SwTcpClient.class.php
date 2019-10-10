@@ -12,7 +12,7 @@ use \ArrowWorker\Log;
  * Class Tcp
  * @package ArrowWorker\Lib\Client
  */
-class Tcp
+class SwTcpClient
 {
     /**
      * @var Client

@@ -152,8 +152,6 @@ class ArrowWorker
             'ArrowWorker\Web\Request'    => ArrowWorker . '/Web/Request'  . self::CLASS_EXT,
             'ArrowWorker\Web\Router'     => ArrowWorker . '/Web/Router'   . self::CLASS_EXT,
             'ArrowWorker\Web\Upload'     => ArrowWorker . '/Web/Upload'   . self::CLASS_EXT,
-            'ArrowWorker\Web\Ws'         => ArrowWorker . '/Web/Ws'       . self::CLASS_EXT,
-
 
             'ArrowWorker\Lib\Bytes'                   => ArrowWorker  . '/Lib/Crypto/Bytes'            . self::CLASS_EXT,
             'ArrowWorker\Lib\Crypto\CryptoArrow'      => ArrowWorker  . '/Lib/Crypto/CryptoArrow'      . self::CLASS_EXT,
@@ -175,19 +173,19 @@ class ArrowWorker
             'ArrowWorker\Lib\Xml\Converter' => ArrowWorker . '/Lib/Xml/Converter' . self::CLASS_EXT,
 
             'ArrowWorker\Driver\Pool'    => ArrowWorker . '/Driver/Pool'    . self::INTERFACE_EXT,
-            'ArrowWorker\Driver\Db'      => ArrowWorker . '/Driver/Db'      . self::INTERFACE_EXT,
-            'ArrowWorker\Driver\Cache'   => ArrowWorker . '/Driver/Cache'   . self::INTERFACE_EXT,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View'    . self::CLASS_EXT,
             'ArrowWorker\Driver\Worker'  => ArrowWorker . '/Driver/Worker'  . self::CLASS_EXT,
             'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session' . self::CLASS_EXT,
 
-            'ArrowWorker\Driver\Db\Mysqli'          => ArrowWorker . '/Driver/Db/Mysqli' . self::CLASS_EXT,
-            'ArrowWorker\Driver\Db\Pdo'             => ArrowWorker . '/Driver/Db/Pdo'    . self::CLASS_EXT,
-            'ArrowWorker\Driver\Db\Pool'            => ArrowWorker . '/Driver/Db/Pool'   . self::CLASS_EXT,
+            'ArrowWorker\Driver\Db\Db'         => ArrowWorker . '/Driver/Db/Db'     . self::INTERFACE_EXT,
+            'ArrowWorker\Driver\Db\Mysqli'     => ArrowWorker . '/Driver/Db/Mysqli' . self::CLASS_EXT,
+            'ArrowWorker\Driver\Db\Pdo'        => ArrowWorker . '/Driver/Db/Pdo'    . self::CLASS_EXT,
+            'ArrowWorker\Driver\Db\Pool'       => ArrowWorker . '/Driver/Db/Pool'   . self::CLASS_EXT,
+            'ArrowWorker\Driver\Db\SqlBuilder' => ArrowWorker . '/Driver/Db/SqlBuilder' . self::CLASS_EXT,
 
-            'ArrowWorker\Driver\Db\SqlBuilder'      => ArrowWorker . '/Driver/Db/SqlBuilder' . self::CLASS_EXT,
-            'ArrowWorker\Driver\Cache\Redis'        => ArrowWorker . '/Driver/Cache/Redis'   . self::CLASS_EXT,
-            'ArrowWorker\Driver\Cache\Pool'         => ArrowWorker . '/Driver/Cache/Pool'    . self::CLASS_EXT,
+            'ArrowWorker\Driver\Cache\Cache' => ArrowWorker . '/Driver/Cache/Cache'   . self::INTERFACE_EXT,
+            'ArrowWorker\Driver\Cache\Redis' => ArrowWorker . '/Driver/Cache/Redis'   . self::CLASS_EXT,
+            'ArrowWorker\Driver\Cache\Pool'  => ArrowWorker . '/Driver/Cache/Pool'    . self::CLASS_EXT,
 
             'ArrowWorker\Driver\View\Smarty'        => ArrowWorker . '/Driver/View/Smarty'        . self::CLASS_EXT,
             'ArrowWorker\Driver\Worker\ArrowDaemon' => ArrowWorker . '/Driver/Worker/ArrowDaemon' . self::CLASS_EXT,

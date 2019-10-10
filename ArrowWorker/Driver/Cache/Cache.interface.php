@@ -5,7 +5,7 @@
  * Time: 19:49
  */
 
-namespace ArrowWorker\Driver;
+namespace ArrowWorker\Driver\Cache;
 
 
 interface Cache

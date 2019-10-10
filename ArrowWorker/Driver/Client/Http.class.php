@@ -3,7 +3,7 @@
  * By yubin at 2019/4/22 10:55 AM.
  */
 
-namespace ArrowWorker\Client;
+namespace ArrowWorker\Driver\Client;
 
 use Swoole\Coroutine\Http\Client;
 

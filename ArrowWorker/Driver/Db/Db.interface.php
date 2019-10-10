@@ -3,10 +3,8 @@
  * By yubin at 2019-09-19 18:00.
  */
 
-namespace ArrowWorker\Driver;
+namespace ArrowWorker\Driver\Db;
 
-
-use ArrowWorker\Log;
 
 interface Db
 {
