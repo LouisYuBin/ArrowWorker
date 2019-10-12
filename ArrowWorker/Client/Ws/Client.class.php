@@ -6,17 +6,17 @@
  * Time: 下午6:30
  */
 
-namespace ArrowWorker\Driver\Client\WebSocket;
+namespace ArrowWorker\Client\Ws;
 
 use ArrowWorker\Log;
-use \Swoole\Coroutine\Http\Client;
+use \Swoole\Coroutine\Http\Client as SwHttpClient;
 
 
 /**
  * Class WebSocket
  * @package ArrowWorker\Lib\Client
  */
-class SwWsClient
+class Client
 {
     /**
      * @var null|Client
@@ -36,14 +36,14 @@ class SwWsClient
      */
     private function __construct(string $host, int $port=80, bool $isSsl=false)
     {
-        $this->_instance = new Client($host, $port, $isSsl);
+        $this->_instance = new SwHttpClient($host, $port, $isSsl);
     }
 
     /**
      * @param string $host
      * @param int    $port
      * @param bool $isSsl;
-     * @return WebSocket
+     * @return Client
      */
     public static function Init(string $host, int $port, bool $isSsl=false)
     {

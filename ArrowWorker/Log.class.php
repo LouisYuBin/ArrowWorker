@@ -12,7 +12,7 @@ use ArrowWorker\Driver\Channel\Queue;
 use \Swoole\Coroutine\Channel as swChan;
 use \Swoole\Event as swEvent;
 use \Swoole\Coroutine as Co;
-use ArrowWorker\Client\Tcp;
+use ArrowWorker\Client\Tcp\Client as Tcp;
 
 /**
  * Class Log

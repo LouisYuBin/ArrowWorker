@@ -10,7 +10,7 @@ use Swoole\Coroutine\Channel as swChan;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 use ArrowWorker\Swoole;
-use ArrowWorker\Driver\Pool as ConnPool;
+use ArrowWorker\Pool as ConnPool;
 
 class Pool implements ConnPool
 {

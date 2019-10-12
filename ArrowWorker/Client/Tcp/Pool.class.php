@@ -1,52 +1,34 @@
 <?php
 /**
- * By yubin at 2019-10-05 11:07.
+ * By yubin at 2019-10-05 11:05.
  */
 
-namespace ArrowWorker\Driver\Client\WebSocket;
+namespace ArrowWorker\Client\Tcp;
+
 
 use ArrowWorker\Config;
-use ArrowWorker\Driver\Cache\Redis;
-use ArrowWorker\Driver\Pool as ConnPool;
 use ArrowWorker\Log;
 use ArrowWorker\Swoole;
-
 use Swoole\Coroutine\Channel as swChan;
+use ArrowWorker\Pool as ConnPool;
 
 class Pool implements ConnPool
 {
     /**
      *
      */
-    const LOG_NAME          = 'WsClient';
+    const LOG_NAME          = 'TcpClient';
 
 
     /**
      *
      */
-    const CONFIG_NAME       = 'WsClient';
+    const CONFIG_NAME       = 'TcpClient';
 
     /**
      *
      */
-    const DEFAULT_DRIVER    = 'SwWsClient';
-
-    /**
-     * @var array
-     */
-    private static $pool   = [];
-
-    /**
-     * @var array
-     */
-    private static $configs = [];
-
-    /**
-     * @var array
-     */
-    private static $chanConnections = [
-
-    ];
+    const DEFAULT_DRIVER    = 'Redis';
 
     /**
      * @var array $appConfig specified keys and pool size
@@ -61,7 +43,7 @@ class Pool implements ConnPool
     /**
      * @param array $appConfig specified keys and pool size
      */
-    private static function _initConfig( array $appConfig)
+    protected static function _initConfig( array $appConfig)
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
@@ -80,11 +62,8 @@ class Pool implements ConnPool
 
             //ignore incorrect config
             if (
-                !isset( $value['driver'] ) ||
-                !in_array($value['driver'], ['Redis', 'Memcached'] ) ||
-                !isset( $value['host'] )   ||
-                !isset( $value['port'] )   ||
-                !isset( $value['password'] )
+                !isset( $value['host'] ) ||
+                !isset( $value['port'] )
             )
             {
                 Log::Warning( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );

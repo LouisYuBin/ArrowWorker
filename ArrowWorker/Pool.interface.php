@@ -3,7 +3,7 @@
  * By yubin at 2019-09-20 16:58.
  */
 
-namespace ArrowWorker\Driver;
+namespace ArrowWorker;
 
 
 /**

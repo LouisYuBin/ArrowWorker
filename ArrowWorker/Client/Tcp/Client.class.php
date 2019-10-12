@@ -3,16 +3,16 @@
  * By yubin at 2019/4/17 6:28 AM.
  */
 
-namespace ArrowWorker\Client;
+namespace ArrowWorker\Client\Tcp;
 
-use \swoole\client as Client;
+use \swoole\client as SwClient;
 use \ArrowWorker\Log;
 
 /**
  * Class Tcp
  * @package ArrowWorker\Lib\Client
  */
-class SwTcpClient
+class Client
 {
     /**
      * @var Client
@@ -50,8 +50,7 @@ class SwTcpClient
      * @param int    $port
      * @param float  $timeout
      * @param int    $connRetryTimes
-     *
-     * @return Tcp
+     * @return
      */
     public static function Init( string $host, int $port, float $timeout = 3, int $connRetryTimes = 3 )
     {
@@ -83,7 +82,7 @@ class SwTcpClient
     public function InitClient( int $connTryTimes = 3 )
     {
         $result        = false;
-        $this->_client = new Client( SWOOLE_SOCK_TCP );
+        $this->_client = new SwClient( SWOOLE_SOCK_TCP );
 
         for ( $i = 0; $i < $connTryTimes; $i++ )
         {

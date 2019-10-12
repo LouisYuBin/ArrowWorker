@@ -5,10 +5,9 @@
 
 namespace App\Controller\Admin;
 
-use ArrowWorker\Loader;
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
-use ArrowWorker\Client\WebSocket;
+use ArrowWorker\Client\Ws\Client as Ws;
 use ArrowWorker\Log;
 
 class Index
@@ -29,7 +28,7 @@ class Index
 
     private function _webSocketClient()
     {
-        $cli = WebSocket::Init('127.0.0.1',9503);
+        $cli = Ws::Init('127.0.0.1',9503);
         $cli->Push(mt_rand(1,1000).'_from http','/?a=a&b=b');
     }
 

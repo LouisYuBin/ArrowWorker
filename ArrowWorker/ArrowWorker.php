@@ -133,8 +133,8 @@ class ArrowWorker
             'ArrowWorker\Loader'     => ArrowWorker . '/Loader'     . self::CLASS_EXT,
             'ArrowWorker\Config'     => ArrowWorker . '/Config'     . self::CLASS_EXT,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception'  . self::CLASS_EXT,
-            'ArrowWorker\Controller' => ArrowWorker . '/Controller' . self::CLASS_EXT,
 
+            'ArrowWorker\Pool'       => ArrowWorker . '/Pool'      . self::INTERFACE_EXT,
             'ArrowWorker\Console'    => ArrowWorker . '/Console'   . self::CLASS_EXT,
             'ArrowWorker\Daemon'     => ArrowWorker . '/Daemon'    . self::CLASS_EXT,
             'ArrowWorker\Log'        => ArrowWorker . '/Log'       . self::CLASS_EXT,
@@ -164,15 +164,20 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::CLASS_EXT,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage'      . self::CLASS_EXT,
 
-            'ArrowWorker\Client\WebSocket' => ArrowWorker . '/Client/WebSocket' . self::CLASS_EXT,
-            'ArrowWorker\Client\Http'      => ArrowWorker . '/Client/Http'      . self::CLASS_EXT,
-            'ArrowWorker\Client\Tcp'       => ArrowWorker . '/Client/Tcp'       . self::CLASS_EXT,
+            'ArrowWorker\Client\Ws\Pool'   => ArrowWorker . '/Client/Ws/Pool'       . self::CLASS_EXT,
+            'ArrowWorker\Client\Ws\Client' => ArrowWorker . '/Client/Ws/Client' . self::CLASS_EXT,
+
+            'ArrowWorker\Client\Http\Pool' => ArrowWorker . '/Driver/Http/Pool'       . self::CLASS_EXT,
+            'ArrowWorker\Client\Http\Http' => ArrowWorker . '/Client/Http/Http' . self::CLASS_EXT,
+            'ArrowWorker\Client\Http\Http2' => ArrowWorker . '/Client/Http/Http2' . self::CLASS_EXT,
+
+            'ArrowWorker\Client\Tcp\Pool'        => ArrowWorker . '/Client/Tcp/Pool'        . self::CLASS_EXT,
+            'ArrowWorker\Client\Tcp\Client' => ArrowWorker . '/Client/Tcp/Client' . self::CLASS_EXT,
 
             'ArrowWorker\Lib\Xml\Writer'    => ArrowWorker . '/Lib/Xml/Writer'    . self::CLASS_EXT,
             'ArrowWorker\Lib\Xml\Reader'    => ArrowWorker . '/Lib/Xml/Reader'    . self::CLASS_EXT,
             'ArrowWorker\Lib\Xml\Converter' => ArrowWorker . '/Lib/Xml/Converter' . self::CLASS_EXT,
 
-            'ArrowWorker\Driver\Pool'    => ArrowWorker . '/Driver/Pool'    . self::INTERFACE_EXT,
             'ArrowWorker\Driver\View'    => ArrowWorker . '/Driver/View'    . self::CLASS_EXT,
             'ArrowWorker\Driver\Worker'  => ArrowWorker . '/Driver/Worker'  . self::CLASS_EXT,
             'ArrowWorker\Driver\Session' => ArrowWorker . '/Driver/Session' . self::CLASS_EXT,
