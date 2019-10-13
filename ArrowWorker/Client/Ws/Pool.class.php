@@ -26,11 +26,6 @@ class Pool implements ConnPool
     const CONFIG_NAME       = 'WsClient';
 
     /**
-     *
-     */
-    const DEFAULT_DRIVER    = 'SwWsClient';
-
-    /**
      * @var array
      */
     private static $pool   = [];
@@ -81,6 +76,7 @@ class Pool implements ConnPool
             if (
                 !isset( $value['host'] ) ||
                 !isset( $value['port'] ) ||
+                !isset( $value['uri'] ) ||
                 !isset( $value['isSsl'])
             )
             {
@@ -105,21 +101,20 @@ class Pool implements ConnPool
         {
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
-                $driver = "ArrowWorker\\Driver\\Cache\\".$config['driver'];
-                $conn = new $driver( $config );
-                if( false===$conn->InitConnection() )
+                $wsClient = Client::Init( $config['host'], $config['port'], $config['uri'], $config['isSsl'] );
+                if( false===$wsClient->Upgrade() )
                 {
                     Log::Warning("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
-                self::$pool[$index]->push( $conn );
+                self::$pool[$index]->push( $wsClient );
             }
         }
     }
 
     /**
      * @param string $alias
-     * @return false|Redis
+     * @return false|Client
      */
     public static function GetConnection( $alias = 'default' )
     {

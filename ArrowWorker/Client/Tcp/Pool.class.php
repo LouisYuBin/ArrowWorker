@@ -26,9 +26,21 @@ class Pool implements ConnPool
     const CONFIG_NAME       = 'TcpClient';
 
     /**
-     *
+     * @var array
      */
-    const DEFAULT_DRIVER    = 'Redis';
+    private static $pool   = [];
+
+    /**
+     * @var array
+     */
+    private static $configs = [];
+
+    /**
+     * @var array
+     */
+    private static $chanConnections = [
+
+    ];
 
     /**
      * @var array $appConfig specified keys and pool size
@@ -87,9 +99,8 @@ class Pool implements ConnPool
         {
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
-                $driver = "ArrowWorker\\Driver\\Cache\\".$config['driver'];
-                $conn = new $driver( $config );
-                if( false===$conn->InitConnection() )
+                $conn = Client::Init( $config['host'], $config['port'] );
+                if( false===$conn->IsConnected() )
                 {
                     Log::Warning("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
@@ -101,7 +112,7 @@ class Pool implements ConnPool
 
     /**
      * @param string $alias
-     * @return false|Redis
+     * @return false|Client
      */
     public static function GetConnection( $alias = 'default' )
     {

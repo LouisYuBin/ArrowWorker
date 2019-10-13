@@ -81,14 +81,14 @@ class Client
      */
     public function InitClient( int $connTryTimes = 3 )
     {
-        $result        = false;
+        $connResult    = false;
         $this->_client = new SwClient( SWOOLE_SOCK_TCP );
 
         for ( $i = 0; $i < $connTryTimes; $i++ )
         {
             try
             {
-                $result = @$this->_client->connect( $this->_host, $this->_port, $this->_timeout );
+                $connResult = @$this->_client->connect( $this->_host, $this->_port, $this->_timeout );
             }
             catch ( \Exception $e )
             {
@@ -96,7 +96,7 @@ class Client
             }
         }
 
-        return $result;
+        return $connResult;
     }
 
     /**

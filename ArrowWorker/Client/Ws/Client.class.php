@@ -29,51 +29,85 @@ class Client
     private $_logName = 'ws_client';
 
     /**
+     * @var string
+     */
+    private $_host = '127.0.0.1';
+
+    /**
+     * @var int
+     */
+    private $_port = 8081;
+
+    /**
+     * @var string
+     */
+    private $_uri = '/';
+
+    /**
+     * @var bool
+     */
+    private $_isSsl = false;
+
+    /**
      * WebSocket constructor.
      * @param string $host
      * @param int    $port
-     * @param bool $isSsl
+     * @param string $uri
+     * @param bool   $isSsl
      */
-    private function __construct(string $host, int $port=80, bool $isSsl=false)
+    private function __construct( string $host, int $port = 80, string $uri='/', bool $isSsl = false )
     {
-        $this->_instance = new SwHttpClient($host, $port, $isSsl);
+        $this->_host  = $host;
+        $this->_port  = $port;
+        $this->_uri   = $uri;
+        $this->_isSsl = $isSsl;
+        $this->_instance = new SwHttpClient( $host, $port, $isSsl );
+    }
+
+    /**
+     * @param int $retryTimes
+     * @return bool
+     */
+    public function Upgrade( int $retryTimes=3)
+    {
+        for ( $i = 0; $i < $retryTimes; $i++ )
+        {
+            if ( true == $this->_instance->upgrade( $this->_uri ) )
+            {
+                return true;
+            }
+            Log::Error( "upgrade failed : {$i}th", $this->_logName );
+        }
+        return false;
     }
 
     /**
      * @param string $host
      * @param int    $port
-     * @param bool $isSsl;
+     * @param string $uri
+     * @param bool   $isSsl ;
      * @return Client
      */
-    public static function Init(string $host, int $port, bool $isSsl=false)
+    public static function Init( string $host, int $port, string $uri = '/', bool $isSsl = false )
     {
-        return new self($host, $port, $isSsl);
+        return new self( $host, $port, $uri, $isSsl );
     }
 
     /**
      * @param string $data
      * @param string $uri
-     * @param int $retryTimes
+     * @param int    $retryTimes
      * @return bool
      */
-    public function Push(string $data, string $uri='/', int $retryTimes=3) : bool
+    public function Push( string $data, int $retryTimes = 3 ) : bool
     {
-        for( $i=0; $i<$retryTimes; $i++)
+        for ( $i = 0; $i < $retryTimes; $i++ )
         {
-            if( true==$this->_instance->upgrade( $uri ) )
-            {
-                break ;
-            }
-            Log::Error("upgrade failed : {$i}", $this->_logName);
-        }
-
-        for ($i=0; $i<$retryTimes; $i++)
-        {
-            if( true==$this->_instance->push($data) )
+            if ( true == $this->_instance->push( $data ) )
             {
                 return true;
             }
-            Log::Error("push failed : {$i}", $this->_logName);
+            Log::Error( "push failed : {$i}", $this->_logName );
         }
         return false;
     }
@@ -82,9 +116,9 @@ class Client
      * @param float $timeout
      * @return bool|string
      */
-    public function Receive(float $timeout)
+    public function Receive( float $timeout )
     {
-        return $this->_instance->recv($timeout);
+        return $this->_instance->recv( $timeout );
     }
 
     /**
