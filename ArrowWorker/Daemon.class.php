@@ -16,7 +16,7 @@ use ArrowWorker\Lib\System\LoadAverage;
  */
 class Daemon
 {
-    const LOG_PREFIX = 'monitor : ';
+    const LOG_PREFIX = '[ Monitor ] ';
 
     const PROCESS_LOG = 'log';
 
@@ -301,11 +301,11 @@ class Daemon
 
             if( self::$terminate )
             {
-                Log::Dump(static::LOG_PREFIX."{$appType}. process : {$pid} exited at status : {$status}.");
+                Log::Dump(static::LOG_PREFIX."{$appType} process : {$pid} exited at status : {$status}");
                 return ;
             }
 
-            Log::Dump(static::LOG_PREFIX.$appType.' process restarting at status : '.$status);
+            Log::Dump(static::LOG_PREFIX."{$appType} process restarting at status {$status}");
 
             if( $appType==static::PROCESS_LOG )
             {
@@ -371,7 +371,7 @@ class Daemon
      */
     private function _exitProcess( string $appType, int $pid)
     {
-        Log::Dump(static::LOG_PREFIX." sending SIGTERM signal to {$appType}:{$pid} process");
+        Log::Dump(static::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
         for($i=0; $i<3; $i++)
         {
             if( posix_kill($pid,SIGTERM) )
@@ -673,7 +673,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-        Log::Dump(static::LOG_PREFIX.'monitor process got a signal : '.$signal);
+        Log::Dump(static::LOG_PREFIX.' monitor process got a signal : '.$signal);
         switch($signal)
         {
             case SIGUSR1:

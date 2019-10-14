@@ -15,6 +15,8 @@ class Chan
      */
     const CONFIG_NAME = 'Chan';
 
+    const LOG_PREFIX  = '[  Chan   ] ';
+
     /**
      * default config for each channel
      */
@@ -52,7 +54,7 @@ class Chan
             }
             else
             {
-                Log::Dump( " Channel::Init : {$alias} config does not exists/is not array." );
+                Log::Dump( self::LOG_PREFIX."{$alias} config does not exists/is not array." );
             }
         }
 
@@ -69,7 +71,7 @@ class Chan
     {
         foreach ( self::$pool as $eachQueue )
         {
-            Log::Dump( "msg_remove_queue result : " . $eachQueue->Close() );
+            Log::Dump( self::LOG_PREFIX."msg_remove_queue result : " . $eachQueue->Close() );
         }
     }
 

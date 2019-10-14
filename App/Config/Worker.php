@@ -17,6 +17,9 @@ return [
             'components' => [
                 'db' => [
                     'default' => 5
+                ],
+                'cache' => [
+                    'default' => 2
                 ]
             ]
 
@@ -33,6 +36,9 @@ return [
             'components' => [
                 'db' => [
                     'default' => 3
+                ],
+                'cache' => [
+                    'default' => 2
                 ]
             ]
         ],
@@ -48,6 +54,9 @@ return [
             'components' => [
                 'db' => [
                     'default' => 2
+                ],
+                'cache' => [
+                    'default' => 2
                 ]
             ]
         ],
@@ -62,6 +71,9 @@ return [
             'isChanReadProc' => true,
             'components' => [
                 'db' => [
+                    'default' => 2
+                ],
+                'cache' => [
                     'default' => 2
                 ]
             ]

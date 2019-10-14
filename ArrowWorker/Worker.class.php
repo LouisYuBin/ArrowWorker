@@ -10,7 +10,6 @@ use \ArrowWorker\Driver\Worker\ArrowDaemon;
 
 class Worker
 {
-    private static $defaultProcessApp = 'app';
 
     private static function _getConfig() : array
     {

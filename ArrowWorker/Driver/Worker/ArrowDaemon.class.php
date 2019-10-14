@@ -27,7 +27,7 @@ use \swoole\Runtime;
 class ArrowDaemon extends Worker
 {
 
-    const LOG_PREFIX = 'worker : ';
+    const LOG_PREFIX = '[ Worker  ] ';
 
     /**
      * process life time
@@ -420,7 +420,7 @@ class ArrowDaemon extends Worker
                 continue;
             }
 
-            Log::Dump( 'Sending SIGUSR2 to chan consumer process ' . $pid );
+            Log::Dump( self::LOG_PREFIX.'Sending SIGUSR2 to chan consumer process ' . $pid );
             for ( $i = 0; $i < 3; $i++ )
             {
                 if ( posix_kill( $pid, SIGUSR2 ) )
@@ -520,7 +520,10 @@ class ArrowDaemon extends Worker
         $this->_setProcessName( self::$jobs[$index]['processName'] );
         self::_setUser();
         Runtime::enableCoroutine();
-        Component::Init(self::$jobs[$index]['components']);
+        Co::create(function () use ($index) {
+            Component::Init(self::$jobs[$index]['components']);
+        });
+        SwEvent::wait();
         $this->_runProcessTask( $index );
     }
 

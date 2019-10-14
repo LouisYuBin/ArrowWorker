@@ -72,6 +72,8 @@ class Log
      */
     const LOG_NAME = __CLASS__;
 
+    const LOG_PREFIX = '[   Log   ] ';
+
 
 
     /**
@@ -428,7 +430,7 @@ class Log
      */
     public static function Dump( string $log )
     {
-        echo sprintf( "%s - %s" . PHP_EOL, static::_getTime(), $log );
+        echo sprintf( "%s %s" . PHP_EOL, static::_getTime(), $log );
     }
 
     /**
@@ -543,7 +545,7 @@ class Log
         {
             if ( !mkdir( $fileDir, 0760, true ) )
             {
-                Log::Dump( " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
+                Log::Dump( self::LOG_PREFIX." [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
             }
         }
@@ -551,7 +553,7 @@ class Log
         $fileRes = fopen( $filePath, 'a' );
         if ( false === $fileRes )
         {
-            Log::Dump( " [ EMERGENCY ] fopen log file:{$filePath} failed . " );
+            Log::Dump( self::LOG_PREFIX." [ EMERGENCY ] fopen log file:{$filePath} failed . " );
             return false;
         }
         return $fileRes;
@@ -660,7 +662,7 @@ class Log
         }
 
         static::$isTerminateChan = true;
-        self::Dump( 'log dispatch coroutine exited' );
+        self::Dump( self::LOG_PREFIX.'log dispatch coroutine exited' );
     }
 
     /**
@@ -685,7 +687,7 @@ class Log
             static::_writeLogFile( $data );
 
         }
-        self::Dump( 'log file-writing coroutine exited' );
+        self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
     }
 
     /**
@@ -709,10 +711,10 @@ class Log
 
             if ( false == static::$_tcpClient->Send( $data, 3 ) )
             {
-                Log::Dump( "write tcp client failed. data : {$data}" );
+                Log::Dump( self::LOG_PREFIX."write tcp client failed. data : {$data}" );
             }
         }
-        self::Dump( 'log tcp-writing coroutine exited' );
+        self::Dump( self::LOG_PREFIX.'tcp-writing coroutine exited' );
     }
 
     /**
@@ -751,7 +753,7 @@ class Log
      */
     private static function _exit()
     {
-        static::DumpExit( 'Log queue status : ' . json_encode( self::$_msgObject->Status() ) );
+        static::DumpExit( self::LOG_PREFIX.'queue status : ' . json_encode( self::$_msgObject->Status() ) );
     }
 
     /**
