@@ -35,10 +35,10 @@ return [
             'isChanReadProc' => true,
             'components' => [
                 'db' => [
-                    'default' => 3
+                    'default' => 5
                 ],
                 'cache' => [
-                    'default' => 2
+                    'default' => 5
                 ]
             ]
         ],
@@ -53,10 +53,10 @@ return [
             'isChanReadProc' => true,
             'components' => [
                 'db' => [
-                    'default' => 2
+                    'default' => 5
                 ],
                 'cache' => [
-                    'default' => 2
+                    'default' => 5
                 ]
             ]
         ],
@@ -71,10 +71,10 @@ return [
             'isChanReadProc' => true,
             'components' => [
                 'db' => [
-                    'default' => 2
+                    'default' => 5
                 ],
                 'cache' => [
-                    'default' => 2
+                    'default' => 5
                 ]
             ]
         ],
