@@ -10,6 +10,11 @@ namespace ArrowWorker;
 use ArrowWorker\Driver\Channel;
 use ArrowWorker\Lib\System\LoadAverage;
 
+use ArrowWorker\Server\Tcp;
+use ArrowWorker\Server\Http;
+use ArrowWorker\Server\Ws;
+use ArrowWorker\Server\Udp;
+
 /**
  * Class Daemon : demonize process
  * @package ArrowWorker
@@ -226,19 +231,19 @@ class Daemon
             static::_setProcessName($processName);
             if( $config['type']=='web' )
             {
-                Swoole::StartHttpServer($config);
+                Http::Start($config);
             }
             else if( $config['type']=='webSocket' )
             {
-                Swoole::StartWebSocketServer($config);
+                Ws::Start($config);
             }
             else if( $config['type']=='tcp' )
             {
-                Swoole::StartTcpServer($config);
+                Tcp::Start($config);
             }
             else if( $config['type']=='udp' )
             {
-                Swoole::StartUdpServer($config);
+                Udp::Start($config);
             }
 
             exit(0);

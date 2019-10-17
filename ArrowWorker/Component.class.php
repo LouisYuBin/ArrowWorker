@@ -66,4 +66,18 @@ class Component
         }
     }
 
+
+    public static function CheckParams(array $config)
+    {
+        if(
+            !isset($config['components']) ||
+            !is_array($config['components'])
+        )
+        {
+            return ;
+        }
+        Log::SetLogId();
+        Component::Init($config['components']);
+    }
+
 }

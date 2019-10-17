@@ -14,6 +14,8 @@ namespace ArrowWorker;
 class App
 {
 
+    const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
+
     /**
      * RunApp 执行应用
      * @author Louis

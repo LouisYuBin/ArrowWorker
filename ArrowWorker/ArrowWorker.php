@@ -164,10 +164,16 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::CLASS_EXT,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage'      . self::CLASS_EXT,
 
+            'ArrowWorker\Server\Http' => ArrowWorker . '/Server/Http' . self::CLASS_EXT,
+            'ArrowWorker\Server\Ws'   => ArrowWorker . '/Server/Ws'   . self::CLASS_EXT,
+            'ArrowWorker\Server\Tcp'  => ArrowWorker . '/Server/Tcp' . self::CLASS_EXT,
+            'ArrowWorker\Server\Udp'  => ArrowWorker . '/Server/Udp' . self::CLASS_EXT,
+
+
             'ArrowWorker\Client\Ws\Pool'   => ArrowWorker . '/Client/Ws/Pool'       . self::CLASS_EXT,
             'ArrowWorker\Client\Ws\Client' => ArrowWorker . '/Client/Ws/Client' . self::CLASS_EXT,
 
-            'ArrowWorker\Client\Http\Pool' => ArrowWorker . '/Driver/Http/Pool'       . self::CLASS_EXT,
+            'ArrowWorker\Client\Http\Pool' => ArrowWorker . '/Client/Http/Pool' . self::CLASS_EXT,
             'ArrowWorker\Client\Http\Http' => ArrowWorker . '/Client/Http/Http' . self::CLASS_EXT,
             'ArrowWorker\Client\Http\Http2' => ArrowWorker . '/Client/Http/Http2' . self::CLASS_EXT,
 
