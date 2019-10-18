@@ -9,7 +9,7 @@ use Swoole\Coroutine\Channel as swChan;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 use ArrowWorker\Pool as ConnPool;
 
 class Pool implements ConnPool
@@ -126,7 +126,7 @@ class Pool implements ConnPool
      */
     public static function GetConnection( $alias = 'default' )
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         if( isset(self::$chanConnections[$coId][$alias]) )
         {
             return self::$chanConnections[$coId][$alias];
@@ -155,7 +155,7 @@ class Pool implements ConnPool
      */
     public static function Release() : void
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         if( !isset(self::$chanConnections[$coId]) )
         {
             return ;

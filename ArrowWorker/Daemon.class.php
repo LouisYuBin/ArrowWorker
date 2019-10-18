@@ -25,13 +25,13 @@ class Daemon
 
     const PROCESS_LOG = 'log';
 
-    const PROCESS_TCP = 'tcp';
+    const PROCESS_TCP = 'Tcp';
 
-    const PROCESS_UDP = 'udp';
+    const PROCESS_UDP = 'Udp';
 
-    const PROCESS_HTTP = 'web';
+    const PROCESS_HTTP = 'Http';
 
-    const PROCESS_WEBSOCKET = 'websocket';
+    const PROCESS_WEBSOCKET = 'Ws';
 
 
     /**
@@ -95,7 +95,7 @@ class Daemon
         self::_demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
         self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
-        self::_createPidfile();
+        self::_createPidFile();
 
         $daemon = new self();
         $daemon->_initComponent();
@@ -144,7 +144,7 @@ class Daemon
      */
     private function _startLogProcess()
     {
-        $pid = pcntl_fork();
+        $pid = Process::Fork();
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting log process');
@@ -166,7 +166,7 @@ class Daemon
      */
     private function _startWorkerProcess()
     {
-        $pid = pcntl_fork();
+        $pid = Process::Fork();
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting worker process');
@@ -197,7 +197,7 @@ class Daemon
         foreach ($configs as $index=>$config)
         {
             //必要配置不完整则不开启
-            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'],['web','webSocket','tcp','udp']) )
+            if( !isset($config['type']) || !isset($config['port']) || !in_array($config['type'], [ self::PROCESS_HTTP, self::PROCESS_WEBSOCKET, self::PROCESS_TCP, self::PROCESS_UDP]) )
             {
                 continue;
             }
@@ -223,25 +223,26 @@ class Daemon
      */
     private function _startPointedSwooleServer( array $config, int $index)
     {
-        $pid = pcntl_fork();
+        $pid = Process::Fork();
         if($pid == 0)
         {
-            $processName = "{$config['type']}-{$index} : {$config['port']}";
-            Log::Dump(static::LOG_PREFIX."starting {$processName} process");
+            $pid = Process::Id();
+            $processName = "{$config['type']} : {$config['port']}";
+            Log::Dump(self::LOG_PREFIX."starting {$processName} ( $pid )");
             static::_setProcessName($processName);
-            if( $config['type']=='web' )
+            if( $config['type']=='Http' )
             {
                 Http::Start($config);
             }
-            else if( $config['type']=='webSocket' )
+            else if( $config['type']==self::PROCESS_WEBSOCKET )
             {
                 Ws::Start($config);
             }
-            else if( $config['type']=='tcp' )
+            else if( $config['type']==self::PROCESS_TCP )
             {
                 Tcp::Start($config);
             }
-            else if( $config['type']=='udp' )
+            else if( $config['type']==self::PROCESS_UDP )
             {
                 Udp::Start($config);
             }
@@ -274,11 +275,12 @@ class Daemon
                 $this->_exitMonitor();
             }
 
+
             pcntl_signal_dispatch();
 
             $status = 0;
             //returns the process ID of the child which exited, -1 on error or zero if WNOHANG was provided as an option (on wait3-available systems) and no child was available
-            $pid = pcntl_wait($status, WUNTRACED);
+            $pid = Process::Wait($status);
             $this->_handleExitedProcess($pid, $status);
             pcntl_signal_dispatch();
             usleep(100000);
@@ -379,7 +381,7 @@ class Daemon
         Log::Dump(static::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
         for($i=0; $i<3; $i++)
         {
-            if( posix_kill($pid,SIGTERM) )
+            if( Process::Kill($pid,SIGTERM) )
             {
                 break ;
             }
@@ -405,7 +407,8 @@ class Daemon
         $this->_cleanChannelPath();
         Chan::Close();
 
-        Log::DumpExit(static::LOG_PREFIX.'Monitor process exited!');
+        Log::Dump(static::LOG_PREFIX.'exited');
+        exit(0);
     }
 
     /**
@@ -463,9 +466,9 @@ class Daemon
         {
             if( $i==1 )
             {
-                if( posix_kill($pid,SIGTERM) )
+                if( Process::Kill($pid,SIGTERM) )
                 {
-                    Log::Hint('Arrow exiting.');
+                    echo('Arrow stopping');
                 }
                 else
                 {
@@ -475,12 +478,16 @@ class Daemon
             }
             else
             {
-                if( !posix_kill($pid,SIGTERM) )
+                if( !Process::Kill($pid,SIGTERM) )
                 {
-                    Log::Hint('Arrow stopped.');
+                    Log::Hint('stopped successfully.');
                     break;
                 }
-                sleep(1);
+                else
+                {
+                    echo '.';
+                    sleep(1);
+                }
             }
         }
 
@@ -597,26 +604,26 @@ class Daemon
     {
         umask(self::$umask);
 
-        if (pcntl_fork() != 0)
+        if ( Process::Fork() != 0)
         {
             exit();
         }
 
         posix_setsid();
 
-        if (pcntl_fork() != 0)
+        if ( Process::Fork() != 0)
         {
             exit();
         }
 
-        self::$identity = self::APP_NAME.'_'.posix_getpid();
+        self::$identity = self::APP_NAME.'_'.Process::Id();
     }
 
     /**
-     * _createPidfile : create process pid file
+     * _createPidFile : create process pid file
      * @author Louis
      */
-    private static function _createPidfile()
+    private static function _createPidFile()
     {
         if (!is_dir(self::$pidDir))
         {
@@ -624,12 +631,12 @@ class Daemon
         }
 
         $fp = fopen(self::$pid, 'w') or die("cannot create pid file".PHP_EOL);
-        fwrite($fp, posix_getpid());
+        fwrite($fp, Process::Id());
         fclose($fp);
     }
 
     /**
-     * _checkPidfile : checkout process pid file
+     * _checkPidFile : checkout process pid file
      * @author Louis
      */
     private static function _checkPidFile()
@@ -641,7 +648,7 @@ class Daemon
 
         $pid = (int)file_get_contents(static::$pid);
 
-        if ($pid > 0 && posix_kill($pid, 0))
+        if ($pid > 0 && Process::Kill($pid, 0))
         {
             Log::DumpExit("Arrow hint : process is already started");
         }
@@ -678,7 +685,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-        Log::Dump(static::LOG_PREFIX.' monitor process got a signal : '.$signal);
+        Log::Dump(static::LOG_PREFIX.'got a signal : '.$signal);
         switch($signal)
         {
             case SIGUSR1:
@@ -703,20 +710,7 @@ class Daemon
      */
     private static function _setProcessName(string $proName)
     {
-        if( PHP_OS=='Darwin')
-        {
-            return ;
-        }
-
-        $proName = self::$identity.'_'.$proName;
-        if(function_exists('cli_set_process_title'))
-        {
-            @cli_set_process_title($proName);
-        }
-        if(extension_loaded('proctitle') && function_exists('setproctitle'))
-        {
-            @setproctitle($proName);
-        }
+        Process::SetName(self::$identity.'_'.$proName);
     }
 
 }

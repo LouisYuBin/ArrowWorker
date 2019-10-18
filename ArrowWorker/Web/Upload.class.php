@@ -6,7 +6,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 
@@ -58,7 +58,7 @@ class Upload
      */
     public function __construct(string $name)
     {
-        $this->file= $_FILES[Swoole::GetCid()][$name];
+        $this->file= $_FILES[Coroutine::Id()][$name];
         $this->_initConfig();
         $this->_setExt();
     }
@@ -170,7 +170,7 @@ class Upload
     {
         if( empty($this->newFileName) )
         {
-            $this->newFileName = dechex(Swoole::GetCid()).dechex(time()).dechex(mt_rand(100,999));
+            $this->newFileName = dechex(Coroutine::Id()).dechex(time()).dechex(mt_rand(100,999));
         }
         $savePath = empty($savePath) ? $this->config['savePath'] : $savePath;
 

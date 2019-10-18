@@ -6,6 +6,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Coroutine;
 use \Swoole\WebSocket\Server as WebSocket;
 use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;
@@ -102,13 +103,13 @@ class Ws
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
         $server->set($config);
         $server->on('start', function($server) use ( $config ) {
-            Log::Dump("Websocket server, port : ".$config['port']);
+            Log::Dump("[   Ws    ] : {$config['port']} started");
         });
         $server->on('WorkerStart', function() use ( $config ) {
             Component::CheckParams($config);
+            //Coroutine::DumpSlow();
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['open'];
             Log::SetLogId();
             Request::Init(
                 is_array($request->get)   ? $request->get : [],
@@ -118,16 +119,20 @@ class Ws
                 is_array($request->header) ? $request->header : [],
                 $request->rawContent()
             );
+            $function = App::CONTROLLER_NAMESPACE.$config['handler']['open'];
             $function($server, $request->fd);
             Component::Release(2);
         });
         $server->on('message', function(WebSocket $server, Frame $frame) use ( $config ) {
+            Coroutine::Init();
             Log::SetLogId();
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['message'];
             $function($server, $frame);
             Component::Release(2);
+            Coroutine::Release();
         });
         $server->on('request', function( SwRequest $request, SwResponse $response ) use ($cors) {
+            Coroutine::Init();
             Log::SetLogId();
             Response::Init($response, $cors);
             Request::Init(
@@ -142,6 +147,7 @@ class Ws
             Session::Reset();
             Router::Exec();
             Component::Release();
+            Coroutine::Release();
         });
         $server->on('close',   function(WebSocket $server, int $fd) use ($config) {
             Log::SetLogId();

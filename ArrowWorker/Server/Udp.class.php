@@ -83,6 +83,9 @@ class Udp
         $config = static::_getConfig( $config );
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
         $server->set($config);
+        $server->on('start', function() use ($config) {
+            Log::Dump("[   Udp   ] : {$config['port']} started.");
+        });
         $server->on('WorkerStart', function() use ($config) {
             Component::CheckParams($config);
         });

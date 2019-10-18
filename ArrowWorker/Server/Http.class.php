@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Coroutine;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server as SwHttp;
@@ -99,7 +100,7 @@ class Http
         $server->set( $config );
         $server->on( 'start', function ( $server ) use ( $config )
         {
-            Log::Dump( "Http server is listening at port : " . $config[ 'port' ] );
+            Log::Dump( "[  Http   ] : {$config['port']} started"  );
         } );
         $server->on( 'WorkerStart', function () use ( $config )
         {
@@ -107,6 +108,7 @@ class Http
         } );
         $server->on( 'request', function ( SwRequest $request, SwResponse $response ) use ( $cors )
         {
+            Coroutine::Init();
             Log::SetLogId();
             Response::Init( $response, $cors );
             Request::Init(
@@ -120,8 +122,8 @@ class Http
             Session::Reset();
             Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );
             Router::Exec();
-
             Component::Release();
+            Coroutine::Release();
         } );
 
         $server->start();

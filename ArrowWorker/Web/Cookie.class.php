@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 use ArrowWorker\Lib\Crypto\CryptoArrow;
 
 /**
@@ -23,7 +23,7 @@ class Cookie
      */
     public static function Init(array $cookies)
     {
-        $_COOKIE[ Swoole::GetCid() ] = $cookies;
+        $_COOKIE[ Coroutine::Id() ] = $cookies;
     }
 
     /**
@@ -33,9 +33,9 @@ class Cookie
      */
     public static function Get(string $key)
 	{
-		if( isset($_COOKIE[Swoole::GetCid()][$key]) )
+		if( isset($_COOKIE[Coroutine::Id()][$key]) )
 		{
-			return CryptoArrow::Decrypt($_COOKIE[Swoole::GetCid()][$key]);
+			return CryptoArrow::Decrypt($_COOKIE[Coroutine::Id()][$key]);
 		}
 		return false;
 	}
@@ -64,12 +64,12 @@ class Cookie
      */
     public static function All() : array
 	{
-		return $_COOKIE[ Swoole::GetCid() ];
+		return $_COOKIE[ Coroutine::Id() ];
 	}
 
 	public static function Release()
     {
-        unset($_COOKIE[Swoole::GetCid()]);
+        unset($_COOKIE[Coroutine::Id()]);
     }
 
 

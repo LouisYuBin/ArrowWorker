@@ -8,6 +8,7 @@
 namespace App\Controller;
 use App\Model\ArrowWorker;
 use ArrowWorker\Cache;
+use ArrowWorker\Coroutine;
 use ArrowWorker\Db;
 use ArrowWorker\Memory;
 use ArrowWorker\Web\Cookie;
@@ -30,14 +31,15 @@ class Index
         $this->memory();
         $this->log();
         $this->cache();
+        Coroutine::Sleep(2);
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 
     public function cache()
     {
         $cache = Cache::Get();
-        var_dump( $cache->Set('arrow','louis') );
-        var_dump( $cache->Get('arrow') );
+        $cache->Set('arrow','louis');
+        $cache->Get('arrow');
     }
 
     public function log()
@@ -50,22 +52,21 @@ class Index
     public function memory()
     {
         $key = 'memory_test_'.mt_rand(100,1000);
-        var_dump(Memory::Get('clients')->Write($key,[
+        Memory::Get('clients')->Write($key,[
             'id'        => 1,
             'token'     => 'token'.mt_rand(100,999),
             'name'      => 'name'.mt_rand(100,999),
             'loginTime' => date('Y-m-d H:i:s')
-        ]));
+        ]);
 
-        var_dump(Memory::Get('clients'));
 
-        var_dump(Memory::Get('clients')->ReadAll());
+        Memory::Get('clients')->ReadAll();
     }
 
     public function db()
     {
-        var_dump(ArrowWorker::GetOne());
-        var_dump(ArrowWorker::GetList());
+        ArrowWorker::GetOne();
+        ArrowWorker::GetList();
     }
 
     function upload()
@@ -76,9 +77,8 @@ class Index
 
     public function validation()
     {
-        $code = ValidateImg::Create();
-        $cache = Driver::Cache();
-        $cache->Set("validate", $code);
+        $cache = Cache::Get();
+        $cache->Set("validate", mt_rand(1000,9999));
 
     }
 

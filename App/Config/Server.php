@@ -2,10 +2,10 @@
 
 return [
     [
-        'type'             => 'web',
+        'type'             => 'Http',
         'host'             => '0.0.0.0',
         'port'             => 4433,
-        'workerNum'        => 1,
+        'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
@@ -31,10 +31,10 @@ return [
         ]
     ],
     [
-        'type'             => 'webSocket',
+        'type'             => 'Ws',
         'host'             => '0.0.0.0',
         'port'             => 8081,
-        'workerNum'        => 1,
+        'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
@@ -63,7 +63,7 @@ return [
         ]
     ],
     [
-        'type'             => 'tcp',
+        'type'             => 'Tcp',
         'host'             => '0.0.0.0',
         'port'             => 9505,
         'workerNum'        => 1,
@@ -97,7 +97,7 @@ return [
     ],
 /*
     [
-        'type'             => 'udp',
+        'type'             => 'Udp',
         'host'             => '0.0.0.0',
         'port'             => 9506,
         'workerNum'        => 8,

@@ -8,16 +8,16 @@
 
 namespace ArrowWorker\Driver\Worker;
 
+use ArrowWorker\Process;
+use Swoole\Coroutine as Co;
+use Swoole\Event as SwEvent;
+use \swoole\Runtime;
+
 use ArrowWorker\Component;
 use ArrowWorker\Daemon;
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
-use ArrowWorker\Swoole;
-use Swoole\Coroutine as Co;
-use Swoole\Event as SwEvent;
-use ArrowWorker\Config;
-use ArrowWorker\Db;
-use \swoole\Runtime;
+use ArrowWorker\Coroutine;
 
 
 /**
@@ -177,16 +177,6 @@ class ArrowDaemon extends Worker
         }
     }
 
-    /**
-     * _setProcessAlarm
-     * @param int $lifecycle
-     */
-    private function _setProcessAlarm( int $lifecycle )
-    {
-        $lifecycle = mt_rand( 30, $lifecycle );
-        pcntl_alarm( $lifecycle );
-    }
-
 
     /**
      * signalHandler 进程信号处理
@@ -226,19 +216,12 @@ class ArrowDaemon extends Worker
      */
     private function _setProcessName( string $proName )
     {
-        if ( PHP_OS == 'Darwin' )
-        {
-            return;
-        }
-        $proName = Daemon::$identity . '_Worker_' . $proName;
-        if ( function_exists( 'cli_set_process_title' ) )
-        {
-            @cli_set_process_title( $proName );
-        }
-        else if ( extension_loaded( 'proctitle' ) && function_exists( 'setproctitle' ) )
-        {
-            @setproctitle( $proName );
-        }
+        Process::SetName( Daemon::$identity . '_Worker_' . $proName) ;
+    }
+
+    private function _setAlarm(int $lifecycle)
+    {
+        Process::SetAlarm( mt_rand( 30, $lifecycle ) );
     }
 
 
@@ -269,9 +252,9 @@ class ArrowDaemon extends Worker
     {
         foreach ( static::$pidMap as $pid => $groupId )
         {
-            if ( !posix_kill( $pid, SIGUSR1 ) )
+            if ( !Process::Kill( $pid, SIGUSR1 ) )
             {
-                posix_kill( $pid, SIGUSR1 );
+                Process::Kill( $pid, SIGUSR1 );
             }
             usleep( 10000 );
         }
@@ -302,7 +285,7 @@ class ArrowDaemon extends Worker
 
             $status = 0;
             //returns the process ID of the child which exited, -1 on error or zero if WNOHANG was provided as an option (on wait3-available systems) and no child was available
-            $pid = pcntl_wait( $status, WUNTRACED );
+            $pid = Process::Wait( $status );
             pcntl_signal_dispatch();
             $this->_handleExited( $pid, $status, false );
 
@@ -323,7 +306,7 @@ class ArrowDaemon extends Worker
         {
             $status = 0;
             RE_WAIT:
-            $pid = pcntl_wait( $status, WUNTRACED );
+            $pid = Process::Wait( $status, WUNTRACED );
             if ( $pid == -1 )
             {
                 goto RE_WAIT;
@@ -360,7 +343,7 @@ class ArrowDaemon extends Worker
             $status = 0;
 
             RETRY:
-            $pid = pcntl_wait( $status, WUNTRACED );
+            $pid = Process::Wait( $status, WUNTRACED );
             if ( $pid == -1 )
             {
                 goto RETRY;
@@ -423,7 +406,7 @@ class ArrowDaemon extends Worker
             Log::Dump( self::LOG_PREFIX.'Sending SIGUSR2 to chan consumer process ' . $pid );
             for ( $i = 0; $i < 3; $i++ )
             {
-                if ( posix_kill( $pid, SIGUSR2 ) )
+                if ( Process::Kill( $pid, SIGUSR2 ) )
                 {
                     break;
                 }
@@ -490,7 +473,7 @@ class ArrowDaemon extends Worker
      */
     private function _forkOneWorker( int $taskId )
     {
-        $pid = pcntl_fork();
+        $pid = Process::Fork();
 
         if ( $pid > 0 )
         {
@@ -516,41 +499,15 @@ class ArrowDaemon extends Worker
     private function _runWorker( int $index, int $lifecycle )
     {
         $this->_setSignalHandler( 'workerHandler' );
-        $this->_setProcessAlarm( $lifecycle );
+        $this->_setAlarm($lifecycle);
         $this->_setProcessName( self::$jobs[$index]['processName'] );
-        self::_setUser();
+        Process::SetExecGroupUser( self::$_group, self::$_user);
         Runtime::enableCoroutine();
         Co::create(function () use ($index) {
             Component::Init(self::$jobs[$index]['components']);
         });
-        SwEvent::wait();
+        Coroutine::Wait();
         $this->_runProcessTask( $index );
-    }
-
-    /**
-     * set process running user
-     * @author Louis
-     * @return void
-     */
-    private  static function _setUser()
-    {
-        if (empty($userName))
-        {
-            return ;
-        }
-
-        $user  = posix_getpwnam( static::$_user );
-        $group = posix_getgrnam( self::$_group );
-
-        if( !$user || !$group )
-        {
-            Log::DumpExit("Arrow hint : set process user : posix_getpwnam/posix_getgrnam failed！");
-        }
-
-        if( !posix_setuid($user['uid']) || !posix_setgid($group['gid']) )
-        {
-            Log::DumpExit("Arrow hint : Setting process user failed！");
-        }
     }
 
     /**
@@ -567,8 +524,8 @@ class ArrowDaemon extends Worker
         {
             Co::create( function () use ( $index )
             {
-                $pid  = posix_getpid();
-                $coId = Swoole::GetCid();
+                $pid  = Process::Id();
+                $coId = Coroutine::Id();
                 while ( true )
                 {
                     if ( self::$terminate )
@@ -595,7 +552,7 @@ class ArrowDaemon extends Worker
             self::$jobs[$index]['coCount']++;
         }
 
-        SwEvent::wait();
+        Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
         Log::DumpExit( self::LOG_PREFIX .
                        self::$jobs[$index]['processName'] .
@@ -621,7 +578,7 @@ class ArrowDaemon extends Worker
                 continue;
             }
 
-            $pid = pcntl_fork();
+            $pid = Process::Fork();
             if ( $pid > 0 )
             {
                 self::$consumePidMap[$pid] = $i;
@@ -632,7 +589,7 @@ class ArrowDaemon extends Worker
                 self::$terminate = false;
                 $this->_setSignalHandler( 'chanHandler' );
                 $this->_setProcessName( self::$jobs[$i]['processName'] );
-                self::_setUser();
+                Process::SetExecGroupUser( self::$_group, self::$_user);
                 Log::Dump( self::LOG_PREFIX . 'chan-consumer ' . self::$jobs[$i]['processName'] . ' starting work' );
 
                 while ( self::$jobs[$i]['coCount'] < self::$jobs[$i]['coQuantity'] )
@@ -642,7 +599,7 @@ class ArrowDaemon extends Worker
                                     '_consumeChanTask'
                                 ], $i, $newGroupNum );
                 }
-                SwEvent::wait();
+                Coroutine::Wait();
             }
 
             $newGroupNum++;
@@ -661,8 +618,8 @@ class ArrowDaemon extends Worker
     {
         $timeStart = time();
         $workCount = 0;
-        $pid  = posix_getpid();
-        $coId = Swoole::GetCid();
+        $pid  = Process::Id();
+        $coId = Coroutine::Id();
         while ( 1 )
         {
             Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));

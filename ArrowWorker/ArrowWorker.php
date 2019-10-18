@@ -137,8 +137,10 @@ class ArrowWorker
             'ArrowWorker\Pool'       => ArrowWorker . '/Pool'      . self::INTERFACE_EXT,
             'ArrowWorker\Console'    => ArrowWorker . '/Console'   . self::CLASS_EXT,
             'ArrowWorker\Daemon'     => ArrowWorker . '/Daemon'    . self::CLASS_EXT,
+            'ArrowWorker\Process'    => ArrowWorker . '/Process'    . self::CLASS_EXT,
+
             'ArrowWorker\Log'        => ArrowWorker . '/Log'       . self::CLASS_EXT,
-            'ArrowWorker\Swoole'     => ArrowWorker . '/Swoole'    . self::CLASS_EXT,
+            'ArrowWorker\Coroutine'  => ArrowWorker . '/Coroutine' . self::CLASS_EXT,
             'ArrowWorker\Worker'     => ArrowWorker . '/Worker'    . self::CLASS_EXT,
             'ArrowWorker\Db'         => ArrowWorker . '/Db'        . self::CLASS_EXT,
             'ArrowWorker\Chan'       => ArrowWorker . '/Chan'      . self::CLASS_EXT,

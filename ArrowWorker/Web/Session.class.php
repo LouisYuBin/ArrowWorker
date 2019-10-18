@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 use ArrowWorker\Driver\Session\MemcachedSession;
 use ArrowWorker\Driver\Session\RedisSession;
 use ArrowWorker\Config;
@@ -191,7 +191,7 @@ class Session
      */
     private static function getSessionId()
     {
-        $coId  = Swoole::GetCid();
+        $coId  = Coroutine::Id();
         $token = Cookie::Get(static::$tokenKey);
         if( false!==$token )
         {
@@ -223,7 +223,7 @@ class Session
     private static function setSessionCookie() : bool
     {
         return Cookie::Set(static::$tokenKey,
-            static::$token[Swoole::GetCid()],
+            static::$token[Coroutine::Id()],
             static::$config['cookie']['expire'],
             static::$config['cookie']['path'],
             static::$config['cookie']['domain'],
@@ -237,7 +237,7 @@ class Session
      */
     static function generateSession()
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         //session id为自动生成
         if( static::$token[$coId] != '' )
         {
@@ -250,7 +250,7 @@ class Session
 
     public static function Release()
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
 
         if( isset(static::$token[$coId]) )
         {

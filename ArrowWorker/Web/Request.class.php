@@ -8,7 +8,7 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Log;
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 
 
 /**
@@ -47,7 +47,7 @@ class Request
      */
     public static function Init(array $get, array $post, array $server, array $files, array $header, string $raw = '')
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         $_GET[ $coId ]    = $get;
         $_POST[ $coId ]   = $post;
         $_FILES[ $coId ]  = $files;
@@ -63,7 +63,7 @@ class Request
 
     private static function InitUrlPostParams()
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
 
         if (count($_POST[ $coId ]) > 0)
         {
@@ -98,7 +98,7 @@ class Request
      */
     public static function Method(): string
     {
-        return $_SERVER[ Swoole::GetCid() ]['request_method'];
+        return $_SERVER[ Coroutine::Id() ]['request_method'];
     }
 
     /**
@@ -106,7 +106,7 @@ class Request
      */
     public static function Uri(): string
     {
-        return $_SERVER[ Swoole::GetCid() ]['request_uri'];
+        return $_SERVER[ Coroutine::Id() ]['request_uri'];
     }
 
 
@@ -115,7 +115,7 @@ class Request
      */
     public static function Raw(): string
     {
-        return static::$_raw[ Swoole::GetCid() ];
+        return static::$_raw[ Coroutine::Id() ];
     }
 
     /**
@@ -123,7 +123,7 @@ class Request
      */
     public static function RouteType(): string
     {
-        return static::$_routeType[ Swoole::GetCid() ];
+        return static::$_routeType[ Coroutine::Id() ];
     }
 
     /**
@@ -131,7 +131,7 @@ class Request
      */
     public static function QueryString(): string
     {
-        return $_SERVER[ Swoole::GetCid() ]['query_string'];
+        return $_SERVER[ Coroutine::Id() ]['query_string'];
     }
 
     /**
@@ -139,7 +139,7 @@ class Request
      */
     public static function UserAgent(): string
     {
-        return static::$_header[ Swoole::GetCid() ]['user-agent'];
+        return static::$_header[ Coroutine::Id() ]['user-agent'];
     }
 
 
@@ -148,7 +148,7 @@ class Request
      */
     public static function ClientIp(): string
     {
-        return $_SERVER[ Swoole::GetCid() ]['remote_addr'];
+        return $_SERVER[ Coroutine::Id() ]['remote_addr'];
     }
 
     /**
@@ -160,7 +160,7 @@ class Request
      */
     public static function Get(string $key): string
     {
-        return isset($_GET[ Swoole::GetCid() ][ $key ]) ? $_GET[ Swoole::GetCid() ][ $key ] : '';
+        return isset($_GET[ Coroutine::Id() ][ $key ]) ? $_GET[ Coroutine::Id() ][ $key ] : '';
     }
 
     /**
@@ -172,7 +172,7 @@ class Request
      */
     public static function Post(string $key): string
     {
-        return (!isset($_POST[ Swoole::GetCid() ][ $key ])) ? '' : $_POST[ Swoole::GetCid() ][ $key ];
+        return (!isset($_POST[ Coroutine::Id() ][ $key ])) ? '' : $_POST[ Coroutine::Id() ][ $key ];
     }
 
 
@@ -185,8 +185,8 @@ class Request
      */
     public static function Param(string $key): string
     {
-        return (!isset(static::$_parameters[ Swoole::GetCid() ][ $key ])) ? '' :
-            static::$_parameters[ Swoole::GetCid() ][ $key ];
+        return (!isset(static::$_parameters[ Coroutine::Id() ][ $key ])) ? '' :
+            static::$_parameters[ Coroutine::Id() ][ $key ];
     }
 
     /**
@@ -195,7 +195,7 @@ class Request
      */
     public static function Params(): array
     {
-        return static::$_parameters[ Swoole::GetCid() ];
+        return static::$_parameters[ Coroutine::Id() ];
     }
 
     /**
@@ -207,8 +207,8 @@ class Request
      */
     public static function Header(string $key): string
     {
-        return (!isset(static::$_header[ Swoole::GetCid() ][ $key ])) ? '' :
-            static::$_header[ Swoole::GetCid() ][ $key ];
+        return (!isset(static::$_header[ Coroutine::Id() ][ $key ])) ? '' :
+            static::$_header[ Coroutine::Id() ][ $key ];
     }
 
     /**
@@ -217,7 +217,7 @@ class Request
      */
     public static function Headers(): array
     {
-        return static::$_header[ Swoole::GetCid() ];
+        return static::$_header[ Coroutine::Id() ];
     }
 
     /**
@@ -226,7 +226,7 @@ class Request
      */
     public static function Gets(): array
     {
-        return $_GET[ Swoole::GetCid() ];
+        return $_GET[ Coroutine::Id() ];
     }
 
     /**
@@ -235,7 +235,7 @@ class Request
      */
     public static function Posts(): array
     {
-        return $_POST[ Swoole::GetCid() ];
+        return $_POST[ Coroutine::Id() ];
     }
 
     /**
@@ -247,7 +247,7 @@ class Request
      */
     public static function Server(string $key)
     {
-        return (!isset($_SERVER[ Swoole::GetCid() ][ $key ])) ? false : $_SERVER[ Swoole::GetCid() ][ $key ];
+        return (!isset($_SERVER[ Coroutine::Id() ][ $key ])) ? false : $_SERVER[ Coroutine::Id() ][ $key ];
     }
 
     /**
@@ -256,7 +256,7 @@ class Request
      */
     public static function Servers()
     {
-        return $_SERVER[ Swoole::GetCid() ];
+        return $_SERVER[ Coroutine::Id() ];
     }
 
     /**
@@ -268,7 +268,7 @@ class Request
      */
     public static function File(string $name)
     {
-        return (!isset($_FILES[ Swoole::GetCid() ][ $name ])) ? false : new Upload($name);
+        return (!isset($_FILES[ Coroutine::Id() ][ $name ])) ? false : new Upload($name);
     }
 
     /**
@@ -277,7 +277,7 @@ class Request
      */
     public static function Files()
     {
-        return $_FILES[ Swoole::GetCid() ];
+        return $_FILES[ Coroutine::Id() ];
     }
 
     /**
@@ -286,8 +286,8 @@ class Request
      */
     public static function SetParams(array $params, string $routeType='path')
     {
-        static::$_parameters[ Swoole::GetCid() ] = $params;
-        static::$_routeType[ Swoole::GetCid() ]  = $routeType;
+        static::$_parameters[ Coroutine::Id() ] = $params;
+        static::$_routeType[ Coroutine::Id() ]  = $routeType;
 
         self::_logRequest();
     }
@@ -297,13 +297,13 @@ class Request
      */
     public static function Release()
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], static::$_parameters[ $coId ], static::$_header[ $coId ], static::$_raw[$coId], static::$_routeType[$coId], $coId);
     }
 
     private static function _logRequest()
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         $uri    = self::Uri();
         $raw    = self::Raw();
         $method = self::Method();

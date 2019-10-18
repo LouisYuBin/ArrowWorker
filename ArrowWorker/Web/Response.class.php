@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Swoole;
+use ArrowWorker\Coroutine;
 
 
 /**
@@ -29,7 +29,7 @@ class Response
      */
     public static function Init(\Swoole\Http\Response $response, bool $isAllowCORS=false)
     {
-        self::$_response[Swoole::GetCid()] = $response;
+        self::$_response[Coroutine::Id()] = $response;
         self::Header('Server','Arrow Web Server, V2.0, By Louis');
         if( $isAllowCORS )
         {
@@ -59,7 +59,7 @@ class Response
      */
     public static function Write(string $msg)
     {
-        self::$_response[Swoole::GetCid()]->end( $msg );
+        self::$_response[Coroutine::Id()]->end( $msg );
     }
 
     /**
@@ -70,7 +70,7 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        self::$_response[Swoole::GetCid()]->header($key, $val);
+        self::$_response[Coroutine::Id()]->header($key, $val);
     }
 
     /**
@@ -80,7 +80,7 @@ class Response
      */
     public static function Headers(array $data)
     {
-        $coId = Swoole::GetCid();
+        $coId = Coroutine::Id();
         foreach ($data as $key=>$val)
         {
             self::$_response[ $coId ]->header($key, $val);
@@ -101,7 +101,7 @@ class Response
      */
     public static function Cookie( string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
     {
-        self::$_response[Swoole::GetCid()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        self::$_response[Coroutine::Id()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
     }
 
@@ -122,7 +122,7 @@ class Response
      */
     public static function Release()
     {
-        unset(self::$_response[Swoole::GetCid()]);
+        unset(self::$_response[Coroutine::Id()]);
     }
 
 }

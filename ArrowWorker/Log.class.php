@@ -7,11 +7,10 @@
 namespace ArrowWorker;
 
 
+use \Swoole\Coroutine\Channel as swChan;
+
 use ArrowWorker\Driver\Cache\Redis;
 use ArrowWorker\Driver\Channel\Queue;
-use \Swoole\Coroutine\Channel as swChan;
-use \Swoole\Event as swEvent;
-use \Swoole\Coroutine as Co;
 use ArrowWorker\Client\Tcp\Client as Tcp;
 
 /**
@@ -189,17 +188,17 @@ class Log
     private static $outputLevel = 30719;
 
     /**
-     * @var \Swoole\Coroutine\Channel;
+     * @var swChan;
      */
     private static $_toFileChan;
 
     /**
-     * @var \Swoole\Coroutine\Channel
+     * @var swChan
      */
     private static $_toTcpChan;
 
     /**
-     * @var \Swoole\Coroutine\Channel
+     * @var swChan
      */
     private static $_toRedisChan;
 
@@ -604,20 +603,21 @@ class Log
 
         $logClass = __CLASS__;
 
-        Co::create( "{$logClass}::WriteToFile" );
+        Coroutine::Create( "{$logClass}::WriteToFile" );
+
         if ( in_array( static::TO_TCP, static::$_writeType ) )
         {
-            Co::create( "{$logClass}::WriteToTcp" );
+            Coroutine::Create( "{$logClass}::WriteToTcp" );
         }
 
         if ( in_array( static::TO_REDIS, static::$_writeType ) )
         {
-            Co::create( "{$logClass}::WriteToRedis" );
+            Coroutine::Create( "{$logClass}::WriteToRedis" );
         }
 
-        Co::create( "{$logClass}::Dispatch" );
+        Coroutine::Create( "{$logClass}::Dispatch" );
 
-        swEvent::wait();
+        Coroutine::Wait();
         static::_exit();
     }
 
@@ -662,7 +662,7 @@ class Log
         }
 
         static::$isTerminateChan = true;
-        self::Dump( self::LOG_PREFIX.'log dispatch coroutine exited' );
+        self::Dump( self::LOG_PREFIX.'dispatch coroutine exited' );
     }
 
     /**
@@ -680,7 +680,7 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep( 1 );
+                Coroutine::Sleep( 1 );
                 continue;
             }
 
@@ -705,7 +705,7 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep( 1 );
+                Coroutine::Sleep( 1 );
                 continue;
             }
 
@@ -732,7 +732,7 @@ class Log
 
             if ( $data === false )
             {
-                Co::sleep( 1 );
+                Coroutine::Sleep( 1 );
                 continue;
             }
 
@@ -871,9 +871,9 @@ class Log
      */
     public static function SetLogId( string $logId = '' )
     {
-        self::$_logId[ Swoole::GetCid() ] = '' === $logId ? date( 'ymdHis' ) .
-                                                            posix_getpid() .
-                                                            Swoole::GetCid() .
+        self::$_logId[ Coroutine::Id() ] = '' === $logId ? date( 'ymdHis' ) .
+                                                            Process::Id() .
+                                                            Coroutine::Id() .
                                                             mt_rand( 100, 999 ) : $logId;
     }
 
@@ -882,7 +882,7 @@ class Log
      */
     public static function GetLogId() : string
     {
-        return self::$_logId[ Swoole::GetCid() ];
+        return self::$_logId[ Coroutine::Id() ];
     }
 
     /**
@@ -890,7 +890,7 @@ class Log
      */
     public static function Release()
     {
-        unset( self::$_logId[ Swoole::GetCid() ] );
+        unset( self::$_logId[ Coroutine::Id() ] );
     }
 
 }

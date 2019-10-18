@@ -90,6 +90,9 @@ class Tcp
         $config = static::_getConfig( $config );
         $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_TCP);
         $server->set($config);
+        $server->on('start', function() use ($config) {
+            Log::Dump("[   Tcp   ] : {$config['port']} started");
+        });
         $server->on('WorkerStart', function() use ($config) {
             Component::CheckParams($config);
         });

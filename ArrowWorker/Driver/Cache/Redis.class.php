@@ -62,9 +62,9 @@ class Redis implements Cache
         return true;
     }
 
-    private function _handleFailure()
+    public function Init(array $config)
     {
-
+        return new self($config);
     }
 
 	/**
