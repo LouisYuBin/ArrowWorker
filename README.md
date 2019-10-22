@@ -1,9 +1,19 @@
-## 项目介绍
-ArrowWorker 是一个组件化的web/worker框架，支持php-fpm+nginx和swoole-web。
-要求php版本7+
-## 运行介绍
+## Introduction
+High performance and componentized server framework based on swoole 4+.
+## Feature
+- Connection pool for mysql
+- Connection pool for cache
+- Worker based on multi-process and coroutine
+- Memory table based on swoole table
+- Communication component between processes
+- Process monitor
+- High performance log component
+- Tcp/Websocket/Http/Udp/Grpc server
+- Tcp/Websocket/Http/Udp/Grpc client
+- Rest api
+## How to use?
 ArrowWorker 已在公司的项目中使用一年多，使用模型为一个监控进程+多个工作进程配合使用，使用期间运行非常稳定。
-## 项目程序版本介绍
+## Components
 ArrowWorker V1.0版本未做开源,从V1.2版本开始,在github开源。V1.3版本做了功能升级和优化,包括:<br />
 1、简化常驻服务初始化方法.<br />
 2、单个任务可使用worker进程组执行，可添加多个任务实现多组进程并行.<br />
@@ -18,7 +28,7 @@ ArrowWorker V1.0版本未做开源,从V1.2版本开始,在github开源。V1.3版
 11、(2017-02-22)增加rabbitmq驱动(可使用多线程和多进程模式)和mongodb驱动(只适用于多进程)。<br />
 12、增加了对协程的支持,相关io密集型应用正在进一步测试中。<br />
 
-## 当前版本
+## Document
 V1.3
 ## 开发计划
 从V1.4版本开始计划加入socket通信相关操作，是ArrowWorker成为一个可进行分布式部署的框架。

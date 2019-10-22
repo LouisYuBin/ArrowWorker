@@ -9,7 +9,7 @@ use Swoole\Coroutine\Channel as swChan;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Pool as ConnPool;
 
 

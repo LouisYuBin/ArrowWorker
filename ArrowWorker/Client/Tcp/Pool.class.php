@@ -8,7 +8,7 @@ namespace ArrowWorker\Client\Tcp;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use Swoole\Coroutine\Channel as swChan;
 use ArrowWorker\Pool as ConnPool;
 

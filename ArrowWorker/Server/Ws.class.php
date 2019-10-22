@@ -6,7 +6,7 @@
 
 namespace ArrowWorker\Server;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use \Swoole\WebSocket\Server as WebSocket;
 use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;

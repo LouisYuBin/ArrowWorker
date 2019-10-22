@@ -11,50 +11,23 @@ use App\Model\ArrowWorker;
 use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;
-use Swoole\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 
 
 class Demo
 {
-    public function __construct()
-    {
-        /**
-         * @var $dbService \App\Service\DbDemo
-         * @var $classService \App\Service\ClassDemo
-         * @var $cacheService \App\Service\CacheDemo
-         */
-    }
 
     public function Demo($argv=0)
     {
-        /**
-         * @var $cacheService \App\Service\CacheDemo
-         */
-        $cacheService = Loader::Service('CacheDemo');
-
-        /**
-         * @var $dbService \App\Service\DbDemo
-         */
-        $dbService    = Loader::Service('DbDemo');
-
-        /**
-         * @var $classService \App\Service\ClassDemo
-         */
-        $classService = Loader::Service('ClassDemo');
-
-/*        $dbService    -> testDb();
-        $cacheService -> testRedisLpush();
-        $cacheService -> testRedisBrpop();
-        $classService -> testMethod();*/
 
         $writeResult = Chan::Get()->Write("app".mt_rand(1,1000));
         Log::Info($writeResult);
 
 
-        var_dump(ArrowWorker::GetOne());
-        var_dump(ArrowWorker::GetList());
+        ArrowWorker::GetOne();
+        ArrowWorker::GetList();
 
-        Coroutine::sleep(1);
+        Coroutine::Sleep(1);
     }
 
     public function channelApp()
@@ -65,9 +38,11 @@ class Demo
         {
             return false;
         }
+        Coroutine::Sleep(1);
 
-        var_dump(ArrowWorker::GetOne());
-        var_dump(ArrowWorker::GetList());
+
+        ArrowWorker::GetOne();
+        ArrowWorker::GetList();
 
 
         Chan::Get('arrow')->Write($result);
@@ -76,7 +51,6 @@ class Demo
 
     public function channelArrow()
     {
-
         $channel = Chan::Get('arrow');
         $result  = $channel->Read();
         //var_dump($result);
@@ -85,10 +59,9 @@ class Demo
             return false;
         }
 
-        var_dump(ArrowWorker::GetOne());
-        var_dump(ArrowWorker::GetList());
+        Coroutine::Sleep(1);
 
-		Chan::Get('test')->Write($result);
+        Chan::Get('test')->Write($result);
         return true;
     }
 
@@ -100,8 +73,10 @@ class Demo
 			return false;
 		}
 
-        var_dump(ArrowWorker::GetOne());
-        var_dump(ArrowWorker::GetList());
+        Coroutine::Sleep(1);
+
+        ArrowWorker::GetOne();
+        ArrowWorker::GetList();
 
 		return true;
 	}

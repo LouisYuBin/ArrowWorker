@@ -6,7 +6,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 

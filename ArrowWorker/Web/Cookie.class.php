@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Lib\Crypto\CryptoArrow;
 
 /**

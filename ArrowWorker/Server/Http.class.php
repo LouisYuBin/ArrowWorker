@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Server;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server as SwHttp;

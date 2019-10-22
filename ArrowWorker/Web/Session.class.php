@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Driver\Session\MemcachedSession;
 use ArrowWorker\Driver\Session\RedisSession;
 use ArrowWorker\Config;

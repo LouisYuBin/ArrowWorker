@@ -12,6 +12,8 @@ use \Swoole\Coroutine\Channel as swChan;
 use ArrowWorker\Driver\Cache\Redis;
 use ArrowWorker\Driver\Channel\Queue;
 use ArrowWorker\Client\Tcp\Client as Tcp;
+use ArrowWorker\Lib\Coroutine;
+use ArrowWorker\Lib\Process;
 
 /**
  * Class Log
@@ -317,7 +319,7 @@ class Log
                     break;
 
                 default:
-                    // todo
+                    // nothing need to be done
 
             }
         }
@@ -599,23 +601,29 @@ class Log
      */
     public static function Start()
     {
-        static::_setSignalHandler();
+        self::_setSignalHandler();
 
-        $logClass = __CLASS__;
-
-        Coroutine::Create( "{$logClass}::WriteToFile" );
+        Coroutine::Create( function() {
+            Log::WriteToFile();
+        } );
 
         if ( in_array( static::TO_TCP, static::$_writeType ) )
         {
-            Coroutine::Create( "{$logClass}::WriteToTcp" );
+            Coroutine::Create( function() {
+                Log::WriteToTcp();
+            });
         }
 
         if ( in_array( static::TO_REDIS, static::$_writeType ) )
         {
-            Coroutine::Create( "{$logClass}::WriteToRedis" );
+            Coroutine::Create( function(){
+                Log::WriteToRedis();
+            } );
         }
 
-        Coroutine::Create( "{$logClass}::Dispatch" );
+        Coroutine::Create( function(){
+            Log::Dispatch();
+        } );
 
         Coroutine::Wait();
         static::_exit();
@@ -629,7 +637,7 @@ class Log
         while ( true )
         {
             if (
-                static::$isTerminate &&
+                self::$isTerminate &&
                 self::$_msgObject->Status()[ 'msg_qnum' ] == 0
             )
             {
@@ -644,17 +652,16 @@ class Log
                 continue;
             }
 
-
-            static::$_toFileChan->push( $log, 1 );
+            self::$_toFileChan->push( $log, 1 );
 
             if ( in_array( static::TO_TCP, static::$_writeType ) )
             {
-                static::$_toTcpChan->push( $log, 1 );
+                self::$_toTcpChan->push( $log, 1 );
             }
 
             if ( in_array( static::TO_REDIS, static::$_writeType ) )
             {
-                static::$_toRedisChan->push( $log, 1 );
+                self::$_toRedisChan->push( $log, 1 );
             }
 
             pcntl_signal_dispatch();
@@ -753,7 +760,8 @@ class Log
      */
     private static function _exit()
     {
-        static::DumpExit( self::LOG_PREFIX.'queue status : ' . json_encode( self::$_msgObject->Status() ) );
+        static::Dump( self::LOG_PREFIX.'queue status : ' . json_encode( self::$_msgObject->Status() ) );
+        exit(0);
     }
 
     /**

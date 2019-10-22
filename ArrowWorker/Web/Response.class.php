@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 
 
 /**

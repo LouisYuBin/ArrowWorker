@@ -8,7 +8,7 @@
 namespace App\Controller;
 use App\Model\ArrowWorker;
 use ArrowWorker\Cache;
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Db;
 use ArrowWorker\Memory;
 use ArrowWorker\Web\Cookie;

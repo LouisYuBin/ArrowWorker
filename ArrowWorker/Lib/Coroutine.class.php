@@ -3,7 +3,7 @@
  * By yubin at 2019-10-18 14:04.
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Lib;
 
 
 use Swoole\Coroutine as Co;

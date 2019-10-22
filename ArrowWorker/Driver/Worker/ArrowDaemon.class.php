@@ -8,16 +8,17 @@
 
 namespace ArrowWorker\Driver\Worker;
 
-use ArrowWorker\Process;
 use Swoole\Coroutine as Co;
-use Swoole\Event as SwEvent;
 use \swoole\Runtime;
 
 use ArrowWorker\Component;
 use ArrowWorker\Daemon;
 use ArrowWorker\Driver\Worker;
 use ArrowWorker\Log;
-use ArrowWorker\Coroutine;
+
+use ArrowWorker\Lib\Coroutine;
+use ArrowWorker\Lib\Process;
+
 
 
 /**
@@ -182,10 +183,11 @@ class ArrowDaemon extends Worker
      * signalHandler 进程信号处理
      * @author Louis
      * @param int $signal
-     * @return bool
+     * @return void
      */
     public function signalHandler( int $signal )
     {
+        Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
         switch ( $signal )
         {
             case SIGUSR1:
@@ -203,7 +205,7 @@ class ArrowDaemon extends Worker
                 static::$terminate = true;
                 break;
             default:
-                return false;
+                return ;
         }
 
     }
@@ -237,7 +239,7 @@ class ArrowDaemon extends Worker
         if ( self::$jobNum == 0 )
         {
             Log::Dump( static::LOG_PREFIX . "please add one task at least." );
-            $this->_finishMonitorExit()();
+            $this->_exitMonitor();
         }
         $this->_setSignalHandler( 'monitorHandler' );
         $this->_forkWorkers();
@@ -276,9 +278,9 @@ class ArrowDaemon extends Worker
                 //等待进程退出
                 $this->_waitUnexitedProcess();
                 //开启管道读取进程并等待其退出
-                $this->_finishChannelRead();
+                $this->_startChanFinishProcess();
                 //退出监控进程相关操作
-                $this->_finishMonitorExit()();
+                $this->_exitMonitor()();
             }
 
             pcntl_signal_dispatch();
@@ -317,10 +319,10 @@ class ArrowDaemon extends Worker
     }
 
     /**
-     * _finishChannelRead 开启管道读取进程并等待其退出
+     * _startChanFinishProcess 开启管道读取进程并等待其退出
      * @author Louis
      */
-    private function _finishChannelRead()
+    private function _startChanFinishProcess()
     {
         //开启最终队列消费进程
         $this->_startChannelFinishProcess();
@@ -395,7 +397,7 @@ class ArrowDaemon extends Worker
             return;
         }
 
-        foreach ( static::$consumePidMap as $pid => $eachConsumerId )
+        foreach ( self::$consumePidMap as $pid => $eachConsumerId )
         {
             //退出的进程组非某消费队列对应的生产队列
             if ( $eachConsumerId != $consumerId )
@@ -434,14 +436,11 @@ class ArrowDaemon extends Worker
         $taskId = self::$pidMap[$pid];
         unset( self::$pidMap[$pid] );
 
-        Log::Dump( static::LOG_PREFIX .
-                   "process : " .
+        Log::Dump( self::LOG_PREFIX .
                    self::$jobs[$taskId]["processName"] .
-                   "(" .
-                   $pid .
-                   ") exited at status : " .
-                   $status
+                   "({$pid}) exited at status {$status}"
         );
+        usleep(10000);
 
         //监控进程收到退出信号时则无需开启新的worker
         if ( !$isExit )
@@ -498,12 +497,14 @@ class ArrowDaemon extends Worker
      */
     private function _runWorker( int $index, int $lifecycle )
     {
+        Log::Dump(self::LOG_PREFIX.'starting '.self::$jobs[$index]['processName'].'('.Process::Id().')');
         $this->_setSignalHandler( 'workerHandler' );
         $this->_setAlarm($lifecycle);
         $this->_setProcessName( self::$jobs[$index]['processName'] );
         Process::SetExecGroupUser( self::$_group, self::$_user);
         Runtime::enableCoroutine();
-        Co::create(function () use ($index) {
+        Coroutine::Create(function () use ($index) {
+            Log::SetLogId();
             Component::Init(self::$jobs[$index]['components']);
         });
         Coroutine::Wait();
@@ -522,7 +523,7 @@ class ArrowDaemon extends Worker
 
         while ( self::$jobs[$index]['coCount'] < self::$jobs[$index]['coQuantity'] )
         {
-            Co::create( function () use ( $index )
+            Coroutine::Create( function () use ( $index )
             {
                 $pid  = Process::Id();
                 $coId = Coroutine::Id();
@@ -594,16 +595,18 @@ class ArrowDaemon extends Worker
 
                 while ( self::$jobs[$i]['coCount'] < self::$jobs[$i]['coQuantity'] )
                 {
-                    Co::create( [
-                                    $this,
-                                    '_consumeChanTask'
-                                ], $i, $newGroupNum );
+                    self::$jobs[$i]['coCount']++;
+
+                    Coroutine::Create(function() use($i, $newGroupNum) {
+                        $this->_consumeChanTask($i, $newGroupNum);
+                    });
                 }
                 Coroutine::Wait();
+                exit(0);
             }
 
             $newGroupNum++;
-            usleep( 10000 );
+            usleep( 1000 );
         }
         Log::Dump( json_encode( self::$consumePidMap ) );
         Log::Dump( self::LOG_PREFIX . "chan-consumer are all started." );
@@ -620,6 +623,7 @@ class ArrowDaemon extends Worker
         $workCount = 0;
         $pid  = Process::Id();
         $coId = Coroutine::Id();
+        $retryTimes = 0;
         while ( 1 )
         {
             Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));
@@ -633,6 +637,9 @@ class ArrowDaemon extends Worker
             {
                 $channelStatus = call_user_func( self::$jobs[$index]['function'] );
             }
+
+            pcntl_signal_dispatch();
+
             $workCount['count']++;
 
             if ( $channelStatus )
@@ -640,8 +647,7 @@ class ArrowDaemon extends Worker
                 $retryTimes = 0;
                 continue;
             }
-
-            //队列为空 且 重试后依然为空 且 （已收到可退出信号  或 当前进程为第一组消费队列，即无生产队列）
+            //队列为空 && 重试后依然为空 && （已收到可退出信号  || 当前进程为第一组消费队列，即无生产队列）
             if ( !$channelStatus && $retryTimes > 0 && ($newJobIndex == 0 || self::$terminate) )
             {
                 break;
@@ -651,13 +657,12 @@ class ArrowDaemon extends Worker
             {
                 $retryTimes++;
             }
-            pcntl_signal_dispatch();
 
         }
         $timeEnd          = time();
         $proWorkerTimeSum = $timeEnd - $timeStart;
-        Log::DumpExit( self::LOG_PREFIX .
-                       'chan-finish ' .
+        Log::Dump( self::LOG_PREFIX .
+                       "chan-finish( {$coId} ) " .
                        self::$jobs[$index]['processName'] .
                        ' finished ' .
                        $workCount .
@@ -668,12 +673,13 @@ class ArrowDaemon extends Worker
 
 
     /**
-     * _finishMonitorExit() 删除进程pid文件、记录退出信息后正常退出粗
+     * _exitMonitor 删除进程pid文件、记录退出信息后正常退出粗
      * @author Louis
      */
-    private function _finishMonitorExit()
+    private function _exitMonitor()
     {
-        Log::DumpExit( static::LOG_PREFIX . "worker monitor exits." );
+        Log::Dump( static::LOG_PREFIX . "monitor exited." );
+        exit(0);
     }
 
     /**

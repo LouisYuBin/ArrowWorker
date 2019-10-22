@@ -8,7 +8,7 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Log;
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 
 
 /**

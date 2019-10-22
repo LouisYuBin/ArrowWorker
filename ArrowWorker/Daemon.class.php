@@ -7,8 +7,8 @@
 namespace ArrowWorker;
 
 
-use ArrowWorker\Driver\Channel;
 use ArrowWorker\Lib\System\LoadAverage;
+use ArrowWorker\Lib\Process;
 
 use ArrowWorker\Server\Tcp;
 use ArrowWorker\Server\Http;
@@ -39,8 +39,6 @@ class Daemon
      * @var mixed|string
      */
     const APP_NAME = 'Arrow';
-
-    private static $components = [];
 
     /**
      * 需要去除的进程执行权限
@@ -120,12 +118,9 @@ class Daemon
     {
         $this->_startLogProcess();
 
-        if ( !is_array(APP_TYPE) )
-        {
-            Log::Error('APP_TYPE is incorrect.');
-        }
-
-        foreach ( APP_TYPE as $appType )
+        $appList = APP_TYPE;
+        rsort($appList);
+        foreach ( $appList as $appType )
         {
             if ( $appType=='server' )
             {
@@ -148,7 +143,7 @@ class Daemon
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting log process');
-            static::_setProcessName(static::PROCESS_LOG);
+            self::_setProcessName(static::PROCESS_LOG);
             Log::Start();
         }
         else
@@ -229,8 +224,8 @@ class Daemon
             $pid = Process::Id();
             $processName = "{$config['type']} : {$config['port']}";
             Log::Dump(self::LOG_PREFIX."starting {$processName} ( $pid )");
-            static::_setProcessName($processName);
-            if( $config['type']=='Http' )
+            self::_setProcessName($processName);
+            if( $config['type']==self::PROCESS_HTTP )
             {
                 Http::Start($config);
             }
@@ -270,11 +265,17 @@ class Daemon
         {
             if( self::$terminate )
             {
-                $this->_exitWorkerProcess();
-                $this->_exitLogProcess();
+                //exit sequence: server -> worker -> log
+                if( $this->_exitWorkerProcess('server') )
+                {
+                    if( $this->_exitWorkerProcess('worker') )
+                    {
+                        $this->_exitLogProcess();
+                    }
+                }
+
                 $this->_exitMonitor();
             }
-
 
             pcntl_signal_dispatch();
 
@@ -331,17 +332,21 @@ class Daemon
 
 
     /**
-     * _exitWorker
+     * @param string $type
+     * @return bool
      */
-    private function _exitWorkerProcess()
+    private function _exitWorkerProcess(string $type='server')
     {
+        $isExisted = true;
         foreach (static::$pidMap as $eachProcess)
         {
-            if( $eachProcess['type']!=static::PROCESS_LOG )
+            if( $eachProcess['type']==$type )
             {
+                $isExisted = false;
                 $this->_exitProcess($eachProcess['type'], $eachProcess['pid']);
             }
         }
+        return $isExisted;
     }
 
     /**
@@ -378,10 +383,15 @@ class Daemon
      */
     private function _exitProcess( string $appType, int $pid)
     {
-        Log::Dump(static::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
+        $signal = SIGTERM;
+        if( !Process::IsKillNotified((string)($pid.$signal)) )
+        {
+            Log::Dump(static::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
+        }
+
         for($i=0; $i<3; $i++)
         {
-            if( Process::Kill($pid,SIGTERM) )
+            if( Process::Kill($pid,$signal) )
             {
                 break ;
             }
@@ -478,7 +488,7 @@ class Daemon
             }
             else
             {
-                if( !Process::Kill($pid,SIGTERM) )
+                if( !Process::Kill($pid,SIGTERM, true) )
                 {
                     Log::Hint('stopped successfully.');
                     break;
@@ -565,6 +575,17 @@ class Daemon
      */
     private static function _initConfig()
     {
+        if (
+            !is_array(APP_TYPE) ||
+            0==count(APP_TYPE) ||
+            (
+                !in_array('server', APP_TYPE) &&
+                !in_array('worker', APP_TYPE)
+            )
+        )
+        {
+            Log::DumpExit('APP_TYPE is not set.');
+        }
         self::$pid = static::$pidDir.static::APP_NAME.'.pid';
     }
 
@@ -685,7 +706,7 @@ class Daemon
      */
     public function signalHandler(int $signal)
     {
-        Log::Dump(static::LOG_PREFIX.'got a signal : '.$signal);
+        Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
         switch($signal)
         {
             case SIGUSR1:

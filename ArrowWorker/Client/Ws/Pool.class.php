@@ -8,7 +8,7 @@ namespace ArrowWorker\Client\Ws;
 use ArrowWorker\Config;
 use ArrowWorker\Pool as ConnPool;
 use ArrowWorker\Log;
-use ArrowWorker\Coroutine;
+use ArrowWorker\Lib\Coroutine;
 
 use Swoole\Coroutine\Channel as swChan;
 

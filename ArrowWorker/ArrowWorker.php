@@ -137,10 +137,8 @@ class ArrowWorker
             'ArrowWorker\Pool'       => ArrowWorker . '/Pool'      . self::INTERFACE_EXT,
             'ArrowWorker\Console'    => ArrowWorker . '/Console'   . self::CLASS_EXT,
             'ArrowWorker\Daemon'     => ArrowWorker . '/Daemon'    . self::CLASS_EXT,
-            'ArrowWorker\Process'    => ArrowWorker . '/Process'    . self::CLASS_EXT,
 
             'ArrowWorker\Log'        => ArrowWorker . '/Log'       . self::CLASS_EXT,
-            'ArrowWorker\Coroutine'  => ArrowWorker . '/Coroutine' . self::CLASS_EXT,
             'ArrowWorker\Worker'     => ArrowWorker . '/Worker'    . self::CLASS_EXT,
             'ArrowWorker\Db'         => ArrowWorker . '/Db'        . self::CLASS_EXT,
             'ArrowWorker\Chan'       => ArrowWorker . '/Chan'      . self::CLASS_EXT,
@@ -166,11 +164,14 @@ class ArrowWorker
             'ArrowWorker\Lib\Image\Gif\GifByteStream' => ArrowWorker  . '/Lib/Image/Gif/GifByteStream' . self::CLASS_EXT,
             'ArrowWorker\Lib\System\LoadAverage'      => ArrowWorker  . '/Lib/System/LoadAverage'      . self::CLASS_EXT,
 
+            'ArrowWorker\Lib\Coroutine' => ArrowWorker . '/Lib/Coroutine' . self::CLASS_EXT,
+            'ArrowWorker\Lib\Process'   => ArrowWorker . '/Lib/Process'   . self::CLASS_EXT,
+
             'ArrowWorker\Server\Http' => ArrowWorker . '/Server/Http' . self::CLASS_EXT,
             'ArrowWorker\Server\Ws'   => ArrowWorker . '/Server/Ws'   . self::CLASS_EXT,
             'ArrowWorker\Server\Tcp'  => ArrowWorker . '/Server/Tcp' . self::CLASS_EXT,
             'ArrowWorker\Server\Udp'  => ArrowWorker . '/Server/Udp' . self::CLASS_EXT,
-
+            'ArrowWorker\Server\GRpc' => ArrowWorker . '/Server/GRpc' . self::CLASS_EXT,
 
             'ArrowWorker\Client\Ws\Pool'   => ArrowWorker . '/Client/Ws/Pool'       . self::CLASS_EXT,
             'ArrowWorker\Client\Ws\Client' => ArrowWorker . '/Client/Ws/Client' . self::CLASS_EXT,
@@ -179,8 +180,11 @@ class ArrowWorker
             'ArrowWorker\Client\Http\Http' => ArrowWorker . '/Client/Http/Http' . self::CLASS_EXT,
             'ArrowWorker\Client\Http\Http2' => ArrowWorker . '/Client/Http/Http2' . self::CLASS_EXT,
 
-            'ArrowWorker\Client\Tcp\Pool'        => ArrowWorker . '/Client/Tcp/Pool'        . self::CLASS_EXT,
+            'ArrowWorker\Client\Tcp\Pool'        => ArrowWorker . '/Client/Tcp/Pool' . self::CLASS_EXT,
             'ArrowWorker\Client\Tcp\Client' => ArrowWorker . '/Client/Tcp/Client' . self::CLASS_EXT,
+
+            'ArrowWorker\Client\GRpc\Pool'   => ArrowWorker . '/Client/GRpc/Pool' . self::CLASS_EXT,
+            'ArrowWorker\Client\GRpc\Client' => ArrowWorker . '/Client/GRpc/Client' . self::CLASS_EXT,
 
             'ArrowWorker\Lib\Xml\Writer'    => ArrowWorker . '/Lib/Xml/Writer'    . self::CLASS_EXT,
             'ArrowWorker\Lib\Xml\Reader'    => ArrowWorker . '/Lib/Xml/Reader'    . self::CLASS_EXT,
