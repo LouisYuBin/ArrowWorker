@@ -5,7 +5,7 @@ return [
         'type'             => 'Http',
         'host'             => '0.0.0.0',
         'port'             => 4433,
-        'workerNum'        => 4,
+        'workerNum'        => 1,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
@@ -27,6 +27,13 @@ return [
             ],
             'cache' => [
                 'default' => 2
+            ],
+           'tcp_client' => [
+                'default' => 3,
+                'conner'  => 2
+            ],
+            'ws_client' => [
+                'default' => 2
             ]
         ]
     ],
@@ -34,7 +41,7 @@ return [
         'type'             => 'Ws',
         'host'             => '0.0.0.0',
         'port'             => 8081,
-        'workerNum'        => 4,
+        'workerNum'        => 1,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',

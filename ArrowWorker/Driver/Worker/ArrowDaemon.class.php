@@ -523,10 +523,11 @@ class ArrowDaemon extends Worker
 
         while ( self::$jobs[$index]['coCount'] < self::$jobs[$index]['coQuantity'] )
         {
-            Coroutine::Create( function () use ( $index )
+            Coroutine::Create( function () use ( $index, $timeStart )
             {
-                $pid  = Process::Id();
-                $coId = Coroutine::Id();
+                $pid       = Process::Id();
+                $coId      = Coroutine::Id();
+                $execCount = 0;
                 while ( true )
                 {
                     if ( self::$terminate )
@@ -543,25 +544,25 @@ class ArrowDaemon extends Worker
                     {
                         call_user_func( self::$jobs[$index]['function'] );
                     }
-                    self::$execCount++;
+                    $execCount++;
                     pcntl_signal_dispatch();
 
                     //release components resource after finish one work
                     Component::Release();
                 }
+
+                $execTimeSpan = time() - $timeStart;
+                Log::Dump( self::LOG_PREFIX .
+                               self::$jobs[$index]['processName'] .
+                               " chan( {$index} ) finished {$execCount} times / {$execTimeSpan} S." );
             } );
             self::$jobs[$index]['coCount']++;
         }
 
         Coroutine::Wait();
-        $execTimeSpan = time() - $timeStart;
         Log::DumpExit( self::LOG_PREFIX .
                        self::$jobs[$index]['processName'] .
-                       ' finished ' .
-                       self::$execCount .
-                       ' times / ' .
-                       $execTimeSpan .
-                       ' S.' );
+                       " exited" );
     }
 
     /**
@@ -602,7 +603,10 @@ class ArrowDaemon extends Worker
                     });
                 }
                 Coroutine::Wait();
-                exit(0);
+                Log::DumpExit( self::LOG_PREFIX .
+                           "chan-finish process " .
+                           self::$jobs[$i]['processName'] .
+                           ' exited ' );
             }
 
             $newGroupNum++;
@@ -662,7 +666,7 @@ class ArrowDaemon extends Worker
         $timeEnd          = time();
         $proWorkerTimeSum = $timeEnd - $timeStart;
         Log::Dump( self::LOG_PREFIX .
-                       "chan-finish( {$coId} ) " .
+                       "chan-finish coroutine( {$coId} ) " .
                        self::$jobs[$index]['processName'] .
                        ' finished ' .
                        $workCount .

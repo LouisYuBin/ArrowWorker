@@ -3,8 +3,9 @@
 return [
     'default' => [
         'host'     => '127.0.0.1',
-        'port'     => 4433,
+        'port'     => 4436,
         'isSsl'    => false,
-        'poolSize' => 10
+        'uri'      => '/',
+        'poolSize' => 2
     ]
 ];

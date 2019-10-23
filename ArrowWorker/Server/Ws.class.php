@@ -97,7 +97,7 @@ class Ws
     public static function Start( array $config)
     {
         Router::Init( isset($config['404']) ? (string)$config['404'] : '' );
-        $config = static::_getConfig( $config );
+        $config = self::_getConfig( $config );
         $cors   = $config['isAllowCORS'];
 
         $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
@@ -144,7 +144,7 @@ class Ws
                 $request->rawContent()
             );
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
-            Session::Reset();
+            Session::Init();
             Router::Exec();
             Component::Release();
             Coroutine::Release();

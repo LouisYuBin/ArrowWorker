@@ -119,7 +119,7 @@ class Http
                 is_array( $request->header ) ? $request->header : [],
                 $request->rawContent()
             );
-            Session::Reset();
+            Session::Init();
             Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );
             Router::Exec();
             Component::Release();

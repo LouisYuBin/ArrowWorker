@@ -6,7 +6,7 @@
 namespace ArrowWorker\Client\Tcp;
 
 use \swoole\client as SwClient;
-use \ArrowWorker\Log;
+use ArrowWorker\Log;
 
 /**
  * Class Tcp

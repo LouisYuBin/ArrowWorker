@@ -102,12 +102,12 @@ class Pool implements ConnPool
             for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
             {
                 $wsClient = Client::Init( $config['host'], $config['port'], $config['uri'], $config['isSsl'] );
-                if( false===$wsClient->Upgrade() )
+                $upgrade = $wsClient->Upgrade();
+                if( false===$upgrade )
                 {
                     Log::Warning("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
-                self::$pool[$index]->push( $wsClient );
             }
         }
     }
@@ -147,6 +147,7 @@ class Pool implements ConnPool
      */
     public static function Release() : void
     {
+        var_dump('ws release');
         $coId = Coroutine::Id();
         if( !isset(self::$chanConnections[$coId]) )
         {

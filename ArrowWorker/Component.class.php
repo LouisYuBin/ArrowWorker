@@ -5,7 +5,6 @@
 
 namespace ArrowWorker;
 
-
 /**
  * Class Component
  * @package ArrowWorker
@@ -22,7 +21,9 @@ class Component
         '\ArrowWorker\Web\Session',
         '\ArrowWorker\Log',
         '\ArrowWorker\Db',
-        '\ArrowWorker\Cache'
+        '\ArrowWorker\Cache',
+        '\ArrowWorker\Client\Ws\Pool',
+        '\ArrowWorker\Client\Tcp\Pool',
     ];
 
     /**
@@ -31,7 +32,9 @@ class Component
     const BASE_RELEASE_COMPONENTS = [
         '\ArrowWorker\Log',
         '\ArrowWorker\Db',
-        '\ArrowWorker\Cache'
+        '\ArrowWorker\Cache',
+        '\ArrowWorker\Client\Ws\Pool',
+        '\ArrowWorker\Client\Tcp\Pool',
     ];
 
     /**
@@ -49,6 +52,12 @@ class Component
                     break;
                 case 'CACHE':
                     Cache::Init($config);
+                    break;
+                case 'TCP_CLIENT':
+                    \ArrowWorker\Client\Tcp\Pool::Init($config);
+                    break;
+                case 'WS_CLIENT':
+                    \ArrowWorker\Client\Ws\Pool::Init($config);
                     break;
             }
         }

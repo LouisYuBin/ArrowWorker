@@ -68,7 +68,7 @@ class Client
      * @param int $retryTimes
      * @return bool
      */
-    public function Upgrade( int $retryTimes=3)
+    public function Upgrade( int $retryTimes=3) : bool
     {
         for ( $i = 0; $i < $retryTimes; $i++ )
         {
