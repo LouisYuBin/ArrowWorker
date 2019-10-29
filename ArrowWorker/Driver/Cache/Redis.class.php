@@ -100,7 +100,7 @@ class Redis implements Cache
         }
         catch (\Exception $exception)
         {
-            Log::Warning(__CLASS__.'::'.__FUNCTION__." error, ".$exception->getMessage());
+            Log::Warning(__CLASS__.'::'.__FUNCTION__." error, ".$exception->getMessage(), self::LOG_NAME);
             return false;
         }
         return $result;

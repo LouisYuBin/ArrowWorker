@@ -19,7 +19,7 @@ class Config
      * 配置文件路径
      * @var string
      */
-    private static $path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR;
+    private static $path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR . ENV . DIRECTORY_SEPARATOR;
 
     /**
      * 配置文件记录

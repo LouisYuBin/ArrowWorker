@@ -50,6 +50,7 @@ defined('APP_TPL_DIR') or define('APP_TPL_DIR','Tpl');
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','App');
 
 defined('DEBUG') or define('DEBUG', true);
+defined('ENV') or define('ENV', 'Dev');
 
 
 /**
