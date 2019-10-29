@@ -142,7 +142,7 @@ class Daemon
         $pid = Process::Fork();
         if($pid == 0)
         {
-            Log::Dump(static::LOG_PREFIX.'starting log process( '.Process::Id().' )');
+            Log::Dump(static::LOG_PREFIX.'starting log process ( '.Process::Id().' )');
             self::_setProcessName(static::PROCESS_LOG);
             Log::Start();
         }
@@ -223,7 +223,7 @@ class Daemon
         {
             $pid = Process::Id();
             $processName = "{$config['type']} : {$config['port']}";
-            Log::Dump(self::LOG_PREFIX."starting {$processName} ( $pid )");
+            Log::Dump(self::LOG_PREFIX."starting {$processName} process ( $pid )");
             self::_setProcessName($processName);
             if( $config['type']==self::PROCESS_HTTP )
             {
@@ -260,7 +260,7 @@ class Daemon
      */
     private function _startMonitor()
     {
-        Log::Dump(static::LOG_PREFIX.'starting monitor( '.Process::Id().' )');
+        Log::Dump(static::LOG_PREFIX.'starting monitor process ( '.Process::Id().' )');
         while (1)
         {
             if( self::$terminate )
