@@ -522,10 +522,11 @@ class Daemon
      */
     private static function _processStatus()
     {
+        global $argv;
         $keyword = self::APP_NAME.'_'.self::$identity;
         if( PHP_OS=='Darwin')
         {
-            $keyword = 'index.php' ;
+            $keyword = $argv[0] ;
         }
         $commend = "ps -e -o 'user,pid,ppid,args,pcpu,%mem' | grep {$keyword}";
         $output  = 'user | pid | ppid | process name | cpu usage | memory usage'.PHP_EOL;
@@ -716,6 +717,7 @@ class Daemon
             case SIGINT:
             case SIGQUIT:
                 self::$terminate = true;
+                var_dump(self::$pidMap);
                 break;
             default:
                 return false;

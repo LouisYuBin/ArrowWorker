@@ -5,7 +5,7 @@
 
 namespace ArrowWorker\Client\Http;
 
-use Swoole\Coroutine\Http\Client;
+use Swoole\Coroutine\Http2\Client;
 
 /**
  * Class Http

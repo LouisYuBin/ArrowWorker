@@ -17,6 +17,7 @@ return [
         'maxContentLength' => 20889600,
         'enableStaticHandler' => true,
         'isAllowCORS'      => true,
+        'isEnableHttp2'    => true,
         'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
@@ -28,13 +29,13 @@ return [
             'cache' => [
                 'default' => 2
             ],
-           'tcp_client' => [
+           /*'tcp_client' => [
                 'default' => 3,
                 'conner'  => 2
             ],
             'ws_client' => [
                 'default' => 2
-            ]
+            ]*/
         ]
     ],
     [

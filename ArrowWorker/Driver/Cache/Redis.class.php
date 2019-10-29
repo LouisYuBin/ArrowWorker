@@ -94,7 +94,16 @@ class Redis implements Cache
 	 */
 	public function Set(string $key, string $val) : bool
     {
-        return $this->_conn->set( $key, $val );
+        try
+        {
+            $result = $this->_conn->set( $key, $val );
+        }
+        catch (\RedisException $exception)
+        {
+            Log::Warning(__CLASS__.'::'.__FUNCTION__." error, ".$exception->getMessage());
+            return false;
+        }
+        return $result;
     }
 
 

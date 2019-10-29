@@ -31,7 +31,7 @@ class Index
         $this->memory();
         $this->log();
         $this->cache();
-        Coroutine::Sleep(2);
+        //Coroutine::Sleep(2);
         Response::Json(200,['random'=>(int)$rnd],"ok");
     }
 

@@ -7,6 +7,8 @@
 
 namespace ArrowWorker\Web;
 
+use Swoole\Http\Request as SwRequest;
+
 use ArrowWorker\Log;
 use ArrowWorker\Lib\Coroutine;
 
@@ -37,27 +39,21 @@ class Request
 
     /**
      * Init : init request data(post/get/files...)
-     *
-     * @param array  $get
-     * @param array  $post
-     * @param array  $server
-     * @param array  $files
-     * @param array  $header
-     * @param string $raw
+     * @param SwRequest  $request
      */
-    public static function Init(array $get, array $post, array $server, array $files, array $header, string $raw = '')
+    public static function Init( SwRequest $request)
     {
         $coId = Coroutine::Id();
-        $_GET[ $coId ]    = $get;
-        $_POST[ $coId ]   = $post;
-        $_FILES[ $coId ]  = $files;
-        $_SERVER[ $coId ] = $server;
+        $_GET[ $coId ]    = is_array( $request->get ) ? $request->get : [];
+        $_POST[ $coId ]   = is_array( $request->post ) ? $request->post : [];
+        $_FILES[ $coId ]  = is_array( $request->files ) ? $request->files : [];
+        $_SERVER[ $coId ] = is_array( $request->server ) ? $request->server : [];
 
-        static::$_raw[ $coId ]        = $raw;
-        static::$_header[ $coId ]     = $header;
-        static::$_parameters[ $coId ] = [];
+        self::$_raw[ $coId ]        = $request->rawContent();
+        self::$_header[ $coId ]     = is_array( $request->header ) ? $request->header : [];
+        self::$_parameters[ $coId ] = [];
 
-        static::InitUrlPostParams();
+        self::InitUrlPostParams();
 
     }
 
@@ -70,7 +66,7 @@ class Request
             return;
         }
 
-        $raw = static::$_raw[ $coId ];
+        $raw = self::$_raw[ $coId ];
         if (empty($raw))
         {
             return;
@@ -115,7 +111,7 @@ class Request
      */
     public static function Raw(): string
     {
-        return static::$_raw[ Coroutine::Id() ];
+        return self::$_raw[ Coroutine::Id() ];
     }
 
     /**
@@ -123,7 +119,7 @@ class Request
      */
     public static function RouteType(): string
     {
-        return static::$_routeType[ Coroutine::Id() ];
+        return self::$_routeType[ Coroutine::Id() ];
     }
 
     /**
@@ -139,7 +135,7 @@ class Request
      */
     public static function UserAgent(): string
     {
-        return static::$_header[ Coroutine::Id() ]['user-agent'];
+        return self::$_header[ Coroutine::Id() ]['user-agent'];
     }
 
 
@@ -185,8 +181,8 @@ class Request
      */
     public static function Param(string $key): string
     {
-        return (!isset(static::$_parameters[ Coroutine::Id() ][ $key ])) ? '' :
-            static::$_parameters[ Coroutine::Id() ][ $key ];
+        return (!isset(self::$_parameters[ Coroutine::Id() ][ $key ])) ? '' :
+            self::$_parameters[ Coroutine::Id() ][ $key ];
     }
 
     /**
@@ -195,7 +191,7 @@ class Request
      */
     public static function Params(): array
     {
-        return static::$_parameters[ Coroutine::Id() ];
+        return self::$_parameters[ Coroutine::Id() ];
     }
 
     /**
@@ -207,8 +203,8 @@ class Request
      */
     public static function Header(string $key): string
     {
-        return (!isset(static::$_header[ Coroutine::Id() ][ $key ])) ? '' :
-            static::$_header[ Coroutine::Id() ][ $key ];
+        return (!isset(self::$_header[ Coroutine::Id() ][ $key ])) ? '' :
+            self::$_header[ Coroutine::Id() ][ $key ];
     }
 
     /**
@@ -217,7 +213,7 @@ class Request
      */
     public static function Headers(): array
     {
-        return static::$_header[ Coroutine::Id() ];
+        return self::$_header[ Coroutine::Id() ];
     }
 
     /**
@@ -286,8 +282,8 @@ class Request
      */
     public static function SetParams(array $params, string $routeType='path')
     {
-        static::$_parameters[ Coroutine::Id() ] = $params;
-        static::$_routeType[ Coroutine::Id() ]  = $routeType;
+        self::$_parameters[ Coroutine::Id() ] = $params;
+        self::$_routeType[ Coroutine::Id() ]  = $routeType;
 
         self::_logRequest();
     }
@@ -298,7 +294,7 @@ class Request
     public static function Release()
     {
         $coId = Coroutine::Id();
-        unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], static::$_parameters[ $coId ], static::$_header[ $coId ], static::$_raw[$coId], static::$_routeType[$coId], $coId);
+        unset($_GET[ $coId ], $_POST[ $coId ], $_FILES[ $coId ], $_SERVER[ $coId ], self::$_parameters[ $coId ], self::$_header[ $coId ], static::$_raw[$coId], static::$_routeType[$coId], $coId);
     }
 
     private static function _logRequest()

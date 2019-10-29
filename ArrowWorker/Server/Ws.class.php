@@ -111,14 +111,7 @@ class Ws
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
             Log::SetLogId();
-            Request::Init(
-                is_array($request->get)   ? $request->get : [],
-                is_array($request->post) ? $request->post : [],
-                is_array($request->server) ? $request->server : [],
-                is_array($request->files) ? $request->files : [],
-                is_array($request->header) ? $request->header : [],
-                $request->rawContent()
-            );
+            Request::Init( $request );
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['open'];
             $function($server, $request->fd);
             Component::Release(2);
@@ -135,14 +128,7 @@ class Ws
             Coroutine::Init();
             Log::SetLogId();
             Response::Init($response, $cors);
-            Request::Init(
-                is_array($request->get)   ? $request->get : [],
-                is_array($request->post) ? $request->post : [],
-                is_array($request->server) ? $request->server : [],
-                is_array($request->files) ? $request->files : [],
-                is_array($request->header) ? $request->header : [],
-                $request->rawContent()
-            );
+            Request::Init($request);
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
             Session::Init();
             Router::Exec();

@@ -8,6 +8,7 @@
 namespace ArrowWorker\Server;
 
 use ArrowWorker\Lib\Coroutine;
+use function Couchbase\basicEncoderV1;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server as SwHttp;
@@ -45,6 +46,7 @@ class Http
         'enableCoroutine'     => true,
         'enableStaticHandler' => false,
         'isAllowCORS'         => true,
+        'isEnableHttp2'       => false,
         'sslCertFile'         => '',
         'sslKeyFile'          => '',
         'documentRoot'        => '',
@@ -82,7 +84,8 @@ class Http
             'ssl_key_file'          => $config[ 'sslKeyFile' ],
             'mode'                  => $config[ 'mode' ],
             'components'            => isset( $config[ 'components' ] ) ? $config[ 'components' ] : [],
-            'isAllowCORS'           => isset( $config[ 'isAllowCORS' ] ) ? (bool)$config[ 'isAllowCORS' ] : false
+            'isAllowCORS'           => isset( $config[ 'isAllowCORS' ] ) ? (bool)$config[ 'isAllowCORS' ] : false,
+            'open_http2_protocol'   => isset( $config['isEnableHttp2'] )   ? (bool)$config['isEnableHttp2'] : false
         ];
 
     }
@@ -111,14 +114,7 @@ class Http
             Coroutine::Init();
             Log::SetLogId();
             Response::Init( $response, $cors );
-            Request::Init(
-                is_array( $request->get ) ? $request->get : [],
-                is_array( $request->post ) ? $request->post : [],
-                is_array( $request->server ) ? $request->server : [],
-                is_array( $request->files ) ? $request->files : [],
-                is_array( $request->header ) ? $request->header : [],
-                $request->rawContent()
-            );
+            Request::Init( $request );
             Session::Init();
             Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );
             Router::Exec();
