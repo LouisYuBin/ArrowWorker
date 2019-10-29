@@ -235,7 +235,12 @@ class Log
     {
         if ( !extension_loaded( 'swoole' ) )
         {
-            self::DumpExit( 'extension swoole does not installed/loaded.' );
+            self::DumpExit( 'extension swoole is not installed/loaded.' );
+        }
+
+        if ( !extension_loaded( 'sysvmsg' ) )
+        {
+            self::DumpExit( 'extension sysvmsg is not installed/loaded.' );
         }
 
         if ( (int)str_replace( '.', '', ( new \ReflectionExtension( 'swoole' ) )->getVersion() ) < 400 )

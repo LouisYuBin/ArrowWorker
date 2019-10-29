@@ -53,7 +53,7 @@ class Router
      */
     private static function _loadRestConfig()
     {
-        $config = Config::Get('Rest');
+        $config = Config::Get('WebRouter');
         if( false===$config )
         {
             Log::Warning("Load rest api configuration failed");
