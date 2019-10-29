@@ -142,7 +142,7 @@ class Daemon
         $pid = Process::Fork();
         if($pid == 0)
         {
-            Log::Dump(static::LOG_PREFIX.'starting log process');
+            Log::Dump(static::LOG_PREFIX.'starting log process( '.Process::Id().' )');
             self::_setProcessName(static::PROCESS_LOG);
             Log::Start();
         }
@@ -164,7 +164,7 @@ class Daemon
         $pid = Process::Fork();
         if($pid == 0)
         {
-            Log::Dump(static::LOG_PREFIX.'starting worker process');
+            Log::Dump(static::LOG_PREFIX.'starting worker process( '.Process::Id().' )');
             self::_setProcessName('Worker-group monitor');
             Worker::Start();
         }
@@ -260,7 +260,7 @@ class Daemon
      */
     private function _startMonitor()
     {
-        Log::Dump(static::LOG_PREFIX.'starting monitor');
+        Log::Dump(static::LOG_PREFIX.'starting monitor( '.Process::Id().' )');
         while (1)
         {
             if( self::$terminate )
