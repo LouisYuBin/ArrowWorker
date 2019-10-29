@@ -436,7 +436,7 @@ class Daemon
 
         if( !in_array($action, ['start', 'stop', 'status', 'restart']) )
         {
-            Log::Hint("unknown operation, use << php {$argv[0]} start/stop/status/restart >> to start/stop/restart Arrow");
+            Log::Hint("unknown operation, please use \"php {$argv[0]} start/stop/status/restart >> to start/stop/restart\" the service");
             exit(0);
         }
 
