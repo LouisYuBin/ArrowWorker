@@ -98,7 +98,7 @@ class Redis implements Cache
         {
             $result = $this->_conn->set( $key, $val );
         }
-        catch (\RedisException $exception)
+        catch (\Exception $exception)
         {
             Log::Warning(__CLASS__.'::'.__FUNCTION__." error, ".$exception->getMessage());
             return false;
