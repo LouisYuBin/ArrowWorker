@@ -147,7 +147,6 @@ class Pool implements ConnPool
      */
     public static function Release() : void
     {
-        var_dump('ws release');
         $coId = Coroutine::Id();
         if( !isset(self::$chanConnections[$coId]) )
         {
