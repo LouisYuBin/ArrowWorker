@@ -24,13 +24,13 @@ class Session
      * handler : driver handler
      * @var MemcachedSession|RedisSession
      */
-    static $handler;
+    private static $handler;
 
     /**
      * isInited : sign for judging if session driver is initialized
      * @var bool
      */
-    static $isInited = false;
+    private static $_isInitialized = false;
     /**
      * tokenKey : token key
      * @var string
@@ -77,7 +77,7 @@ class Session
      */
     private static function _init()
     {
-        if( self::$isInited )
+        if( self::$_isInitialized )
         {
             return;
         }
@@ -96,7 +96,7 @@ class Session
             self::$config['timeout']
         );
 
-        self::$isInited = true;
+        self::$_isInitialized = true;
     }
 
     /**
@@ -200,7 +200,7 @@ class Session
         }
 
         $token = Request::Get(self::$tokenKey);
-        if( false!==$token )
+        if( ''!==$token )
         {
             self::$token[$coId] = $token;
             return ;

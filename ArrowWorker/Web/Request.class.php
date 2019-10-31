@@ -7,7 +7,7 @@
 
 namespace ArrowWorker\Web;
 
-use Swoole\Http\Request as SwRequest;
+use \Swoole\Http\Request as SwRequest;
 
 use ArrowWorker\Log;
 use ArrowWorker\Lib\Coroutine;
@@ -19,6 +19,8 @@ use ArrowWorker\Lib\Coroutine;
  */
 class Request
 {
+
+    const LOG_NAME = 'Http';
 
     /**
      * @var array
@@ -312,7 +314,7 @@ class Request
 
         $routeType = self::RouteType();
 
-        Log::Debug(" {$uri} [{$method}:$routeType] \n Params : {$params} \n Get : {$get} \n Post : {$post} \n Header : {$header} \n Server : {$server} \n raw : {$raw} \n Files : {$files} ", 'request');
+        Log::Debug(" {$uri} [{$method}:$routeType] \nParams : {$params} \nGet : {$get} \nPost : {$post} \nHeader : {$header} \nServer : {$server} \nraw : {$raw} \nFiles : {$files}", self::LOG_NAME);
         unset($method, $get, $post, $files, $params, $header, $server);
     }
 

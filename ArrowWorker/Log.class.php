@@ -71,7 +71,7 @@ class Log
     /**
      *
      */
-    const LOG_NAME = __CLASS__;
+    const LOG_NAME = 'Log';
 
     const LOG_PREFIX = '[   Log   ] ';
 

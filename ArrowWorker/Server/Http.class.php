@@ -8,7 +8,6 @@
 namespace ArrowWorker\Server;
 
 use ArrowWorker\Lib\Coroutine;
-use function Couchbase\basicEncoderV1;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server as SwHttp;
@@ -97,7 +96,6 @@ class Http
     {
         Router::Init( isset( $config[ '404' ] ) ? (string)$config[ '404' ] : '' );
         $config = static::_getConfig( $config );
-        $cors   = $config[ 'isAllowCORS' ];
         $server = new SwHttp( $config[ 'host' ], $config[ 'port' ], $config[ 'mode' ], empty( $config[ 'ssl_cert_file' ] ) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP |
                                                                                                                                                          SWOOLE_SSL );
         $server->set( $config );
@@ -108,12 +106,13 @@ class Http
         $server->on( 'WorkerStart', function () use ( $config )
         {
             Component::CheckParams( $config );
+            Response::SetCORS( (bool)$config[ 'isAllowCORS' ] );
         } );
-        $server->on( 'request', function ( SwRequest $request, SwResponse $response ) use ( $cors )
+        $server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
             Coroutine::Init();
             Log::SetLogId();
-            Response::Init( $response, $cors );
+            Response::Init( $response );
             Request::Init( $request );
             Session::Init();
             Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );

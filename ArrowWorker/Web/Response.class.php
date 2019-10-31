@@ -7,6 +7,9 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Log;
+use \Swoole\Http\Response as SwResponse;
+
 use ArrowWorker\Lib\Coroutine;
 
 
@@ -16,26 +19,52 @@ use ArrowWorker\Lib\Coroutine;
  */
 class Response
 {
+
+    const LOG_NAME = 'Http';
+
     /**
      * response handler for swoole
      * @var null
      */
     private static $_response = [];
 
+    private static $_header = [];
+
+    /**
+     * @var bool
+     */
+    private static $_isAllowCORS = false;
+
     /**
      * Init : init swoole response handler
-     * @param \Swoole\Http\Response $response
-     * @param bool $isAllowCORS
+     * @param SwResponse $response
      */
-    public static function Init(\Swoole\Http\Response $response, bool $isAllowCORS=false)
+    public static function Init(SwResponse $response)
     {
         self::$_response[Coroutine::Id()] = $response;
-        self::Header('Server','Arrow Web Server, V2.0, By Louis');
-        if( $isAllowCORS )
+        self::Header('Server','Arrow Web Server, V1.0, By Louis');
+        if( self::$_isAllowCORS )
         {
             self::AllowCORS();
         }
     }
+
+    /**
+     * @param bool $status
+     */
+    public static function SetCORS( bool $status=true) : void
+    {
+        self::$_isAllowCORS = $status;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function GetCORS() : bool
+    {
+        return self::$_isAllowCORS;
+    }
+
 
     /**
      * Json : return formated json to browser
@@ -59,7 +88,13 @@ class Response
      */
     public static function Write(string $msg)
     {
-        self::$_response[Coroutine::Id()]->end( $msg );
+        $coId = Coroutine::Id();
+        if( !DEBUG )
+        {
+            $header = isset(self::$_header[$coId]) ? json_encode(self::$_header[$coId],JSON_UNESCAPED_UNICODE) : '';
+            Log::Debug("Response,  data : {$msg}, header : {$header}", self::LOG_NAME);
+        }
+        self::$_response[$coId]->end( $msg );
     }
 
     /**
@@ -70,7 +105,9 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        self::$_response[Coroutine::Id()]->header($key, $val);
+        $coId = Coroutine::Id();
+        self::$_header[ $coId ][$key] = $val;
+        self::$_response[ $coId ]->header($key, $val);
     }
 
     /**
@@ -122,7 +159,8 @@ class Response
      */
     public static function Release()
     {
-        unset(self::$_response[Coroutine::Id()]);
+        $coId = Coroutine::Id();
+        unset( self::$_response[$coId], self::$_header[$coId], $coId );
     }
 
 }
