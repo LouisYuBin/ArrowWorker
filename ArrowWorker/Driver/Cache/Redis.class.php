@@ -94,13 +94,20 @@ class Redis implements Cache
 	 */
 	public function Set(string $key, string $val) : bool
     {
+        $isRetried = false;
+        START:
         try
         {
             $result = $this->_conn->set( $key, $val );
         }
-        catch (\Exception $exception)
+        catch (\RedisException $exception)
         {
-            Log::Warning(__CLASS__.'::'.__FUNCTION__." error, ".$exception->getMessage(), self::LOG_NAME);
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
             return false;
         }
         return $result;
@@ -114,7 +121,32 @@ class Redis implements Cache
 	 */
 	public function Get(string $key)
     {
-        return $this->_conn->get($key);
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->get($key);
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
+    }
+
+    private function _handleException(\RedisException $exception, string $function)
+    {
+        Log::Warning(__CLASS__.'::'.$function." failed, ".$exception->getMessage(), self::LOG_NAME);
+        if( 0==$exception->getCode() )
+        {
+            $this->InitConnection();
+        }
     }
 
 
@@ -127,7 +159,23 @@ class Redis implements Cache
 	 */
 	public function LPush(string $queue, string $val)
     {
-        return $this->_conn->lPush( $queue, $val );
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->lPush( $queue, $val );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 
@@ -140,7 +188,23 @@ class Redis implements Cache
 	 */
 	public function RPush(string $queue, string $val)
     {
-        return $this->_conn->rPush( $queue, $val );
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->rPush( $queue, $val );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 
@@ -152,7 +216,23 @@ class Redis implements Cache
 	 */
 	public function RPop(string $queue)
     {
-        return $this->_conn->rPop( $queue);
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->rPop( $queue);
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 	/**
@@ -163,7 +243,23 @@ class Redis implements Cache
 	 */
 	public function LPop(string $queue)
     {
-        return $this->_conn->lPop( $queue);
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->lPop( $queue);
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 
@@ -180,7 +276,23 @@ class Redis implements Cache
 	 */
 	public function BrPop(int $timeout, string ...$queue )
     {
-        return $this->_conn->brPop ( $queue, $timeout );
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->brPop ( $queue, $timeout );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return [];
+        }
+        return $result;
     }
 
 	/**
@@ -196,7 +308,23 @@ class Redis implements Cache
 	 */
 	public function BlPop(int $timeout, string ...$queue)
     {
-        return $this->_conn->blPop ( $queue, $timeout );
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->blPop ( $queue, $timeout );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return [];
+        }
+        return $result;
     }
 
 	/**
@@ -209,7 +337,23 @@ class Redis implements Cache
 	 */
 	public function HSet(string $key, string $hashKey, string $value)
     {
-        return $this->_conn->Hset ( $key, $hashKey, $value);
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->Hset ( $key, $hashKey, $value);
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 	/**
@@ -221,20 +365,51 @@ class Redis implements Cache
 	 */
 	public function HGet(string $key, string $hashKey)
     {
-        return $this->_conn->hGet ( $key, $hashKey );
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->hGet ( $key, $hashKey );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 
 	/**
 	 * Hlen hashTable 长度
 	 * @param string $key
-     * @param string $hashKey
 	 * @return mixed
 	 *     LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
 	 */
-	public function Hlen(string $key, string $hashKey)
+	public function HLen(string $key)
     {
-        return $this->_conn->hGet ( $key, $hashKey);
+        $isRetried = false;
+        START:
+        try
+        {
+            $result = $this->_conn->hLen( $key );
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, __FUNCTION__);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
     }
 
 
@@ -251,11 +426,11 @@ class Redis implements Cache
 
 	/**
 	 * close 关闭连接
-	 * @return mixed
+	 * @return void
 	 */
 	public function close()
     {
-        return $this->_conn->close();
+        $this->_conn->close();
     }
 
 }
