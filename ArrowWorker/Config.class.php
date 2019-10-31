@@ -15,6 +15,8 @@ namespace ArrowWorker;
 class Config
 {
 
+    const LOG_NAME = 'Config';
+
     /**
      * 配置文件路径
      * @var string
@@ -76,7 +78,7 @@ class Config
         $pathName = self::_getPath( $subPath ) . $configName . self::$configExt;
         if ( !file_exists( $pathName ) )
         {
-            Log::Error( "Config File : {$pathName} does not exists.", __CLASS__ );
+            Log::Error( "Config File : {$pathName} does not exists.", self::LOG_NAME );
             return false;
         }
         self::$configMap[$configName] = require($pathName);
