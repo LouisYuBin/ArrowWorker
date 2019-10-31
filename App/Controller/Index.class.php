@@ -38,6 +38,10 @@ class Index
     public function cache()
     {
         $cache = Cache::Get();
+        if( false==$cache )
+        {
+            return ;
+        }
         $cache->Set('arrow','louis');
         $cache->Get('arrow');
     }
