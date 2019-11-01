@@ -106,7 +106,7 @@ class Ws
             Log::Dump("[   Ws    ] : {$config['port']} started");
         });
         $server->on('WorkerStart', function() use ( $config ) {
-            Component::CheckParams($config);
+            Component::CheckInit($config);
             //Coroutine::DumpSlow();
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {

@@ -55,7 +55,7 @@ class Pool implements ConnPool
     public static function Init(array $appConfig) : void
     {
         self::_initConfig($appConfig);
-        self::_initPool();
+        self::InitPool();
     }
 
     /**
@@ -91,7 +91,8 @@ class Pool implements ConnPool
                 continue;
             }
 
-            $value['poolSize'] = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
+            $value['poolSize']     = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
+            $value['connectedNum'] = 0;
 
             self::$configs[$index] = $value;
             self::$pool[$index]    = new swChan( $value['poolSize'] );
@@ -102,11 +103,11 @@ class Pool implements ConnPool
     /**
      * initialize connection pool
      */
-    private static function _initPool()
+    public static function InitPool()
     {
         foreach (self::$configs as $index=>$config)
         {
-            for ($i=self::$pool[$index]->length(); $i<$config['poolSize']; $i++)
+            for ($i=$config['connectedNum']; $i<$config['poolSize']; $i++)
             {
                 $driver = "ArrowWorker\\Driver\\Cache\\".$config['driver'];
                 $conn = new $driver( $config );
@@ -115,6 +116,7 @@ class Pool implements ConnPool
                     Log::Warning("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
+                self::$configs[$index]['connectedNum']++;
                 self::$pool[$index]->push( $conn );
             }
         }

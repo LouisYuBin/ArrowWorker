@@ -94,7 +94,7 @@ class Tcp
             Log::Dump("[   Tcp   ] : {$config['port']} started");
         });
         $server->on('WorkerStart', function() use ($config) {
-            Component::CheckParams($config);
+            Component::CheckInit($config);
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['connect'];

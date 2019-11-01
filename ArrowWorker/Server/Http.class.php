@@ -105,8 +105,8 @@ class Http
         } );
         $server->on( 'WorkerStart', function () use ( $config )
         {
-            Component::CheckParams( $config );
             Response::SetCORS( (bool)$config[ 'isAllowCORS' ] );
+            Component::CheckInit( $config );
         } );
         $server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {

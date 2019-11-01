@@ -5,6 +5,8 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Lib\Coroutine;
+
 /**
  * Class Component
  * @package ArrowWorker
@@ -76,7 +78,7 @@ class Component
     }
 
 
-    public static function CheckParams(array $config)
+    public static function CheckInit(array $config)
     {
         if(
             !isset($config['components']) ||
@@ -87,6 +89,16 @@ class Component
         }
         Log::SetLogId();
         Component::Init($config['components']);
+
+        Coroutine::Create(function () use ($config) {
+            while (true)
+            {
+                Coroutine::Sleep(2);
+                Log::SetLogId();
+                Component::Init( $config['components'] );
+            }
+        });
     }
+
 
 }
