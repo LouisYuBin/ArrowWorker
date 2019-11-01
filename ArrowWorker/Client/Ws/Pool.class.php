@@ -28,17 +28,17 @@ class Pool implements ConnPool
     /**
      * @var array
      */
-    private static $pool   = [];
+    private static $_pool   = [];
 
     /**
      * @var array
      */
-    private static $configs = [];
+    private static $_configs = [];
 
     /**
      * @var array
      */
-    private static $chanConnections = [
+    private static $_chanConnections = [
 
     ];
 
@@ -87,8 +87,8 @@ class Pool implements ConnPool
             $value['poolSize']     = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
             $value['connectedNum'] = 0;
 
-            self::$configs[$index] = $value;
-            self::$pool[$index]    = new swChan( $value['poolSize'] );
+            self::$_configs[$index] = $value;
+            self::$_pool[$index]    = new swChan( $value['poolSize'] );
         }
     }
 
@@ -98,7 +98,7 @@ class Pool implements ConnPool
      */
     public static function InitPool()
     {
-        foreach (self::$configs as $index=>$config)
+        foreach (self::$_configs as $index=>$config)
         {
             for ($i=$config['connectedNum']; $i<$config['poolSize']; $i++)
             {
@@ -109,8 +109,8 @@ class Pool implements ConnPool
                     Log::Critical("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
-                self::$configs[$index]['connectedNum']++;
-                self::$pool[$index]->push( $wsClient );
+                self::$_configs[$index]['connectedNum']++;
+                self::$_pool[$index]->push( $wsClient );
             }
         }
     }
@@ -122,26 +122,35 @@ class Pool implements ConnPool
     public static function GetConnection( $alias = 'default' )
     {
         $coId = Coroutine::Id();
-        if( isset(self::$chanConnections[$coId][$alias]) )
+        if( isset(self::$_chanConnections[$coId][$alias]) )
         {
-            return self::$chanConnections[$coId][$alias];
+            return self::$_chanConnections[$coId][$alias];
         }
 
-        if( !isset(self::$pool[$alias] ) )
+        if( !isset(self::$_pool[$alias] ) )
         {
             return false;
         }
 
         $retryTimes = 0;
         _RETRY:
-        $conn = self::$pool[$alias]->pop( 0.5 );
-        if ( false === $conn && $retryTimes<=2 )
+        $conn = self::$_pool[$alias]->pop( 0.2 );
+        if ( false === $conn )
         {
-            $retryTimes++;
-            Log::Critical("get ( {$alias} : {$retryTimes} ) connection failed.",self::LOG_NAME);
-            goto _RETRY;
+            if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
+            {
+                self::InitPool();
+                goto _RETRY;
+            }
+
+            if( $retryTimes<=2 )
+            {
+                $retryTimes++;
+                Log::Critical("get ( {$alias} : {$retryTimes} ) connection failed, retrying",self::LOG_NAME);
+                goto _RETRY;
+            }
         }
-        self::$chanConnections[$coId][$alias] = $conn;
+        self::$_chanConnections[$coId][$alias] = $conn;
         return $conn;
     }
 
@@ -151,16 +160,16 @@ class Pool implements ConnPool
     public static function Release() : void
     {
         $coId = Coroutine::Id();
-        if( !isset(self::$chanConnections[$coId]) )
+        if( !isset(self::$_chanConnections[$coId]) )
         {
             return ;
         }
 
-        foreach ( self::$chanConnections[$coId] as $alias=>$connection )
+        foreach ( self::$_chanConnections[$coId] as $alias=>$connection )
         {
-            self::$pool[$alias]->push( $connection );
+            self::$_pool[$alias]->push( $connection );
         }
-        unset(self::$chanConnections[$coId], $coId);
+        unset(self::$_chanConnections[$coId], $coId);
     }
 
 }

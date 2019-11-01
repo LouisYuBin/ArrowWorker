@@ -89,15 +89,6 @@ class Component
         }
         Log::SetLogId();
         Component::Init($config['components']);
-
-        Coroutine::Create(function () use ($config) {
-            while (true)
-            {
-                Coroutine::Sleep(2);
-                Log::SetLogId();
-                Component::Init( $config['components'] );
-            }
-        });
     }
 
 
