@@ -138,8 +138,6 @@ class Pool implements ConnPool
             if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
             {
                 self::InitPool();
-                goto _RETRY;
-
             }
 
             if( $retryTimes<=2 )
