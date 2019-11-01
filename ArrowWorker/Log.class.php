@@ -415,6 +415,7 @@ class Log
      */
     public static function Critical( string $log, string $module = '' )
     {
+        self::Dump($module.':'.$log);
         self::_fillLog( $log, $module, 'C' );
     }
 

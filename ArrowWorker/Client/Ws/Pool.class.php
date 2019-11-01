@@ -60,7 +60,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Error( 'incorrect config file', self::LOG_NAME );
+            Log::Critical( 'incorrect config file', self::LOG_NAME );
             return ;
         }
 
@@ -80,7 +80,7 @@ class Pool implements ConnPool
                 !isset( $value['isSsl'])
             )
             {
-                Log::Warning( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
+                Log::Critical( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
                 continue;
             }
 
@@ -106,7 +106,7 @@ class Pool implements ConnPool
                 $upgrade = $wsClient->Upgrade();
                 if( false===$upgrade )
                 {
-                    Log::Warning("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Critical("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
                 self::$configs[$index]['connectedNum']++;
@@ -138,7 +138,7 @@ class Pool implements ConnPool
         if ( false === $conn && $retryTimes<=2 )
         {
             $retryTimes++;
-            Log::Warning("get ( {$alias} : {$retryTimes} ) connection failed.",self::LOG_NAME);
+            Log::Critical("get ( {$alias} : {$retryTimes} ) connection failed.",self::LOG_NAME);
             goto _RETRY;
         }
         self::$chanConnections[$coId][$alias] = $conn;
