@@ -5,7 +5,12 @@
 
 namespace ArrowWorker;
 
-use ArrowWorker\Lib\Coroutine;
+use Swoole\Http\Request as SwRequest;
+use Swoole\Http\Response as SwResponse;
+
+use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Response;
+use ArrowWorker\Web\Session;
 
 /**
  * Class Component
@@ -16,51 +21,71 @@ class Component
     /**
      *
      */
-    const WEB_RELEASE_COMPONENTS = [
-        '\ArrowWorker\Web\Cookie',
+    const WEB_COMPONENTS = [
         '\ArrowWorker\Web\Request',
-        '\ArrowWorker\Web\Response',
         '\ArrowWorker\Web\Session',
-        '\ArrowWorker\Log',
-        '\ArrowWorker\Db',
-        '\ArrowWorker\Cache',
-        '\ArrowWorker\Client\Ws\Pool',
-        '\ArrowWorker\Client\Tcp\Pool',
+        '\ArrowWorker\Web\Response',
     ];
 
     /**
      *
      */
-    const BASE_RELEASE_COMPONENTS = [
+    const BASE_COMPONENTS = [
         '\ArrowWorker\Log',
-        '\ArrowWorker\Db',
-        '\ArrowWorker\Cache',
-        '\ArrowWorker\Client\Ws\Pool',
-        '\ArrowWorker\Client\Tcp\Pool',
+        '\ArrowWorker\Lib\Coroutine',
     ];
+
+    private static $_poolComponents = [];
+
+    public static function Init(int $type=App::TYPE_HTTP)
+    {
+        foreach ( self::BASE_COMPONENTS as $component)
+        {
+            $component::Init();
+        }
+    }
+
+
+    public static function InitWeb(SwRequest $request, SwResponse $response)
+    {
+        self::Init(App::TYPE_HTTP);
+        Response::Init( $response );
+        Request::Init( $request );
+        Session::Init();
+    }
 
     /**
      * @param array $components
      */
-    public static function Init( array $components)
+    public static function InitPool( array $components)
     {
         foreach ( $components as $key=>$config )
         {
-            $component = strtoupper($key);
-            switch ($component)
+            switch ( strtoupper($key) )
             {
                 case 'DB':
-                    Db::Init($config);
+                    $component = '\ArrowWorker\Db';
                     break;
                 case 'CACHE':
-                    Cache::Init($config);
+                    $component = '\ArrowWorker\Cache';
                     break;
                 case 'TCP_CLIENT':
-                    \ArrowWorker\Client\Tcp\Pool::Init($config);
+                    $component = '\ArrowWorker\Client\Tcp\Pool';
                     break;
                 case 'WS_CLIENT':
-                    \ArrowWorker\Client\Ws\Pool::Init($config);
+                    $component = '\ArrowWorker\Client\Ws\Pool';
                     break;
+                case 'HTTP2_CLIENT':
+                    $component = '\ArrowWorker\Client\Http\Pool';
+                    break;
+                default:
+                    $component = '';
+            }
+
+            if( ''!==$component )
+            {
+                $component::Init($config);
+                self::$_poolComponents[] = $component;
             }
         }
     }
@@ -68,12 +93,14 @@ class Component
     /**
      * @param int $type
      */
-    public static function Release( int $type=1)
+    public static function Release( int $type=App::TYPE_HTTP)
     {
-        $components = 1==$type ? self::WEB_RELEASE_COMPONENTS : self::BASE_RELEASE_COMPONENTS;
-        foreach ($components as $componentName)
+        $components = in_array($type,[App::TYPE_HTTP,App::TYPE_WEBSOCKET]) ?
+            array_merge(self::$_poolComponents, self::BASE_COMPONENTS) :
+            array_merge(self::$_poolComponents, self::WEB_COMPONENTS, self::BASE_COMPONENTS);
+        foreach ($components as $component)
         {
-            $componentName::Release();
+            $component::Release();
         }
     }
 
@@ -87,8 +114,8 @@ class Component
         {
             return ;
         }
-        Log::SetLogId();
-        Component::Init($config['components']);
+        Log::Init();
+        Component::InitPool($config['components']);
     }
 
 

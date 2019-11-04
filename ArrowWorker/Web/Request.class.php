@@ -55,6 +55,9 @@ class Request
         self::$_header[ $coId ]     = is_array( $request->header ) ? $request->header : [];
         self::$_parameters[ $coId ] = [];
 
+        Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );
+
+
         self::InitUrlPostParams();
 
     }
@@ -316,6 +319,7 @@ class Request
 
         Log::Debug(" {$uri} [{$method}:$routeType] \nParams : {$params} \nGet : {$get} \nPost : {$post} \nHeader : {$header} \nServer : {$server} \nraw : {$raw} \nFiles : {$files}", self::LOG_NAME);
         unset($method, $get, $post, $files, $params, $header, $server);
+        Cookie::Release();
     }
 
 }

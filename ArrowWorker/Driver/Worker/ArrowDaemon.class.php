@@ -504,8 +504,8 @@ class ArrowDaemon extends Worker
         Process::SetExecGroupUser( self::$_group, self::$_user);
         Runtime::enableCoroutine();
         Coroutine::Create(function () use ($index) {
-            Log::SetLogId();
-            Component::Init(self::$jobs[$index]['components']);
+            Log::Init();
+            Component::InitPool(self::$jobs[$index]['components']);
         });
         Coroutine::Wait();
         $this->_runProcessTask( $index );
@@ -534,7 +534,7 @@ class ArrowDaemon extends Worker
                     {
                         break;
                     }
-                    Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));
+                    Log::Init(date('YmdHis').$pid.$coId.mt_rand(100,999));
                     pcntl_signal_dispatch();
                     if ( isset( self::$jobs[$index]['argv'] ) )
                     {
@@ -630,7 +630,7 @@ class ArrowDaemon extends Worker
         $retryTimes = 0;
         while ( 1 )
         {
-            Log::SetLogId(date('YmdHis').$pid.$coId.mt_rand(100,999));
+            Log::Init(date('YmdHis').$pid.$coId.mt_rand(100,999));
             pcntl_signal_dispatch();
 
             if ( isset( self::$jobs[$index]['argv'] ) )

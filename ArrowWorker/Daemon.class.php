@@ -107,7 +107,7 @@ class Daemon
      */
     private function _initComponent()
     {
-        Log::Init();
+        Log::Initialize();
         Memory::Init();
     }
 

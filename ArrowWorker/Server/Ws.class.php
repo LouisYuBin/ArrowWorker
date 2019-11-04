@@ -110,7 +110,7 @@ class Ws
             //Coroutine::DumpSlow();
         });
         $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
-            Log::SetLogId();
+            Log::Init();
             Request::Init( $request );
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['open'];
             $function($server, $request->fd);
@@ -118,7 +118,7 @@ class Ws
         });
         $server->on('message', function(WebSocket $server, Frame $frame) use ( $config ) {
             Coroutine::Init();
-            Log::SetLogId();
+            Log::Init();
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['message'];
             $function($server, $frame);
             Component::Release(2);
@@ -126,7 +126,7 @@ class Ws
         });
         $server->on('request', function( SwRequest $request, SwResponse $response ) use ($cors) {
             Coroutine::Init();
-            Log::SetLogId();
+            Log::Init();
             Response::Init($response, $cors);
             Request::Init($request);
             Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
@@ -136,7 +136,7 @@ class Ws
             Coroutine::Release();
         });
         $server->on('close',   function(WebSocket $server, int $fd) use ($config) {
-            Log::SetLogId();
+            Log::Init();
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['close'];
             $function($server, $fd);
             Component::Release(2);

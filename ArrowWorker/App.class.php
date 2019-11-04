@@ -14,6 +14,29 @@ namespace ArrowWorker;
 class App
 {
 
+    /**
+     *
+     */
+    const TYPE_HTTP = 1;
+
+    /**
+     *
+     */
+    const TYPE_WEBSOCKET = 2;
+
+    /**
+     *
+     */
+    const TYPE_TCP = 3;
+
+    /**
+     *
+     */
+    const TYPE_UDP = 3;
+
+    /**
+     *
+     */
     const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
 
     /**
@@ -22,8 +45,8 @@ class App
      */
     public static function RunApp()
     {
-        set_time_limit(0);
-        ini_set('memory_limit', '512M');
+        set_time_limit( 0 );
+        ini_set( 'memory_limit', '512M' );
         Daemon::Start();
     }
 

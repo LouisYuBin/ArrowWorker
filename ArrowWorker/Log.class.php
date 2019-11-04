@@ -216,9 +216,9 @@ class Log
 
 
     /**
-     * Init log process
+     * Initialize log process
      */
-    public static function Init()
+    public static function Initialize()
     {
         self::_checkExtension();
         self::_initConfig();
@@ -855,7 +855,7 @@ class Log
             return ;
         }
 
-        self::SetLogId();
+        self::Init();
         $today = date('Ymd');
         foreach (self::$_fileHandlerMap as $alias=>$handler)
         {
@@ -883,7 +883,7 @@ class Log
     /**
      * @param string $logId
      */
-    public static function SetLogId( string $logId = '' )
+    public static function Init( string $logId = '' )
     {
         self::$_logId[ Coroutine::Id() ] = '' === $logId ? date( 'ymdHis' ) .
                                                             Process::Id() .

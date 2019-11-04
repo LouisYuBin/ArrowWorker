@@ -98,19 +98,19 @@ class Tcp
         });
         $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['connect'];
-            Log::SetLogId();
+            Log::Init();
             $function($server, $fd);
             Component::Release(2);
         });
         $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['receive'];
-            Log::SetLogId();
+            Log::Init();
             $function($server, $fd, $data);
             Component::Release(2);
         });
         $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
             $function = App::CONTROLLER_NAMESPACE.$config['handler']['close'];
-            Log::SetLogId();
+            Log::Init();
             $function($server, $fd);
             Component::Release(2);
         });
