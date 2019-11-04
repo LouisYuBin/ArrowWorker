@@ -156,6 +156,7 @@ class Http
      */
     private function __construct( array $config )
     {
+        $this->_port            = $config['port'] ?? 8888;
         $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
@@ -194,7 +195,8 @@ class Http
     {
         $this->_server = new SwHttp(
             $this->_host,
-            $this->_port, $this->_mode,
+            $this->_port,
+            $this->_mode,
             empty( $this->_sslCertFile ) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP | SWOOLE_SSL
         );
     }
