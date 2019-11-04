@@ -24,10 +24,10 @@ return [
         '404'              => APP_PATH.'/Static/Web/404.html',
         'components' => [
             'db' => [
-                'default' => 2
+                'default' => 100
             ],
             'cache' => [
-                'default' => 2
+                'default' => 100
             ],
             /*'tcp_client' => [
                  'default' => 3,
@@ -63,10 +63,10 @@ return [
         ],
         'components' => [
             'db' => [
-                'default' => 5
+                'default' => 50
             ],
             'cache' => [
-                'default' => 2
+                'default' => 50
             ]
         ]
     ],
@@ -96,10 +96,10 @@ return [
         ],
         'components' => [
             'db' => [
-                'default' => 2
+                'default' => 20
             ],
             'cache' => [
-                'default' => 2
+                'default' => 20
             ]
         ]
     ],
