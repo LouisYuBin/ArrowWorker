@@ -26,7 +26,7 @@ class Client
     /**
      * @var string
      */
-    private $_logName = 'ws_client';
+    private $_logName = 'WsClient';
 
     /**
      * @var string
@@ -61,7 +61,12 @@ class Client
         $this->_port  = $port;
         $this->_uri   = $uri;
         $this->_isSsl = $isSsl;
-        $this->_instance = new SwHttpClient( $host, $port, $isSsl );
+        $this->_init();
+    }
+
+    private function _init()
+    {
+        $this->_instance = new SwHttpClient( $this->_host, $this->_port, $this->_isSsl );
     }
 
     /**
@@ -107,7 +112,12 @@ class Client
             {
                 return true;
             }
-            Log::Error( "push failed : {$i}", $this->_logName );
+
+            if( 0==$i%2 )
+            {
+                $this->Upgrade();
+            }
+            Log::Warning( "push failed : {$i}", $this->_logName );
         }
         return false;
     }

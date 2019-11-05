@@ -41,7 +41,6 @@ class Db
     public static function Init( array $config )
     {
         Pool::Init($config);
-        var_dump('Db pool initialized');
     }
 
     /**

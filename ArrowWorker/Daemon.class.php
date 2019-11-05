@@ -21,16 +21,34 @@ use ArrowWorker\Server\Udp;
  */
 class Daemon
 {
+    /**
+     *
+     */
     const LOG_PREFIX = '[ Monitor ] ';
 
+    /**
+     *
+     */
     const PROCESS_LOG = 'log';
 
+    /**
+     *
+     */
     const PROCESS_TCP = 'Tcp';
 
+    /**
+     *
+     */
     const PROCESS_UDP = 'Udp';
 
+    /**
+     *
+     */
     const PROCESS_HTTP = 'Http';
 
+    /**
+     *
+     */
     const PROCESS_WEBSOCKET = 'Ws';
 
 
@@ -70,6 +88,9 @@ class Daemon
      */
     private static $terminate = false;
 
+    /**
+     * @var string
+     */
     public static $identity = '';
     
 

@@ -20,6 +20,13 @@ return [
                 ],
                 'cache' => [
                     'default' => 2
+                ],
+                'tcp_client' => [
+                    'default' => 3,
+                    'conner'  => 2
+                ],
+                'ws_client' => [
+                    'default' => 2
                 ]
             ]
 
@@ -39,6 +46,13 @@ return [
                 ],
                 'cache' => [
                     'default' => 5
+                ],
+                'tcp_client' => [
+                    'default' => 3,
+                    'conner'  => 2
+                ],
+                'ws_client' => [
+                    'default' => 2
                 ]
             ]
         ],
@@ -57,6 +71,13 @@ return [
                 ],
                 'cache' => [
                     'default' => 5
+                ],
+                'tcp_client' => [
+                    'default' => 3,
+                    'conner'  => 2
+                ],
+                'ws_client' => [
+                    'default' => 2
                 ]
             ]
         ],
@@ -75,6 +96,13 @@ return [
                 ],
                 'cache' => [
                     'default' => 5
+                ],
+                'tcp_client' => [
+                    'default' => 3,
+                    'conner'  => 2
+                ],
+                'ws_client' => [
+                    'default' => 2
                 ]
             ]
         ],

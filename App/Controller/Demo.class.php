@@ -8,7 +8,8 @@
 namespace App\Controller;
 
 use App\Model\ArrowWorker;
-use ArrowWorker\Loader;
+use ArrowWorker\Client\Tcp\Pool;
+use ArrowWorker\Client\Ws\Pool as WsPool;
 use ArrowWorker\Log;
 use ArrowWorker\Chan;
 use ArrowWorker\Lib\Coroutine;
@@ -28,6 +29,8 @@ class Demo
         ArrowWorker::GetList();
 
         Coroutine::Sleep(1);
+        WsPool::GetConnection()->Push(mt_rand(10000,99999));
+        Pool::GetConnection()->Send(mt_rand(10000,99999));
     }
 
     public function channelApp()

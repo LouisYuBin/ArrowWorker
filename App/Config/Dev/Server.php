@@ -29,13 +29,13 @@ return [
             'cache' => [
                 'default' => 2
             ],
-           /*'tcp_client' => [
+           'tcp_client' => [
                 'default' => 3,
                 'conner'  => 2
             ],
             'ws_client' => [
                 'default' => 2
-            ]*/
+            ]
         ]
     ],
     [
@@ -66,6 +66,13 @@ return [
                 'default' => 5
             ],
             'cache' => [
+                'default' => 2
+            ],
+            'tcp_client' => [
+                'default' => 3,
+                'conner'  => 2
+            ],
+            'ws_client' => [
                 'default' => 2
             ]
         ]
@@ -99,6 +106,13 @@ return [
                 'default' => 2
             ],
             'cache' => [
+                'default' => 2
+            ],
+            'tcp_client' => [
+                'default' => 3,
+                'conner'  => 2
+            ],
+            'ws_client' => [
                 'default' => 2
             ]
         ]
