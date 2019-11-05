@@ -42,6 +42,11 @@ class App
     /**
      *
      */
+    const TYPE_WORKER = 6;
+
+    /**
+     *
+     */
     const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
 
     /**

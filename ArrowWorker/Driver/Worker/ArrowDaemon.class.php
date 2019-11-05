@@ -504,7 +504,6 @@ class ArrowDaemon extends Worker
         Process::SetExecGroupUser( self::$_group, self::$_user);
         Runtime::enableCoroutine();
         Coroutine::Create(function () use ($index) {
-            Log::Init();
             Component::InitPool(self::$jobs[$index]['components']);
         });
         Coroutine::Wait();

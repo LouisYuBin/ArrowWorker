@@ -739,7 +739,6 @@ class Daemon
             case SIGINT:
             case SIGQUIT:
                 self::$terminate = true;
-                var_dump(self::$pidMap);
                 break;
             default:
                 return false;
