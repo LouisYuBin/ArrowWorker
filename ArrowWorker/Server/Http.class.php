@@ -132,6 +132,11 @@ class Http
     private $_maxContentLength = 1024 * 1024 * 10;
 
     /**
+     * @var array
+     */
+    private $_components = [];
+
+    /**
      * @var SwHttp
      */
     private $_server;
@@ -206,9 +211,8 @@ class Http
      */
     private function _onStart()
     {
-        $port = $this->_port;
-        $this->_server->on( 'start', function ( $server ) use ( $port ){
-            Log::Dump( "[  Http   ] : {$port} started" );
+        $this->_server->on( 'start', function ( $server ) {
+            Log::Dump( "[  Http   ] : {$this->_port} started" );
         } );
     }
 
@@ -217,12 +221,9 @@ class Http
      */
     private function _onWorkerStart()
     {
-        $isAllowCORS = $this->_isEnableCORS;
-        $components  = $this->_components;
-        $this->_server->on( 'WorkerStart', function () use ( $isAllowCORS, $components )
-        {
-            Response::SetCORS( (bool)$isAllowCORS );
-            Component::CheckInit( (array)$components );
+        $this->_server->on( 'WorkerStart', function () {
+            Response::SetCORS( (bool)$this->_isEnableCORS );
+            Component::InitPool( $this->_components );
         } );
     }
 
@@ -233,7 +234,9 @@ class Http
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            $this->_initComponents($request, $response);
+            Component::InitWeb($request, $response);
+            Router::Exec();
+            Component::Release(App::TYPE_HTTP);
         } );
     }
 
@@ -264,18 +267,6 @@ class Http
             'mode'                  => $this->_mode,
             'open_http2_protocol'   => $this->_isEnableHttp2,
         ]);
-    }
-
-
-    /**
-     * @param SwRequest  $request
-     * @param SwResponse $response
-     */
-    private function _initComponents( SwRequest $request, SwResponse $response )
-    {
-        Component::InitWeb($request, $response);
-        Router::Exec();
-        Component::Release(App::TYPE_HTTP);
     }
 
 }

@@ -32,7 +32,12 @@ class App
     /**
      *
      */
-    const TYPE_UDP = 3;
+    const TYPE_UDP = 4;
+
+    /**
+     *
+     */
+    const TYPE_BASE = 5;
 
     /**
      *

@@ -14,101 +14,297 @@ use ArrowWorker\Component;
 
 
 /**
- * Class Swoole
- * @package ArrowWorker
+ * Class Udp
+ * @package ArrowWorker\Server
  */
 class Udp
 {
 
     /**
-     * @var array
+     * @var string
      */
-    public static $defaultConfig = [
-        'port'      => 8888,
-        'workerNum' => 4,
-        'backlog'   => 1000,
-        'user'      => 'root',
-        'group'     => 'root',
-        'pipeBufferSize'   => 1024*1024*100,
-        'socketBufferSize' => 1024*1024*100,
-        'enableCoroutine'  => true,
-        'maxRequest'       => 20000,
-        'reactorNum'       => 4,
-        'maxContentLength' => 2088960,
-        'maxCoroutine'     => 10000,
-        'mode'             => SWOOLE_PROCESS
-    ];
+    private $_host = '0.0.0.0';
 
     /**
-     * @param int   $type
-     * @param array $config
-     * @return array
+     * @var int
      */
-    private static function _getConfig( array $config) : array
-    {
-        $config = array_merge(self::$defaultConfig, $config);
-        return [
-            'port'       => $config['port'],
-            'worker_num' => $config['workerNum'],
-            'daemonize'  => false,
-            'backlog'    => $config['backlog'],
-            'user'       => $config['user'],
-            'group'      => $config['group'],
-            'package_max_length'    => $config['maxContentLength'],
-            'enable_static_handler' => $config['enableStaticHandler'],
-            'reactor_num'        => $config['reactorNum'],
-            'pipe_buffer_size'   => $config['pipeBufferSize'],
-            'socket_buffer_size' => $config['socketBufferSize'],
-            'max_request'        => $config['maxRequest'],
-            'enable_coroutine'   => $config['enableCoroutine'],
-            'max_coroutine'      => $config['maxCoroutine'],
-            'document_root'      => $config['documentRoot'],
-            'log_file'           => Log::$StdoutFile,
-            'handler'            => $config['handler'],
-            'ssl_cert_file'      => $config['sslCertFile'],
-            'ssl_key_file'       => $config['sslKeyFile'],
-            'mode'               => $config['mode'],
-            'components'         => isset($config['components']) ? $config['components'] : [],
-            'isAllowCORS'        => isset($config['isAllowCORS']) ? (bool)$config['isAllowCORS'] : false
-        ];
+    private $_port = 8888;
 
+    /**
+     * @var int
+     */
+    private $_mode = SWOOLE_PROCESS;
+
+    /**
+     * @var int
+     */
+    private $_reactorNum = 2;
+
+    /**
+     * @var int
+     */
+    private $_workerNum = 1;
+
+    /**
+     * @var bool
+     */
+    private $_enableCoroutine = true;
+
+    /**
+     * @var string
+     */
+    private $_user = 'www';
+
+    /**
+     * @var string
+     */
+    private $_group = 'www';
+
+    /**
+     * @var int
+     */
+    private $_backlog = 1024000;
+
+    /**
+     * @var int
+     */
+    private $_maxCoroutine = 1000;
+
+    /**
+     * @var int
+     */
+    private $_pipeBufferSize = 1024 * 1024 * 100;
+
+    /**
+     * @var int
+     */
+    private $_socketBufferSize = 1024 * 1024 * 100;
+
+    /**
+     * @var int
+     */
+    private $_maxContentLength = 1024 * 1024 * 10;
+
+
+    /**
+     * @var int|mixed
+     */
+    private $_heartbeatCheckInterval = 30;
+
+
+    /**
+     * @var int|mixed
+     */
+    private $_heartbeatIdleTime = 60;
+
+    /**
+     * @var bool|mixed
+     */
+    private $_openEofCheck = true;
+
+
+    /**
+     * @var mixed|string
+     */
+    private $_packageEof = '\r\n';
+
+
+    /**
+     * @var mixed|string
+     */
+    private $_openEofSplit = '\r\n';
+
+    /**
+     * @var array
+     */
+    private $_components = [];
+
+    /**
+     * @var SocketServer
+     */
+    private $_server;
+
+    /**
+     * @var string
+     */
+    private $_handlerConnect = '';
+
+    /**
+     * @var string
+     */
+    private $_handlerReceive = '';
+
+    /**
+     * @var string
+     */
+    private $_handlerClose = '';
+
+    /**
+     * @var bool
+     */
+    private $_isUdp6 = false;
+
+    /**
+     * @param array $config
+     */
+    public static function Start( array $config )
+    {
+        $server = new self( $config );
+        $server->_initServer();
+        $server->_setConfig();
+        $server->_onStart();
+        $server->_onWorkerStart();
+
+        $server->_onConnect();
+        $server->_onReceive();
+        $server->_onClose();
+        $server->_start();
+    }
+
+    /**
+     * Http constructor.
+     * @param array $config
+     */
+    private function __construct( array $config )
+    {
+        $this->_port             = $config[ 'port' ] ?? 8888;
+        $this->_reactorNum       = $config[ 'reactorNum' ] ?? 2;
+        $this->_workerNum        = $config[ 'workerNum' ] ?? 2;
+        $this->_enableCoroutine  = $config[ 'enableCoroutine' ] ?? true;
+        $this->_user             = $config[ 'user' ] ?? 'root';
+        $this->_group            = $config[ 'group' ] ?? 'root';
+        $this->_backlog          = $config[ 'backlog ' ] ?? 1024 * 100;
+        $this->_maxCoroutine     = $config[ 'maxCoroutine' ] ?? 1000;
+        $this->_pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
+
+        $this->_heartbeatCheckInterval = $config[ 'heartbeatCheckInterval' ] ?? 60;
+        $this->_heartbeatIdleTime      = $config[ 'heartbeatIdleTime' ] ?? 30;
+        $this->_openEofCheck           = $config[ 'openEofCheck' ] ?? false;
+        $this->_openEofSplit           = $config[ 'openEofSplit' ] ?? false;
+        $this->_packageEof             = $config[ 'packageEof' ] ?? '\r\n';
+
+        $this->_components = $config[ 'components' ] ?? [];
+
+        $this->_handlerConnect = $config[ 'handler' ]['connect'] ?? '';
+        $this->_handlerReceive = $config[ 'handler' ]['receive'] ?? '';
+        $this->_handlerClose   = $config[ 'handler' ]['close'] ?? '';
+
+        $this->_isUdp6 = $config[ 'isUdp6' ] ?? false;
+
+    }
+
+    /**
+     *
+     */
+    private function _start()
+    {
+        $this->_server->start();
     }
 
 
     /**
-     * @param array $config
+     *
      */
-    public static function Start( array $config)
+    private function _initServer()
     {
-        $config = static::_getConfig( $config );
-        $server = new SocketServer($config['host'], $config['port'], $config['mode'], SWOOLE_SOCK_UDP);
-        $server->set($config);
-        $server->on('start', function() use ($config) {
-            Log::Dump("[   Udp   ] : {$config['port']} started.");
-        });
-        $server->on('WorkerStart', function() use ($config) {
-            Component::CheckInit($config);
-        });
-        $server->on('connect', function(SocketServer $server, int $fd) use ( $config ) {
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['connect'];
-            Log::Init();
-            $function($server, $fd);
-            Log::Release();
-            Component::Release(2);
-        });
-        $server->on('receive', function(SocketServer $server, int $fd, int $reactor_id, string $data) use ($config) {
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['receive'];
-            Log::Init();
-            $function($server, $fd, $data);
-            Component::Release(2);
-        });
-        $server->on('close',   function(SocketServer $server, int $fd) use ($config) {
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['close'];
-            Log::Init();
-            $function($server, $fd);
-            Component::Release(2);
-        });
-        $server->start();
+        $this->_server = new SocketServer(
+            $this->_host,
+            $this->_port,
+            $this->_mode,
+            (bool)$this->_isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP );
+    }
+
+    /**
+     *
+     */
+    private function _onStart()
+    {
+        $this->_server->on( 'start', function ( $server )
+        {
+            Log::Dump( "[   Tcp   ] : {$this->_port} started" );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _onConnect()
+    {
+        $this->_server->on( 'connect', function ( SocketServer $server, int $fd )
+        {
+            Component::Init();
+            $function = App::CONTROLLER_NAMESPACE . $this->_handlerConnect;
+            $function( $server, $fd );
+            Component::Release( App::TYPE_TCP );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _onReceive()
+    {
+        $this->_server->on( 'receive', function ( SocketServer $server, int $fd, int $reactor_id, string $data )
+        {
+            Component::Init();
+            $function = App::CONTROLLER_NAMESPACE . $this->_handlerReceive;
+            $function( $server, $fd, $data );
+            Component::Release( App::TYPE_TCP );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _onClose()
+    {
+        $this->_server->on( 'close', function ( SocketServer $server, int $fd )
+        {
+            Component::Init();
+            $function = App::CONTROLLER_NAMESPACE . $this->_handlerClose;
+            $function( $server, $fd );
+            Component::Release( App::TYPE_TCP );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _onWorkerStart()
+    {
+        $this->_server->on( 'WorkerStart', function ()
+        {
+            Component::InitPool( $this->_components );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _setConfig()
+    {
+        $this->_server->set( [
+            'mode'                     => $this->_mode,
+            'worker_num'               => $this->_workerNum,
+            'daemonize'                => false,
+            'backlog'                  => $this->_backlog,
+            'user'                     => $this->_user,
+            'group'                    => $this->_group,
+            'package_max_length'       => $this->_maxContentLength,
+            'reactor_num'              => $this->_reactorNum,
+            'pipe_buffer_size'         => $this->_pipeBufferSize,
+            'socket_buffer_size'       => $this->_socketBufferSize,
+            'enable_coroutine'         => $this->_enableCoroutine,
+            'max_coroutine'            => $this->_maxCoroutine,
+            'log_file'                 => Log::$StdoutFile,
+            'heartbeat_check_interval' => $this->_heartbeatCheckInterval,
+            'heartbeat_idle_time'      => $this->_heartbeatIdleTime,
+            'open_eof_check'           => $this->_openEofCheck,
+            'package_eof'              => $this->_packageEof,
+            'open_eof_split'           => $this->_openEofSplit,
+        ] );
     }
 
 }

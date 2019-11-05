@@ -16,9 +16,9 @@ class Tcp
         Log::Info("{$fd} connected .");
     }
 
-    public static function Receive(server $server, int $fd, int $reactor_id, string $data)
+    public static function Receive(server $server, int $fd, string $data)
     {
-
+        var_dump($data);
     }
 
     public static function Close(server $server, int $fd)

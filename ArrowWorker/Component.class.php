@@ -37,7 +37,7 @@ class Component
 
     private static $_poolComponents = [];
 
-    public static function Init(int $type=App::TYPE_HTTP)
+    public static function Init()
     {
         foreach ( self::BASE_COMPONENTS as $component)
         {
@@ -48,10 +48,16 @@ class Component
 
     public static function InitWeb(SwRequest $request, SwResponse $response)
     {
-        self::Init(App::TYPE_HTTP);
-        Response::Init( $response );
+        self::Init();
         Request::Init( $request );
+        Response::Init( $response );
         Session::Init();
+    }
+
+    public static function InitOpen(SwRequest $request)
+    {
+        self::Init();
+        Request::Init( $request );
     }
 
     /**
@@ -84,6 +90,7 @@ class Component
 
             if( ''!==$component )
             {
+                Log::Init();
                 $component::Init($config);
                 self::$_poolComponents[] = $component;
             }
@@ -95,7 +102,7 @@ class Component
      */
     public static function Release( int $type=App::TYPE_HTTP)
     {
-        $components = in_array($type,[App::TYPE_HTTP,App::TYPE_WEBSOCKET]) ?
+        $components = !in_array($type,[App::TYPE_HTTP, App::TYPE_WEBSOCKET]) ?
             array_merge(self::$_poolComponents, self::BASE_COMPONENTS) :
             array_merge(self::$_poolComponents, self::WEB_COMPONENTS, self::BASE_COMPONENTS);
         foreach ($components as $component)
@@ -103,20 +110,5 @@ class Component
             $component::Release();
         }
     }
-
-
-    public static function CheckInit(array $config)
-    {
-        if(
-            !isset($config['components']) ||
-            !is_array($config['components'])
-        )
-        {
-            return ;
-        }
-        Log::Init();
-        Component::InitPool($config['components']);
-    }
-
 
 }

@@ -6,7 +6,6 @@
 
 namespace ArrowWorker\Server;
 
-use ArrowWorker\Lib\Coroutine;
 use \Swoole\WebSocket\Server as WebSocket;
 use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;
@@ -15,8 +14,6 @@ use \Swoole\Http\Response as SwResponse;
 use \ArrowWorker\Web\Router;
 use \ArrowWorker\Web\Response;
 use \ArrowWorker\Web\Request;
-use \ArrowWorker\Web\Session;
-use \ArrowWorker\Web\Cookie;
 
 use ArrowWorker\Log;
 use ArrowWorker\Component;
@@ -25,123 +22,313 @@ use ArrowWorker\App;
 
 /**
  * Class Ws
- * @package ArrowWorker
+ * @package ArrowWorker\Server
  */
 class Ws
 {
 
     /**
+     * @var string
+     */
+    private $_host = '0.0.0.0';
+
+    /**
+     * @var int
+     */
+    private $_port = 8888;
+
+    /**
+     * @var int
+     */
+    private $_mode = SWOOLE_PROCESS;
+
+    /**
+     * @var int
+     */
+    private $_reactorNum = 2;
+
+    /**
+     * @var int
+     */
+    private $_workerNum = 1;
+
+    /**
+     * @var bool
+     */
+    private $_enableCoroutine = true;
+
+    /**
+     * @var string
+     */
+    private $_404 = '';
+
+    /**
+     * @var string
+     */
+    private $_user = 'www';
+
+    /**
+     * @var string
+     */
+    private $_group = 'www';
+
+    /**
+     * @var int
+     */
+    private $_backlog = 1024000;
+
+    /**
+     * @var bool
+     */
+    private $_isEnableStatic = true;
+
+    /**
+     * @var string
+     */
+    private $_documentRoot = '';
+
+    /**
+     * @var string
+     */
+    private $_sslCertFile = '';
+
+    /**
+     * @var string
+     */
+    private $_sslKeyFile = '';
+
+    /**
+     * @var int
+     */
+    private $_maxRequest = 10000;
+
+    /**
+     * @var int
+     */
+    private $_maxCoroutine = 1000;
+
+    /**
+     * @var bool
+     */
+    private $_isEnableCORS = true;
+
+    /**
+     * @var bool
+     */
+    private $_isEnableHttp2 = false;
+
+    /**
+     * @var int
+     */
+    private $_pipeBufferSize = 1024 * 1024 * 100;
+
+    /**
+     * @var int
+     */
+    private $_socketBufferSize = 1024 * 1024 * 100;
+
+    /**
+     * @var int
+     */
+    private $_maxContentLength = 1024 * 1024 * 10;
+
+    /**
      * @var array
      */
-    public static $defaultConfig = [
-        'host'      => '0.0.0.0',
-        'port'      => 8888,
-        'workerNum' => 4,
-        'backlog'   => 1000,
-        'user'      => 'root',
-        'group'     => 'root',
-        'pipeBufferSize'   => 1024*1024*100,
-        'socketBufferSize' => 1024*1024*100,
-        'enableCoroutine'  => true,
-        'isAllowCORS'      => true,
-        'maxRequest'       => 20000,
-        'reactorNum'       => 4,
-        'maxContentLength' => 2088960,
-        'maxCoroutine'     => 10000,
-        'sslCertFile'      => '',
-        'sslKeyFile'       => '',
-        'documentRoot'     => '',
-        'mode'             => SWOOLE_PROCESS
-    ];
+    private $_components = [];
 
+    /**
+     * @var string
+     */
+    private $_handlerOpen = '';
+
+    /**
+     * @var string
+     */
+    private $_handlerMessage = '';
+
+    /**
+     * @var string
+     */
+    private $_handlerClose = '';
+
+    /**
+     * @var WebSocket
+     */
+    private $_server;
 
     /**
      * @param array $config
-     * @return array
      */
-    private static function _getConfig( array $config) : array
+    public static function Start( array $config )
     {
-        $config = array_merge(self::$defaultConfig, $config);
-        return [
-            'port'       => $config['port'],
-            'worker_num' => $config['workerNum'],
-            'daemonize'  => false,
-            'backlog'    => $config['backlog'],
-            'user'       => $config['user'],
-            'group'      => $config['group'],
-            'package_max_length'    => $config['maxContentLength'],
-            'enable_static_handler' => $config['enableStaticHandler'],
-            'reactor_num'        => $config['reactorNum'],
-            'pipe_buffer_size'   => $config['pipeBufferSize'],
-            'socket_buffer_size' => $config['socketBufferSize'],
-            'max_request'        => $config['maxRequest'],
-            'enable_coroutine'   => $config['enableCoroutine'],
-            'max_coroutine'      => $config['maxCoroutine'],
-            'document_root'      => $config['documentRoot'],
-            'log_file'           => Log::$StdoutFile,
-            'handler'            => $config['handler'],
-            'ssl_cert_file'      => $config['sslCertFile'],
-            'ssl_key_file'       => $config['sslKeyFile'],
-            'mode'               => $config['mode'],
-            'components'         => isset($config['components']) ? $config['components'] : [],
-            'isAllowCORS'        => isset($config['isAllowCORS']) ? (bool)$config['isAllowCORS'] : false
-        ];
+        $server = new self( $config );
+        $server->_initServer();
+        $server->_setConfig();
+        $server->_onStart();
+        $server->_onOpen();
+        $server->_onMessage();
+        $server->_onWorkerStart();
+        $server->_onRequest();
+        $server->_onClose();
+        $server->_start();
+    }
 
+    /**
+     * Http constructor.
+     * @param array $config
+     */
+    private function __construct( array $config )
+    {
+        $this->_port            = $config['port'] ?? 8888;
+        $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
+        $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
+        $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
+        $this->_404             = $config[ '404' ] ?? '';
+        $this->_user            = $config[ 'user' ] ?? 'root';
+        $this->_group           = $config[ 'group' ] ?? 'root';
+        $this->_backlog         = $config[ 'backlog ' ] ?? 1024 * 100;
+        $this->_isEnableStatic  = $config[ 'isEnableStatic' ] ?? false;
+        $this->_documentRoot    = $config[ 'documentRoot' ] ?? '';
+        $this->_sslCertFile     = $config[ 'sslCertFile' ] ?? '';
+        $this->_sslKeyFile      = $config[ 'sslKeyFile' ] ?? '';
+        $this->_maxRequest      = $config[ 'maxRequest' ] ?? 1000;
+        $this->_maxCoroutine    = $config[ 'maxCoroutine' ] ?? 1000;
+        $this->_isEnableCORS     = $config[ 'isEnableCORS' ] ?? true;;
+        $this->_isEnableHttp2   = $config[ 'isEnableHttp2' ] ?? false;;
+        $this->_pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
+        $this->_components       = $config[ 'components' ] ?? [];
+        $this->_handlerOpen      = $config['handler']['open'] ?? '';
+        $this->_handlerMessage   = $config['handler']['message'] ?? '';
+        $this->_handlerClose     = $config['handler']['close'] ?? '';
+        Router::Init( $this->_404 );
+    }
+
+    /**
+     *
+     */
+    private function _start()
+    {
+        $this->_server->start();
     }
 
 
+    /**
+     *
+     */
+    private function _initServer()
+    {
+        $this->_server = new WebSocket(
+            $this->_host,
+            $this->_port,
+            $this->_mode,
+            empty( $this->_sslCertFile ) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP | SWOOLE_SSL
+        );
+    }
 
     /**
-     * @param array $config
+     *
      */
-    public static function Start( array $config)
+    private function _onStart()
     {
-        Router::Init( isset($config['404']) ? (string)$config['404'] : '' );
-        $config = self::_getConfig( $config );
-        $cors   = $config['isAllowCORS'];
+        $this->_server->on( 'start', function ( $server ) {
+            Log::Dump( "[   Ws    ] : {$this->_port} started" );
+        } );
+    }
 
-        $server = new WebSocket($config['host'], $config['port'],  $config['mode'], empty($config['ssl_cert_file']) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP| SWOOLE_SSL);
-        $server->set($config);
-        $server->on('start', function($server) use ( $config ) {
-            Log::Dump("[   Ws    ] : {$config['port']} started");
-        });
-        $server->on('WorkerStart', function() use ( $config ) {
-            Component::CheckInit($config);
-            //Coroutine::DumpSlow();
-        });
-        $server->on('open', function(WebSocket $server, SwRequest $request) use ($config) {
-            Log::Init();
-            Request::Init( $request );
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['open'];
+    /**
+     *
+     */
+    private function _onOpen()
+    {
+        $this->_server->on('open', function(WebSocket $server, SwRequest $request)  {
+            Component::InitOpen($request);
+            $function = App::CONTROLLER_NAMESPACE.$this->_handlerOpen;
             $function($server, $request->fd);
-            Component::Release(2);
+            Component::Release(App::TYPE_WEBSOCKET);
         });
-        $server->on('message', function(WebSocket $server, Frame $frame) use ( $config ) {
-            Coroutine::Init();
-            Log::Init();
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['message'];
-            $function($server, $frame);
-            Component::Release(2);
-            Coroutine::Release();
-        });
-        $server->on('request', function( SwRequest $request, SwResponse $response ) use ($cors) {
-            Coroutine::Init();
-            Log::Init();
-            Response::Init($response, $cors);
-            Request::Init($request);
-            Cookie::Init(is_array($request->cookie) ? $request->cookie : []);
-            Session::Init();
-            Router::Exec();
-            Component::Release();
-            Coroutine::Release();
-        });
-        $server->on('close',   function(WebSocket $server, int $fd) use ($config) {
-            Log::Init();
-            $function = App::CONTROLLER_NAMESPACE.$config['handler']['close'];
-            $function($server, $fd);
-            Component::Release(2);
-        });
-        $server->start();
     }
+
+    /**
+     *
+     */
+    private function _onMessage()
+    {
+        $this->_server->on('message', function(WebSocket $server, Frame $frame)  {
+            Component::Init();
+            $function = App::CONTROLLER_NAMESPACE.$this->_handlerMessage;
+            $function($server, $frame);
+            Component::Release(App::TYPE_BASE);
+        });
+    }
+
+    /**
+     *
+     */
+    private function _onClose()
+    {
+        $this->_server->on('close',   function(WebSocket $server, int $fd) {
+            Component::Init();
+            $function = App::CONTROLLER_NAMESPACE.$this->_handlerClose;
+            $function($server, $fd);
+            Component::Release(App::TYPE_BASE);
+        });
+    }
+
+    /**
+     *
+     */
+    private function _onWorkerStart()
+    {
+        $this->_server->on( 'WorkerStart', function () {
+            Response::SetCORS( (bool)$this->_isEnableCORS );
+            Component::InitPool( $this->_components );
+        } );
+    }
+
+    /**
+     *
+     */
+    private function _onRequest()
+    {
+        $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
+        {
+            Component::InitWeb($request, $response);
+            Router::Exec();
+            Component::Release(App::TYPE_HTTP);;
+        } );
+    }
+
+
+    /**
+     *
+     */
+    private function _setConfig()
+    {
+        $this->_server->set([
+            'worker_num'            => $this->_workerNum,
+            'daemonize'             => false,
+            'backlog'               => $this->_backlog,
+            'user'                  => $this->_user,
+            'group'                 => $this->_group,
+            'package_max_length'    => $this->_maxContentLength,
+            'enable_static_handler' => $this->_isEnableStatic,
+            'reactor_num'           => $this->_reactorNum,
+            'pipe_buffer_size'      => $this->_pipeBufferSize,
+            'socket_buffer_size'    => $this->_socketBufferSize,
+            'max_request'           => $this->_maxRequest,
+            'enable_coroutine'      => $this->_enableCoroutine,
+            'max_coroutine'         => $this->_maxCoroutine,
+            'document_root'         => $this->_documentRoot,
+            'log_file'              => Log::$StdoutFile,
+            'ssl_cert_file'         => $this->_sslCertFile,
+            'ssl_key_file'          => $this->_sslKeyFile,
+            'mode'                  => $this->_mode,
+            'open_http2_protocol'   => $this->_isEnableHttp2,
+        ]);
+    }
+
 
 }
