@@ -568,7 +568,8 @@ class Daemon
         $pid = (int)file_get_contents(static::$pid);
         if( $pid==0 )
         {
-            Log::DumpExit('Arrow Server is not running');
+            Log::Hint('Arrow Hint : Server is not running');
+            exit(0);
         }
         return $pid;
     }
@@ -694,7 +695,8 @@ class Daemon
 
         if ($pid > 0 && Process::Kill($pid, 0))
         {
-            Log::DumpExit("Arrow hint : process is already started");
+            Log::Hint("Arrow Hint : Server is already started.");
+            exit;
         }
         else
         {
