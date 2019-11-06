@@ -15,7 +15,7 @@ return [
         //编码
         'charset'  => 'utf8mb4',
         //端口
-        'port'     => 3306,
+        'port'     => 11860,
         //连接池大小
         'poolSize' => 10,
     ],
