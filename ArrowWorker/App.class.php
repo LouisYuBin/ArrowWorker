@@ -53,11 +53,25 @@ class App
      * RunApp 执行应用
      * @author Louis
      */
-    public static function RunApp()
+    public static function Run()
+    {
+        self::_initOptions();
+        Daemon::Start();
+    }
+
+    private static function _initOptions()
     {
         set_time_limit( 0 );
-        ini_set( 'memory_limit', '512M' );
-        Daemon::Start();
+        $options = Config::Get('Global');
+        if( !is_array($options) )
+        {
+            return ;
+        }
+
+        foreach ($options as $option=>$value)
+        {
+            ini_set($option,$value);
+        }
     }
 
 }

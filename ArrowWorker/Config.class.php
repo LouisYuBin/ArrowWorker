@@ -21,19 +21,19 @@ class Config
      * 配置文件路径
      * @var string
      */
-    private static $path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR . ENV . DIRECTORY_SEPARATOR;
+    private static $_path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR . ENV . DIRECTORY_SEPARATOR;
 
     /**
      * 配置文件记录
      * @var array
      */
-    private static $configMap = [];
+    private static $_configMap = [];
 
     /**
      * 配置文件后缀
      * @var array
      */
-    private static $configExt = '.php';
+    private static $_configExt = '.php';
 
     /**
      * Init
@@ -45,10 +45,10 @@ class Config
     {
         if ( empty( $configFilePath ) )
         {
-            return self::$path;
+            return self::$_path;
         }
 
-        return self::$path . $subPath . DIRECTORY_SEPARATOR;
+        return self::$_path . $subPath . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -59,9 +59,9 @@ class Config
      */
     public static function Get( string $configName = APP_CONFIG_FILE )
     {
-        if ( isset( self::$configMap[$configName] ) )
+        if ( isset( self::$_configMap[$configName] ) )
         {
-            return self::$configMap[$configName];
+            return self::$_configMap[$configName];
         }
         return self::Load( $configName );
     }
@@ -75,14 +75,14 @@ class Config
      */
     private static function Load( string $configName, string $subPath = '' )
     {
-        $pathName = self::_getPath( $subPath ) . $configName . self::$configExt;
-        if ( !file_exists( $pathName ) )
+        $_pathName = self::_getPath( $subPath ) . $configName . self::$_configExt;
+        if ( !file_exists( $_pathName ) )
         {
-            Log::Error( "Config File : {$pathName} does not exists.", self::LOG_NAME );
+            Log::Error( "Config File : {$_pathName} does not exists.", self::LOG_NAME );
             return false;
         }
-        self::$configMap[$configName] = require($pathName);
-        return self::$configMap[$configName];
+        self::$_configMap[$configName] = require($_pathName);
+        return self::$_configMap[$configName];
     }
 
 }

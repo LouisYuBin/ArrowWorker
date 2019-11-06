@@ -90,7 +90,7 @@ class ArrowWorker
             static::$Arrow = new self;
             Exception::Init();
         }
-        App::RunApp();
+        App::Run();
     }
 
 
