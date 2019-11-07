@@ -131,6 +131,11 @@ class Mysqli implements Db
         ];
     }
 
+    /**
+     * @param string $sql
+     *
+     * @return bool|\mysqli_result
+     */
     private function _query(string $sql)
     {
         $isRetried = false;
@@ -144,13 +149,13 @@ class Mysqli implements Db
 
         if( 0!==$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
-            Log::Warning( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", self::LOG_NAME );
-            self::InitConnection();
+            Log::Notice( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", self::LOG_NAME );
+            $this->InitConnection();
             $isRetried = true;
             goto _RETRY;
         }
 
-        Log::Error( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
+        Log::Notice( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
         return false;
     }
 
