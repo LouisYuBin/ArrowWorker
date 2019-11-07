@@ -13,7 +13,7 @@ define('APP_TYPE',['worker','server']);
 
 //开发调试模式
 define('DEBUG', false);
-define('ENV', 'Dev');
+define('ENV', 'Test');
 
 require __DIR__.'/ArrowWorker/ArrowWorker.php';
 arrow::Start();

@@ -9,7 +9,7 @@ return [
         //用户名
         'userName' => 'root',
         //密码
-        'password' => 'louis',
+        'password' => '_bm2vhmhf@fvnm_3z7qtzdNESafYh@Rie/bd',
         //数据库名
         'dbName'   => 'ArrowWorker',
         //编码
