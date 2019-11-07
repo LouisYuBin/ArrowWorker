@@ -6,7 +6,7 @@ return [
         'host'             => '0.0.0.0',
         'port'             => 4433,
         'workerNum'        => 1,
-        'reactorNum'       => 4,
+        'reactorNum'       => 2,
         'backlog'          => 20000,
         'user'             => 'www',
         'group'            => 'www',
@@ -43,7 +43,7 @@ return [
         'host'             => '0.0.0.0',
         'port'             => 8081,
         'workerNum'        => 1,
-        'reactorNum'       => 4,
+        'reactorNum'       => 2,
         'backlog'          => 20000,
         'user'             => 'www',
         'group'            => 'www',
@@ -71,38 +71,38 @@ return [
         ]
     ],
     [
-        'type'             => 'Tcp',
-        'host'             => '0.0.0.0',
-        'port'             => 9505,
-        'workerNum'        => 1,
-        'reactorNum'       => 4,
-        'backlog'          => 20000,
-        'user'             => 'www',
-        'group'            => 'www',
-        'pipeBufferSize'   => 1024*1024*200,
-        'socketBufferSize' =>  1024*1024*200,
-        'maxRequest'       => 100000,
-        'maxCoroutine'     => 50000,
-        'maxContentLength' => 20889600,
-        'heartbeatCheckInterval' => 30,
-        'heartbeatIdleTime' => 60,
-        'openEofCheck'      => false,
-        'packageEof'        => '\r\n',
-        'openEofSplit'      => false,
-        'handler'           => [
-            'connect' => 'Tcp::Connect',
-            'receive' => 'Tcp::Receive',
-            'close'   => 'Tcp::Close'
-        ],
-        'components' => [
-            'db' => [
-                'default' => 2
+            'type'             => 'Tcp',
+            'host'             => '0.0.0.0',
+            'port'             => 9505,
+            'workerNum'        => 1,
+            'reactorNum'       => 4,
+            'backlog'          => 20000,
+            'user'             => 'www',
+            'group'            => 'www',
+            'pipeBufferSize'   => 1024*1024*200,
+            'socketBufferSize' =>  1024*1024*200,
+            'maxRequest'       => 100000,
+            'maxCoroutine'     => 50000,
+            'maxContentLength' => 20889600,
+            'heartbeatCheckInterval' => 30,
+            'heartbeatIdleTime' => 60,
+            'openEofCheck'      => false,
+            'packageEof'        => '\r\n',
+            'openEofSplit'      => false,
+            'handler'           => [
+                'connect' => 'Tcp::Connect',
+                'receive' => 'Tcp::Receive',
+                'close'   => 'Tcp::Close'
             ],
-            'cache' => [
-                'default' => 2
+            'components' => [
+                'db' => [
+                    'default' => 2
+                ],
+                'cache' => [
+                    'default' => 2
+                ]
             ]
-        ]
-    ],
+        ],
 /*
     [
         'type'             => 'Udp',

@@ -29,8 +29,8 @@ class Demo
         ArrowWorker::GetList();
 
         Coroutine::Sleep(1);
-        WsPool::GetConnection()->Push(mt_rand(10000,99999));
-        Pool::GetConnection()->Send(mt_rand(10000,99999));
+        //WsPool::GetConnection()->Push(mt_rand(10000,99999));
+        //Pool::GetConnection()->Send(mt_rand(10000,99999));
     }
 
     public function channelApp()

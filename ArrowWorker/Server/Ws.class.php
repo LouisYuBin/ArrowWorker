@@ -220,12 +220,23 @@ class Ws
      */
     private function _initServer()
     {
+
+
         $this->_server = new WebSocket(
             $this->_host,
             $this->_port,
             $this->_mode,
-            empty( $this->_sslCertFile ) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP | SWOOLE_SSL
+            $this->_isSsl() ?  SWOOLE_SOCK_TCP | SWOOLE_SSL : SWOOLE_SOCK_TCP
         );
+    }
+
+    private function _isSsl()
+    {
+        if( !file_exists($this->_sslCertFile) || !file_exists($this->_sslKeyFile) )
+        {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -198,12 +198,27 @@ class Http
      */
     private function _initServer()
     {
+        if( !file_exists($this->_sslCertFile) || !file_exists($this->_sslKeyFile) )
+        {
+            $this->_sslCertFile  = '';
+            $this->_sslKeyFile   = '';
+        }
+
         $this->_server = new SwHttp(
             $this->_host,
             $this->_port,
             $this->_mode,
-            empty( $this->_sslCertFile ) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_TCP | SWOOLE_SSL
+            $this->_isSsl() ? SWOOLE_SOCK_TCP | SWOOLE_SSL : SWOOLE_SOCK_TCP
         );
+    }
+
+    private function _isSsl()
+    {
+        if( !file_exists($this->_sslCertFile) || !file_exists($this->_sslKeyFile) )
+        {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -246,27 +261,34 @@ class Http
      */
     private function _setConfig()
     {
-        $this->_server->set([
+        $options = [
             'worker_num'            => $this->_workerNum,
             'daemonize'             => false,
             'backlog'               => $this->_backlog,
             'user'                  => $this->_user,
             'group'                 => $this->_group,
             'package_max_length'    => $this->_maxContentLength,
-            'enable_static_handler' => $this->_isEnableStatic,
             'reactor_num'           => $this->_reactorNum,
             'pipe_buffer_size'      => $this->_pipeBufferSize,
             'socket_buffer_size'    => $this->_socketBufferSize,
             'max_request'           => $this->_maxRequest,
             'enable_coroutine'      => $this->_enableCoroutine,
             'max_coroutine'         => $this->_maxCoroutine,
-            'document_root'         => $this->_documentRoot,
             'log_file'              => Log::$StdoutFile,
-            'ssl_cert_file'         => $this->_sslCertFile,
-            'ssl_key_file'          => $this->_sslKeyFile,
             'mode'                  => $this->_mode,
             'open_http2_protocol'   => $this->_isEnableHttp2,
-        ]);
+            'ssl_cert_file'         => $this->_sslCertFile,
+            'ssl_key_file'          => $this->_sslKeyFile,
+        ];
+
+
+        if( $this->_isEnableStatic && file_exists($this->_documentRoot) )
+        {
+            $options['enable_static_handler'] = $this->_isEnableStatic;
+            $options['document_root']         = $this->_documentRoot;
+        }
+
+        $this->_server->set($options);
     }
 
 }

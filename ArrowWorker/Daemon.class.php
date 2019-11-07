@@ -346,6 +346,7 @@ class Daemon
             }
             else if( $appType=='server' )
             {
+                usleep(100000);
                 $this->_startSwooleServer($index);
             }
         }
