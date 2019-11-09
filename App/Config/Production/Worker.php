@@ -7,76 +7,77 @@ return [
     'group'  => 'www',
     'worker' => [
         [
-            'function'   => [
+            'procName'        => 'producer',
+            'function'        => [
                 '\\App\\Controller\\Demo',
-                'Demo'
+                'Demo',
             ],
-            'argv'       => [ 100 ],
-            'coQuantity' => 1,
-            'procName'   => 'Demo',
-            'components' => [
-                'db' => [
-                    'default' => 5
+            'argv'            => [ 100 ],
+            'processQuantity' => 3,
+            'coQuantity'      => 10,
+            'components'      => [
+                'db'    => [
+                    'default' => 10,
                 ],
                 'cache' => [
-                    'default' => 2
-                ]
-            ]
+                    'default' => 10,
+                ],
+            ],
 
         ],
         [
-            'function'       => [
+            'procName'        => 'consumer_1',
+            'function'        => [
                 '\\App\\Controller\\Demo',
-                'channelApp'
+                'channelApp',
             ],
-            'argv'           => [ 100 ],
-            'procName'       => 'channelApp',
-            'coQuantity'     => 5,
-            'isChanReadProc' => true,
-            'components' => [
-                'db' => [
-                    'default' => 5
+            'argv'            => [ 100 ],
+            'processQuantity' => 3,
+            'coQuantity'      => 10,
+            'components'      => [
+                'db'    => [
+                    'default' => 10,
                 ],
                 'cache' => [
-                    'default' => 5
-                ]
-            ]
+                    'default' => 10,
+                ],
+            ],
         ],
         [
-            'function'       => [
+            'procName'        => 'consumer_2',
+            'function'        => [
                 '\\App\\Controller\\Demo',
-                'channelArrow'
+                'channelArrow',
             ],
-            'argv'           => [ 100 ],
-            'procName'       => 'channelArrow',
-            'coQuantity'     => 5,
-            'isChanReadProc' => true,
-            'components' => [
-                'db' => [
-                    'default' => 5
+            'argv'            => [ 100 ],
+            'processQuantity' => 3,
+            'coQuantity'      => 10,
+            'components'      => [
+                'db'    => [
+                    'default' => 10,
                 ],
                 'cache' => [
-                    'default' => 5
-                ]
-            ]
+                    'default' => 10,
+                ],
+            ],
         ],
         [
-            'function'       => [
+            'procName'        => 'consumer_3',
+            'function'        => [
                 '\\App\\Controller\\Demo',
-                'channeltest'
+                'channeltest',
             ],
-            'argv'           => [ 100 ],
-            'procName'       => 'channeltest',
-            'coQuantity'     => 5,
-            'isChanReadProc' => true,
-            'components' => [
-                'db' => [
-                    'default' => 5
+            'argv'            => [ 100 ],
+            'processQuantity' => 3,
+            'coQuantity'      => 10,
+            'components'      => [
+                'db'    => [
+                    'default' => 10,
                 ],
                 'cache' => [
-                    'default' => 5
-                ]
-            ]
+                    'default' => 10,
+                ],
+            ],
         ],
-    ]
+    ],
 ];
