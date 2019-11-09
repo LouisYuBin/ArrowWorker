@@ -14,13 +14,13 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 3,
-            'coQuantity'      => 10,
+            'coQuantity'      => 5,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 5,
                 ],
                 'cache' => [
-                    'default' => 10,
+                    'default' => 5,
                 ],
             ],
 
