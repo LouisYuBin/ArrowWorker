@@ -520,7 +520,7 @@ class Log
         $alias = $module . $level . $date;
         if ( isset( self::$_fileHandlerMap[ $alias ] ) )
         {
-            $result = fwrite( self::$_fileHandlerMap[ $alias ], $message );
+            $result = Coroutine::Fwrite( self::$_fileHandlerMap[ $alias ], $message );
             if ( false === $result )
             {
                 goto _INIT;
@@ -537,7 +537,7 @@ class Log
             return false;
         }
         self::$_fileHandlerMap[ $alias ] = $logRes;
-        return fwrite( $logRes, $message );
+        return Coroutine::Fwrite( $logRes, $message );
     }
 
     /**
@@ -609,9 +609,13 @@ class Log
     {
         self::_setSignalHandler();
 
-        Coroutine::Create( function() {
-            Log::WriteToFile();
-        } );
+        for($i=0; $i<10; $i++)
+        {
+            Coroutine::Create(function ()
+            {
+                Log::WriteToFile();
+            });
+        }
 
         if ( in_array( static::TO_TCP, static::$_writeType ) )
         {
@@ -627,9 +631,13 @@ class Log
             } );
         }
 
-        Coroutine::Create( function(){
-            Log::Dispatch();
-        } );
+        for($i=0; $i<10; $i++)
+        {
+            Coroutine::Create(function ()
+            {
+                Log::Dispatch();
+            });
+        }
 
         Coroutine::Wait();
         static::_exit();
