@@ -42,8 +42,6 @@ class Demo
         {
             return false;
         }
-        Coroutine::Sleep(1);
-
 
         ArrowWorker::GetOne();
         ArrowWorker::GetList();
@@ -57,13 +55,10 @@ class Demo
     {
         $channel = Chan::Get('arrow');
         $result  = $channel->Read();
-        //var_dump($result);
         if( !$result )
         {
             return false;
         }
-
-        Coroutine::Sleep(1);
 
         Chan::Get('test')->Write($result);
         return true;
@@ -76,8 +71,6 @@ class Demo
 		{
 			return false;
 		}
-
-        Coroutine::Sleep(1);
 
         ArrowWorker::GetOne();
         ArrowWorker::GetList();
