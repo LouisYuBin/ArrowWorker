@@ -36,11 +36,27 @@ class Worker
         $daemon = ArrowDaemon::Init($config);
         foreach ($config['worker'] as $item)
         {
-            if( !isset($item['function']) || !is_array($item['function']) || count($item['function'])<2 )
+            if( !isset($item['function']) || !isset($item['function'][0]) || !isset($item['function'][1]) )
             {
-                Log::DumpExit("some processor configuration is not correct");
+                Log::Dump("some processor configuration is not correct");
+                continue ;
             }
-            $item['function'] = [ new $item['function'][0], $item['function'][1] ];
+            $class = (string)$item['function'][0];
+
+            if( !class_exists($class) )
+            {
+                Log::Dump("{$item['function'][0]} does not exists.");
+                continue;
+            }
+
+            $method   = (string)$item['function'][1];
+            $instance = new $class;
+            if( !method_exists( $instance, $method) )
+            {
+                Log::Dump("{$class}->{$method} does not exists.");
+                continue;
+            }
+            $item['function'] = [ $instance, $method ];
             $daemon->AddTask( $item );
         }
 

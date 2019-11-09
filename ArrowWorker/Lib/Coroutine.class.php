@@ -8,6 +8,7 @@ namespace ArrowWorker\Lib;
 
 use Swoole\Coroutine as Co;
 use Swoole\Event;
+use Swoole\Runtime;
 
 /**
  * Class Coroutine
@@ -103,6 +104,11 @@ class Coroutine
             }
 
         });
+    }
+
+    public static function Enable()
+    {
+        Runtime::enableCoroutine();
     }
 
 }

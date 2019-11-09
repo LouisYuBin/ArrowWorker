@@ -28,9 +28,10 @@ class Demo
         ArrowWorker::GetOne();
         ArrowWorker::GetList();
 
-        Coroutine::Sleep(1);
+        //Coroutine::Sleep(1);
         //WsPool::GetConnection()->Push(mt_rand(10000,99999));
         //Pool::GetConnection()->Send(mt_rand(10000,99999));
+        return false;
     }
 
     public function channelApp()

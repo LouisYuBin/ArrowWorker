@@ -53,7 +53,7 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'isEnableStatic'   => true,
-        'isEnableCORS'      => true,
+        'isEnableCORS'     => true,
         'documentRoot' => APP_PATH.'/Static/Web',
         '404'          => APP_PATH.'/Static/Web/404.html',
         'handler'      => [

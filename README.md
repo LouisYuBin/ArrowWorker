@@ -57,3 +57,9 @@ arrow::start();
 >Tpl:模板文件目录<br />
 
 ### 相关使用文档正在更新中。。。
+调优注意事项：
+- 设置紫铜队列长度
+    kernel.msgmni=
+    kernel.msgmax
+    kernel.msgmnb
+    
