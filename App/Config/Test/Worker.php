@@ -14,10 +14,10 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 1,
-            'coQuantity'      => 10,
+            'coQuantity'      => 50,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 50,
                 ],
                 'cache' => [
                     'default' => 5,

@@ -51,6 +51,8 @@ class Log
      */
     const TIME_ZONE = 'UTC';
 
+    const BUFFER_SIZE = 1024;
+
     /**
      *
      */
@@ -614,7 +616,7 @@ class Log
         self::_setSignalHandler();
 
         Coroutine::Enable();
-        for($i=0; $i<10; $i++)
+        for($i=0; $i<20; $i++)
         {
             Coroutine::Create(function ()
             {
@@ -714,7 +716,7 @@ class Log
                 continue;
             }
 
-            if( strlen($buffer)<512 && strlen($data)<512 )
+            if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
             {
                 $buffer .= empty($buffer) ? $data : "&&&{$data}";
                 continue;
