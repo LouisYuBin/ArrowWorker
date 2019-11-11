@@ -610,7 +610,7 @@ class Log
         self::_setSignalHandler();
 
         Coroutine::Enable();
-        for($i=0; $i<20; $i++)
+        for($i=0; $i<200; $i++)
         {
             Coroutine::Create(function ()
             {
@@ -632,7 +632,7 @@ class Log
             } );
         }
 
-        for($i=0; $i<200; $i++)
+        for($i=0; $i<20; $i++)
         {
             Coroutine::Create(function ()
             {
@@ -692,9 +692,10 @@ class Log
      */
     public static function WriteToFile()
     {
+        $buffer = '';
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 0.5 );
+            $data = self::$_toFileChan->pop( 0.5 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -702,11 +703,22 @@ class Log
 
             if ( $data === false )
             {
-                Coroutine::Sleep( 1 );
+                Coroutine::Sleep( 0.5 );
                 continue;
             }
 
-            static::_writeLogFile( $data );
+            if( strlen($buffer)<512 && strlen($data)<512 )
+            {
+                $buffer .= $data;
+                continue;
+            }
+
+            if( ''!=$buffer )
+            {
+                self::_writeLogFile( $buffer );
+            }
+
+            self::_writeLogFile( $data );
 
         }
         self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
