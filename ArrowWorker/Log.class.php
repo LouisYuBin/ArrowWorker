@@ -667,7 +667,10 @@ class Log
                 continue;
             }
 
-            self::$_toFileChan->push( $log, 1 );
+            if( false==self::$_toFileChan->push( $log, 1 ) )
+            {
+                Log::Dump("Push log chan failed, data:{$log}, error code： ".self::$_toFileChan->errCode."}");
+            }
 
             if ( in_array( static::TO_TCP, static::$_writeType ) )
             {
@@ -707,7 +710,7 @@ class Log
                 continue;
             }
 
-            if( strlen($buffer)<512 && strlen($data)<512 )
+            if( strlen($buffer)<256 && strlen($data)<256 )
             {
                 $buffer .= $data;
                 continue;
