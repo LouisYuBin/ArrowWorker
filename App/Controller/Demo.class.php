@@ -71,7 +71,7 @@ class Demo
 			return false;
 		}
 
-        ArrowWorker::GetOne();
+        //ArrowWorker::GetOne();
 
         return true;
 	}
