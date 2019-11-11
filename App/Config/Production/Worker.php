@@ -33,10 +33,10 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -51,10 +51,10 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -69,10 +69,10 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 100,
