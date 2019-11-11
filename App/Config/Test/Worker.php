@@ -13,11 +13,11 @@ return [
                 'Demo',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 5,
+            'processQuantity' => 1,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 5,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 5,
