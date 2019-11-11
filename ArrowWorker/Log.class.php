@@ -428,7 +428,7 @@ class Log
     {
         $time  = date( 'Y-m-d H:i:s' );
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}|{$module}|{$time} | {$logId} | $log" . PHP_EOL );
+        self::$_msgObject->Write( "{$level}�{$module}�{$time} | {$logId} | $log" . PHP_EOL );
     }
 
     /**
@@ -486,24 +486,28 @@ class Log
     }
 
     /**
-     * @param string $log
+     * @param string $logs
      */
-    private static function _writeLogFile( string $log )
+    private static function _writeLogFile( string $logs )
     {
-        $logInfo = explode( '|', $log );
-        $level   = $logInfo[ 0 ];
-        $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
-        $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 2 );
-
-        $tryTimes = 0;
-        RETRY:
-        //try three times if failed
-        if ( false === self::_writeFile( $module, $level, $message ) )
+        $logArray = explode('&&&', $logs);
+        foreach ($logArray as $log)
         {
-            $tryTimes++;
-            if ( $tryTimes < 3 )
+            $logInfo = explode( '�', $log );
+            $level   = $logInfo[ 0 ];
+            $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
+            $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
+
+            $tryTimes = 0;
+            RETRY:
+            //try three times if failed
+            if ( false === self::_writeFile( $module, $level, $message ) )
             {
-                goto RETRY;
+                $tryTimes++;
+                if ( $tryTimes < 3 )
+                {
+                    goto RETRY;
+                }
             }
         }
     }
@@ -712,13 +716,14 @@ class Log
 
             if( strlen($buffer)<256 && strlen($data)<256 )
             {
-                $buffer .= $data;
+                $buffer .= empty($buffer) ? $data : "&&&{$data}";
                 continue;
             }
 
             if( ''!=$buffer )
             {
                 self::_writeLogFile( $buffer );
+                $buffer = '';
             }
 
             self::_writeLogFile( $data );
