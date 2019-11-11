@@ -32,11 +32,11 @@ return [
                 'channelApp',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 10,
+            'processQuantity' => 1,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 100,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -50,11 +50,11 @@ return [
                 'channelArrow',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 10,
+            'processQuantity' => 1,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 100,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -68,11 +68,11 @@ return [
                 'channeltest',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 10,
+            'processQuantity' => 1,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 100,
                 ],
                 'cache' => [
                     'default' => 100,
