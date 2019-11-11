@@ -714,7 +714,7 @@ class Log
                 continue;
             }
 
-            if( strlen($buffer)<256 && strlen($data)<256 )
+            if( strlen($buffer)<512 && strlen($data)<512 )
             {
                 $buffer .= empty($buffer) ? $data : "&&&{$data}";
                 continue;
