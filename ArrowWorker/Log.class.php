@@ -610,7 +610,7 @@ class Log
         self::_setSignalHandler();
 
         Coroutine::Enable();
-        for($i=0; $i<200; $i++)
+        for($i=0; $i<50; $i++)
         {
             Coroutine::Create(function ()
             {
