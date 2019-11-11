@@ -14,10 +14,10 @@ return [
             ],
             'argv'            => [ 100 ],
             'processQuantity' => 1,
-            'coQuantity'      => 50,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 50,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 5,
@@ -32,7 +32,7 @@ return [
                 'channelApp',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -50,7 +50,7 @@ return [
                 'channelArrow',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -68,7 +68,7 @@ return [
                 'channeltest',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
