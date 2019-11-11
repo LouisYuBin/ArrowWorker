@@ -13,7 +13,7 @@ return [
                 'Demo',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 5,
             'components'      => [
                 'db'    => [
