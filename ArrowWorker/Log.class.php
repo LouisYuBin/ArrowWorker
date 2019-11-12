@@ -121,16 +121,6 @@ class Log
     ];
 
     /**
-     * @var string
-     */
-    private static $_dataTime;
-
-    /**
-     * @var int
-     */
-    private static $_time = 0;
-
-    /**
      * password of redis
      * @var array
      */
