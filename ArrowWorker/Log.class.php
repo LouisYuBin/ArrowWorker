@@ -724,6 +724,7 @@ class Log
                 if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
                 {
                     $buffer .= empty($buffer) ? $data : "&&&{$data}";
+                    $data    = false;
                     if( (time()-$bufTime)<3 )
                     {
                         continue;
