@@ -441,14 +441,14 @@ class Log
      */
     private static function _fillLog( string $log, string $module = '', string $level = 'D' )
     {
-        $time  = time();
+        /*$time  = time();
         if( $time!=self::$_time )
         {
             self::$_time = $time;
             self::$_dataTime = date('Y-m-d H:i:s', $time);
-        }
+        }*/
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}�{$module}�".self::$_dataTime." | {$logId} | $log" . PHP_EOL );
+        self::$_msgObject->Write( "{$level}�{$module}�"." | {$logId} | $log" . PHP_EOL );
     }
 
     /**
