@@ -57,9 +57,9 @@ return [
         'documentRoot' => APP_PATH.'/Static/Web',
         '404'          => APP_PATH.'/Static/Web/404.html',
         'handler'      => [
-            'open'    => 'WebSocket::Open',
-            'message' => 'WebSocket::Message',
-            'close'   => 'WebSocket::Close'
+            'open'    => 'Demo\\WebSocket::Open',
+            'message' => 'Demo\\WebSocket::Message',
+            'close'   => 'Demo\\WebSocket::Close'
         ],
         'components' => [
             'db' => [
@@ -97,9 +97,9 @@ return [
         'packageEof'        => '\r\n',
         'openEofSplit'      => false,
         'handler'           => [
-            'connect' => 'Tcp::Connect',
-            'receive' => 'Tcp::Receive',
-            'close'   => 'Tcp::Close'
+            'connect' => 'Demo\\Tcp::Connect',
+            'receive' => 'Demo\\Tcp::Receive',
+            'close'   => 'Demo\\Tcp::Close'
         ],
         'components' => [
             'db' => [

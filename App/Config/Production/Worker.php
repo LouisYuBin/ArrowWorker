@@ -9,7 +9,7 @@ return [
         [
             'procName'        => 'producer',
             'function'        => [
-                '\\App\\Controller\\Demo',
+                '\\App\\Demo\\Controller\\Demo',
                 'Demo',
             ],
             'argv'            => [ 100 ],
@@ -28,7 +28,7 @@ return [
         [
             'procName'        => 'consumer_1',
             'function'        => [
-                '\\App\\Controller\\Demo',
+                '\\App\\Demo\\Controller\\Demo',
                 'channelApp',
             ],
             'argv'            => [ 100 ],
@@ -46,7 +46,7 @@ return [
         [
             'procName'        => 'consumer_2',
             'function'        => [
-                '\\App\\Controller\\Demo',
+                '\\App\\Demo\\Controller\\Demo',
                 'channelArrow',
             ],
             'argv'            => [ 100 ],
@@ -64,7 +64,7 @@ return [
         [
             'procName'        => 'consumer_3',
             'function'        => [
-                '\\App\\Controller\\Demo',
+                '\\App\\Demo\\Controller\\Demo',
                 'channeltest',
             ],
             'argv'            => [ 100 ],

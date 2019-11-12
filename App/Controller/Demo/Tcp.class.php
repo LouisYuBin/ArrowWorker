@@ -3,7 +3,7 @@
  * By yubin at 2019/3/22 9:25 AM.
  */
 
-namespace App\Controller;
+namespace App\Controller\Demo;
 
 use \Swoole\Server as server;
 use ArrowWorker\Log;

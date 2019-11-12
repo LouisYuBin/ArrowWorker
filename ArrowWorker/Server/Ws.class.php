@@ -200,9 +200,10 @@ class Ws
         $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
         $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
         $this->_components       = $config[ 'components' ] ?? [];
-        $this->_handlerOpen      = $config['handler']['open'] ?? '';
-        $this->_handlerMessage   = $config['handler']['message'] ?? '';
-        $this->_handlerClose     = $config['handler']['close'] ?? '';
+        $controller = App::GetController();
+        $this->_handlerOpen      = $controller.($config['handler']['open'] ?? '');
+        $this->_handlerMessage   = $controller.($config['handler']['message'] ?? '');
+        $this->_handlerClose     = $controller.($config['handler']['close'] ?? '');
         Router::Init( $this->_404 );
     }
 
@@ -256,8 +257,7 @@ class Ws
     {
         $this->_server->on('open', function(WebSocket $server, SwRequest $request)  {
             Component::InitOpen($request);
-            $function = App::CONTROLLER_NAMESPACE.$this->_handlerOpen;
-            $function($server, $request->fd);
+            ($this->_handlerOpen)($server, $request->fd);
             Component::Release(App::TYPE_WEBSOCKET);
         });
     }
@@ -269,8 +269,7 @@ class Ws
     {
         $this->_server->on('message', function(WebSocket $server, Frame $frame)  {
             Component::Init();
-            $function = App::CONTROLLER_NAMESPACE.$this->_handlerMessage;
-            $function($server, $frame);
+            ($this->_handlerMessage)($server, $frame);
             Component::Release(App::TYPE_BASE);
         });
     }
@@ -282,8 +281,7 @@ class Ws
     {
         $this->_server->on('close',   function(WebSocket $server, int $fd) {
             Component::Init();
-            $function = App::CONTROLLER_NAMESPACE.$this->_handlerClose;
-            $function($server, $fd);
+            ($this->_handlerClose)($server, $fd);
             Component::Release(App::TYPE_BASE);
         });
     }

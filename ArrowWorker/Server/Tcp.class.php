@@ -186,9 +186,10 @@ class Tcp
 
         $this->_components = $config[ 'components' ] ?? [];
 
-        $this->_handlerConnect = $config[ 'handler' ]['connect'] ?? '';
-        $this->_handlerReceive = $config[ 'handler' ]['receive'] ?? '';
-        $this->_handlerClose   = $config[ 'handler' ]['close'] ?? '';
+        $controller = App::GetController();
+        $this->_handlerConnect = $controller . ($config[ 'handler' ]['connect'] ?? '');
+        $this->_handlerReceive = $controller . ($config[ 'handler' ]['receive'] ?? '');
+        $this->_handlerClose   = $controller . ($config[ 'handler' ]['close'] ?? '');
 
         $this->_isTcp6 = $config[ 'isTcp6'] ?? false;
 
@@ -234,8 +235,7 @@ class Tcp
         $this->_server->on( 'connect', function ( SocketServer $server, int $fd )
         {
             Component::Init();
-            $function = App::CONTROLLER_NAMESPACE . $this->_handlerConnect;
-            $function( $server, $fd );
+            ($this->_handlerConnect)( $server, $fd );
             Component::Release( App::TYPE_TCP );
         } );
     }
@@ -248,8 +248,7 @@ class Tcp
         $this->_server->on( 'receive', function ( SocketServer $server, int $fd, int $reactor_id, string $data )
         {
             Component::Init();
-            $function = App::CONTROLLER_NAMESPACE . $this->_handlerReceive;
-            $function( $server, $fd, $data );
+            ($this->_handlerReceive)( $server, $fd, $data );
             Component::Release( App::TYPE_TCP );
         } );
     }
@@ -262,8 +261,7 @@ class Tcp
         $this->_server->on( 'close', function ( SocketServer $server, int $fd )
         {
             Component::Init();
-            $function = App::CONTROLLER_NAMESPACE . $this->_handlerClose;
-            $function( $server, $fd );
+            ($this->_handlerClose)( $server, $fd );
             Component::Release( App::TYPE_TCP );
         } );
     }

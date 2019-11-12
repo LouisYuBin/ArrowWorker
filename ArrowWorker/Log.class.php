@@ -696,7 +696,7 @@ class Log
         }
 
         static::$isTerminateChan = true;
-        self::Dump( self::LOG_PREFIX.'dispatch coroutine exited' );
+        //self::Dump( self::LOG_PREFIX.'dispatch coroutine exited' );
     }
 
     /**
@@ -734,7 +734,7 @@ class Log
             self::_writeLogFile( $data );
 
         }
-        self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
+        //self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
     }
 
     /**
@@ -800,7 +800,7 @@ class Log
      */
     private static function _exit()
     {
-        static::Dump( self::LOG_PREFIX.'queue status : ' . json_encode( self::$_msgObject->Status() ) );
+        static::Dump( self::LOG_PREFIX.' exited. queue status : ' . json_encode( self::$_msgObject->Status() ) );
         exit(0);
     }
 

@@ -5,7 +5,7 @@
  * Time: 10:35
  */
 
-namespace App\Controller;
+namespace App\Controller\Demo;
 
 use App\Model\ArrowWorker;
 use ArrowWorker\Client\Tcp\Pool;

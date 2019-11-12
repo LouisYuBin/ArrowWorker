@@ -3,7 +3,7 @@
  * By yubin at 2019/2/28 6:53 PM.
  */
 
-namespace App\Controller;
+namespace App\Controller\Demo;
 
 use ArrowWorker\Log;
 use ArrowWorker\Memory;

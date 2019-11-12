@@ -74,4 +74,9 @@ class App
         }
     }
 
+    public static function GetController()
+    {
+        return self::CONTROLLER_NAMESPACE;
+    }
+
 }
