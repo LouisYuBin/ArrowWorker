@@ -55,7 +55,7 @@ class Index
 
     public function memory()
     {
-        $key = 'memory_test_'.mt_rand(100,1000);
+        $key = 'memory_test_'.mt_rand(10,99);
         Memory::Get('clients')->Write($key,[
             'id'        => 1,
             'token'     => 'token'.mt_rand(100,999),
