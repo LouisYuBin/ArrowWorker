@@ -317,7 +317,7 @@ class Request
 
         $routeType = self::RouteType();
 
-        Log::Debug(" {$uri} [{$method}:$routeType] \nParams : {$params} \nGet : {$get} \nPost : {$post} \nHeader : {$header} \nServer : {$server} \nraw : {$raw} \nFiles : {$files}", self::LOG_NAME);
+        Log::Debug(" {$uri} [{$method}:$routeType]   Params : {$params}   Get : {$get}   Post : {$post}   Header : {$header}   Server : {$server}   raw : {$raw}   Files : {$files}", self::LOG_NAME);
         unset($method, $get, $post, $files, $params, $header, $server);
         Cookie::Release();
     }
