@@ -718,6 +718,7 @@ class Log
             {
                 if ( $data === false )
                 {
+                    Coroutine::Sleep(0.5);
                     continue;
                 }
 
