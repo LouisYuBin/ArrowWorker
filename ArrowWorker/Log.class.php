@@ -73,6 +73,9 @@ class Log
      */
     const LOG_NAME = 'Log';
 
+    /**
+     *
+     */
     const LOG_PREFIX = '[   Log   ] ';
 
 
@@ -114,6 +117,16 @@ class Log
     private static $_writeType = [
         'file',
     ];
+
+    /**
+     * @var string
+     */
+    private static $_dataTime;
+
+    /**
+     * @var int
+     */
+    private static $_time = 0;
 
     /**
      * password of redis
@@ -426,9 +439,14 @@ class Log
      */
     private static function _fillLog( string $log, string $module = '', string $level = 'D' )
     {
-        $time  = date( 'Y-m-d H:i:s' );
+        $time  = time();
+        if( $time!=self::$_time )
+        {
+            self::$_time = $time;
+            self::$_dataTime = date('Y-m-d H:i:s', $time);
+        }
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}|{$module}|{$time} | {$logId} | $log" . PHP_EOL );
+        self::$_msgObject->Write( "{$level}|{$module}|".self::$_dataTime." | {$logId} | $log" . PHP_EOL );
     }
 
     /**
