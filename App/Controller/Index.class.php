@@ -60,7 +60,7 @@ class Index
             'id'        => 1,
             'token'     => 'token'.mt_rand(100,999),
             'name'      => 'name'.mt_rand(100,999),
-            'loginTime' => date('Y-m-d H:i:s')
+            'loginTime' => ""
         ]);
 
 
