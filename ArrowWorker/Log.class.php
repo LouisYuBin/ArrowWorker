@@ -716,6 +716,11 @@ class Log
 
             if( !static::$isTerminateChan )
             {
+                if( time()-$bufTime>=3 )
+                {
+                    goto WRITE_LOG;
+                }
+
                 if ( $data === false )
                 {
                     Coroutine::Sleep(0.5);
@@ -725,16 +730,12 @@ class Log
                 if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
                 {
                     $buffer .= empty($buffer) ? $data : "&&&{$data}";
-                    $data    = false;
-                    if( (time()-$bufTime)<3 )
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
 
+            WRITE_LOG:
             $bufTime = time();
-
             if( ''!=$buffer )
             {
                 self::_writeLogFile( $buffer );
