@@ -111,4 +111,9 @@ class Coroutine
         Runtime::enableCoroutine();
     }
 
+    public static function Fwrite($handle,string $data, $length=null)
+    {
+        return Co::fwrite($handle, $data, $length);
+    }
+
 }

@@ -51,6 +51,8 @@ class Log
      */
     const TIME_ZONE = 'UTC';
 
+    const BUFFER_SIZE = 1024;
+
     /**
      *
      */
@@ -446,7 +448,7 @@ class Log
             self::$_dataTime = date('Y-m-d H:i:s', $time);
         }
         $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}|{$module}|".self::$_dataTime." | {$logId} | $log" . PHP_EOL );
+        self::$_msgObject->Write( "{$level}�{$module}�".self::$_dataTime." | {$logId} | $log" . PHP_EOL );
     }
 
     /**
@@ -504,24 +506,28 @@ class Log
     }
 
     /**
-     * @param string $log
+     * @param string $logs
      */
-    private static function _writeLogFile( string $log )
+    private static function _writeLogFile( string $logs )
     {
-        $logInfo = explode( '|', $log );
-        $level   = $logInfo[ 0 ];
-        $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
-        $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 2 );
-
-        $tryTimes = 0;
-        RETRY:
-        //try three times if failed
-        if ( false === self::_writeFile( $module, $level, $message ) )
+        $logArray = explode('&&&', $logs);
+        foreach ($logArray as $log)
         {
-            $tryTimes++;
-            if ( $tryTimes < 3 )
+            $logInfo = explode( '�', $log );
+            $level   = $logInfo[ 0 ];
+            $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
+            $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
+
+            $tryTimes = 0;
+            RETRY:
+            //try three times if failed
+            if ( false === self::_writeFile( $module, $level, $message ) )
             {
-                goto RETRY;
+                $tryTimes++;
+                if ( $tryTimes < 3 )
+                {
+                    goto RETRY;
+                }
             }
         }
     }
@@ -538,7 +544,7 @@ class Log
         $alias = $module . $level . $date;
         if ( isset( self::$_fileHandlerMap[ $alias ] ) )
         {
-            $result = fwrite( self::$_fileHandlerMap[ $alias ], $message );
+            $result = Coroutine::Fwrite( self::$_fileHandlerMap[ $alias ], $message );
             if ( false === $result )
             {
                 goto _INIT;
@@ -555,7 +561,7 @@ class Log
             return false;
         }
         self::$_fileHandlerMap[ $alias ] = $logRes;
-        return fwrite( $logRes, $message );
+        return Coroutine::Fwrite( $logRes, $message );
     }
 
     /**
@@ -627,9 +633,14 @@ class Log
     {
         self::_setSignalHandler();
 
-        Coroutine::Create( function() {
-            Log::WriteToFile();
-        } );
+        Coroutine::Enable();
+        for($i=0; $i<50; $i++)
+        {
+            Coroutine::Create(function ()
+            {
+                Log::WriteToFile();
+            });
+        }
 
         if ( in_array( static::TO_TCP, static::$_writeType ) )
         {
@@ -645,9 +656,13 @@ class Log
             } );
         }
 
-        Coroutine::Create( function(){
-            Log::Dispatch();
-        } );
+        for($i=0; $i<150; $i++)
+        {
+            Coroutine::Create(function ()
+            {
+                Log::Dispatch();
+            });
+        }
 
         Coroutine::Wait();
         static::_exit();
@@ -676,7 +691,10 @@ class Log
                 continue;
             }
 
-            self::$_toFileChan->push( $log, 1 );
+            if( false==self::$_toFileChan->push( $log, 1 ) )
+            {
+                Log::Dump("Push log chan failed, data:{$log}, error code： ".self::$_toFileChan->errCode."}");
+            }
 
             if ( in_array( static::TO_TCP, static::$_writeType ) )
             {
@@ -701,9 +719,10 @@ class Log
      */
     public static function WriteToFile()
     {
+        $buffer = '';
         while ( true )
         {
-            $data = static::$_toFileChan->pop( 0.5 );
+            $data = self::$_toFileChan->pop( 0.5 );
             if ( static::$isTerminateChan && $data === false )
             {
                 break;
@@ -711,11 +730,23 @@ class Log
 
             if ( $data === false )
             {
-                Coroutine::Sleep( 1 );
+                Coroutine::Sleep( 0.5 );
                 continue;
             }
 
-            static::_writeLogFile( $data );
+            if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
+            {
+                $buffer .= empty($buffer) ? $data : "&&&{$data}";
+                continue;
+            }
+
+            if( ''!=$buffer )
+            {
+                self::_writeLogFile( $buffer );
+                $buffer = '';
+            }
+
+            self::_writeLogFile( $data );
 
         }
         self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );

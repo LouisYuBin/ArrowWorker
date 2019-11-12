@@ -78,6 +78,7 @@ class Queue
         {
             return true;
         }
+        Log::Dump("Queue->Write failed. Msg:$message");
 
         return false;
 	}

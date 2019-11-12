@@ -13,11 +13,11 @@ return [
                 'Demo',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 5,
+            'processQuantity' => 1,
+            'coQuantity'      => 10,
             'components'      => [
                 'db'    => [
-                    'default' => 5,
+                    'default' => 10,
                 ],
                 'cache' => [
                     'default' => 5,
@@ -32,14 +32,14 @@ return [
                 'channelApp',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'processQuantity' => 1,
+            'coQuantity'      => 20,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 20,
                 ],
                 'cache' => [
-                    'default' => 100,
+                    'default' => 20,
                 ],
             ],
         ],
@@ -50,11 +50,11 @@ return [
                 'channelArrow',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'processQuantity' => 1,
+            'coQuantity'      => 50,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 50,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -68,14 +68,14 @@ return [
                 'channeltest',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
-            'coQuantity'      => 100,
+            'processQuantity' => 1,
+            'coQuantity'      => 150,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 150,
                 ],
                 'cache' => [
-                    'default' => 100,
+                    'default' => 150,
                 ],
             ],
         ],

@@ -44,8 +44,6 @@ class Demo
         }
 
         ArrowWorker::GetOne();
-        ArrowWorker::GetList();
-
 
         Chan::Get('arrow')->Write($result);
         return true;
@@ -59,6 +57,7 @@ class Demo
         {
             return false;
         }
+        ArrowWorker::GetList();
 
         Chan::Get('test')->Write($result);
         return true;
@@ -72,10 +71,9 @@ class Demo
 			return false;
 		}
 
-        ArrowWorker::GetOne();
-        ArrowWorker::GetList();
+        //ArrowWorker::GetOne();
 
-		return true;
+        return true;
 	}
 
 }

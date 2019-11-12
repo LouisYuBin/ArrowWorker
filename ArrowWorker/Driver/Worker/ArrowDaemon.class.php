@@ -389,7 +389,6 @@ class ArrowDaemon extends Worker
             for($j=0; $j<$this->_jobs[$i]['processQuantity']; $j++)
             {
                 $this->_forkOneWorker($i);
-                usleep(10000);
             }
         }
     }

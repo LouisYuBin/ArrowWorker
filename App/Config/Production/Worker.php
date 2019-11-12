@@ -13,7 +13,7 @@ return [
                 'Demo',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 5,
             'components'      => [
                 'db'    => [
@@ -32,7 +32,7 @@ return [
                 'channelApp',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -50,7 +50,7 @@ return [
                 'channelArrow',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -68,7 +68,7 @@ return [
                 'channeltest',
             ],
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
