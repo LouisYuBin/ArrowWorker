@@ -721,12 +721,17 @@ class Log
                     continue;
                 }
 
-                if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE && (time()-$bufTime)<3 )
+                if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
                 {
                     $buffer .= empty($buffer) ? $data : "&&&{$data}";
-                    continue;
+                    if( (time()-$bufTime)<3 )
+                    {
+                        continue;
+                    }
                 }
             }
+
+            $bufTime = time();
 
             if( ''!=$buffer )
             {
