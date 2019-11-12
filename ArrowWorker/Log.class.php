@@ -51,7 +51,7 @@ class Log
      */
     const TIME_ZONE = 'UTC';
 
-    const BUFFER_SIZE = 256;
+    const BUFFER_SIZE = 512;
 
     /**
      *
