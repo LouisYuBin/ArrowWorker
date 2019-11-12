@@ -51,7 +51,7 @@ class Log
      */
     const TIME_ZONE = 'UTC';
 
-    const BUFFER_SIZE = 1024;
+    const BUFFER_SIZE = 256;
 
     /**
      *
@@ -704,25 +704,28 @@ class Log
      */
     public static function WriteToFile()
     {
-        $buffer = '';
+        $buffer  = '';
+        $bufTime = time();
         while ( true )
         {
             $data = self::$_toFileChan->pop( 0.5 );
-            if ( static::$isTerminateChan && $data === false )
+            if ( static::$isTerminateChan && $data === false && empty($buffer) )
             {
                 break;
             }
 
-            if ( $data === false )
+            if( !static::$isTerminateChan )
             {
-                Coroutine::Sleep( 0.5 );
-                continue;
-            }
+                if ( $data === false )
+                {
+                    continue;
+                }
 
-            if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
-            {
-                $buffer .= empty($buffer) ? $data : "&&&{$data}";
-                continue;
+                if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE && (time()-$bufTime)<2 )
+                {
+                    $buffer .= empty($buffer) ? $data : "&&&{$data}";
+                    continue;
+                }
             }
 
             if( ''!=$buffer )
@@ -731,7 +734,10 @@ class Log
                 $buffer = '';
             }
 
-            self::_writeLogFile( $data );
+            if( false!=$data )
+            {
+                self::_writeLogFile( $data );
+            }
 
         }
         //self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
