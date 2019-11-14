@@ -546,7 +546,7 @@ class Daemon
     private static function _processStatus()
     {
         global $argv;
-        $keyword = self::APP_NAME.'_'.self::$identity;
+        $keyword = self::APP_NAME.'_'.self::_getDaemonPid();
         if( PHP_OS=='Darwin')
         {
             $keyword = $argv[0] ;
