@@ -113,7 +113,7 @@ class Daemon
         self::_checkPidFile();
         self::_demonize();
         chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        self::_setProcessName("V1.6 --By Louis --started at ".date("Y-m-d H:i:s"));
+        self::_setProcessName(" started at ".date("Y-m-d H:i:s"));
         self::_createPidFile();
 
         $daemon = new self();
