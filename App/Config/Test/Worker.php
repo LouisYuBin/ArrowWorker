@@ -7,17 +7,14 @@ return [
     'group'  => 'www',
     'worker' => [
         [
-            'procName'        => 'producer',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'Demo',
-            ],
+            'name'        => 'producer',
+            'function'        => 'Demo\\Demo@Demo',
             'argv'            => [ 100 ],
             'processQuantity' => 1,
-            'coQuantity'      => 10,
+            'coQuantity'      => 5,
             'components'      => [
                 'db'    => [
-                    'default' => 10,
+                    'default' => 5,
                 ],
                 'cache' => [
                     'default' => 5,
@@ -26,35 +23,14 @@ return [
 
         ],
         [
-            'procName'        => 'consumer_1',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channelApp',
-            ],
+            'name'        => 'consumer_1',
+            'function'        => 'Demo\\Demo@channelApp',
             'argv'            => [ 100 ],
-            'processQuantity' => 1,
-            'coQuantity'      => 20,
+            'processQuantity' => 2,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 20,
-                ],
-                'cache' => [
-                    'default' => 20,
-                ],
-            ],
-        ],
-        [
-            'procName'        => 'consumer_2',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channelArrow',
-            ],
-            'argv'            => [ 100 ],
-            'processQuantity' => 1,
-            'coQuantity'      => 50,
-            'components'      => [
-                'db'    => [
-                    'default' => 50,
+                    'default' => 100,
                 ],
                 'cache' => [
                     'default' => 100,
@@ -62,20 +38,32 @@ return [
             ],
         ],
         [
-            'procName'        => 'consumer_3',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channeltest',
-            ],
+            'name'        => 'consumer_2',
+            'function'        => 'Demo\\Demo@channelArrow',
             'argv'            => [ 100 ],
-            'processQuantity' => 1,
-            'coQuantity'      => 150,
+            'processQuantity' => 2,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 150,
+                    'default' => 100,
                 ],
                 'cache' => [
-                    'default' => 150,
+                    'default' => 100,
+                ],
+            ],
+        ],
+        [
+            'name'        => 'consumer_3',
+            'function'        => 'Demo\\Demo@channeltest',
+            'argv'            => [ 100 ],
+            'processQuantity' => 2,
+            'coQuantity'      => 100,
+            'components'      => [
+                'db'    => [
+                    'default' => 100,
+                ],
+                'cache' => [
+                    'default' => 100,
                 ],
             ],
         ],

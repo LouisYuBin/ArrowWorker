@@ -7,13 +7,10 @@ return [
     'group'  => 'www',
     'worker' => [
         [
-            'procName'        => 'producer',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'Demo',
-            ],
+            'name'        => 'producer',
+            'function'        => 'Demo\\Demo@Demo',
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 1,
             'coQuantity'      => 5,
             'components'      => [
                 'db'    => [
@@ -26,13 +23,10 @@ return [
 
         ],
         [
-            'procName'        => 'consumer_1',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channelApp',
-            ],
+            'name'        => 'consumer_1',
+            'function'        => 'Demo\\Demo@channelApp',
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -44,13 +38,10 @@ return [
             ],
         ],
         [
-            'procName'        => 'consumer_2',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channelArrow',
-            ],
+            'name'        => 'consumer_2',
+            'function'        => 'Demo\\Demo@channelArrow',
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
@@ -62,13 +53,10 @@ return [
             ],
         ],
         [
-            'procName'        => 'consumer_3',
-            'function'        => [
-                '\\App\\Demo\\Controller\\Demo',
-                'channeltest',
-            ],
+            'name'        => 'consumer_3',
+            'function'        => 'Demo\\Demo@channeltest',
             'argv'            => [ 100 ],
-            'processQuantity' => 3,
+            'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
                 'db'    => [

@@ -36,24 +36,31 @@ class Worker
         $daemon = ArrowDaemon::Init($config);
         foreach ($config['worker'] as $item)
         {
-            if( !isset($item['function']) || !isset($item['function'][0]) || !isset($item['function'][1]) )
+            if( !isset($item['function']) || !is_array($item) )
             {
                 Log::Dump("some processor configuration is not correct");
                 continue ;
             }
-            $class = (string)$item['function'][0];
 
+            $function = explode('@',(string)$item['function']);
+            if( count($function)!=2 )
+            {
+                Log::Dump(" processor configuration : ".json_encode($item)." is not correct");
+                continue ;
+            }
+
+            $class = App::GetController().$function[0];
             if( !class_exists($class) )
             {
-                Log::Dump("{$item['function'][0]} does not exists.");
+                Log::Dump("worker class : {$class} does not exists.");
                 continue;
             }
 
-            $method   = (string)$item['function'][1];
+            $method   = (string)$function[1];
             $instance = new $class;
             if( !method_exists( $instance, $method) )
             {
-                Log::Dump("{$class}->{$method} does not exists.");
+                Log::Dump("worker method : {$class}->{$method} does not exists.");
                 continue;
             }
             $item['function'] = [ $instance, $method ];

@@ -32,7 +32,7 @@ class ArrowDaemon extends Worker
     /**
      * process life time
      */
-    const LIFE_CYCLE = 300;
+    const LIFE_CYCLE = 60;
 
     /**
      * concurrence coroutine
@@ -215,11 +215,12 @@ class ArrowDaemon extends Worker
     }
 
     /**
+     * @param int $processGroupId
      * @param int $lifecycle
      */
-    private function _setAlarm( int $lifecycle )
+    private function _setAlarm(int $processGroupId, int $lifecycle )
     {
-        Process::SetAlarm(mt_rand(30, $lifecycle));
+        Process::SetAlarm(mt_rand(($processGroupId+1)*$lifecycle, ($processGroupId+2)*$lifecycle));
     }
 
 
@@ -367,7 +368,7 @@ class ArrowDaemon extends Worker
         unset($this->_pidMap[ $pid ]);
 
         Log::Dump(self::LOG_PREFIX . $this->_jobs[ $taskId ]["processName"] . "({$pid}) exited at status {$status}");
-        usleep(10000);
+        usleep(0==$status ? 10 : 10000 );
 
         //监控进程收到退出信号时则无需开启新的worker
         if ( !$isExit )
@@ -430,7 +431,7 @@ class ArrowDaemon extends Worker
     {
         Log::Dump(self::LOG_PREFIX . 'starting ' . $this->_jobs[ $index ]['processName'] . '(' . Process::Id() . ')');
         $this->_setSignalHandler('workerHandler');
-        $this->_setAlarm($lifecycle);
+        $this->_setAlarm($index,$lifecycle);
         $this->_setProcessName($this->_jobs[ $index ]['processName']);
         Process::SetExecGroupUser(self::$_group, self::$_user);
         Coroutine::enable();
@@ -521,14 +522,14 @@ class ArrowDaemon extends Worker
             Log::DumpExit(self::LOG_PREFIX . " one Task at least is needed.");
         }
 
-        $job['coCount'] = 0;
+        $job['coCount']    = 0;
         $job['coQuantity'] = ( isset($job['coQuantity']) && (int)$job['coQuantity'] > 0 ) ? (int)$job['coQuantity'] :
             self::COROUTINE_QUANTITY;
         $job['processQuantity'] = ( isset($job['processQuantity']) && (int)$job['processQuantity'] > 0 ) ? (int)$job['processQuantity'] :
             1;
-        $job['processName'] = ( isset($job['procName']) && !empty($job['procName']) ) ? $job['procName'] :
-            self::PROCESS_NAME;
+        $job['processName'] = ( isset($job['name']) && !empty($job['name']) ) ? $job['name'] : self::PROCESS_NAME;
         $job['components'] = isset($job['components']) && is_array($job['components']) ? $job['components'] : [];
+
         $this->_jobs[] = $job;
     }
 
