@@ -551,7 +551,7 @@ class Daemon
         {
             $keyword = $argv[0] ;
         }
-        $commend = "ps -ef -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
+        $commend = "ps -e -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
         $output  = 'user | pid | ppid | cpu usage | memory usage | process name'.PHP_EOL;
         $results = LoadAverage::Exec($commend);
         foreach ($results as $key=>$item)
