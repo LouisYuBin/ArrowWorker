@@ -158,12 +158,18 @@ class Ws
     private $_server;
 
     /**
+     * @var Router
+     */
+    private $_router;
+
+    /**
      * @param array $config
      */
     public static function Start( array $config )
     {
         $server = new self( $config );
         $server->_initServer();
+        $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
         $server->_onOpen();
@@ -221,14 +227,20 @@ class Ws
      */
     private function _initServer()
     {
-
-
         $this->_server = new WebSocket(
             $this->_host,
             $this->_port,
             $this->_mode,
             $this->_isSsl() ?  SWOOLE_SOCK_TCP | SWOOLE_SSL : SWOOLE_SOCK_TCP
         );
+    }
+
+    /**
+     *
+     */
+    private function _initRouter()
+    {
+        $this->_router = Router::Init( $this->_404 );
     }
 
     private function _isSsl()
@@ -305,8 +317,8 @@ class Ws
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
             Component::InitWeb($request, $response);
-            Router::Exec();
-            Component::Release(App::TYPE_HTTP);;
+            $this->_router->Go();
+            Component::Release(App::TYPE_WEBSOCKET);;
         } );
     }
 

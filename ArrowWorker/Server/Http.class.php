@@ -142,12 +142,18 @@ class Http
     private $_server;
 
     /**
+     * @var Router
+     */
+    private $_router;
+
+    /**
      * @param array $config
      */
     public static function Start( array $config )
     {
         $server = new self( $config );
         $server->_initServer();
+        $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
         $server->_onWorkerStart();
@@ -161,7 +167,7 @@ class Http
      */
     private function __construct( array $config )
     {
-        $this->_port            = $config['port'] ?? 8888;
+        $this->_port            = $config[ 'port' ] ?? 8888;
         $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
@@ -175,13 +181,12 @@ class Http
         $this->_sslKeyFile      = $config[ 'sslKeyFile' ] ?? '';
         $this->_maxRequest      = $config[ 'maxRequest' ] ?? 1000;
         $this->_maxCoroutine    = $config[ 'maxCoroutine' ] ?? 1000;
-        $this->_isEnableCORS     = $config[ 'isEnableCORS' ] ?? true;;
+        $this->_isEnableCORS    = $config[ 'isEnableCORS' ] ?? true;;
         $this->_isEnableHttp2   = $config[ 'isEnableHttp2' ] ?? false;;
         $this->_pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
         $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
         $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
         $this->_components       = $config[ 'components' ] ?? [];
-        Router::Init( $this->_404 );
     }
 
     /**
@@ -198,10 +203,10 @@ class Http
      */
     private function _initServer()
     {
-        if( !file_exists($this->_sslCertFile) || !file_exists($this->_sslKeyFile) )
+        if ( !file_exists( $this->_sslCertFile ) || !file_exists( $this->_sslKeyFile ) )
         {
-            $this->_sslCertFile  = '';
-            $this->_sslKeyFile   = '';
+            $this->_sslCertFile = '';
+            $this->_sslKeyFile  = '';
         }
 
         $this->_server = new SwHttp(
@@ -212,9 +217,20 @@ class Http
         );
     }
 
+    /**
+     *
+     */
+    private function _initRouter()
+    {
+        $this->_router = Router::Init( $this->_404 );
+    }
+
+    /**
+     * @return bool
+     */
     private function _isSsl()
     {
-        if( !file_exists($this->_sslCertFile) || !file_exists($this->_sslKeyFile) )
+        if ( !file_exists( $this->_sslCertFile ) || !file_exists( $this->_sslKeyFile ) )
         {
             return false;
         }
@@ -226,7 +242,8 @@ class Http
      */
     private function _onStart()
     {
-        $this->_server->on( 'start', function ( $server ) {
+        $this->_server->on( 'start', function ( $server )
+        {
             Log::Dump( "[  Http   ] : {$this->_port} started" );
         } );
     }
@@ -236,7 +253,8 @@ class Http
      */
     private function _onWorkerStart()
     {
-        $this->_server->on( 'WorkerStart', function () {
+        $this->_server->on( 'WorkerStart', function ()
+        {
             Response::SetCORS( (bool)$this->_isEnableCORS );
             Component::InitPool( $this->_components );
         } );
@@ -249,9 +267,9 @@ class Http
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            Component::InitWeb($request, $response);
-            Router::Exec();
-            Component::Release(App::TYPE_HTTP);
+            Component::InitWeb( $request, $response );
+            $this->_router->Go();
+            Component::Release( App::TYPE_HTTP );
         } );
     }
 
@@ -262,33 +280,33 @@ class Http
     private function _setConfig()
     {
         $options = [
-            'worker_num'            => $this->_workerNum,
-            'daemonize'             => false,
-            'backlog'               => $this->_backlog,
-            'user'                  => $this->_user,
-            'group'                 => $this->_group,
-            'package_max_length'    => $this->_maxContentLength,
-            'reactor_num'           => $this->_reactorNum,
-            'pipe_buffer_size'      => $this->_pipeBufferSize,
-            'socket_buffer_size'    => $this->_socketBufferSize,
-            'max_request'           => $this->_maxRequest,
-            'enable_coroutine'      => $this->_enableCoroutine,
-            'max_coroutine'         => $this->_maxCoroutine,
-            'log_file'              => Log::$StdoutFile,
-            'mode'                  => $this->_mode,
-            'open_http2_protocol'   => $this->_isEnableHttp2,
-            'ssl_cert_file'         => $this->_sslCertFile,
-            'ssl_key_file'          => $this->_sslKeyFile,
+            'worker_num'          => $this->_workerNum,
+            'daemonize'           => false,
+            'backlog'             => $this->_backlog,
+            'user'                => $this->_user,
+            'group'               => $this->_group,
+            'package_max_length'  => $this->_maxContentLength,
+            'reactor_num'         => $this->_reactorNum,
+            'pipe_buffer_size'    => $this->_pipeBufferSize,
+            'socket_buffer_size'  => $this->_socketBufferSize,
+            'max_request'         => $this->_maxRequest,
+            'enable_coroutine'    => $this->_enableCoroutine,
+            'max_coroutine'       => $this->_maxCoroutine,
+            'log_file'            => Log::$StdoutFile,
+            'mode'                => $this->_mode,
+            'open_http2_protocol' => $this->_isEnableHttp2,
+            'ssl_cert_file'       => $this->_sslCertFile,
+            'ssl_key_file'        => $this->_sslKeyFile,
         ];
 
 
-        if( $this->_isEnableStatic && file_exists($this->_documentRoot) )
+        if ( $this->_isEnableStatic && file_exists( $this->_documentRoot ) )
         {
-            $options['enable_static_handler'] = $this->_isEnableStatic;
-            $options['document_root']         = $this->_documentRoot;
+            $options[ 'enable_static_handler' ] = $this->_isEnableStatic;
+            $options[ 'document_root' ]         = $this->_documentRoot;
         }
 
-        $this->_server->set($options);
+        $this->_server->set( $options );
     }
 
 }

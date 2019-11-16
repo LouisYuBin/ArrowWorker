@@ -29,15 +29,16 @@ return [
             'cache' => [
                 'default' => 2
             ],
-           'tcp_client' => [
+           /*'tcp_client' => [
                 'default' => 3,
                 'conner'  => 2
             ],
             'ws_client' => [
                 'default' => 2
-            ]
+            ]*/
         ]
     ],
+    /*
     [
         'type'             => 'Ws',
         'host'             => '0.0.0.0',
@@ -117,6 +118,7 @@ return [
             ]
         ]
     ],
+    */
 /*
     [
         'type'             => 'Udp',
