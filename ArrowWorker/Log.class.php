@@ -599,7 +599,7 @@ class Log
             } );
         }
 
-        for($i=0; $i<90; $i++)
+        for($i=0; $i<120; $i++)
         {
             Coroutine::Create(function ()
             {
