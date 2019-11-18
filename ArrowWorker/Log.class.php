@@ -515,7 +515,7 @@ class Log
         $filePath = $fileDir . $fileExt;
         if ( !is_dir( $fileDir ) )
         {
-            if ( !mkdir( $fileDir, 0666, true ) )
+            if ( !mkdir( $fileDir ) )
             {
                 Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
