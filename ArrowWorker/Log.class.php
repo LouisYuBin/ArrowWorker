@@ -604,7 +604,7 @@ class Log
             } );
         }
 
-        for ( $i = 0; $i < 6; $i++ )
+        for ( $i = 0; $i < 2; $i++ )
         {
             Coroutine::Create( function ()
             {
