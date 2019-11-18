@@ -77,44 +77,36 @@ class Daemon
     private static $pid = 'Arrow';
 
     /**
+     * @var string
+     */
+    public static $identity = '';
+
+    /**
      * pidMap : child process name
      * @var array
      */
-    private static $pidMap = [];
+    private $_pidMap = [];
 
     /**
      * terminate : is terminate process
      * @var bool
      */
-    private static $terminate = false;
+    private $_terminate = false;
 
-    /**
-     * @var string
-     */
-    public static $identity = '';
-    
-
-    /**
-     * ArrowDaemon constructor.
-     */
     public function __construct()
     {
-        //todo
+        $this->_changeWorkDirectory();
+        $this->_createPidFile();
+        $this->_setProcessName("started at ".date("Y-m-d H:i:s"));
     }
 
-    /**
-     * Start
-     */
     public static function Start()
     {
         self::_initConfig();
-        self::_handleAction();
+        self::_execCommand();
         self::_checkEnvironment();
         self::_checkPidFile();
         self::_demonize();
-        chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
-        self::_setProcessName("started at ".date("Y-m-d H:i:s"));
-        self::_createPidFile();
 
         $daemon = new self();
         $daemon->_initComponent();
@@ -123,18 +115,12 @@ class Daemon
         $daemon->_startMonitor();
     }
 
-    /**
-     *
-     */
     private function _initComponent()
     {
         Log::Initialize();
         Memory::Init();
     }
 
-    /**
-     * _startProcess
-     */
     private function _startProcess()
     {
         $this->_startLogProcess();
@@ -155,43 +141,37 @@ class Daemon
 
     }
 
-    /**
-     * _startLogProcess
-     */
     private function _startLogProcess()
     {
         $pid = Process::Fork();
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting log process ( '.Process::Id().' )');
-            self::_setProcessName(static::PROCESS_LOG);
+            $this->_setProcessName(static::PROCESS_LOG);
             Log::Start();
         }
         else
         {
-            static::$pidMap[] = [
+            $this->_pidMap[] = [
                 'pid'   => $pid,
-                'type'  => static::PROCESS_LOG,
+                'type'  => self::PROCESS_LOG,
                 'index' => 0
             ];
         }
     }
 
-    /**
-     * _startWorkerProcess
-     */
     private function _startWorkerProcess()
     {
         $pid = Process::Fork();
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting worker process( '.Process::Id().' )');
-            self::_setProcessName('Worker-group monitor');
+            $this->_setProcessName('Worker-group monitor');
             Worker::Start();
         }
         else
         {
-            static::$pidMap[] = [
+            $this->_pidMap[] = [
                 'pid'   => $pid,
                 'type'  => 'worker',
                 'index' => 0
@@ -245,7 +225,7 @@ class Daemon
             $pid = Process::Id();
             $processName = "{$config['type']} : {$config['port']}";
             Log::Dump(self::LOG_PREFIX."starting {$processName} process ( $pid )");
-            self::_setProcessName($processName);
+            $this->_setProcessName($processName);
             if( $config['type']==self::PROCESS_HTTP )
             {
                 Http::Start($config);
@@ -267,7 +247,7 @@ class Daemon
         }
         else
         {
-            static::$pidMap[] = [
+            $this->_pidMap[] = [
                 'pid'   => $pid,
                 'index' => $index,
                 'type'  => 'server'
@@ -284,7 +264,7 @@ class Daemon
         Log::Dump(static::LOG_PREFIX.'starting monitor process ( '.Process::Id().' )');
         while (1)
         {
-            if( self::$terminate )
+            if( $this->_terminate )
             {
                 //exit sequence: server -> worker -> log
                 if( $this->_exitWorkerProcess('server') )
@@ -316,7 +296,7 @@ class Daemon
      */
     private function _handleExitedProcess(int $pid, int $status)
     {
-        foreach (static::$pidMap as $key=>$eachProcess)
+        foreach ($this->_pidMap as $key=>$eachProcess)
         {
             if($eachProcess['pid'] != $pid)
             {
@@ -326,17 +306,17 @@ class Daemon
             $appType = $eachProcess['type'];
             $index   = $eachProcess['index'];
 
-            unset(static::$pidMap[$key]);
+            unset($this->_pidMap[$key]);
 
-            if( self::$terminate )
+            if( $this->_terminate )
             {
-                Log::Dump(static::LOG_PREFIX."{$appType} process : {$pid} exited at status : {$status}");
+                Log::Dump(self::LOG_PREFIX."{$appType} process : {$pid} exited at status : {$status}");
                 return ;
             }
 
-            Log::Dump(static::LOG_PREFIX."{$appType} process restarting at status {$status}");
+            Log::Dump(self::LOG_PREFIX."{$appType} process restarting at status {$status}");
 
-            if( $appType==static::PROCESS_LOG )
+            if( $appType==self::PROCESS_LOG )
             {
                 $this->_startLogProcess();
             }
@@ -360,7 +340,7 @@ class Daemon
     private function _exitWorkerProcess(string $type='server')
     {
         $isExisted = true;
-        foreach (static::$pidMap as $eachProcess)
+        foreach ($this->_pidMap as $eachProcess)
         {
             if( $eachProcess['type']==$type )
             {
@@ -377,16 +357,16 @@ class Daemon
     private function _exitLogProcess()
     {
         //check whether there are only one process left
-        if( count(static::$pidMap)>1 )
+        if( count($this->_pidMap)>1 )
         {
             return ;
         }
 
         //check whether the process left is log process
         $logProcessId = 0;
-        foreach (static::$pidMap as $eachProcess)
+        foreach ($this->_pidMap as $eachProcess)
         {
-            if( $eachProcess['type']==static::PROCESS_LOG )
+            if( $eachProcess['type']==self::PROCESS_LOG )
             {
                 $logProcessId = $eachProcess['pid'];
             }
@@ -395,7 +375,7 @@ class Daemon
         //exit log process if only log process left
         if( $logProcessId>0 )
         {
-            $this->_exitProcess(static::PROCESS_LOG, $logProcessId);
+            $this->_exitProcess(self::PROCESS_LOG, $logProcessId);
         }
     }
 
@@ -426,14 +406,14 @@ class Daemon
      */
     private function _exitMonitor()
     {
-        if( count(static::$pidMap)!=0 )
+        if( count($this->_pidMap)!=0 )
         {
             return ;
         }
 
-        if( file_exists(static::$pid) )
+        if( file_exists(self::$pid) )
         {
-            unlink(static::$pid);
+            unlink(self::$pid);
         }
 
         $this->_cleanChannelPath();
@@ -443,10 +423,8 @@ class Daemon
         exit(0);
     }
 
-    /**
-     * handle current operation：exit daemon
-     */
-    private static function _handleAction()
+
+    private static function _execCommand()
     {
         global $argv;
         if( !isset($argv[1]) )
@@ -669,11 +647,11 @@ class Daemon
      * _createPidFile : create process pid file
      * @author Louis
      */
-    private static function _createPidFile()
+    private function _createPidFile()
     {
         if (!is_dir(self::$pidDir))
         {
-            mkdir(self::$pidDir);
+            mkdir(self::$pidDir,0777,true);
         }
 
         $fp = fopen(self::$pid, 'w') or die("cannot create pid file".PHP_EOL);
@@ -702,9 +680,13 @@ class Daemon
         else
         {
             unlink(self::$pid);
-            //Log::DumpExit('Arrow hint : process ended abnormally , please delete pid file '. self::$pid.' and try again.');
         }
 
+    }
+
+    private function _changeWorkDirectory()
+    {
+        chdir(APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR);
     }
 
 
@@ -714,10 +696,10 @@ class Daemon
      */
     private function _setSignalHandler()
     {
-        pcntl_signal(SIGCHLD, [$this, "signalHandler"],false);
-        pcntl_signal(SIGTERM, [$this, "signalHandler"],false);
-        pcntl_signal(SIGINT,  [$this, "signalHandler"],false);
-        pcntl_signal(SIGQUIT, [$this, "signalHandler"],false);
+        pcntl_signal(SIGCHLD, [$this, "SignalHandler"],false);
+        pcntl_signal(SIGTERM, [$this, "SignalHandler"],false);
+        pcntl_signal(SIGINT,  [$this, "SignalHandler"],false);
+        pcntl_signal(SIGQUIT, [$this, "SignalHandler"],false);
         // SIGTSTP have to be ignored on mac os
         pcntl_signal(SIGTSTP, SIG_IGN,false);
 
@@ -725,23 +707,23 @@ class Daemon
 
 
     /**
-     * signalHandler : handle process signal
+     * SignalHandler : handle process signal
      * @author Louis
      * @param int $signal
      * @return bool
      */
-    public function signalHandler(int $signal)
+    public function SignalHandler(int $signal)
     {
         Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
         switch($signal)
         {
             case SIGUSR1:
-                self::$terminate = true;
+                $this->_terminate = true;
                 break;
             case SIGTERM:
             case SIGINT:
             case SIGQUIT:
-                self::$terminate = true;
+                $this->_terminate = true;
                 break;
             default:
                 return false;
@@ -755,7 +737,7 @@ class Daemon
      * @author Louis
      * @param string $proName
      */
-    private static function _setProcessName(string $proName)
+    private function _setProcessName(string $proName)
     {
         Process::SetName(self::$identity.'_'.$proName);
     }

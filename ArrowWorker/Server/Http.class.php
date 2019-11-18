@@ -7,74 +7,30 @@
 
 namespace ArrowWorker\Server;
 
-use ArrowWorker\App;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
-use Swoole\Http\Server as SwHttp;
+use Swoole\Http\Server;
 
+use ArrowWorker\Server\Server as ServerPattern;
 use ArrowWorker\Web\Response;
 use ArrowWorker\Web\Router;
 
-use ArrowWorker\Component;
 use ArrowWorker\Log;
+use ArrowWorker\App;
+
 
 
 /**
  * Class Http
  * @package ArrowWorker\Server
  */
-class Http
+class Http extends ServerPattern
 {
 
     /**
      * @var string
      */
-    private $_host = '0.0.0.0';
-
-    /**
-     * @var int
-     */
-    private $_port = 8888;
-
-    /**
-     * @var int
-     */
-    private $_mode = SWOOLE_PROCESS;
-
-    /**
-     * @var int
-     */
-    private $_reactorNum = 2;
-
-    /**
-     * @var int
-     */
-    private $_workerNum = 1;
-
-    /**
-     * @var bool
-     */
-    private $_enableCoroutine = true;
-
-    /**
-     * @var string
-     */
     private $_404 = '';
-
-    /**
-     * @var string
-     */
-    private $_user = 'www';
-
-    /**
-     * @var string
-     */
-    private $_group = 'www';
-
-    /**
-     * @var int
-     */
-    private $_backlog = 1024000;
 
     /**
      * @var bool
@@ -101,10 +57,6 @@ class Http
      */
     private $_maxRequest = 10000;
 
-    /**
-     * @var int
-     */
-    private $_maxCoroutine = 1000;
 
     /**
      * @var bool
@@ -115,31 +67,6 @@ class Http
      * @var bool
      */
     private $_isEnableHttp2 = false;
-
-    /**
-     * @var int
-     */
-    private $_pipeBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_socketBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_maxContentLength = 1024 * 1024 * 10;
-
-    /**
-     * @var array
-     */
-    private $_components = [];
-
-    /**
-     * @var SwHttp
-     */
-    private $_server;
 
     /**
      * @var Router
@@ -153,6 +80,7 @@ class Http
     {
         $server = new self( $config );
         $server->_initServer();
+        $server->_initComponent();
         $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
@@ -167,7 +95,7 @@ class Http
      */
     private function __construct( array $config )
     {
-        $this->_port            = $config[ 'port' ] ?? 8888;
+        $this->_port            = $config[ 'port' ] ?? 8080;
         $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
@@ -209,7 +137,7 @@ class Http
             $this->_sslKeyFile  = '';
         }
 
-        $this->_server = new SwHttp(
+        $this->_server = new Server(
             $this->_host,
             $this->_port,
             $this->_mode,
@@ -256,7 +184,7 @@ class Http
         $this->_server->on( 'WorkerStart', function ()
         {
             Response::SetCORS( (bool)$this->_isEnableCORS );
-            Component::InitPool( $this->_components );
+            $this->_component->InitPool( $this->_components );
         } );
     }
 
@@ -267,9 +195,9 @@ class Http
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            Component::InitWeb( $request, $response );
+            $this->_component->InitWeb( $request, $response );
             $this->_router->Go();
-            Component::Release( App::TYPE_HTTP );
+            $this->_component->Release( App::TYPE_HTTP );
         } );
     }
 

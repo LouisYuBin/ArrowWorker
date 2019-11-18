@@ -6,81 +6,30 @@
 
 namespace ArrowWorker\Server;
 
-use \Swoole\WebSocket\Server as WebSocket;
+use \Swoole\WebSocket\Server;
 use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;
 use \Swoole\Http\Response as SwResponse;
 
 use \ArrowWorker\Web\Router;
 use \ArrowWorker\Web\Response;
-use \ArrowWorker\Web\Request;
 
 use ArrowWorker\Log;
-use ArrowWorker\Component;
 use ArrowWorker\App;
+use ArrowWorker\Server\Server as ServerPattern;
 
 
 /**
  * Class Ws
  * @package ArrowWorker\Server
  */
-class Ws
+class Ws extends ServerPattern
 {
 
     /**
      * @var string
      */
-    private $_host = '0.0.0.0';
-
-    /**
-     * @var int
-     */
-    private $_port = 8888;
-
-    /**
-     * @var int
-     */
-    private $_mode = SWOOLE_PROCESS;
-
-    /**
-     * @var int
-     */
-    private $_reactorNum = 2;
-
-    /**
-     * @var int
-     */
-    private $_workerNum = 1;
-
-    /**
-     * @var bool
-     */
-    private $_enableCoroutine = true;
-
-    /**
-     * @var string
-     */
     private $_404 = '';
-
-    /**
-     * @var string
-     */
-    private $_user = 'www';
-
-    /**
-     * @var string
-     */
-    private $_group = 'www';
-
-    /**
-     * @var int
-     */
-    private $_backlog = 1024000;
-
-    /**
-     * @var bool
-     */
-    private $_isEnableStatic = true;
 
     /**
      * @var string
@@ -103,11 +52,6 @@ class Ws
     private $_maxRequest = 10000;
 
     /**
-     * @var int
-     */
-    private $_maxCoroutine = 1000;
-
-    /**
      * @var bool
      */
     private $_isEnableCORS = true;
@@ -117,25 +61,7 @@ class Ws
      */
     private $_isEnableHttp2 = false;
 
-    /**
-     * @var int
-     */
-    private $_pipeBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_socketBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_maxContentLength = 1024 * 1024 * 10;
-
-    /**
-     * @var array
-     */
-    private $_components = [];
+    private $_isEnableStatic = true;
 
     /**
      * @var string
@@ -153,11 +79,6 @@ class Ws
     private $_handlerClose = '';
 
     /**
-     * @var WebSocket
-     */
-    private $_server;
-
-    /**
      * @var Router
      */
     private $_router;
@@ -169,6 +90,7 @@ class Ws
     {
         $server = new self( $config );
         $server->_initServer();
+        $server->_initComponent();
         $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
@@ -186,7 +108,7 @@ class Ws
      */
     private function __construct( array $config )
     {
-        $this->_port            = $config['port'] ?? 8888;
+        $this->_port            = $config['port'] ?? 8081;
         $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
@@ -213,21 +135,14 @@ class Ws
         Router::Init( $this->_404 );
     }
 
-    /**
-     *
-     */
     private function _start()
     {
         $this->_server->start();
     }
 
-
-    /**
-     *
-     */
     private function _initServer()
     {
-        $this->_server = new WebSocket(
+        $this->_server = new Server(
             $this->_host,
             $this->_port,
             $this->_mode,
@@ -235,9 +150,6 @@ class Ws
         );
     }
 
-    /**
-     *
-     */
     private function _initRouter()
     {
         $this->_router = Router::Init( $this->_404 );
@@ -252,9 +164,6 @@ class Ws
         return true;
     }
 
-    /**
-     *
-     */
     private function _onStart()
     {
         $this->_server->on( 'start', function ( $server ) {
@@ -262,63 +171,48 @@ class Ws
         } );
     }
 
-    /**
-     *
-     */
     private function _onOpen()
     {
-        $this->_server->on('open', function(WebSocket $server, SwRequest $request)  {
-            Component::InitOpen($request);
+        $this->_server->on('open', function(Server $server, SwRequest $request)  {
+            $this->_component->InitOpen($request);
             ($this->_handlerOpen)($server, $request->fd);
-            Component::Release(App::TYPE_WEBSOCKET);
+            $this->_component->Release(App::TYPE_WEBSOCKET);
         });
     }
 
-    /**
-     *
-     */
     private function _onMessage()
     {
-        $this->_server->on('message', function(WebSocket $server, Frame $frame)  {
-            Component::Init();
+        $this->_server->on('message', function(Server $server, Frame $frame)  {
+            $this->_component->InitCommon();
             ($this->_handlerMessage)($server, $frame);
-            Component::Release(App::TYPE_BASE);
+            $this->_component->Release(App::TYPE_BASE);
         });
     }
 
-    /**
-     *
-     */
     private function _onClose()
     {
-        $this->_server->on('close',   function(WebSocket $server, int $fd) {
-            Component::Init();
+        $this->_server->on('close',   function(Server $server, int $fd) {
+            $this->_component->InitCommon();
             ($this->_handlerClose)($server, $fd);
-            Component::Release(App::TYPE_BASE);
+            $this->_component->Release(App::TYPE_BASE);
         });
     }
 
-    /**
-     *
-     */
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function () {
             Response::SetCORS( (bool)$this->_isEnableCORS );
-            Component::InitPool( $this->_components );
+            $this->_component->InitPool( $this->_components );
         } );
     }
 
-    /**
-     *
-     */
     private function _onRequest()
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            Component::InitWeb($request, $response);
+            $this->_component->InitWeb($request, $response);
             $this->_router->Go();
-            Component::Release(App::TYPE_WEBSOCKET);;
+            $this->_component->Release(App::TYPE_WEBSOCKET);;
         } );
     }
 

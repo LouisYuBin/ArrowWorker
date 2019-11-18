@@ -6,85 +6,20 @@
 
 namespace ArrowWorker\Server;
 
-use \Swoole\Server as SocketServer;
+use \Swoole\Server;
 
 use ArrowWorker\App;
 use ArrowWorker\Log;
 use ArrowWorker\Component;
+use ArrowWorker\Server\Server as ServerPattern;
 
 
 /**
  * Class Udp
  * @package ArrowWorker\Server
  */
-class Udp
+class Udp extends ServerPattern
 {
-
-    /**
-     * @var string
-     */
-    private $_host = '0.0.0.0';
-
-    /**
-     * @var int
-     */
-    private $_port = 8888;
-
-    /**
-     * @var int
-     */
-    private $_mode = SWOOLE_PROCESS;
-
-    /**
-     * @var int
-     */
-    private $_reactorNum = 2;
-
-    /**
-     * @var int
-     */
-    private $_workerNum = 1;
-
-    /**
-     * @var bool
-     */
-    private $_enableCoroutine = true;
-
-    /**
-     * @var string
-     */
-    private $_user = 'www';
-
-    /**
-     * @var string
-     */
-    private $_group = 'www';
-
-    /**
-     * @var int
-     */
-    private $_backlog = 1024000;
-
-    /**
-     * @var int
-     */
-    private $_maxCoroutine = 1000;
-
-    /**
-     * @var int
-     */
-    private $_pipeBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_socketBufferSize = 1024 * 1024 * 100;
-
-    /**
-     * @var int
-     */
-    private $_maxContentLength = 1024 * 1024 * 10;
-
 
     /**
      * @var int|mixed
@@ -108,21 +43,10 @@ class Udp
      */
     private $_packageEof = '\r\n';
 
-
     /**
      * @var mixed|string
      */
     private $_openEofSplit = '\r\n';
-
-    /**
-     * @var array
-     */
-    private $_components = [];
-
-    /**
-     * @var SocketServer
-     */
-    private $_server;
 
     /**
      * @var string
@@ -151,6 +75,7 @@ class Udp
     {
         $server = new self( $config );
         $server->_initServer();
+        $server->_initComponent();
         $server->_setConfig();
         $server->_onStart();
         $server->_onWorkerStart();
@@ -167,7 +92,7 @@ class Udp
      */
     private function __construct( array $config )
     {
-        $this->_port             = $config[ 'port' ] ?? 8888;
+        $this->_port             = $config[ 'port' ] ?? 8083;
         $this->_reactorNum       = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum        = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine  = $config[ 'enableCoroutine' ] ?? true;
@@ -196,30 +121,20 @@ class Udp
 
     }
 
-    /**
-     *
-     */
     private function _start()
     {
         $this->_server->start();
     }
 
-
-    /**
-     *
-     */
     private function _initServer()
     {
-        $this->_server = new SocketServer(
+        $this->_server = new Server(
             $this->_host,
             $this->_port,
             $this->_mode,
             (bool)$this->_isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP );
     }
 
-    /**
-     *
-     */
     private function _onStart()
     {
         $this->_server->on( 'start', function ( $server )
@@ -228,59 +143,44 @@ class Udp
         } );
     }
 
-    /**
-     *
-     */
     private function _onConnect()
     {
-        $this->_server->on( 'connect', function ( SocketServer $server, int $fd )
+        $this->_server->on( 'connect', function ( Server $server, int $fd )
         {
-            Component::Init();
+            $this->_component->InitCommon();
             ($this->_handlerConnect)( $server, $fd );
-            Component::Release( App::TYPE_TCP );
+            $this->_component->Release( App::TYPE_TCP );
         } );
     }
 
-    /**
-     *
-     */
     private function _onReceive()
     {
-        $this->_server->on( 'receive', function ( SocketServer $server, int $fd, int $reactor_id, string $data )
+        $this->_server->on( 'receive', function ( Server $server, int $fd, int $reactor_id, string $data )
         {
-            Component::Init();
+            $this->_component->InitCommon();
             ($this->_handlerReceive)( $server, $fd, $data );
-            Component::Release( App::TYPE_TCP );
+            $this->_component->Release( App::TYPE_TCP );
         } );
     }
 
-    /**
-     *
-     */
     private function _onClose()
     {
-        $this->_server->on( 'close', function ( SocketServer $server, int $fd )
+        $this->_server->on( 'close', function ( Server $server, int $fd )
         {
-            Component::Init();
+            $this->_component->InitCommon();
             ($this->_handlerClose)( $server, $fd );
-            Component::Release( App::TYPE_TCP );
+            $this->_component->Release( App::TYPE_TCP );
         } );
     }
 
-    /**
-     *
-     */
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function ()
         {
-            Component::InitPool( $this->_components );
+            $this->_component->InitPool( $this->_components );
         } );
     }
 
-    /**
-     *
-     */
     private function _setConfig()
     {
         $this->_server->set( [

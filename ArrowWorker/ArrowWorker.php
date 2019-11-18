@@ -168,6 +168,7 @@ class ArrowWorker
             'ArrowWorker\Lib\Coroutine' => ArrowWorker . '/Lib/Coroutine' . self::CLASS_EXT,
             'ArrowWorker\Lib\Process'   => ArrowWorker . '/Lib/Process'   . self::CLASS_EXT,
 
+            'ArrowWorker\Server\Server' => ArrowWorker . '/Server/Server' . self::CLASS_EXT,
             'ArrowWorker\Server\Http' => ArrowWorker . '/Server/Http' . self::CLASS_EXT,
             'ArrowWorker\Server\Ws'   => ArrowWorker . '/Server/Ws'   . self::CLASS_EXT,
             'ArrowWorker\Server\Tcp'  => ArrowWorker . '/Server/Tcp' . self::CLASS_EXT,

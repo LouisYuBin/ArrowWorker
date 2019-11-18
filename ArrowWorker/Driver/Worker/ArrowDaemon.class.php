@@ -70,6 +70,11 @@ class ArrowDaemon extends Worker
 
     private $_execCount = 0;
 
+    /**
+     * @var Component;
+     */
+    private $_component;
+
 
     /**
      * ArrowDaemon constructor.
@@ -433,14 +438,20 @@ class ArrowDaemon extends Worker
         $this->_setSignalHandler('workerHandler');
         $this->_setAlarm($index,$lifecycle);
         $this->_setProcessName($this->_jobs[ $index ]['processName']);
+        $this->_initComponent();
         Process::SetExecGroupUser(self::$_group, self::$_user);
         Coroutine::enable();
         Coroutine::Create(function () use ( $index )
         {
-            Component::InitPool($this->_jobs[ $index ]['components']);
+            $this->_component->InitPool($this->_jobs[ $index ]['components']);
         });
         Coroutine::Wait();
         $this->_runProcessTask($index);
+    }
+
+    private function _initComponent()
+    {
+        $this->_component = Component::Init();
     }
 
     /**
@@ -459,11 +470,9 @@ class ArrowDaemon extends Worker
         {
             Coroutine::Create(function () use ( $index, $timeStart)
             {
-                $pid  = Process::Id();
-                $coId = Coroutine::Id();
                 while ( true )
                 {
-                    Log::Init(date('YmdHis') . $pid . $coId . mt_rand(100, 999));
+                    Log::Init();
                     pcntl_signal_dispatch();
                     if ( isset($this->_jobs[ $index ]['argv']) )
                     {
@@ -477,7 +486,7 @@ class ArrowDaemon extends Worker
                     pcntl_signal_dispatch();
 
                     //release components resource after finish one work
-                    Component::Release();
+                    $this->_component->Release();
 
                     if ( $this->_terminate )
                     {
