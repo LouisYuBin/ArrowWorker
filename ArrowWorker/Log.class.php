@@ -147,7 +147,7 @@ class Log
      * @var bool
      */
     private $_isTerminateChan = false;
-    
+
     /**
      *
      * @var Tcp
@@ -159,7 +159,7 @@ class Log
      * @var Redis
      */
     private $_redisClient;
-    
+
     /**
      * @var swChan;
      */
@@ -180,6 +180,10 @@ class Log
      */
     private $_fileHandlerMap = [];
 
+    private $_buffer = [];
+
+    private $_bufTime = 0;
+
 
     /**
      * Initialize log process
@@ -192,7 +196,7 @@ class Log
         self::_initMsgObj();
         self::_resetStd();
     }
-    
+
     private function __construct()
     {
         $this->_initHandler();
@@ -245,11 +249,11 @@ class Log
             array_merge( self::$_redisConfig, $config[ 'redis' ] ) :
             self::$_redisConfig;
 
-        self::$_bufSize    = $config[ 'bufSize' ] ?? self::$_bufSize;
-        self::$_chanSize   = $config[ 'chanSize' ] ?? self::$_bufSize;
-        self::$_baseDir    = $config[ 'baseDir' ] ?? self::$_baseDir;
-        self::$_writeType  = $config[ 'type' ] ?? self::$_writeType;
-        self::$StdoutFile  = self::$_baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
+        self::$_bufSize   = $config[ 'bufSize' ] ?? self::$_bufSize;
+        self::$_chanSize  = $config[ 'chanSize' ] ?? self::$_bufSize;
+        self::$_baseDir   = $config[ 'baseDir' ] ?? self::$_baseDir;
+        self::$_writeType = $config[ 'type' ] ?? self::$_writeType;
+        self::$StdoutFile = self::$_baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
     }
 
 
@@ -371,7 +375,7 @@ class Log
      */
     public static function Critical( string $log, string $module = '' )
     {
-        self::Dump('['.str_pad($module,9,' ', STR_PAD_BOTH).'] '.$log);
+        self::Dump( '[' . str_pad( $module, 9, ' ', STR_PAD_BOTH ) . '] ' . $log );
         self::_fillLog( $log, $module, 'C' );
     }
 
@@ -382,7 +386,7 @@ class Log
      */
     private static function _fillLog( string $log, string $module = '', string $level = 'D' )
     {
-        $time  = date('Y-m-d H:i:s');
+        $time  = date( 'Y-m-d H:i:s' );
         $logId = self::GetLogId();
         self::$_msgObject->Write( "{$level}�{$module}�{$time} | {$logId} | $log" . PHP_EOL );
     }
@@ -442,16 +446,15 @@ class Log
     }
 
     /**
-     * @param string $logs
+     * @param array $logs
      */
-    private function _writeLogFile( string $logs )
+    private function _writeLogFile( array $logs )
     {
-        $logArray = explode('&&&', $logs);
-        foreach ($logArray as $log)
+        foreach ( $logs as $log )
         {
             $logInfo = explode( '�', $log );
             $level   = $logInfo[ 0 ];
-            $module  = ''==$logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
+            $module  = '' == $logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
             $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
 
             $tryTimes = 0;
@@ -466,6 +469,7 @@ class Log
                 }
             }
         }
+
     }
 
     /**
@@ -490,9 +494,9 @@ class Log
 
         _INIT:
         $logDir = self::$_baseDir . $module . '/';
-        $logExt = $date.'.'.self::_getFileExt( $level );
+        $logExt = $date . '.' . self::_getFileExt( $level );
         $logRes = self::_initFileHandle( $logDir, $logExt );
-        if( false===$logRes )
+        if ( false === $logRes )
         {
             return false;
         }
@@ -512,7 +516,7 @@ class Log
         {
             if ( !mkdir( $fileDir, 0760, true ) )
             {
-                Log::Dump( self::LOG_PREFIX." [ EMERGENCY ] make log directory:{$fileDir} failed . " );
+                Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
             }
         }
@@ -520,7 +524,7 @@ class Log
         $fileRes = fopen( $filePath, 'a' );
         if ( false === $fileRes )
         {
-            Log::Dump( self::LOG_PREFIX." [ EMERGENCY ] fopen log file:{$filePath} failed . " );
+            Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] fopen log file:{$filePath} failed . " );
             return false;
         }
         return $fileRes;
@@ -575,36 +579,36 @@ class Log
     private function _initCoroutine()
     {
         Coroutine::Enable();
-        for($i=0; $i<10; $i++)
+        for ( $i = 0; $i < 10; $i++ )
         {
-            Coroutine::Create(function ()
+            Coroutine::Create( function ()
             {
                 $this->WriteToFile();
-            });
+            } );
         }
 
         if ( in_array( self::TO_TCP, self::$_writeType ) )
         {
-            Coroutine::Create( function()
+            Coroutine::Create( function ()
             {
                 $this->WriteToTcp();
-            });
+            } );
         }
 
         if ( in_array( self::TO_REDIS, self::$_writeType ) )
         {
-            Coroutine::Create( function()
+            Coroutine::Create( function ()
             {
                 $this->WriteToRedis();
             } );
         }
 
-        for($i=0; $i<150; $i++)
+        for ( $i = 0; $i < 150; $i++ )
         {
-            Coroutine::Create(function ()
+            Coroutine::Create( function ()
             {
                 $this->Dispatch();
-            });
+            } );
         }
         Coroutine::Wait();
     }
@@ -630,9 +634,9 @@ class Log
                 continue;
             }
 
-            if( false==$this->_toFileChan->push( $log, 1 ) )
+            if ( false == $this->_toFileChan->push( $log, 1 ) )
             {
-                Log::Dump("Push log chan failed, data:{$log}, error code： ".$this->_toFileChan->errCode."}");
+                Log::Dump( "Push log chan failed, data:{$log}, error code： " . $this->_toFileChan->errCode . "}" );
             }
 
             if ( in_array( static::TO_TCP, static::$_writeType ) )
@@ -658,47 +662,50 @@ class Log
      */
     public function WriteToFile()
     {
-        $buffer  = '';
-        $bufTime = time();
+        $buffer     = [];
+        $bufferSize = 0;
+        $bufTime    = time();
         while ( true )
         {
             $data = $this->_toFileChan->pop( 1 );
-            if ( $this->_isTerminateChan && $data === false && empty($buffer) )
+            if ( $this->_isTerminateChan && $data === false && 0==count( $buffer ) )
             {
                 break;
             }
 
-            if( !$this->_isTerminateChan )
+            if ( !$this->_isTerminateChan )
             {
-                if( time()-$bufTime>=3 )
+                if ( time() - $bufTime >= 3 )
                 {
                     goto WRITE_LOG;
                 }
 
                 if ( $data === false )
                 {
-                    Coroutine::Sleep(0.5);
+                    Coroutine::Sleep( 0.5 );
                     continue;
                 }
 
-                if( strlen($buffer)<self::BUFFER_SIZE && strlen($data)<self::BUFFER_SIZE )
+                if ( $bufferSize < self::BUFFER_SIZE && strlen( $data ) < self::BUFFER_SIZE )
                 {
-                    $buffer .= empty($buffer) ? $data : "&&&{$data}";
+                    $buffer[]   = $data;
+                    $bufferSize += strlen( $data );
                     continue;
                 }
             }
 
             WRITE_LOG:
             $bufTime = time();
-            if( ''!=$buffer )
+            if ( 0 == count( $buffer ) )
             {
                 $this->_writeLogFile( $buffer );
-                $buffer = '';
+                $buffer     = [];
+                $bufferSize = 0;
             }
 
-            if( false!=$data )
+            if ( false != $data )
             {
-                $this->_writeLogFile( $data );
+                $this->_writeLogFile( [ $data ] );
             }
 
         }
@@ -726,10 +733,10 @@ class Log
 
             if ( false == $this->_tcpClient->Send( $data, 3 ) )
             {
-                Log::Dump( self::LOG_PREFIX."write tcp client failed. data : {$data}" );
+                Log::Dump( self::LOG_PREFIX . "write tcp client failed. data : {$data}" );
             }
         }
-        self::Dump( self::LOG_PREFIX.'tcp-writing coroutine exited' );
+        self::Dump( self::LOG_PREFIX . 'tcp-writing coroutine exited' );
     }
 
     /**
@@ -768,8 +775,8 @@ class Log
      */
     private function _exit()
     {
-        static::Dump( self::LOG_PREFIX.' exited. queue status : ' . json_encode( $this->_msgObject->Status() ) );
-        exit(0);
+        static::Dump( self::LOG_PREFIX . ' exited. queue status : ' . json_encode( $this->_msgObject->Status() ) );
+        exit( 0 );
     }
 
     /**
@@ -848,22 +855,22 @@ class Log
      */
     private function _cleanUselessFileHandler()
     {
-        $time = (int)date('Hi');
-        if( $time>2 )
+        $time = (int)date( 'Hi' );
+        if ( $time > 2 )
         {
-            return ;
+            return;
         }
 
         self::Init();
-        $today = date('Ymd');
-        foreach ($this->_fileHandlerMap as $alias=>$handler)
+        $today = date( 'Ymd' );
+        foreach ( $this->_fileHandlerMap as $alias => $handler )
         {
-            $aliasDate = substr($alias,strlen($alias)-8,8);
-            if( $today!=$aliasDate )
+            $aliasDate = substr( $alias, strlen( $alias ) - 8, 8 );
+            if ( $today != $aliasDate )
             {
-                fclose($this->_fileHandlerMap[$alias]);
-                unset($this->_fileHandlerMap[$alias]);
-                Log::Debug("log file handler : {$alias} was cleaned.", self::LOG_NAME);
+                fclose( $this->_fileHandlerMap[ $alias ] );
+                unset( $this->_fileHandlerMap[ $alias ] );
+                Log::Debug( "log file handler : {$alias} was cleaned.", self::LOG_NAME );
             }
         }
     }
@@ -884,11 +891,11 @@ class Log
      */
     public static function Init( string $logId = '' )
     {
-        $coId = Coroutine::Id();
+        $coId                  = Coroutine::Id();
         self::$_logId[ $coId ] = '' === $logId ? date( 'ymdHis' ) .
-                                                            Process::Id() .
-                                                            $coId .
-                                                            mt_rand( 100, 999 ) : $logId;
+                                                 Process::Id() .
+                                                 $coId .
+                                                 mt_rand( 100, 999 ) : $logId;
     }
 
     /**
