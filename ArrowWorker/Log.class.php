@@ -667,7 +667,7 @@ class Log
         $bufTime    = time();
         while ( true )
         {
-            $data = $this->_toFileChan->pop( 1 );
+            $data = $this->_toFileChan->pop( 0.5 );
             if ( $this->_isTerminateChan && $data === false && 0==$bufferSize )
             {
                 break;
