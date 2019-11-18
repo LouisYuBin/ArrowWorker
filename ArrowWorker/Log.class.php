@@ -675,7 +675,7 @@ class Log
 
             if ( !$this->_isTerminateChan )
             {
-                if ( time() - $bufTime > 2 )
+                if ( time() - $bufTime >= 2 )
                 {
                     goto WRITE_LOG;
                 }
@@ -696,7 +696,7 @@ class Log
 
             WRITE_LOG:
             $bufTime = time();
-            if ( 0 !== count( $buffer ) )
+            if ( $bufferSize>0 )
             {
                 $this->_writeLogFile( $buffer );
                 $buffer     = [];
