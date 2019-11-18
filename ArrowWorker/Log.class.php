@@ -675,7 +675,7 @@ class Log
 
             if ( !$this->_isTerminateChan )
             {
-                if ( time() - $bufTime >= 3 )
+                if ( time() - $bufTime > 2 )
                 {
                     goto WRITE_LOG;
                 }
