@@ -714,7 +714,7 @@ class Daemon
      */
     public function SignalHandler(int $signal)
     {
-        Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
+        //Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
         switch($signal)
         {
             case SIGUSR1:
