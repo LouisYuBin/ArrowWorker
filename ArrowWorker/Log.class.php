@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const BUFFER_SIZE = 1024;
+    const BUFFER_SIZE = 2048;
 
     /**
      *
@@ -575,7 +575,7 @@ class Log
     private function _initCoroutine()
     {
         Coroutine::Enable();
-        for($i=0; $i<50; $i++)
+        for($i=0; $i<30; $i++)
         {
             Coroutine::Create(function ()
             {
