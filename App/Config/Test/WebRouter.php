@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'www.dugujiujian.net, dugujiujian.net:4433' => [
+    '127.0.0.1:8081, 127.0.0.1:4433' => [
         '/' => [
             'get'    => 'Admin\\Index::get',
             'put'    => 'Admin\\Index::put',
