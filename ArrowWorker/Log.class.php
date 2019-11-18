@@ -696,7 +696,7 @@ class Log
 
             WRITE_LOG:
             $bufTime = time();
-            if ( 0 == count( $buffer ) )
+            if ( 0 !== count( $buffer ) )
             {
                 $this->_writeLogFile( $buffer );
                 $buffer     = [];
