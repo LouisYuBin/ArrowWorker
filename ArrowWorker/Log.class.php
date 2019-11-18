@@ -485,12 +485,14 @@ class Log
 
         if ( strlen( $this->_buffer[ $alias ] ) < self::MAX_BUFFER_SIZE )
         {
+            var_dump('check buffer size');
             return;
         }
 
         CHECK_FILE_HANDLER:
         if ( isset( $this->_fileHandlerMap[ $alias ] ) )
         {
+            var_dump('check file handler isset');
             goto WRITE_LOG;
         }
 
@@ -525,7 +527,7 @@ class Log
         $filePath = $fileDir . $fileExt;
         if ( !is_dir( $fileDir ) )
         {
-            if ( !mkdir( $fileDir, 0666, true ) )
+            if ( !mkdir( $fileDir, 0766, true ) )
             {
                 Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                 return false;
