@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const BUFFER_SIZE = 1024;
+    const BUFFER_SIZE = 512;
 
     /**
      *
