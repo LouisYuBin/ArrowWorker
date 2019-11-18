@@ -111,9 +111,16 @@ class Coroutine
         Runtime::enableCoroutine();
     }
 
-    public static function Fwrite($handle,string $data, $length=null)
+    public static function FileWrite($handle,string $data, $length=null) : bool
     {
-        return Co::fwrite($handle, $data, $length);
+        for( $i=0; $i<3; $i++)
+        {
+            if( Co::fwrite($handle, $data, $length) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const BUFFER_SIZE = 512;
+    const MAX_BUFFER_SIZE = 512;
 
     /**
      *
@@ -182,7 +182,7 @@ class Log
 
     private $_buffer = [];
 
-    private $_bufTime = 0;
+    private $_bufTime = [];
 
 
     /**
@@ -446,62 +446,63 @@ class Log
     }
 
     /**
-     * @param array $logs
+     * @param string $log
      */
-    private function _writeLogFile( array $logs )
+    private function _writeLogFile( string $log )
     {
-        foreach ( $logs as $log )
-        {
-            $logInfo = explode( '�', $log );
-            $level   = $logInfo[ 0 ];
-            $module  = '' == $logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
-            $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
-
-            $tryTimes = 0;
-            RETRY:
-            //try three times if failed
-            if ( false === $this->_writeFile( $module, $level, $message ) )
-            {
-                $tryTimes++;
-                if ( $tryTimes < 3 )
-                {
-                    goto RETRY;
-                }
-            }
-        }
-
+        $logInfo = explode( '�', $log );
+        $level   = $logInfo[ 0 ];
+        $module  = '' == $logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
+        $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
+        $this->_writeFile( $module, $level, $message );
     }
 
     /**
      * @param string $module
      * @param string $level
-     * @param string $message
-     * @return bool|int
+     * @param string $log
+     * @return void
      */
-    private function _writeFile( string $module, string $level, string $message )
+    private function _writeFile( string $module, string $level, string $log )
     {
-        $date  = date( 'Ymd' );
-        $alias = $module . $level . $date;
-        if ( isset( $this->_fileHandlerMap[ $alias ] ) )
+        $date                    = date( 'Ymd' );
+        $alias                   = $module . $level . $date;
+        $this->_buffer[ $alias ] .= $log;
+
+        if( !isset($this->_bufTime[$alias]) || time()-$this->_bufTime[$alias] >=2 )
         {
-            $result = Coroutine::Fwrite( $this->_fileHandlerMap[ $alias ], $message );
-            if ( false === $result )
-            {
-                goto _INIT;
-            }
-            return $result;
+            goto WRITE_LOG;
         }
 
-        _INIT:
-        $logDir = self::$_baseDir . $module . '/';
-        $logExt = $date . '.' . self::_getFileExt( $level );
-        $logRes = self::_initFileHandle( $logDir, $logExt );
+        if ( strlen( $this->_buffer[ $alias ] ) < self::MAX_BUFFER_SIZE )
+        {
+            return;
+        }
+
+        if ( isset( $this->_fileHandlerMap[ $alias ] ) )
+        {
+            goto WRITE_LOG;
+        }
+
+        $fileDir = self::$_baseDir . $module . '/';
+        $fileExt = $date . '.' . $this->_getFileExt( $level );
+        $logRes = $this->_initFileHandle( $fileDir, $fileExt );
         if ( false === $logRes )
         {
-            return false;
+            Log::Dump( self::LOG_PREFIX . " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
+            $this->_buffer[ $alias ] = '';
+            return ;
         }
         $this->_fileHandlerMap[ $alias ] = $logRes;
-        return Coroutine::Fwrite( $logRes, $message );
+
+        WRITE_LOG:
+        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $alias ] );
+        if ( false === $result )
+        {
+            Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
+        }
+        $this->_bufTime[ $alias ] = time();
+        $this->_buffer[ $alias ]  = '';
     }
 
     /**
@@ -509,7 +510,7 @@ class Log
      * @param string $fileExt
      * @return bool|resource
      */
-    private static function _initFileHandle( string $fileDir, string $fileExt )
+    private function _initFileHandle( string $fileDir, string $fileExt )
     {
         $filePath = $fileDir . $fileExt;
         if ( !is_dir( $fileDir ) )
@@ -535,7 +536,7 @@ class Log
      * @param string $level
      * @return string
      */
-    private static function _getFileExt( string $level )
+    private function _getFileExt( string $level )
     {
         $ext = '.log';
         switch ( $level )
@@ -662,51 +663,22 @@ class Log
      */
     public function WriteToFile()
     {
-        $buffer     = [];
-        $bufferSize = 0;
-        $bufTime    = time();
+
         while ( true )
         {
             $data = $this->_toFileChan->pop( 0.2 );
-            if ( $this->_isTerminateChan && $data === false && 0==$bufferSize )
+            if ( $this->_isTerminateChan && $data === false )
             {
                 break;
             }
 
-            if ( !$this->_isTerminateChan )
+            if ( $data === false )
             {
-                if ( time() - $bufTime >= 2 )
-                {
-                    goto WRITE_LOG;
-                }
-
-                if ( $data === false )
-                {
-                    Coroutine::Sleep( 0.5 );
-                    continue;
-                }
-
-                if ( $bufferSize < self::BUFFER_SIZE && strlen( $data ) < self::BUFFER_SIZE )
-                {
-                    $buffer[]   = $data;
-                    $bufferSize += strlen( $data );
-                    continue;
-                }
+                Coroutine::Sleep( 0.5 );
+                continue;
             }
 
-            WRITE_LOG:
-            $bufTime = time();
-            if ( $bufferSize>0 )
-            {
-                $this->_writeLogFile( $buffer );
-                $buffer     = [];
-                $bufferSize = 0;
-            }
-
-            if ( false != $data )
-            {
-                $this->_writeLogFile( [ $data ] );
-            }
+            $this->_writeLogFile( $data );
 
         }
         //self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
