@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const BUFFER_SIZE = 2048;
+    const BUFFER_SIZE = 1024;
 
     /**
      *
@@ -662,7 +662,7 @@ class Log
         $bufTime = time();
         while ( true )
         {
-            $data = $this->_toFileChan->pop( 0.5 );
+            $data = $this->_toFileChan->pop( 1 );
             if ( $this->_isTerminateChan && $data === false && empty($buffer) )
             {
                 break;
