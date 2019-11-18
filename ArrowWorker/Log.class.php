@@ -579,7 +579,7 @@ class Log
     private function _initCoroutine()
     {
         Coroutine::Enable();
-        for ( $i = 0; $i < 50; $i++ )
+        for ( $i = 0; $i < 80; $i++ )
         {
             Coroutine::Create( function ()
             {
@@ -603,7 +603,7 @@ class Log
             } );
         }
 
-        for ( $i = 0; $i < 150; $i++ )
+        for ( $i = 0; $i < 160; $i++ )
         {
             Coroutine::Create( function ()
             {
