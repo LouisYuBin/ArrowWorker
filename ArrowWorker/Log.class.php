@@ -465,13 +465,22 @@ class Log
      */
     private function _writeFile( string $module, string $level, string $log )
     {
-        $date                    = date( 'Ymd' );
-        $alias                   = $module . $level . $date;
-        $this->_buffer[ $alias ] .= $log;
+        $date  = date( 'Ymd' );
+        $alias = $module . $level . $date;
 
-        if( !isset($this->_bufTime[$alias]) || time()-$this->_bufTime[$alias] >=2 )
+        if( !isset($this->_buffer[$alias]) )
         {
-            goto WRITE_LOG;
+            $this->_buffer[ $alias ] = $log;
+            $this->_bufTime[$alias]  = time();
+        }
+        else
+        {
+            $this->_buffer[ $alias ] = "{$this->_buffer[$alias]}{$log}";
+        }
+
+        if( time()-$this->_bufTime[$alias] >=2 )
+        {
+            goto CHECK_FILE_HANDLER;
         }
 
         if ( strlen( $this->_buffer[ $alias ] ) < self::MAX_BUFFER_SIZE )
@@ -479,6 +488,7 @@ class Log
             return;
         }
 
+        CHECK_FILE_HANDLER:
         if ( isset( $this->_fileHandlerMap[ $alias ] ) )
         {
             goto WRITE_LOG;
