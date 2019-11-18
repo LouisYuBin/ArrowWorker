@@ -668,7 +668,7 @@ class Log
         while ( true )
         {
             $data = $this->_toFileChan->pop( 1 );
-            if ( $this->_isTerminateChan && $data === false && 0==count( $buffer ) )
+            if ( $this->_isTerminateChan && $data === false && 0==$bufferSize )
             {
                 break;
             }
