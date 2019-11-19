@@ -664,7 +664,7 @@ class Log
                 goto FLUSH;
             }
 
-            $date      = date( 'ymdHis' );
+            $date      = date( 'Ymd' );
             $log       = $this->_parseModuleLevel( $data );
             $bufferKey = $log[ 'module' ] . $log[ 'level' ];
             if ( isset( $buffer[ $bufferKey ] ) )
