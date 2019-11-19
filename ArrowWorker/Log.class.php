@@ -519,7 +519,7 @@ class Log
         $this->_fileHandlerMap[ $alias ] = $logRes;
 
         WRITE_LOG:
-        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $alias ] );
+        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[$coId][ $alias ] );
         if ( false === $result )
         {
             Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
