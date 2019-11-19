@@ -475,7 +475,7 @@ class Log
         $date                             = date( 'Ymd' );
         $alias                            = $module . $level . $date;
 
-        var_dump( $module, $level);
+        var_dump( "{$module}{$level}");
 
         if( !isset( $this->_buffer[ $coId ][ $alias ] ) )
         {
@@ -489,6 +489,8 @@ class Log
 
         if ( time() - $this->_bufFlushTime[$coId][ $alias ] >= 2 )
         {
+            var_dump( 'check flush time' );
+
             goto CHECK_FILE_HANDLER;
         }
 
