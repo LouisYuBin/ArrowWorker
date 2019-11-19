@@ -143,21 +143,25 @@ class Daemon
 
     private function _startLogProcess()
     {
-        $pid = Process::Fork();
-        if($pid == 0)
+        for ($i=0; $i<2; $i++)
         {
-            Log::Dump(static::LOG_PREFIX.'starting log process ( '.Process::Id().' )');
-            $this->_setProcessName(static::PROCESS_LOG);
-            Log::Start();
+            $pid = Process::Fork();
+            if($pid == 0)
+            {
+                Log::Dump(static::LOG_PREFIX.'starting log process ( '.Process::Id().' )');
+                $this->_setProcessName(static::PROCESS_LOG);
+                Log::Start();
+            }
+            else
+            {
+                $this->_pidMap[] = [
+                    'pid'   => $pid,
+                    'type'  => self::PROCESS_LOG,
+                    'index' => 0
+                ];
+            }
         }
-        else
-        {
-            $this->_pidMap[] = [
-                'pid'   => $pid,
-                'type'  => self::PROCESS_LOG,
-                'index' => 0
-            ];
-        }
+
     }
 
     private function _startWorkerProcess()
@@ -357,7 +361,7 @@ class Daemon
     private function _exitLogProcess()
     {
         //check whether there are only one process left
-        if( count($this->_pidMap)>1 )
+        if( count($this->_pidMap)>2 )
         {
             return ;
         }
