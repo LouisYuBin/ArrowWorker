@@ -528,7 +528,8 @@ class Log
      */
     private function _initFileHandle( string $fileDir, string $fileExt )
     {
-        $filePath = self::$_baseDir."{$fileDir}/{$fileExt}";
+        $fileDir  = self::$_baseDir.$fileDir;
+        $filePath = "{$fileDir}/{$fileExt}";
         if ( !is_dir( $fileDir ) )
         {
             if ( !mkdir( $fileDir, 0766, true ) )
