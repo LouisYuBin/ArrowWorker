@@ -472,27 +472,27 @@ class Log
      */
     private function _writeFile( string $module, string $level, string $log, int $coId )
     {
-        $date  = date( 'Ymd' );
-        $alias = $module . $level . $date;
-
+        $date   = date( 'Ymd' );
+        $alias  = $module . $level . $date;
+        $bufKey = "{$alias}{$coId}";
         var_dump( "{$module}{$level}" );
 
-        if ( !isset( $this->_buffer[ $coId ][ $alias ] ) )
+        if ( !isset( $this->_buffer[ $bufKey ] ) )
         {
-            $this->_buffer[ $coId ][ $alias ]       = $log;
-            $this->_bufFlushTime[ $coId ][ $alias ] = time();
+            $this->_buffer[ $bufKey ]       = $log;
+            $this->_bufFlushTime[ $bufKey ] = time();
         }
         else
         {
-            $this->_buffer[ $coId ][ $alias ] = "{$this->_buffer[ $coId ][ $alias ]}{$log}";
+            $this->_buffer[ $bufKey ] = "{$this->_buffer[ $bufKey ]}{$log}";
         }
 
-        if ( time() - $this->_bufFlushTime[ $coId ][ $alias ] >= 2 )
+        if ( time() - $this->_bufFlushTime[ $bufKey ] >= 2 )
         {
             goto CHECK_FILE_HANDLER;
         }
 
-        if ( strlen( $this->_buffer[ $coId ][ $alias ] ) < self::MAX_BUFFER_SIZE )
+        if ( strlen( $this->_buffer[ $bufKey ] ) < self::MAX_BUFFER_SIZE )
         {
             return;
         }
@@ -510,21 +510,21 @@ class Log
         {
             Log::Dump( self::LOG_PREFIX .
                        " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
-            $this->_bufFlushTime[ $coId ][ $alias ] = time();
-            $this->_buffer[ $coId ][ $alias ]       = '';
+            $this->_bufFlushTime[ $bufKey ] = time();
+            $this->_buffer[ $bufKey ]       = '';
             return;
         }
         $this->_fileHandlerMap[ $alias ] = $logRes;
 
         WRITE_LOG:
-        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $coId ][ $alias ] );
+        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $bufKey ] );
         if ( false === $result )
         {
             Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
         }
 
-        $this->_bufFlushTime[ $coId ][ $alias ] = time();
-        $this->_buffer[ $coId ][ $alias ]       = '';
+        $this->_bufFlushTime[ $bufKey ] = time();
+        $this->_buffer[ $bufKey ]       = '';
     }
 
     /**
