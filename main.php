@@ -7,8 +7,8 @@
 use ArrowWorker\ArrowWorker as arrow;
 define('APP_PATH',__DIR__.'/App');
 //APP_TYPE要启动的应用数组，可选值： worker（工作进程）、server（服务）
-define('APP_TYPE',['worker','server']);
-//define('APP_TYPE',['server']);
+//define('APP_TYPE',['worker','server']);
+define('APP_TYPE',['server']);
 //define('APP_TYPE',['worker']);
 
 //开发调试模式
