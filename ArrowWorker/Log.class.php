@@ -473,9 +473,9 @@ class Log
     private function _writeFile( string $module, string $level, string $log, int $coId )
     {
         $date   = date( 'Ymd' );
-        $alias  = $module . $level . $date;
+        $alias  = "{$module}{$level}{$date}";
         $bufKey = "{$alias}{$coId}";
-        var_dump( "{$module}{$level}" );
+        var_dump( "{$module}{$level}-{$coId}" );
 
         if ( !isset( $this->_buffer[ $bufKey ] ) )
         {
@@ -503,15 +503,12 @@ class Log
             goto WRITE_LOG;
         }
 
-        $fileDir = self::$_baseDir . $module . '/';
-        $fileExt = $date . '.' . $this->_getFileExt( $level );
-        $logRes  = $this->_initFileHandle( $fileDir, $fileExt );
-        if ( false === $logRes )
+        $fileRes  = $this-> _initFileHandle(  $module, $this->_getFileName( $level, $date ) );
+        if ( false === $fileRes )
         {
-            //Log::Dump( self::LOG_PREFIX . " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
             goto CHECK_FILE_HANDLER;
         }
-        $this->_fileHandlerMap[ $alias ] = $logRes;
+        $this->_fileHandlerMap[ $alias ] = $fileRes;
 
         WRITE_LOG:
         $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $bufKey ] );
@@ -531,7 +528,7 @@ class Log
      */
     private function _initFileHandle( string $fileDir, string $fileExt )
     {
-        $filePath = $fileDir . $fileExt;
+        $filePath = self::$_baseDir."{$fileDir}/{$fileExt}";
         if ( !is_dir( $fileDir ) )
         {
             if ( !mkdir( $fileDir, 0766, true ) )
@@ -553,37 +550,38 @@ class Log
 
     /**
      * @param string $level
+     * @param string $date
      * @return string
      */
-    private function _getFileExt( string $level )
+    private function _getFileName( string $level, string $date )
     {
-        $ext = '.log';
         switch ( $level )
         {
             case 'A':
-                return "Alert{$ext}";
+                $ext = "Alert";
                 break;
             case 'D':
-                return "Debug{$ext}";
+                $ext = "Debug";
                 break;
             case 'E':
-                return "Error{$ext}";
+                $ext = "Error";
                 break;
             case 'W':
-                return "Warning{$ext}";
+                $ext = "Warning";
                 break;
             case 'N':
-                return "Notice{$ext}";
+                $ext = "Notice";
                 break;
             case 'C':
-                return "Critical{$ext}";
+                $ext = "Critical";
                 break;
             case 'EM':
-                return "Emergency{$ext}";
+                $ext = "Emergency";
                 break;
             default:
-                return "Info{$ext}";
+                $ext = "Info";
         }
+        return "{$date}.{$ext}.log";
     }
 
     /**
