@@ -472,38 +472,34 @@ class Log
      */
     private function _writeFile( string $module, string $level, string $log, int $coId )
     {
-        $date                             = date( 'Ymd' );
-        $alias                            = $module . $level . $date;
+        $date  = date( 'Ymd' );
+        $alias = $module . $level . $date;
 
-        var_dump( "{$module}{$level}");
+        var_dump( "{$module}{$level}" );
 
-        if( !isset( $this->_buffer[ $coId ][ $alias ] ) )
+        if ( !isset( $this->_buffer[ $coId ][ $alias ] ) )
         {
-            $this->_buffer[ $coId ][ $alias ] =  $log;
-            $this->_bufFlushTime[$coId][$alias] = time();
+            $this->_buffer[ $coId ][ $alias ]       = $log;
+            $this->_bufFlushTime[ $coId ][ $alias ] = time();
         }
         else
         {
-            $this->_buffer[ $coId ][ $alias ] =  "{$this->_buffer[ $coId ][ $alias ]}{$log}";
+            $this->_buffer[ $coId ][ $alias ] = "{$this->_buffer[ $coId ][ $alias ]}{$log}";
         }
 
-        if ( time() - $this->_bufFlushTime[$coId][ $alias ] >= 2 )
+        if ( time() - $this->_bufFlushTime[ $coId ][ $alias ] >= 2 )
         {
-            var_dump( 'check flush time' );
-
             goto CHECK_FILE_HANDLER;
         }
 
-        if ( strlen( $this->_buffer[$coId][ $alias ] ) < self::MAX_BUFFER_SIZE )
+        if ( strlen( $this->_buffer[ $coId ][ $alias ] ) < self::MAX_BUFFER_SIZE )
         {
-            var_dump( 'check buffer size' );
             return;
         }
 
         CHECK_FILE_HANDLER:
         if ( isset( $this->_fileHandlerMap[ $alias ] ) )
         {
-            var_dump( 'check file handler isset' );
             goto WRITE_LOG;
         }
 
@@ -514,20 +510,21 @@ class Log
         {
             Log::Dump( self::LOG_PREFIX .
                        " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
-            $this->_bufFlushTime[$coId][ $alias ] = time();
-            $this->_buffer[$coId][ $alias ]       = '';
+            $this->_bufFlushTime[ $coId ][ $alias ] = time();
+            $this->_buffer[ $coId ][ $alias ]       = '';
             return;
         }
         $this->_fileHandlerMap[ $alias ] = $logRes;
 
         WRITE_LOG:
-        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[$coId][ $alias ] );
+        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $coId ][ $alias ] );
         if ( false === $result )
         {
             Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
         }
-        $this->_bufFlushTime[$coId][ $alias ] = time();
-        $this->_buffer[$coId][ $alias ]       = '';
+
+        $this->_bufFlushTime[ $coId ][ $alias ] = time();
+        $this->_buffer[ $coId ][ $alias ]       = '';
     }
 
     /**
