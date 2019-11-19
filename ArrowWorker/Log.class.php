@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const MAX_BUFFER_SIZE = 512;
+    const MAX_BUFFER_SIZE = 256;
 
     /**
      *
@@ -681,7 +681,6 @@ class Log
                         'module'    => $log[ 'module' ],
                         'level'     => $log[ 'level' ],
                         'flushTime' => time(),
-
                     ]
                 );
             }
@@ -689,20 +688,20 @@ class Log
             FLUSH:
             $emptyBufferCount = 0;
 
-            foreach ($buffer as $eachBufKey=>$eachBuffer)
+            foreach ( $buffer as $eachBufKey => $eachBuffer )
             {
-                if( 0==$eachBuffer['size'] )
+                if ( 0 == $eachBuffer[ 'size' ] )
                 {
                     $emptyBufferCount++;
-                    continue ;
+                    continue;
                 }
 
                 if( time()-$eachBuffer['flushTime']>=2 || $eachBuffer[ 'size' ]>=self::MAX_BUFFER_SIZE )
                 {
                     $this->_writeFile( $eachBuffer[ 'module' ], $eachBuffer[ 'level' ], $eachBuffer[ 'body' ], $date );
-                    $buffer[$eachBufKey]['body']      = '';
-                    $buffer[$eachBufKey]['size']      = 0;
-                    $buffer[$eachBufKey]['flushTime'] = time();
+                    $buffer[ $eachBufKey ][ 'body' ]      = '';
+                    $buffer[ $eachBufKey ][ 'size' ]      = 0;
+                    $buffer[ $eachBufKey ][ 'flushTime' ] = time();
                 }
             }
             $break = count($buffer)==$emptyBufferCount ? true : false;
