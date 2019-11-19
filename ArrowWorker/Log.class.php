@@ -508,11 +508,8 @@ class Log
         $logRes  = $this->_initFileHandle( $fileDir, $fileExt );
         if ( false === $logRes )
         {
-            Log::Dump( self::LOG_PREFIX .
-                       " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
-            $this->_bufFlushTime[ $bufKey ] = time();
-            $this->_buffer[ $bufKey ]       = '';
-            return;
+            //Log::Dump( self::LOG_PREFIX . " [ Emergency ] _initFileHandle failed, file directory : {$fileDir}, file ext : {$fileExt}, log : {$log}" );
+            goto CHECK_FILE_HANDLER;
         }
         $this->_fileHandlerMap[ $alias ] = $logRes;
 
