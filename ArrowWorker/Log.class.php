@@ -40,7 +40,7 @@ class Log
     const TO_TCP = 'tcp';
 
 
-    const MAX_BUFFER_SIZE = 1024;
+    const MAX_BUFFER_SIZE = 512;
 
     /**
      *
@@ -687,7 +687,6 @@ class Log
 
             FLUSH:
             $emptyBufferCount = 0;
-
             foreach ( $buffer as $eachBufKey => $eachBuffer )
             {
                 if ( 0 == $eachBuffer[ 'size' ] )
