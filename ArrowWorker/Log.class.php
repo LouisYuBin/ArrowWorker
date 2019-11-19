@@ -688,6 +688,7 @@ class Log
 
             FLUSH:
             $emptyBufferCount = 0;
+
             foreach ($buffer as $eachBufKey=>$eachBuffer)
             {
                 if( 0==$eachBuffer['size'] )
@@ -696,7 +697,7 @@ class Log
                     continue ;
                 }
 
-                if( time()-$eachBuffer['flushTime']>=3 || $eachBuffer[ 'size' ]>=self::MAX_BUFFER_SIZE )
+                if( time()-$eachBuffer['flushTime']>=2 || $eachBuffer[ 'size' ]>=self::MAX_BUFFER_SIZE )
                 {
                     $this->_writeFile( $eachBuffer[ 'module' ], $eachBuffer[ 'level' ], $eachBuffer[ 'body' ], $date );
                     $buffer[$eachBufKey]['body']      = '';
@@ -704,7 +705,7 @@ class Log
                     $buffer[$eachBufKey]['flushTime'] = time();
                 }
             }
-            $buffer = count($buffer)==$emptyBufferCount ? true : false;
+            $break = count($buffer)==$emptyBufferCount ? true : false;
         }
         //self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
     }

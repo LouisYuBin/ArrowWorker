@@ -42,8 +42,8 @@ return [
         'type'             => 'Ws',
         'host'             => '0.0.0.0',
         'port'             => 8081,
-        'workerNum'        => 1,
-        'reactorNum'       => 2,
+        'workerNum'        => 8,
+        'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
         'group'            => 'www',
@@ -63,10 +63,10 @@ return [
         ],
         'components' => [
             'db' => [
-                'default' => 5
+                'default' => 100
             ],
             'cache' => [
-                'default' => 2
+                'default' => 100
             ]
         ]
     ],
