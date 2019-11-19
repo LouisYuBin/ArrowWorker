@@ -475,7 +475,7 @@ class Log
         $date                             = date( 'Ymd' );
         $alias                            = $module . $level . $date;
 
-        var_dump( $module, $level, $log);
+        var_dump( $module, $level);
 
         if( !isset( $this->_buffer[ $coId ][ $alias ] ) )
         {
