@@ -498,12 +498,21 @@ class Log
     {
         $fileDir  = self::$_baseDir . $fileDir;
         $filePath = "{$fileDir}/{$fileExt}";
+
+        $checkDirTimes = 0;
+        RE_CHECK_DIR:
         if ( !is_dir( $fileDir ) )
         {
+            $checkDirTimes++;
             if ( !mkdir( $fileDir, 0766, true ) )
             {
-                Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
-                return false;
+                if( $checkDirTimes>2 )
+                {
+                    Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
+                    return false;
+                }
+                Coroutine::Sleep(0.2);
+                goto RE_CHECK_DIR;
             }
         }
 
