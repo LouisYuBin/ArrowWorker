@@ -180,16 +180,6 @@ class Log
      */
     private $_fileHandlerMap = [];
 
-    /**
-     * @var array
-     */
-    private $_buffer = [];
-
-    /**
-     * @var array
-     */
-    private $_bufFlushTime = [];
-
 
     /**
      * Initialize log process
@@ -453,49 +443,29 @@ class Log
 
     /**
      * @param string $log
-     * @param int    $coId
+     * @return array
      */
-    private function _writeLogFile( string $log, int $coId )
+    private function _parseModuleLevel( string $log )
     {
         $logInfo = explode( '�', $log );
         $level   = $logInfo[ 0 ];
-        $module  = '' == $logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ];
-        $message = substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 );
-        $this->_writeFile( $module, $level, $message, $coId );
+        return [
+            'level'  => $level,
+            'module' => '' == $logInfo[ 1 ] ? self::DEFAULT_LOG_DIR : $logInfo[ 1 ],
+            'body'   => substr( $log, strlen( $level . $logInfo[ 1 ] ) + 6 ),
+        ];
     }
 
     /**
      * @param string $module
      * @param string $level
      * @param string $log
+     * @param string $date
      * @return void
      */
-    private function _writeFile( string $module, string $level, string $log, int $coId )
+    private function _writeFile( string $module, string $level, string $log, string $date )
     {
-        $date   = date( 'Ymd' );
-        $alias  = "{$module}{$level}{$date}";
-        $bufKey = "{$alias}{$coId}";
-        var_dump( "{$module}{$level}-{$coId}" );
-
-        if ( !isset( $this->_buffer[ $bufKey ] ) )
-        {
-            $this->_buffer[ $bufKey ]       = $log;
-            $this->_bufFlushTime[ $bufKey ] = time();
-        }
-        else
-        {
-            $this->_buffer[ $bufKey ] = "{$this->_buffer[ $bufKey ]}{$log}";
-        }
-
-        if ( time() - $this->_bufFlushTime[ $bufKey ] >= 2 )
-        {
-            goto CHECK_FILE_HANDLER;
-        }
-
-        if ( strlen( $this->_buffer[ $bufKey ] ) < self::MAX_BUFFER_SIZE )
-        {
-            return;
-        }
+        $alias = "{$module}{$level}{$date}";
 
         CHECK_FILE_HANDLER:
         if ( isset( $this->_fileHandlerMap[ $alias ] ) )
@@ -503,7 +473,7 @@ class Log
             goto WRITE_LOG;
         }
 
-        $fileRes  = $this-> _initFileHandle(  $module, $this->_getFileName( $level, $date ) );
+        $fileRes = $this->_initFileHandle( $module, $this->_getFileName( $level, $date ) );
         if ( false === $fileRes )
         {
             goto CHECK_FILE_HANDLER;
@@ -511,14 +481,12 @@ class Log
         $this->_fileHandlerMap[ $alias ] = $fileRes;
 
         WRITE_LOG:
-        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $this->_buffer[ $bufKey ] );
+        $result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $log );
         if ( false === $result )
         {
             Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
         }
 
-        $this->_bufFlushTime[ $bufKey ] = time();
-        $this->_buffer[ $bufKey ]       = '';
     }
 
     /**
@@ -528,7 +496,7 @@ class Log
      */
     private function _initFileHandle( string $fileDir, string $fileExt )
     {
-        $fileDir  = self::$_baseDir.$fileDir;
+        $fileDir  = self::$_baseDir . $fileDir;
         $filePath = "{$fileDir}/{$fileExt}";
         if ( !is_dir( $fileDir ) )
         {
@@ -681,25 +649,62 @@ class Log
      */
     public function WriteToFile()
     {
-        $coId                         = Coroutine::Id();
-        $this->_buffer[ $coId ]       = [];
-        $this->_bufFlushTime[ $coId ] = [];
+        $buffer = [];
+        $break  = true;
         while ( true )
         {
             $data = $this->_toFileChan->pop( 0.2 );
-            if ( $this->_isTerminateChan && $data === false )
+            if ( $this->_isTerminateChan && $data === false && $break )
             {
                 break;
             }
 
             if ( $data === false )
             {
-                Coroutine::Sleep( 0.5 );
-                continue;
+                goto FLUSH;
             }
 
-            $this->_writeLogFile( $data, $coId );
+            $date      = date( 'ymdHis' );
+            $log       = $this->_parseModuleLevel( $data );
+            $bufferKey = $log[ 'module' ] . $log[ 'level' ];
+            if ( isset( $buffer[ $bufferKey ] ) )
+            {
+                $buffer[ $bufferKey ][ 'body' ] = $buffer[ $bufferKey ][ 'body' ] . $log[ 'body' ];
+                $buffer[ $bufferKey ][ 'size' ] += strlen( $log[ 'body' ] );
+            }
+            else
+            {
+                $buffer[ $bufferKey ] = array_merge(
+                    $log,
+                    [
+                        'size'      => strlen( $log[ 'body' ] ),
+                        'module'    => $log[ 'module' ],
+                        'level'     => $log[ 'level' ],
+                        'flushTime' => time(),
 
+                    ]
+                );
+            }
+
+            FLUSH:
+            $emptyBufferCount = 0;
+            foreach ($buffer as $eachBufKey=>$eachBuffer)
+            {
+                if( 0==$eachBuffer['size'] )
+                {
+                    $emptyBufferCount++;
+                    continue ;
+                }
+
+                if( time()-$eachBuffer['flushTime']>=3 || $eachBuffer[ 'size' ]>=self::MAX_BUFFER_SIZE )
+                {
+                    $this->_writeFile( $eachBuffer[ 'module' ], $eachBuffer[ 'level' ], $eachBuffer[ 'body' ], $date );
+                    $buffer[$eachBufKey]['body']      = '';
+                    $buffer[$eachBufKey]['size']      = 0;
+                    $buffer[$eachBufKey]['flushTime'] = time();
+                }
+            }
+            $buffer = count($buffer)==$emptyBufferCount ? true : false;
         }
         //self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
     }
