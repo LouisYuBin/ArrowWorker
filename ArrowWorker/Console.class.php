@@ -143,7 +143,7 @@ class Console
 
         $this->_application = $argv[2] ?? '';
         $this->_env         = $argv[3] ?? '';
-        $this->_isDemonize  = isset($argv[4]) && 'true'===trim($argv[4]) ? false : false;
+        $this->_isDemonize  = isset($argv[4]) && 'true'===trim($argv[4]) ? true : false;
     }
 
     private function _checkStartEnv()
