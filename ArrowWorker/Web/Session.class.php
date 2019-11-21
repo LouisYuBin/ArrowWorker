@@ -207,7 +207,7 @@ class Session
         }
 
         $token = Request::Post(self::$tokenKey);
-        if( false!==$token )
+        if( ''!==$token )
         {
             self::$token[$coId] = $token;
             return ;
