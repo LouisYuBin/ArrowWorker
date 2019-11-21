@@ -50,7 +50,6 @@ defined('APP_TPL_DIR') or define('APP_TPL_DIR','Tpl');
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE','App');
 
 defined('DEBUG') or define('DEBUG', true);
-defined('ENV') or define('ENV', 'Dev');
 
 
 /**
@@ -69,14 +68,14 @@ class ArrowWorker
     /**
      * @var $Arrow ArrowWorker
      */
-    private static $Arrow = null;
+    private static $_arrow = null;
 
     /**
      * ArrowWorker constructor.
      */
     private function __construct()
     {
-        spl_autoload_register(['self','_loadClass']);
+        spl_autoload_register([$this,'LoadClass']);
     }
 
 
@@ -85,35 +84,33 @@ class ArrowWorker
      * @author Louis
      */
     static function Start(){
-        if ( is_null(static::$Arrow) )
+        if( self::$_arrow instanceof self )
         {
-            static::$Arrow = new self;
-            Exception::Init();
+            return ;
         }
+        self::$_arrow = new self;
         App::Run();
     }
 
 
     /**
-     * _loadClass : auto-load class method
+     * LoadClass : auto-load class method
      * @author Louis
      * @param string $class
      */
-    static function _loadClass(string $class)
+    public function LoadClass(string $class)
     {
-        $ArrowClass = self::_classMap();
-        if( isset($ArrowClass[$class]) )
+        $fileAlias = $this->_GetAutoLoadAlias();
+        if( isset($fileAlias[$class]) )
         {
-            //frame class
-            $class = $ArrowClass[$class];
+            $class = $fileAlias[$class];
         }
         else
         {
-            $class = APP_PATH.DIRECTORY_SEPARATOR.str_replace(['\\',explode('\\', $class)[0]],"/",$class).static::CLASS_EXT;
+            $class = APP_PATH . '/' . str_replace(['\\', explode('\\', $class)[0] ],"/", $class).static::CLASS_EXT;
             if( !file_exists($class) )
             {
-                $msg = "Auto load class error : ".$class." does not exists.";
-                Log::Error($msg);
+                Log::Error("Auto load class error : ".$class." does not exists.");
                 return ;
             }
         }
@@ -122,16 +119,15 @@ class ArrowWorker
 
 
     /**
-     * classMap frame class alias
+     * _GetAutoLoadAlias frame class alias
      * @author Louis
      * @return array
      */
-    static function _classMap()
+    private function _GetAutoLoadAlias()
     {
         return [
             'ArrowWorker\App'        => ArrowWorker . '/App'        . self::CLASS_EXT,
-            'ArrowWorker\Model'      => ArrowWorker . '/Model'      . self::CLASS_EXT,
-            'ArrowWorker\Loader'     => ArrowWorker . '/Loader'     . self::CLASS_EXT,
+            'ArrowWorker\Di'         => ArrowWorker . '/Di'         . self::CLASS_EXT,
             'ArrowWorker\Config'     => ArrowWorker . '/Config'     . self::CLASS_EXT,
             'ArrowWorker\Exception'  => ArrowWorker . '/Exception'  . self::CLASS_EXT,
 

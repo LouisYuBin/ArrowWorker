@@ -17,72 +17,120 @@ class Config
 
     const LOG_NAME = 'Config';
 
+    const ENV_DEV = 'Dev';
+
+    const ENV_TEST = 'Test';
+
+    const ENV_PRODUCTION = 'Production';
+
+    /**
+     * @var Config
+     */
+    private static $_instance;
+
+    private $_env = 'Dev';
+
     /**
      * 配置文件路径
      * @var string
      */
-    private static $_path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR . ENV . DIRECTORY_SEPARATOR;
+    private $_path = APP_PATH . DIRECTORY_SEPARATOR . APP_CONFIG_DIR . DIRECTORY_SEPARATOR;
 
     /**
      * 配置文件记录
      * @var array
      */
-    private static $_configMap = [];
+    private $_configMap = [];
 
     /**
      * 配置文件后缀
      * @var array
      */
-    private static $_configExt = '.php';
+    private $_configExt = '.php';
+
+
+    private function __construct()
+    {
+        $env         = Console::Init()->GetEnv();
+        $this->_env  = in_array( $env, [
+            self::ENV_DEV,
+            self::ENV_TEST,
+            self::ENV_PRODUCTION,
+        ] ) ? $env : self::ENV_DEV;
+        $this->_path = $this->_path . $this->_env . DIRECTORY_SEPARATOR;
+    }
 
     /**
      * Init
-     * @author Louis
      * @param string $subPath
      * @return string
+     * @author Louis
      */
-    private static function _getPath( string $subPath = '' )
+    private function _getPath( string $subPath = '' )
     {
-        if ( empty( $configFilePath ) )
+        if ( empty( $subPath ) )
         {
-            return self::$_path;
+            return $this->_path;
         }
 
-        return self::$_path . $subPath . DIRECTORY_SEPARATOR;
+        return $this->_path . $subPath . DIRECTORY_SEPARATOR;
     }
 
     /**
      * Get
-     * @author Louis
      * @param string $configName
      * @return bool|mixed
+     * @author Louis
      */
     public static function Get( string $configName = APP_CONFIG_FILE )
     {
-        if ( isset( self::$_configMap[$configName] ) )
+        if ( self::$_instance instanceof Config )
         {
-            return self::$_configMap[$configName];
+            goto _RETURN;
         }
-        return self::Load( $configName );
+
+        self::$_instance = new self();
+
+        _RETURN:
+        return self::$_instance->_getConfig( $configName );
+    }
+
+    public static function SetEnv( string $env = self::ENV_DEV )
+    {
+        $env        = ucfirst( $env );
+        self::$_env = !in_array( $env, [
+            self::ENV_DEV,
+            self::ENV_TEST,
+            self::ENV_PRODUCTION,
+        ] ) ? $env : self::ENV_DEV;
+    }
+
+    private function _getConfig( string $configName )
+    {
+        if ( isset( $this->_configMap[ $configName ] ) )
+        {
+            return $this->_configMap[ $configName ];
+        }
+        return $this->_load( $configName );
     }
 
     /**
      * Load
-     * @author Louis
      * @param string $configName
      * @param string $subPath
      * @return mixed
+     * @author Louis
      */
-    private static function Load( string $configName, string $subPath = '' )
+    private function _load( string $configName, string $subPath = '' )
     {
-        $_pathName = self::_getPath( $subPath ) . $configName . self::$_configExt;
-        if ( !file_exists( $_pathName ) )
+        $configPath = $this->_getPath( $subPath ) . $configName . $this->_configExt;
+        if ( !file_exists( $configPath ) )
         {
-            Log::Error( "Config File : {$_pathName} does not exists.", self::LOG_NAME );
+            Log::Error( "Config File : {$configPath} does not exists.", self::LOG_NAME );
             return false;
         }
-        self::$_configMap[$configName] = require($_pathName);
-        return self::$_configMap[$configName];
+        $this->_configMap[ $configName ] = require( $configPath );
+        return $this->_configMap[ $configName ];
     }
 
 }

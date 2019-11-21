@@ -89,7 +89,7 @@ class Response
     public static function Write(string $msg)
     {
         $coId = Coroutine::Id();
-        if( !DEBUG )
+        if( DEBUG )
         {
             $header = isset(self::$_header[$coId]) ? json_encode(self::$_header[$coId],JSON_UNESCAPED_UNICODE) : '';
             Log::Debug("Response,  data : {$msg}, header : {$header}", self::LOG_NAME);

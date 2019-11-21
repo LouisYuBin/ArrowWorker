@@ -6,7 +6,6 @@
 
 namespace ArrowWorker;
 
-use ArrowWorker\Web\Response;
 
 /**
  * Class Exception
@@ -58,40 +57,7 @@ class Exception
 	 */
 	static function error(int $code=0, string $msg='', string $file='', int $line=0 )
     {
-        //ob_clean();
-        if( APP_TYPE=='fpm' && APP_STATUS=='debug' )
-        {
-            Response::Write("<b>Error:</b><br />Code : {$code}<br />File : {$file}<br />Line : {$line }<br />Message : {$msg}<br />");
-        }
-        else if( APP_TYPE=='fpm' && APP_STATUS!='debug' )
-        {
-            Response::Json( 500, ['msg' => 'something is wrong with the server...'] );
-        }
-        else if( in_array(APP_TYPE, ['worker','server']) )
-        {
-            static::_removePidFile();
-            exit(PHP_EOL."Error:".PHP_EOL."File: {$file}".PHP_EOL."Line: {$line}".PHP_EOL."Message: {$msg}".PHP_EOL);
-        }
-    }
-
-    /**
-     * _removePidFile 删除pid文件
-     * @author Louis
-     */
-    static function _removePidFile()
-    {
-        $daemonConfig = Config::Get('Daemon');
-        if( $daemonConfig===false )
-        {
-            return ;
-        }
-
-        $pidPath = '/var/run/arrow.pid';
-        if(file_exists($pidPath))
-        {
-            @unlink($pidPath);
-        }
-
+        Log::Dump("[ Exception ] Message: {$msg}, File:{$file} ,Line: {$line}");
     }
 
 

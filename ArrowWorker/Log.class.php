@@ -182,7 +182,7 @@ class Log
 
 
     /**
-     * Initialize log process
+     * @var bool $isDemonize
      */
     public static function Initialize()
     {
@@ -780,16 +780,20 @@ class Log
      */
     private function _exit()
     {
-        static::Dump( self::LOG_PREFIX . ' exited. queue status : ' . json_encode( $this->_msgObject->Status() ) );
+        static::Dump( self::LOG_PREFIX . ' exited. queue status : ' . json_encode( self::$_msgObject->Status() ) );
         exit( 0 );
     }
 
     /**
-     * _resetStd reset standard output and error log
-     * @author Louis
+     * @param bool $isDemonize
      */
-    private static function _resetStd()
+    private static function _resetStd(bool $isDemonize=false)
     {
+        if( !Console::Init()->GetIsDemonize() )
+        {
+            return ;
+        }
+
         global $STDOUT, $STDERR;
         $newStdResource = fopen( static::$StdoutFile, "a" );
         if ( !is_resource( $newStdResource ) )
@@ -801,7 +805,6 @@ class Log
         fclose( STDERR );
         $STDOUT = fopen( static::$StdoutFile, 'a' );
         $STDERR = fopen( static::$StdoutFile, 'a' );
-        return;
     }
 
     /**

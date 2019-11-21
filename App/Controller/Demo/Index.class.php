@@ -15,7 +15,6 @@ use ArrowWorker\Memory;
 use ArrowWorker\Web\Cookie;
 use ArrowWorker\Driver;
 use ArrowWorker\Lib\Validation\ValidateImg;
-use ArrowWorker\Loader;
 use ArrowWorker\Log;
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;

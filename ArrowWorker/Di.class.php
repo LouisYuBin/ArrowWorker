@@ -10,10 +10,10 @@ namespace ArrowWorker;
 
 /**
  * 用户类加载器
- * Class Loader
+ * Class Di
  * @package ArrowWorker
  */
-class Loader
+class Di
 {
     /**
      * 用户定义类加载map

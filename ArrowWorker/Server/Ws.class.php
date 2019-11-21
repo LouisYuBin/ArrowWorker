@@ -132,7 +132,6 @@ class Ws extends ServerPattern
         $this->_handlerOpen      = $controller.($config['handler']['open'] ?? '');
         $this->_handlerMessage   = $controller.($config['handler']['message'] ?? '');
         $this->_handlerClose     = $controller.($config['handler']['close'] ?? '');
-        Router::Init( $this->_404 );
     }
 
     private function _start()

@@ -47,7 +47,7 @@ class Converter
     /**
      * @return bool|\SimpleXMLElement
      */
-    public function ToObject() : \SimpleXMLElement
+    public function ToObject()
     {
         if( empty($this->_xmlObject) )
         {

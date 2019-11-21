@@ -16,6 +16,26 @@ class Server
 {
 
     /**
+     *
+     */
+    const SERVER_HTTP = 'Http';
+
+    /**
+     *
+     */
+    const SERVER_WEBSOCKET = 'Ws';
+
+    /**
+     *
+     */
+    const SERVER_TCP = 'Tcp';
+
+    /**
+     *
+     */
+    const SERVER_UDP = 'Udp';
+
+    /**
      * @var string
      */
     protected $_host = '0.0.0.0';
@@ -96,6 +116,9 @@ class Server
      */
     protected $_component;
 
+    /**
+     *
+     */
     protected function _initComponent()
     {
         $this->_component = Component::Init();

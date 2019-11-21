@@ -14,7 +14,7 @@ use \Swoole\WebSocket\Frame  as WebSocketFrame;
 class WebSocket
 {
 
-    public static function Open(WebSocketServer $server)
+    public static function Open(WebSocketServer $server, int $fd)
     {
         $memory = Memory::Get('default');
         //$memory->Write('spicy',['id'=>3,'token'=>'5566666']);
@@ -23,7 +23,7 @@ class WebSocket
         //var_dump($map,$map1);
  /*       var_dump( $memory->Write($req->fd, $req->fd) );
         var_dump($memory->IsKeyExists($req->fd));*/
-        Log::Info( "connection open: {$req->fd}");
+        Log::Info( "connection open: {$fd}");
     }
 
     public static function Message(WebSocketServer $server, WebSocketFrame $frame)

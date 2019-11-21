@@ -88,7 +88,11 @@ class Client
         {
             try
             {
-                $connResult = @$this->_client->connect( $this->_host, $this->_port, $this->_timeout );
+                if( @$this->_client->connect( $this->_host, $this->_port, $this->_timeout ) )
+                {
+                    return true;
+                }
+
             }
             catch ( \Exception $e )
             {
@@ -96,7 +100,7 @@ class Client
             }
         }
 
-        return $connResult;
+        return false;
     }
 
     /**

@@ -50,13 +50,13 @@ class App
     const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
 
     /**
-     * RunApp 执行应用
      * @author Louis
      */
     public static function Run()
     {
+        $console = Console::Init();
         self::_initOptions();
-        Daemon::Start();
+        $console->Execute();
     }
 
     private static function _initOptions()
@@ -70,8 +70,12 @@ class App
 
         foreach ($options as $option=>$value)
         {
-            ini_set($option,$value);
+            if( false===ini_set($option,$value) )
+            {
+                Log::Hint("ini_set({$option}, {$value}) failed.");
+            }
         }
+        Exception::Init();
     }
 
     public static function GetController()

@@ -58,6 +58,16 @@ class Daemon
      */
     const APP_NAME = 'Arrow';
 
+    const APP_SERVER = 'server';
+
+    const APP_WORKER = 'worker';
+
+    /**
+     * path of where pid file will be located
+     * @var string
+     */
+    const PID_DIR = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Pid/';
+
     /**
      * 需要去除的进程执行权限
      * @var int
@@ -65,21 +75,20 @@ class Daemon
     private static $umask = 0;
 
     /**
-     * path of where pid file will be located
-     * @var string
-     */
-    private static $pidDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Pid/';
-
-    /**
      * $pid : pid file for monitor process
      * @var mixed|string
      */
-    private static $pid = 'Arrow';
+    const PID = self::PID_DIR.self::APP_NAME.'.pid';
 
     /**
      * @var string
      */
     public static $identity = '';
+
+    private static $_isDemonize = false;
+
+    private static $_application = [];
+
 
     /**
      * pidMap : child process name
@@ -93,6 +102,7 @@ class Daemon
      */
     private $_terminate = false;
 
+
     public function __construct()
     {
         $this->_changeWorkDirectory();
@@ -100,12 +110,10 @@ class Daemon
         $this->_setProcessName("started at ".date("Y-m-d H:i:s"));
     }
 
-    public static function Start()
+    public static function Start(string $application, bool $isDemonize=false)
     {
-        self::_initConfig();
-        self::_execCommand();
-        self::_checkEnvironment();
-        self::_checkPidFile();
+        self::_initParameter($application, $isDemonize);
+        self::_initFunction();
         self::_demonize();
 
         $daemon = new self();
@@ -113,6 +121,31 @@ class Daemon
         $daemon->_setSignalHandler();
         $daemon->_startProcess();
         $daemon->_startMonitor();
+    }
+
+
+    public static function SetDemonize(bool $isDemonize)
+    {
+        self::$_isDemonize = $isDemonize;
+    }
+
+    public static function SetStartApp(string $apps)
+    {
+        $appList = explode(':', $apps);
+        foreach ($appList as $app)
+        {
+            $app = strtolower($app);
+            if( !in_array($app, [self::APP_SERVER, self::APP_WORKER]) )
+            {
+                continue ;
+            }
+            self::$_application[] = $app;
+        }
+        
+        if( 0==count(self::$_application) )
+        {
+            self::$_application = [self::APP_SERVER];
+        }
     }
 
     private function _initComponent()
@@ -125,15 +158,14 @@ class Daemon
     {
         $this->_startLogProcess();
 
-        $appList = APP_TYPE;
-        rsort($appList);
-        foreach ( $appList as $appType )
+        rsort(self::$_application);
+        foreach ( self::$_application as $appType )
         {
-            if ( $appType=='server' )
+            if ( $appType==self::APP_SERVER )
             {
                 $this->_startSwooleServer();
             }
-            else if( $appType=='worker' )
+            else if( $appType==self::APP_WORKER )
             {
                 $this->_startWorkerProcess();
             }
@@ -259,10 +291,6 @@ class Daemon
         }
     }
 
-    /**
-     * _startMonitor : start monitor process
-     * @author Louis
-     */
     private function _startMonitor()
     {
         Log::Dump(static::LOG_PREFIX.'starting monitor process ( '.Process::Id().' )');
@@ -392,7 +420,7 @@ class Daemon
         $signal = SIGTERM;
         if( !Process::IsKillNotified((string)($pid.$signal)) )
         {
-            Log::Dump(static::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
+            Log::Dump(self::LOG_PREFIX."sending SIGTERM signal to {$appType}:{$pid} process");
         }
 
         for($i=0; $i<3; $i++)
@@ -405,9 +433,6 @@ class Daemon
         }
     }
 
-    /**
-     * _exitMonitor
-     */
     private function _exitMonitor()
     {
         if( count($this->_pidMap)!=0 )
@@ -415,140 +440,23 @@ class Daemon
             return ;
         }
 
-        if( file_exists(self::$pid) )
+        if( file_exists(self::PID) )
         {
-            unlink(self::$pid);
+            unlink(self::PID);
         }
 
-        $this->_cleanChannelPath();
         Chan::Close();
 
         Log::Dump(static::LOG_PREFIX.'exited');
         exit(0);
     }
 
-
-    private static function _execCommand()
-    {
-        global $argv;
-        if( !isset($argv[1]) )
-        {
-            Log::DumpExit('use command << php index.php start/stop >> to start or stop Arrow Server');
-        }
-
-        $action = $argv[1];
-
-        if( !in_array($action, ['start', 'stop', 'status', 'restart']) )
-        {
-            Log::Hint("Oops! Unknown operation. please use \"php {$argv[0]} start/stop/status/restart\" to start/stop/restart the service");
-            exit(0);
-        }
-
-        switch ($action)
-        {
-            case 'stop':
-                static::_restart(true);
-                break;
-            case 'start':
-                static::_start();
-                break;
-            case 'status':
-                static::_status();
-                break;
-            case 'restart':
-                static::_restart(false);
-                break;
-            default:
-        }
-
-    }
-
-    /**
-     *
-     */
-    private static function _start()
-    {
-        Log::Hint('Arrow starting.');
-    }
-
-    /**
-     * @param bool $isStop
-     */
-    private static function _restart( bool $isStop=true)
-    {
-        $pid = static::_getDaemonPid();
-        for($i=1; $i>0; $i++ )
-        {
-            if( $i==1 )
-            {
-                if( Process::Kill($pid,SIGTERM) )
-                {
-                    echo('Arrow stopping');
-                }
-                else
-                {
-                    Log::Hint('Arrow is not running.');
-                    break ;
-                }
-            }
-            else
-            {
-                if( !Process::Kill($pid,SIGTERM, true) )
-                {
-                    Log::Hint('stopped successfully.');
-                    break;
-                }
-                else
-                {
-                    echo '.';
-                    sleep(1);
-                }
-            }
-        }
-
-        if( $isStop )
-        {
-            exit(0);
-        }
-
-        static::_start();
-    }
-
-    /**
-     *
-     */
-    private static function _status()
-    {
-        exit(static::_processStatus());
-    }
-
-    /**
-     * @return string
-     */
-    private static function _processStatus()
-    {
-        global $argv;
-        $keyword = self::APP_NAME.'_'.self::_getDaemonPid();
-        if( PHP_OS=='Darwin')
-        {
-            $keyword = $argv[0] ;
-        }
-        $commend = "ps -e -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
-        $output  = 'user | pid | ppid | cpu usage | memory usage | process name'.PHP_EOL;
-        $results = LoadAverage::Exec($commend);
-        foreach ($results as $key=>$item)
-        {
-            $output .= $item.PHP_EOL;
-        }
-        return $output;
-    }
-
     /**
      * @return int
      */
-    private static function _getDaemonPid() : int
+    public static function GetPid() : int
     {
-        $pid = (int)file_get_contents(static::$pid);
+        $pid = (int)file_get_contents(self::PID);
         if( $pid==0 )
         {
             Log::Hint('Arrow Hint : Server is not running');
@@ -557,56 +465,15 @@ class Daemon
         return $pid;
     }
 
-    /**
-     * _cleanChannelPath
-     */
-    private function _cleanChannelPath()
+    private static function _initParameter(string $application, bool $isDemonize)
     {
-        $chanPath  = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Channel/';
-        $chanFiles = scandir($chanPath);
-        if( $chanFiles!==false )
-        {
-            foreach ($chanFiles as $file)
-            {
-                if( $file=='.' || $file=='..' || is_dir($chanPath.$file))
-                {
-                    continue ;
-                }
-                @unlink($chanPath.$file);
-            }
-        }
+        self::_initPid();
+        self::SetStartApp($application);
+        self::SetDemonize($isDemonize);
     }
 
-    /**
-     * _initConfig
-     */
-    private static function _initConfig()
+    private static function _initFunction()
     {
-        if (
-            !is_array(APP_TYPE) ||
-            0==count(APP_TYPE) ||
-            (
-                !in_array('server', APP_TYPE) &&
-                !in_array('worker', APP_TYPE)
-            )
-        )
-        {
-            Log::DumpExit('APP_TYPE is not set.');
-        }
-        self::$pid = static::$pidDir.static::APP_NAME.'.pid';
-    }
-
-    /**
-     * _environmentCheck : checkout process running environment
-     * @author Louis
-     */
-    private static function _checkEnvironment()
-    {
-        if ( php_sapi_name() != "cli" )
-        {
-            Log::DumpExit("Arrow hint : only run in command line mode");
-        }
-
         if ( !function_exists('pcntl_signal_dispatch') )
         {
             declare(ticks = 10);
@@ -624,12 +491,13 @@ class Daemon
 
     }
 
-    /**
-     * _daemonMake : demonize the process
-     * @author Louis
-     */
     private static function _demonize()
     {
+        if( !self::$_isDemonize )
+        {
+            goto SET_IDENTITY;
+        }
+
         umask(self::$umask);
 
         if ( Process::Fork() != 0)
@@ -644,37 +512,30 @@ class Daemon
             exit();
         }
 
+        SET_IDENTITY:
         self::$identity = self::APP_NAME.'_'.Process::Id();
     }
 
-    /**
-     * _createPidFile : create process pid file
-     * @author Louis
-     */
     private function _createPidFile()
     {
-        if (!is_dir(self::$pidDir))
+        if (!is_dir(self::PID_DIR))
         {
-            mkdir(self::$pidDir,0777,true);
+            mkdir(self::PID_DIR,0766,true);
         }
 
-        $fp = fopen(self::$pid, 'w') or die("cannot create pid file".PHP_EOL);
+        $fp = fopen(self::PID, 'w') or die("cannot create pid file".PHP_EOL);
         fwrite($fp, Process::Id());
         fclose($fp);
     }
 
-    /**
-     * _checkPidFile : checkout process pid file
-     * @author Louis
-     */
-    private static function _checkPidFile()
+    private static function _initPid()
     {
-        if ( !file_exists(static::$pid) )
+        if ( !file_exists(self::PID) )
         {
             return ;
         }
 
-        $pid = (int)file_get_contents(static::$pid);
+        $pid = (int)file_get_contents(self::PID);
 
         if ($pid > 0 && Process::Kill($pid, 0))
         {
@@ -683,7 +544,7 @@ class Daemon
         }
         else
         {
-            unlink(self::$pid);
+            unlink(self::PID);
         }
 
     }

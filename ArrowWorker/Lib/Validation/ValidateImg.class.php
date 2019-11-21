@@ -2,7 +2,7 @@
 namespace ArrowWorker\Lib\Validation;
 
 use ArrowWorker\Config;
-use ArrowWorker\Response;
+use ArrowWorker\Web\Response;
 
 /**
  * Class ValidateImg
@@ -261,13 +261,10 @@ class ValidateImg
     private function output()
     {
         Response::Header("Content-type",'image/png');
-        if( APP_TYPE!='fpm' )
+
+        if( !ob_start() )
         {
-            //ob_clean();
-            if( !ob_start() )
-            {
-                return false;
-            }
+            return false;
         }
 
         if( !imagepng($this->img) )
@@ -275,11 +272,8 @@ class ValidateImg
             return false;
         }
 
-        if( APP_TYPE!='fpm')
-        {
-            Response::Write( ob_get_contents() );
-            ob_end_clean();
-        }
+        Response::Write( ob_get_contents() );
+        ob_end_clean();
 
         if( !imagedestroy($this->img) )
         {

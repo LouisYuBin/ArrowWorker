@@ -64,22 +64,15 @@ class Queue
      */
     public function Write( string $message, int $msgType=1 )
     {
-        $retryTimes = 0;
-        RETRY:
-        if( false==msg_send( $this->_queue, $msgType, (string)$message,false, true, $errorCode))
+        for( $i=0; $i<3; $i++)
         {
-            $retryTimes++;
-            if( $retryTimes<=3 )
+            if( @msg_send( $this->_queue, $msgType, (string)$message,false, true, $errorCode) )
             {
-                goto RETRY;
+                return true;
             }
         }
-        else
-        {
-            return true;
-        }
-        Log::Dump("Queue->Write failed. Msg:$message");
 
+        Log::Dump("[  Queue  ] Write failed. data : {$message}");
         return false;
 	}
 

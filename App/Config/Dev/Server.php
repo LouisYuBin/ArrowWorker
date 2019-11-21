@@ -1,8 +1,9 @@
 <?php
+use \ArrowWorker\Server\Server;
 
 return [
     [
-        'type'             => 'Http',
+        'type'             => Server::SERVER_HTTP,
         'host'             => '0.0.0.0',
         'port'             => 4433,
         'workerNum'        => 1,
@@ -39,7 +40,7 @@ return [
         ]
     ],
     [
-        'type'             => 'Ws',
+        'type'             => Server::SERVER_WEBSOCKET,
         'host'             => '0.0.0.0',
         'port'             => 8081,
         'workerNum'        => 1,
@@ -78,7 +79,7 @@ return [
         ]
     ],
     [
-        'type'             => 'Tcp',
+        'type'             => Server::SERVER_TCP,
         'host'             => '0.0.0.0',
         'port'             => 9505,
         'workerNum'        => 1,
@@ -119,7 +120,7 @@ return [
     ],
 /*
     [
-        'type'             => 'Udp',
+        'type'             => Server::SERVER_UDP,
         'host'             => '0.0.0.0',
         'port'             => 9506,
         'workerNum'        => 8,
