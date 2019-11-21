@@ -107,7 +107,7 @@ class Console
 
     private function _start()
     {
-        Log::Hint('starting...');
+        Log::Hint("starting ...{$this->_application}({$this->_env})");
         Daemon::Start( $this->_application, $this->_isDemonize );
     }
 
@@ -161,7 +161,6 @@ class Console
 
     public function GetEnv()
     {
-        var_dump($this->_env);
         return $this->_env;
     }
 }
