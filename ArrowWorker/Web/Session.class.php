@@ -40,9 +40,9 @@ class Session
 
     /**
      * token : current session id(token)
-     * @var string
+     * @var array
      */
-    private static $_token = '';
+    private static $_token = [];
     /**
      * config : session config information
      * @var array
