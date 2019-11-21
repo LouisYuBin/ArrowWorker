@@ -62,7 +62,7 @@ class Queue
      * @param int $msgType 消息类型
      * @return bool
      */
-    public function Write( string $message, int $msgType=1 )
+    public function Write( string $message, int $msgType=1 ) : bool
     {
         for( $i=0; $i<3; $i++)
         {
@@ -72,7 +72,7 @@ class Queue
             }
         }
 
-        Log::Dump("[  Queue  ] Write failed. data : {$message}");
+        Log::Dump("[  Queue  ] Write:msg_send failed. error code : {$errorCode}, data : {$message}");
         return false;
 	}
 
