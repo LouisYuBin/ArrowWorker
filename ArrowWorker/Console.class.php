@@ -40,6 +40,12 @@ class Console
     private function _stop()
     {
         $pid = Daemon::GetPid();
+        if( 0===$pid )
+        {
+            Log::Hint( 'Arrow is not running.' );
+            return false;
+        }
+
         for ( $i = 1; $i > 0; $i++ )
         {
             if ( $i == 1 )
@@ -51,7 +57,7 @@ class Console
                 else
                 {
                     Log::Hint( 'Arrow is not running.' );
-                    break;
+                    return false;
                 }
             }
             else
@@ -59,7 +65,7 @@ class Console
                 if ( !Process::Kill( $pid, SIGTERM, true ) )
                 {
                     Log::Hint( 'stopped successfully.' );
-                    break;
+                    return true;
                 }
                 else
                 {
@@ -123,8 +129,10 @@ class Console
 
     private function _restart()
     {
-        $this->_stop();
-        $this->_start();
+        if( $this->_stop() )
+        {
+            $this->_start();
+        }
     }
 
     private function _parseArgv()

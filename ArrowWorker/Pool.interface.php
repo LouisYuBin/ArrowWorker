@@ -19,10 +19,10 @@ interface Pool
     const DEFAULT_POOL_SIZE = 10;
 
     /**
-     * @param array $appConfig
+     * @param array $alias
      * @return mixed
      */
-    public static function Init( array $appConfig) : void ;
+    public static function Init( array $alias) : void ;
 
     /**
      * @param string $alias

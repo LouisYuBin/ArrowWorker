@@ -110,11 +110,11 @@ class RedisSession extends Session
     }
 
     /**
-     * destory specified session
+     * Destroy specified session
      * @param string $sessionId
      * @return mixed
      */
-    public function Destory(string $sessionId) : bool
+    public function Destroy(string $sessionId) : bool
     {
         if( $this->handler->del($sessionId)>0 )
         {

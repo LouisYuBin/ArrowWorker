@@ -49,19 +49,20 @@ class Pool implements ConnPool
     ];
 
     /**
-     * @var array $appConfig specified keys and pool size
+     * @var array $alias specified keys and pool size
      * check config and initialize connection chan
      */
-    public static function Init(array $appConfig) : void
+    public static function Init(array $alias) : void
     {
-        self::_initConfig($appConfig);
+        self::_initConfig($alias);
         self::InitPool();
     }
 
     /**
-     * @param array $appConfig specified keys and pool size
+     * @param array $alias specified keys and pool size
+     * @param array $config
      */
-    private static function _initConfig( array $appConfig)
+    private static function _initConfig( array $alias, array $config=[])
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
@@ -72,13 +73,11 @@ class Pool implements ConnPool
 
         foreach ( $config as $index => $value )
         {
-            if( !isset($appConfig[$index]) )
+            if( !isset($alias[$index]) )
             {
-                //initialize specified db config only
                 continue ;
             }
 
-            //ignore incorrect config
             if (
                 !isset( $value['driver'] ) ||
                 !in_array($value['driver'], ['Redis', 'Memcached'] ) ||
@@ -91,7 +90,7 @@ class Pool implements ConnPool
                 continue;
             }
 
-            $value['poolSize']     = (int)$appConfig[$index]>0 ? $appConfig[$index] : self::DEFAULT_POOL_SIZE;
+            $value['poolSize']     = (int)$alias[$index]>0 ? $alias[$index] : self::DEFAULT_POOL_SIZE;
             $value['connectedNum'] = 0;
 
             self::$_configs[$index] = $value;

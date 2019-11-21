@@ -137,11 +137,11 @@ class MemcachedSession extends Session
     }
 
     /**
-     * destory specified session
+     * Destroy specified session
      * @param string $sessionId
      * @return mixed
      */
-    public function Destory(string $sessionId) : int
+    public function Destroy(string $sessionId) : int
     {
         return $this->handler -> delete( $sessionId );
     }

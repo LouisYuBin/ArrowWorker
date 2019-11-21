@@ -456,13 +456,12 @@ class Daemon
      */
     public static function GetPid() : int
     {
-        $pid = (int)file_get_contents(self::PID);
-        if( $pid==0 )
+        if( !file_exists(self::PID) )
         {
-            Log::Hint('Arrow Hint : Server is not running');
-            exit(0);
+            return 0;
         }
-        return $pid;
+
+        return (int)file_get_contents(self::PID);
     }
 
     private static function _initParameter(string $application, bool $isDemonize)

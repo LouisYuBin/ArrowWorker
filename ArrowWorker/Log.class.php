@@ -784,10 +784,7 @@ class Log
         exit( 0 );
     }
 
-    /**
-     * @param bool $isDemonize
-     */
-    private static function _resetStd(bool $isDemonize=false)
+    private static function _resetStd()
     {
         if( !Console::Init()->GetIsDemonize() )
         {
