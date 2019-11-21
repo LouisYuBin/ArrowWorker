@@ -124,7 +124,7 @@ class Console
         $output  = 'user | pid | ppid | cpu usage | memory usage | process name' . PHP_EOL;
         $results = LoadAverage::Exec( $commend );
         $output  .= implode( PHP_EOL, $results );
-        echo $output;
+        echo $output.PHP_EOL;
     }
 
     private function _restart()
