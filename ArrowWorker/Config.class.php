@@ -51,7 +51,7 @@ class Config
 
     private function __construct()
     {
-        $env         = Console::Init()->GetEnv();
+        $env         = ucfirst(Console::Init()->GetEnv());
         $this->_env  = in_array( $env, [
             self::ENV_DEV,
             self::ENV_TEST,
