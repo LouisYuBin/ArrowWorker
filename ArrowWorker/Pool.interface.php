@@ -20,9 +20,10 @@ interface Pool
 
     /**
      * @param array $alias
+     * @param array $config
      * @return mixed
      */
-    public static function Init( array $alias) : void ;
+    public static function Init( array $alias, array $config) : void ;
 
     /**
      * @param string $alias

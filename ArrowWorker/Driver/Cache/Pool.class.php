@@ -49,20 +49,20 @@ class Pool implements ConnPool
     ];
 
     /**
-     * @var array $alias specified keys and pool size
-     * check config and initialize connection chan
+     * @param array $appAlias specified keys and pool size
+     * @param array $config
      */
-    public static function Init(array $alias) : void
+    public static function Init(array $appAlias, array $config=[]) : void
     {
-        self::_initConfig($alias);
-        self::InitPool();
+        self::_initConfig($appAlias, $config);
+        self::_initPool();
     }
 
     /**
-     * @param array $alias specified keys and pool size
+     * @param array $appAlias specified keys and pool size
      * @param array $config
      */
-    private static function _initConfig( array $alias, array $config=[])
+    private static function _initConfig( array $appAlias, array $config=[])
     {
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
@@ -73,7 +73,7 @@ class Pool implements ConnPool
 
         foreach ( $config as $index => $value )
         {
-            if( !isset($alias[$index]) )
+            if( !isset($appAlias[$index]) )
             {
                 continue ;
             }
@@ -90,11 +90,12 @@ class Pool implements ConnPool
                 continue;
             }
 
-            $value['poolSize']     = (int)$alias[$index]>0 ? $alias[$index] : self::DEFAULT_POOL_SIZE;
+            $value['poolSize']     = (int)$appAlias[$index]>0 ? $appAlias[$index] : self::DEFAULT_POOL_SIZE;
             $value['connectedNum'] = 0;
 
             self::$_configs[$index] = $value;
-            self::$_pool[$index]    = new swChan( $value['poolSize'] );
+            self::$_pool[$index]     = new swChan( $value['poolSize'] );
+
         }
     }
 
@@ -102,7 +103,7 @@ class Pool implements ConnPool
     /**
      * initialize connection pool
      */
-    public static function InitPool()
+    public static function _initPool()
     {
         foreach (self::$_configs as $index=>$config)
         {
@@ -145,7 +146,7 @@ class Pool implements ConnPool
         {
             if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
             {
-                self::InitPool();
+                self::_initPool();
             }
             
             if( $retryTimes<=2 )

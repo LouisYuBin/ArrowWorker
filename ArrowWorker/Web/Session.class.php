@@ -13,7 +13,6 @@ use ArrowWorker\Driver\Session\RedisSession;
 use ArrowWorker\Config;
 
 
-
 /**
  * Class Session
  * @package ArrowWorker
@@ -43,26 +42,28 @@ class Session
      * @var array
      */
     private static $_token = [];
+
     /**
      * config : session config information
      * @var array
      */
     private static $_config = [
-        'handler' => 'RedisSession',
-        'host' => '127.0.0.1',
-        'port' => 6379,
+        'handler'  => 'RedisSession',
+        'host'     => '127.0.0.1',
+        'port'     => 6379,
         'userName' => '',
         'password' => 'louis',
-        'timeout' => 3600,
-        'prefix'  => 'sess_',
-        'cookie' => [
-            'expire' => '3600',
-            'path' => '/',
-            'domain' => '',
-            'secure' => false,
-            'httponly' => true
-        ]
+        'timeout'  => 3600,
+        'prefix'   => 'sess_',
+        'cookie'   => [
+            'expire'   => '3600',
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => false,
+            'httponly' => true,
+        ],
     ];
+
     /**
      * namespace
      * @var string
@@ -71,32 +72,29 @@ class Session
 
     public static function Init()
     {
-        self::_getSessionId();
+        // todo
     }
 
-    /**
-     * init : initialize session driver and get session id(token) from client
-     */
     private static function _init()
     {
-        if( self::$_isInitialized )
+        if ( self::$_isInitialized )
         {
             return self::$_handler;
         }
 
-        $config = Config::Get("Session");
-        if ($config )
+        $config = Config::Get( "Session" );
+        if ( $config )
         {
-            self::$_config = array_merge(self::$_config, $config);
+            self::$_config = array_merge( self::$_config, $config );
         }
 
-        $driver = self::$namespace . self::$_config['handler'];
+        $driver         = self::$namespace . self::$_config[ 'handler' ];
         self::$_handler = new $driver(
-            self::$_config['host'],
-            self::$_config['port'],
-            self::$_config['userName'],
-            self::$_config['password'],
-            self::$_config['timeout']
+            self::$_config[ 'host' ],
+            self::$_config[ 'port' ],
+            self::$_config[ 'userName' ],
+            self::$_config[ 'password' ],
+            self::$_config[ 'timeout' ]
         );
 
         self::$_isInitialized = true;
@@ -105,14 +103,13 @@ class Session
     }
 
     /**
-     * Set : set key information for specified session
      * @param string $key
      * @param string $val
      * @return bool
      */
-    public static function Set(string $key, string $val): bool
+    public static function Set( string $key, string $val ) : bool
     {
-        return self::_init()->Set(self::$_token[Coroutine::Id()], $key, $val);
+        return self::_init()->Set( self::GetToken(), $key, $val );
     }
 
     /**
@@ -120,9 +117,9 @@ class Session
      * @param array $val
      * @return bool
      */
-   public static function MultiSet(array $val): bool
+    public static function MultiSet( array $val ) : bool
     {
-        return self::_init()->MSet(self::$_token[Coroutine::Id()], $val);
+        return self::_init()->MSet( self::GetToken(), $val );
     }
 
     /**
@@ -130,9 +127,9 @@ class Session
      * @param string $key
      * @return false|array
      */
-    public static function Get(string $key)
+    public static function Get( string $key )
     {
-        return self::_init()->Get(self::$_token[Coroutine::Id()], $key);
+        return self::_init()->Get( self::GetToken(), $key );
     }
 
     /**
@@ -140,79 +137,55 @@ class Session
      * @param string $key
      * @return bool
      */
-    public static function Del(string $key) : bool
+    public static function Del( string $key ) : bool
     {
-        return self::_init()->Del(self::$_token[Coroutine::Id()], $key);
-    }
-
-    /**
-     * Id : get or set session id(token)
-     * @param string|null $id
-     * @return string
-     */
-    public static function Id(string $id = '') : string
-    {
-        $coId = Coroutine::Id();
-        if( !empty($id) )
-        {
-            self::$_token[$coId] = $id;
-            self::_setSessionCookie();
-        }
-
-        return self::$_token[$coId];
+        return self::_init()->Del( self::GetToken(), $key );
     }
 
     /**
      * Info : get all stored session information
-     * @param string $sessionId
      * @return array
      */
-    public static function Info(string $sessionId = '') : array
+    public static function Info() : array
     {
         $handler = self::_init();
-        if( !empty($sessionId) )
-        {
-            return $handler->Info( $sessionId );
-        }
-        return $handler->Info( self::$_token );
+        $token   = self::GetToken();
+        return $handler->Info( $token );
     }
 
     /**
      * @return bool
      */
-    public static function Destroy(): bool
+    public static function Destroy() : bool
     {
-        return self::_init()->Destroy(self::$_token);
+        return self::_init()->Destroy( self::GetToken() );
     }
 
     /**
-     * _getSessionId : get session id(token) from cookie/get/post data
+     * GetToken : get session id(token) from cookie/get/post data
      */
-    private static function _getSessionId()
+    public static function GetToken() : string
     {
-        $coId  = Coroutine::Id();
-        $token = Cookie::Get(self::$_tokenKey);
-        if( false!==$token )
+        $token = Cookie::Get( self::$_tokenKey );
+        if ( '' !== $token )
         {
-            self::$_token[$coId] = $token;
-            return ;
+            return $token;
         }
 
-        $token = Request::Get(self::$_tokenKey);
-        if( ''!==$token )
+        $token = Request::Get( self::$_tokenKey );
+        if ( '' !== $token )
         {
-            self::$_token[$coId] = $token;
-            return ;
+            return $token;
         }
 
-        $token = Request::Post(self::$_tokenKey);
-        if( ''!==$token )
+        $token = Request::Post( self::$_tokenKey );
+        if ( '' !== $token )
         {
-            self::$_token[$coId] = $token;
-            return ;
+            return $token;
         }
 
-        self::_generateSession();
+        return '';
+
     }
 
     /**
@@ -221,29 +194,29 @@ class Session
      */
     private static function _setSessionCookie() : bool
     {
-        return Cookie::Set(self::$_tokenKey,
-            self::$_token[Coroutine::Id()],
-            self::$_config['cookie']['expire'],
-            self::$_config['cookie']['path'],
-            self::$_config['cookie']['domain'],
-            self::$_config['cookie']['secure'],
-            self::$_config['cookie']['httponly']
-            );
+        return Cookie::Set( self::$_tokenKey,
+            self::$_token[ Coroutine::Id() ],
+            self::$_config[ 'cookie' ][ 'expire' ],
+            self::$_config[ 'cookie' ][ 'path' ],
+            self::$_config[ 'cookie' ][ 'domain' ],
+            self::$_config[ 'cookie' ][ 'secure' ],
+            self::$_config[ 'cookie' ][ 'httponly' ]
+        );
     }
 
     /**
-     * _generateSession : generate a session id(token)
+     * _generateToken : generate a session id(token)
      */
-    private static function _generateSession()
+    private static function _generateToken()
     {
         $coId = Coroutine::Id();
-        //session id为自动生成
-        if( self::$_token[$coId] != '' )
+        if ( self::$_token[ $coId ] != '' )
         {
-            return ;
+            return;
         }
 
-        self::$_token[$coId] = self::$_config['prefix'].crc32( Request::Server('REMOTE_ADDR') . microtime(false) . mt_rand(1,1000000) );
+        self::$_token[ $coId ] = self::$_config[ 'prefix' ] .
+                                 crc32( Request::Server( 'REMOTE_ADDR' ) . microtime( false ) . mt_rand( 1, 1000000 ) );
         self::_setSessionCookie();
     }
 
@@ -251,9 +224,9 @@ class Session
     {
         $coId = Coroutine::Id();
 
-        if( isset(self::$_token[$coId]) )
+        if ( isset( self::$_token[ $coId ] ) )
         {
-            unset( self::$_token[$coId] );
+            unset( self::$_token[ $coId ] );
         }
     }
 
