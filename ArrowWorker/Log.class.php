@@ -7,13 +7,13 @@
 namespace ArrowWorker;
 
 
-use \Swoole\Coroutine\Channel as swChan;
-
-use ArrowWorker\Driver\Cache\Redis;
-use ArrowWorker\Driver\Channel\Queue;
+use ArrowWorker\Component\Cache\Redis;
+use ArrowWorker\Component\Channel\Queue;
 use ArrowWorker\Client\Tcp\Client as Tcp;
-use ArrowWorker\Lib\Coroutine;
-use ArrowWorker\Lib\Process;
+use ArrowWorker\Library\Coroutine;
+use ArrowWorker\Library\Process;
+use ArrowWorker\Library\Channel as SwChan;
+
 
 /**
  * Class Log
@@ -161,17 +161,17 @@ class Log
     private $_redisClient;
 
     /**
-     * @var swChan;
+     * @var SwChan;
      */
     private $_toFileChan;
 
     /**
-     * @var swChan
+     * @var SwChan
      */
     private $_toTcpChan;
 
     /**
-     * @var swChan
+     * @var SwChan
      */
     private $_toRedisChan;
 
@@ -186,7 +186,6 @@ class Log
      */
     public static function Initialize()
     {
-        self::_checkExtension();
         self::_initConfig();
         self::_checkLogDir();
         self::_initMsgObj();
@@ -197,25 +196,6 @@ class Log
     {
         $this->_initHandler();
         $this->_initSignalHandler();
-    }
-
-    private static function _checkExtension()
-    {
-        if ( !extension_loaded( 'swoole' ) )
-        {
-            self::DumpExit( 'extension swoole is not installed/loaded.' );
-        }
-
-        if ( !extension_loaded( 'sysvmsg' ) )
-        {
-            self::DumpExit( 'extension sysvmsg is not installed/loaded.' );
-        }
-
-        if ( (int)str_replace( '.', '', ( new \ReflectionExtension( 'swoole' ) )->getVersion() ) < 400 )
-        {
-            self::DumpExit( 'swoole version must be newer than 4.0 .' );
-        }
-
     }
 
     private static function _checkLogDir()
@@ -255,7 +235,7 @@ class Log
 
     private function _initHandler()
     {
-        $this->_toFileChan = new swChan( self::$_chanSize );
+        $this->_toFileChan = SwChan::Init( self::$_chanSize );
 
         foreach ( self::$_writeType as $type )
         {
@@ -263,7 +243,7 @@ class Log
             {
                 case self::TO_REDIS:
 
-                    $this->_toRedisChan = new swChan( self::$_chanSize );
+                    $this->_toRedisChan = SwChan::Init( self::$_chanSize );
                     $this->_redisClient = Redis::Init( [
                         'host'     => self::$_redisConfig[ 'host' ],
                         'port'     => self::$_redisConfig[ 'port' ],
@@ -275,7 +255,7 @@ class Log
 
                 case self::TO_TCP;
 
-                    $this->_toTcpChan = new swChan( self::$_chanSize );
+                    $this->_toTcpChan = SwChan::Init( self::$_chanSize );
                     $this->_tcpClient = Tcp::Init( self::$_tcpConfig[ 'host' ], self::$_tcpConfig[ 'port' ] );
                     break;
 
@@ -630,19 +610,19 @@ class Log
                 continue;
             }
 
-            if ( false == $this->_toFileChan->push( $log, 1 ) )
+            if ( false == $this->_toFileChan->Push( $log, 1 ) )
             {
-                Log::Dump( "Push log chan failed, data:{$log}, error code： " . $this->_toFileChan->errCode . "}" );
+                Log::Dump( "Push log chan failed, data:{$log}, error code： " . $this->_toFileChan->GetErrorCode() . "}" );
             }
 
             if ( in_array( static::TO_TCP, static::$_writeType ) )
             {
-                $this->_toTcpChan->push( $log, 1 );
+                $this->_toTcpChan->Push( $log, 1 );
             }
 
             if ( in_array( static::TO_REDIS, static::$_writeType ) )
             {
-                $this->_toRedisChan->push( $log, 1 );
+                $this->_toRedisChan->Push( $log, 1 );
             }
 
             pcntl_signal_dispatch();
@@ -662,7 +642,7 @@ class Log
         $break  = true;
         while ( true )
         {
-            $data = $this->_toFileChan->pop( 0.2 );
+            $data = $this->_toFileChan->Pop( 0.2 );
             if ( $this->_isTerminateChan && $data === false && $break )
             {
                 break;
@@ -724,7 +704,7 @@ class Log
     {
         while ( true )
         {
-            $data = $this->_toTcpChan->pop( 0.5 );
+            $data = $this->_toTcpChan->Pop( 0.5 );
             if ( $this->_isTerminateChan && $data === false )
             {
                 break;
@@ -751,7 +731,7 @@ class Log
     {
         while ( true )
         {
-            $data = $this->_toRedisChan->pop( 0.5 );
+            $data = $this->_toRedisChan->Pop( 0.5 );
             if ( $this->_isTerminateChan && $data === false )
             {
                 break;

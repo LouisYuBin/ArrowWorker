@@ -200,8 +200,7 @@ class Ws extends ServerPattern
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function () {
-            Response::SetCORS( (bool)$this->_isEnableCORS );
-            $this->_component->InitPool( $this->_components );
+            $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }
 
@@ -215,10 +214,6 @@ class Ws extends ServerPattern
         } );
     }
 
-
-    /**
-     *
-     */
     private function _setConfig()
     {
         $this->_server->set([

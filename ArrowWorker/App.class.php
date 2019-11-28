@@ -7,7 +7,6 @@
 namespace ArrowWorker;
 
 /**
- * 应用加载/启动类
  * Class App
  * @package ArrowWorker
  */

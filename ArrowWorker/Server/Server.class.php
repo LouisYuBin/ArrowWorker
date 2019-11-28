@@ -18,22 +18,22 @@ class Server
     /**
      *
      */
-    const SERVER_HTTP = 'Http';
+    const TYPE_HTTP = 'Http';
 
     /**
      *
      */
-    const SERVER_WEBSOCKET = 'Ws';
+    const TYPE_WEBSOCKET = 'Ws';
 
     /**
      *
      */
-    const SERVER_TCP = 'Tcp';
+    const TYPE_TCP = 'Tcp';
 
     /**
      *
      */
-    const SERVER_UDP = 'Udp';
+    const TYPE_UDP = 'Udp';
 
     /**
      * @var string

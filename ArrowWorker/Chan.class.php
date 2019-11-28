@@ -2,7 +2,7 @@
 
 namespace ArrowWorker;
 
-use ArrowWorker\Driver\Channel\Queue;
+use ArrowWorker\Component\Channel\Queue;
 
 /**
  * Class Message

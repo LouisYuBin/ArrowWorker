@@ -12,7 +12,6 @@ use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server;
 
 use ArrowWorker\Server\Server as ServerPattern;
-use ArrowWorker\Web\Response;
 use ArrowWorker\Web\Router;
 
 use ArrowWorker\Log;
@@ -56,7 +55,6 @@ class Http extends ServerPattern
      * @var int
      */
     private $_maxRequest = 10000;
-
 
     /**
      * @var bool
@@ -117,18 +115,11 @@ class Http extends ServerPattern
         $this->_components       = $config[ 'components' ] ?? [];
     }
 
-    /**
-     *
-     */
     private function _start()
     {
         $this->_server->start();
     }
 
-
-    /**
-     *
-     */
     private function _initServer()
     {
         if ( !file_exists( $this->_sslCertFile ) || !file_exists( $this->_sslKeyFile ) )
@@ -145,9 +136,6 @@ class Http extends ServerPattern
         );
     }
 
-    /**
-     *
-     */
     private function _initRouter()
     {
         $this->_router = Router::Init( $this->_404 );
@@ -165,9 +153,6 @@ class Http extends ServerPattern
         return true;
     }
 
-    /**
-     *
-     */
     private function _onStart()
     {
         $this->_server->on( 'start', function ( $server )
@@ -176,21 +161,14 @@ class Http extends ServerPattern
         } );
     }
 
-    /**
-     *
-     */
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function ()
         {
-            Response::SetCORS( (bool)$this->_isEnableCORS );
-            $this->_component->InitPool( $this->_components );
+            $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }
 
-    /**
-     *
-     */
     private function _onRequest()
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
@@ -201,10 +179,6 @@ class Http extends ServerPattern
         } );
     }
 
-
-    /**
-     *
-     */
     private function _setConfig()
     {
         $options = [

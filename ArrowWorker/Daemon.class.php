@@ -1,14 +1,8 @@
 <?php
-/**
- * User: louis
- * Time: 18-6-7 下午2:38
- */
 
 namespace ArrowWorker;
 
-
-use ArrowWorker\Lib\System\LoadAverage;
-use ArrowWorker\Lib\Process;
+use ArrowWorker\Library\Process;
 
 use ArrowWorker\Server\Tcp;
 use ArrowWorker\Server\Http;

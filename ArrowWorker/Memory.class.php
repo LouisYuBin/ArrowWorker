@@ -1,67 +1,61 @@
 <?php
-/**
- * By yubin at 2019/3/4 3:49 PM.
- */
 
 namespace ArrowWorker;
 
-use ArrowWorker\Driver\Memory\SwTable;
-use \Swoole\Table;
+use ArrowWorker\Component\Memory\SwTable;
 
 class Memory
 {
-    /**
-     *
-     */
-    const CONFIG_NAME = 'Memory';
-
     const LOG_NAME = 'Memory';
 
-    /**
-     *
-     */
-    const DATA_TYPE = [
-        'int',
-        'string',
-        'float',
+    const CONFIG_NAME = 'Memory';
+
+    const DATA_TYPE_STRUCTURE = [
+        'int'    => [
+            'type' => SwTable::DATA_TYPE_INT,
+            'len'  => 8,
+        ],
+        'string' => [
+            'type' => SwTable::DATA_TYPE_STRING,
+            'len'  => 128,
+        ],
+        'float'  => [
+            'type' => SwTable::DATA_TYPE_FLOAT,
+            'len'  => 8,
+        ],
     ];
 
     /**
      * @var array
      */
-    private static $_pool = [];
+    private static $_table = [];
 
-    /**
-     * Memory constructor.
-     */
-    private function __construct()
-    {
-        //todo
-    }
-
-    /**
-     *
-     */
     public static function Init()
     {
-        $config = Config::Get( static::CONFIG_NAME );
-        foreach ( $config as $key => $value )
+        $table = Config::Get( self::CONFIG_NAME );
+        foreach ( $table as $name => $definition )
         {
-            if ( !isset( $value[ 'size' ] ) || !isset( $value[ 'column' ] ) || count( $value[ 'column' ] ) == 0 )
+            if ( !is_array( $definition ) ||
+                 !isset( $definition[ 'size' ] ) ||
+                 !isset( $definition[ 'column' ] ) ||
+                 count( $definition[ 'column' ] ) == 0
+            )
             {
-                Log::Error( "memory Table( key : {$key} ) config is incorrect.", self::LOG_NAME );
+                Log::Error( "memory Table( {$name} : " .
+                            json_encode( $definition ) .
+                            " ) config is incorrect.", self::LOG_NAME );
                 continue;
             }
 
-            $structure = self::_parseTableColumn( $value[ 'column' ] );
+            $structure = self::_parseTableColumn( $definition[ 'column' ] );
             if ( count( $structure ) == 0 )
             {
                 continue;
             }
-            $swTable = new SwTable( $structure,  $value[ 'size' ] );
-            if( $swTable->Create() )
+            $swTable = new SwTable( $structure, $definition[ 'size' ] );
+            if ( $swTable->Create() )
             {
-                self::$_pool[ $key ] = $swTable;
+                self::$_table[ $name ] = $swTable;
             }
         }
     }
@@ -75,31 +69,12 @@ class Memory
         $structure = [];
         foreach ( $columns as $name => $type )
         {
-            if ( !in_array( $type, static::DATA_TYPE ) )
+            if ( !isset( self::DATA_TYPE_STRUCTURE[ $type ] ) )
             {
-                Log::Error( 'memory column type is incorrect.', self::LOG_NAME );
+                Log::Error( 'table column type is incorrect.', self::LOG_NAME );
                 continue;
             }
-            switch ( $type )
-            {
-                case 'int':
-                    $structure[ $name ] = [
-                        'type' => Table::TYPE_INT,
-                        'len'  => 8,
-                    ];
-                    break;
-                case 'string':
-                    $structure[ $name ] = [
-                        'type' => Table::TYPE_STRING,
-                        'len'  => 128,
-                    ];
-                    break;
-                default:
-                    $structure[ $name ] = [
-                        'type' => Table::TYPE_FLOAT,
-                        'len'  => 8,
-                    ];
-            }
+            $structure[ $name ] = self::DATA_TYPE_STRUCTURE[ $type ];
         }
         return $structure;
     }
@@ -110,9 +85,9 @@ class Memory
      */
     public static function Get( string $name )
     {
-        if( isset(self::$_pool[ $name ]) )
+        if ( isset( self::$_table[ $name ] ) )
         {
-            return self::$_pool[ $name ];
+            return self::$_table[ $name ];
         }
         return false;
     }

@@ -8,21 +8,15 @@ namespace ArrowWorker\Client\Tcp;
 
 use ArrowWorker\Config;
 use ArrowWorker\Log;
-use ArrowWorker\Lib\Coroutine;
-use Swoole\Coroutine\Channel as swChan;
+use ArrowWorker\Library\Coroutine;
+use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Pool as ConnPool;
 
 class Pool implements ConnPool
 {
-    /**
-     *
-     */
+
     const LOG_NAME          = 'TcpClient';
 
-
-    /**
-     *
-     */
     const CONFIG_NAME       = 'TcpClient';
 
     /**
@@ -38,7 +32,7 @@ class Pool implements ConnPool
     /**
      * @var array
      */
-    private static $_chanConnections = [
+    private static $_connections = [
 
     ];
 
@@ -58,6 +52,11 @@ class Pool implements ConnPool
      */
     protected static function _initConfig( array $appAlias, array $config)
     {
+        if( count($config)>0 )
+        {
+            goto INIT;
+        }
+
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
@@ -65,15 +64,14 @@ class Pool implements ConnPool
             return ;
         }
 
+        INIT:
         foreach ( $config as $index => $value )
         {
             if( !isset($appAlias[$index]) )
             {
-                //initialize specified db config only
                 continue ;
             }
 
-            //ignore incorrect config
             if (
                 !isset( $value['host'] ) ||
                 !isset( $value['port'] )
@@ -88,7 +86,7 @@ class Pool implements ConnPool
 
 
             self::$_configs[$index] = $value;
-            self::$_pool[$index]    = new swChan( $value['poolSize'] );
+            self::$_pool[$index]    = SwChan::Init( $value['poolSize'] );
         }
     }
 
@@ -109,7 +107,7 @@ class Pool implements ConnPool
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
-                self::$_pool[$index]->push( $conn );
+                self::$_pool[$index]->Push( $conn );
             }
         }
     }
@@ -118,12 +116,12 @@ class Pool implements ConnPool
      * @param string $alias
      * @return false|Client
      */
-    public static function GetConnection( $alias = 'default' )
+    public static function GetConnection( string $alias = 'default' )
     {
         $coId = Coroutine::Id();
-        if( isset(self::$_chanConnections[$coId][$alias]) )
+        if( isset(self::$_connections[$coId][$alias]) )
         {
-            return self::$_chanConnections[$coId][$alias];
+            return self::$_connections[$coId][$alias];
         }
 
         if( !isset(self::$_pool[$alias] ) )
@@ -133,7 +131,7 @@ class Pool implements ConnPool
 
         $retryTimes = 0;
         _RETRY:
-        $conn = self::$_pool[$alias]->pop( 0.2 );
+        $conn = self::$_pool[$alias]->Pop( 0.2 );
         if ( false === $conn )
         {
             if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
@@ -148,7 +146,7 @@ class Pool implements ConnPool
                 goto _RETRY;
             }
         }
-        self::$_chanConnections[$coId][$alias] = $conn;
+        self::$_connections[$coId][$alias] = $conn;
         return $conn;
     }
 
@@ -158,16 +156,16 @@ class Pool implements ConnPool
     public static function Release() : void
     {
         $coId = Coroutine::Id();
-        if( !isset(self::$_chanConnections[$coId]) )
+        if( !isset(self::$_connections[$coId]) )
         {
             return ;
         }
 
-        foreach ( self::$_chanConnections[$coId] as $alias=>$connection )
+        foreach ( self::$_connections[$coId] as $alias=>$connection )
         {
-            self::$_pool[$alias]->push( $connection );
+            self::$_pool[$alias]->Push( $connection );
         }
-        unset(self::$_chanConnections[$coId], $coId);
+        unset(self::$_connections[$coId], $coId);
     }
 
 }

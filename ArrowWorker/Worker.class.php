@@ -1,12 +1,8 @@
 <?php
-/**
- * User: louis
- * Time: 18-5-9 下午11:14
- */
 
 namespace ArrowWorker;
 
-use \ArrowWorker\Driver\Worker\ArrowDaemon;
+use ArrowWorker\Component\Worker\ArrowDaemon;
 
 class Worker
 {

@@ -1,17 +1,11 @@
 <?php
-/**
- * By yubin at 2019/4/17 6:28 AM.
- */
 
 namespace ArrowWorker\Client\Tcp;
 
 use \swoole\client as SwClient;
 use ArrowWorker\Log;
 
-/**
- * Class Tcp
- * @package ArrowWorker\Lib\Client
- */
+
 class Client
 {
     /**

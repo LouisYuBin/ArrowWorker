@@ -7,9 +7,10 @@
 
 namespace ArrowWorker\Web;
 
-use ArrowWorker\Lib\Coroutine;
-use ArrowWorker\Driver\Session\MemcachedSession;
-use ArrowWorker\Driver\Session\RedisSession;
+use ArrowWorker\Component\Cache\Pool;
+use ArrowWorker\Library\Coroutine;
+use ArrowWorker\Component\Session\MemcachedSession;
+use ArrowWorker\Component\Session\RedisSession;
 use ArrowWorker\Config;
 
 
@@ -72,7 +73,7 @@ class Session
 
     public static function Init()
     {
-        // todo
+        session_create_id();
     }
 
     private static function _init()

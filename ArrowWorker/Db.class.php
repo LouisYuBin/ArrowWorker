@@ -1,20 +1,12 @@
 <?php
-/**
- * By yubin at 2019/3/4 11:31 AM.
- */
 
 namespace ArrowWorker;
 
+use ArrowWorker\Component\Db\Mysqli;
+use ArrowWorker\Component\Db\Pdo;
+use ArrowWorker\Component\Db\Pool;
+use ArrowWorker\Component\Db\SqlBuilder;
 
-use ArrowWorker\Driver\Db\Mysqli;
-use ArrowWorker\Driver\Db\Pdo;
-use ArrowWorker\Driver\Db\Pool;
-use ArrowWorker\Driver\Db\SqlBuilder;
-
-/**
- * Class Db
- * @package ArrowWorker
- */
 class Db
 {
 

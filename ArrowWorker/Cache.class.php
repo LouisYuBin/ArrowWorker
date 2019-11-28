@@ -5,14 +5,12 @@
 
 namespace ArrowWorker;
 
-use ArrowWorker\Driver\Cache\Pool;
-use ArrowWorker\Driver\Cache\Redis;
+use ArrowWorker\Component\Cache\Pool;
+use ArrowWorker\Component\Cache\Redis;
 
 class Cache
 {
-    /**
-     *
-     */
+
     const DEFAULT_ALIAS = 'default';
 
 
@@ -33,9 +31,6 @@ class Cache
         return Pool::GetConnection($alias);
     }
 
-    /**
-     *
-     */
     public static function Release()
     {
         Pool::Release();

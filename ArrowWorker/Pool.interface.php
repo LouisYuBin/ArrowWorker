@@ -1,15 +1,8 @@
 <?php
-/**
- * By yubin at 2019-09-20 16:58.
- */
 
 namespace ArrowWorker;
 
 
-/**
- * Interface Pool
- * @package ArrowWorker\Driver
- */
 interface Pool
 {
 
@@ -29,7 +22,7 @@ interface Pool
      * @param string $alias
      * @return mixed
      */
-    public static function GetConnection( $alias = 'default' );
+    public static function GetConnection( string $alias = 'default' );
 
     /**
      * @return void

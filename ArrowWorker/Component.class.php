@@ -5,12 +5,12 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Web\Upload;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
-use ArrowWorker\Web\Session;
 
 /**
  * Class Component
@@ -32,7 +32,7 @@ class Component
      */
     const BASE_COMPONENTS = [
         '\ArrowWorker\Log',
-        '\ArrowWorker\Lib\Coroutine',
+        '\ArrowWorker\Library\Coroutine',
     ];
 
     /**
@@ -44,7 +44,6 @@ class Component
         'TCP_CLIENT'   => '\ArrowWorker\Client\Tcp\Pool',
         'WS_CLIENT'    => '\ArrowWorker\Client\Ws\Pool',
         'HTTP2_CLIENT' => '\ArrowWorker\Client\Http\Pool',
-
     ];
 
     /**
@@ -70,7 +69,14 @@ class Component
         $this->InitCommon();
         Request::Init( $request );
         Response::Init( $response );
-        Session::Init();
+    }
+
+    public function InitWebWorkerStart(array $components, bool $isEnableCORS)
+    {
+        //Session::Init();
+        Upload::Init();
+        self::InitPool($components);
+        Response::SetCORS( $isEnableCORS );
     }
 
     public function InitOpen( SwRequest $request )
@@ -84,12 +90,12 @@ class Component
      */
     public function InitPool( array $components )
     {
+        Log::Init();
         foreach ( $components as $key => $config )
         {
             $component = self::POOL_ALIAS[strtoupper( $key )] ?? '';
             if ( '' !== $component )
             {
-                Log::Init();
                 $component::Init( $config );
                 $this->_poolComponents[] = $component;
             }

@@ -1,19 +1,14 @@
 <?php
-/**
- * By yubin at 2019-11-21 00:38.
- */
 
 namespace ArrowWorker;
 
-
-use ArrowWorker\Lib\Process;
-use ArrowWorker\Lib\System\LoadAverage;
+use ArrowWorker\Library\Process;
+use ArrowWorker\Library\System\LoadAverage;
 
 class Console
 {
 
     /**
-     *
      * @var Console
      */
     private static $_instance;
@@ -40,7 +35,7 @@ class Console
     private function _stop()
     {
         $pid = Daemon::GetPid();
-        if( 0===$pid )
+        if ( 0 === $pid )
         {
             Log::Hint( 'Arrow is not running.' );
             return false;
@@ -78,7 +73,7 @@ class Console
 
     public static function Init()
     {
-        if( self::$_instance instanceof Console)
+        if ( self::$_instance instanceof Console )
         {
             goto _RETURN;
         }
@@ -108,12 +103,13 @@ class Console
             default:
                 Log::Hint( "Oops! Unknown operation. please use \"php {$this->_entryFile} start/stop/status/restart\" to start/stop/restart the service" );
         }
-        return ;
+        return;
     }
 
     private function _start()
     {
-        Log::Hint("starting ...{$this->_application}({$this->_env})");
+        $this->_checkExtension();
+        Log::Hint( "starting ...{$this->_application}({$this->_env})" );
         Daemon::Start( $this->_application, $this->_isDemonize );
     }
 
@@ -124,12 +120,12 @@ class Console
         $output  = 'user | pid | ppid | cpu usage | memory usage | process name' . PHP_EOL;
         $results = LoadAverage::Exec( $commend );
         $output  .= implode( PHP_EOL, $results );
-        echo $output.PHP_EOL;
+        echo $output . PHP_EOL;
     }
 
     private function _restart()
     {
-        if( $this->_stop() )
+        if ( $this->_stop() )
         {
             $this->_start();
         }
@@ -149,18 +145,39 @@ class Console
             $this->_action,
         ] = $argv;
 
-        $this->_application = $argv[2] ?? '';
-        $this->_env         = $argv[3] ?? '';
-        $this->_isDemonize  = isset($argv[4]) && 'true'===trim($argv[4]) ? true : false;
+        $this->_application = $argv[ 2 ] ?? '';
+        $this->_env         = $argv[ 3 ] ?? '';
+        $this->_isDemonize  = isset( $argv[ 4 ] ) && 'true' === trim( $argv[ 4 ] ) ? true : false;
     }
 
     private function _checkStartEnv()
     {
         if ( php_sapi_name() != "cli" )
         {
-            Log::DumpExit("Arrow hint : only run in command line mode");
+            Log::DumpExit( "Arrow hint : only run in command line mode" );
         }
     }
+
+
+    private function _checkExtension()
+    {
+        if ( !extension_loaded( 'swoole' ) )
+        {
+            self::DumpExit( 'extension swoole is not installed/loaded.' );
+        }
+
+        if ( !extension_loaded( 'sysvmsg' ) )
+        {
+            self::DumpExit( 'extension sysvmsg is not installed/loaded.' );
+        }
+
+        if ( (int)str_replace( '.', '', ( new \ReflectionExtension( 'swoole' ) )->getVersion() ) < 400 )
+        {
+            self::DumpExit( 'swoole version must be newer than 4.0 .' );
+        }
+
+    }
+
 
     public function GetIsDemonize()
     {

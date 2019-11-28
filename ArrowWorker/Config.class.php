@@ -1,10 +1,4 @@
 <?php
-/**
- * User: Louis
- * Date: 2016/8/3 12:02
- * Update Records:
- *      2017-07-24 by Louis
- */
 
 namespace ArrowWorker;
 
