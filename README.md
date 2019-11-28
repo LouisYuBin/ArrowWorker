@@ -30,12 +30,6 @@ Components below is
 - Standard Server monitor
 - Http Rest Router
 
-## 如何使用
-###入口文件包含框架
-```php
-require __DIR__.'/ArrowWorker/ArrowWorker.php';
-ArrowWorker\ArrowWorker::Start();
-```
 ### 使用说明
 - 启动服务：php main.php start server dev false/true
 - 关闭服务：php main.php stop
