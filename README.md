@@ -18,7 +18,6 @@ The following Client is provided and can be used in servers.
 - Amqp client(pool)
 
 ## Components
-Components below is 
 - Mysql client(pool)
 - Redis client(pool)
 - Memory Table
