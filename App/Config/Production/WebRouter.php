@@ -1,7 +1,7 @@
 <?php
 
 return [
-    '127.0.0.1,www.dugujiujian.net, dugujiujian.net' => [
+    'api.dugujiujian.com, www.dugujiujian.net, dugujiujian.net, 127.0.0.1' => [
         '/' => [
             'get'    => 'Admin\\Index@get',
             'put'    => 'Admin\\Index@put',

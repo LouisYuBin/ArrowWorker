@@ -1,7 +1,7 @@
 <?php
 
 return [
-    '127.0.0.1:4433, 127.0.0.1:8081' => [
+    'ws.com, web.com, arrow.com' => [
         '/' => [
             'get'    => 'Admin\\Index@get',
             'put'    => 'Admin\\Index@put',
