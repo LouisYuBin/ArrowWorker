@@ -9,9 +9,8 @@ namespace ArrowWorker\Web;
 
 use ArrowWorker\Component\Cache\Pool;
 use ArrowWorker\Library\Coroutine;
-use ArrowWorker\Component\Session\MemcachedSession;
-use ArrowWorker\Component\Session\RedisSession;
 use ArrowWorker\Config;
+use ArrowWorker\Log;
 
 
 /**
@@ -20,87 +19,83 @@ use ArrowWorker\Config;
  */
 class Session
 {
-    /**
-     * handler : driver handler
-     * @var MemcachedSession|RedisSession
-     */
-    private static $_handler;
 
     /**
-     * isInited : sign for judging if session driver is initialized
-     * @var bool
+     *
      */
-    private static $_isInitialized = false;
+    const CONFIG_NAME = 'Session';
 
     /**
-     * tokenKey : token key
-     * @var string
-     */
-    private static $_tokenKey = 'ArrowWorkerSession';
-
-    /**
-     * token : current session id(token)
      * @var array
      */
-    private static $_token = [];
-
-    /**
-     * config : session config information
-     * @var array
-     */
-    private static $_config = [
-        'handler'  => 'RedisSession',
-        'host'     => '127.0.0.1',
-        'port'     => 6379,
-        'userName' => '',
-        'password' => 'louis',
-        'timeout'  => 3600,
-        'prefix'   => 'sess_',
-        'cookie'   => [
-            'expire'   => '3600',
-            'path'     => '/',
-            'domain'   => '',
-            'secure'   => false,
-            'httponly' => true,
-        ],
-    ];
-
-    /**
-     * namespace
-     * @var string
-     */
-    static $namespace = 'ArrowWorker\\Driver\\Session\\';
+    private static $_config = [];
 
     public static function Init()
     {
-        session_create_id();
+        self::_initConfig();
+        self::_initPool();
     }
 
-    private static function _init()
+    private static function _initPool()
     {
-        if ( self::$_isInitialized )
+        foreach ( self::$_config as $host => $config )
         {
-            return self::$_handler;
+            $config[ 'driver' ] = 'Redis';
+            Pool::Init( [ $host => $config[ 'poolSize' ] ], [ $host => $config ] );
         }
+    }
 
-        $config = Config::Get( "Session" );
-        if ( $config )
+    private static function _initConfig()
+    {
+        $configs = Config::Get( self::CONFIG_NAME );
+        if ( !is_array( $configs ) )
         {
-            self::$_config = array_merge( self::$_config, $config );
+            Log::Dump( '[ Session ] initialize config failed' );
+            return;
         }
+        self::$_config = self::_parseConfig( $configs );
+    }
 
-        $driver         = self::$namespace . self::$_config[ 'handler' ];
-        self::$_handler = new $driver(
-            self::$_config[ 'host' ],
-            self::$_config[ 'port' ],
-            self::$_config[ 'userName' ],
-            self::$_config[ 'password' ],
-            self::$_config[ 'timeout' ]
-        );
+    /**
+     * @param array $configs
+     * @return array
+     */
+    private static function _parseConfig( array $configs ) : array
+    {
+        $parsedConfig = [];
+        foreach ( $configs as $serverNames => $config )
+        {
+            if (
+                !isset( $config[ 'host' ] ) ||
+                !isset( $config[ 'port' ] ) ||
+                !isset( $config[ 'password' ] ) ||
+                !isset( $config[ 'poolSize' ] ) ||
+                !isset( $config[ 'tokenKey' ] ) ||
+                !isset( $config[ 'tokenFrom' ] ) ||
+                !in_array( $config[ 'tokenFrom' ], [
+                    'get',
+                    'post',
+                    'cookie',
+                ] )
+            )
+            {
+                Log::Dump( "[ Session ] {$serverNames} config incorrect : " . json_encode( $config ) );
+                continue;
+            }
+            $config['tokenFrom'] = ucfirst($config['tokenFrom']);
+            $serverNameList = explode(',', $serverNames);
+            foreach ($serverNameList as $serverName)
+            {
+                $parsedConfig[ trim($serverName) ] = $config;
+            }
+        }
+        return $parsedConfig;
+    }
 
-        self::$_isInitialized = true;
 
-        return self::$_handler;
+    private static function _getConn()
+    {
+        return Pool::GetConnection( Request::Host() );
     }
 
     /**
@@ -110,7 +105,18 @@ class Session
      */
     public static function Set( string $key, string $val ) : bool
     {
-        return self::_init()->Set( self::GetToken(), $key, $val );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return false;
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return false;
+        }
+        return $conn->Set( self::GetToken(), $key, $val );
     }
 
     /**
@@ -120,7 +126,18 @@ class Session
      */
     public static function MultiSet( array $val ) : bool
     {
-        return self::_init()->MSet( self::GetToken(), $val );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return false;
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return false;
+        }
+        return $conn->MSet( self::GetToken(), $val );
     }
 
     /**
@@ -130,7 +147,18 @@ class Session
      */
     public static function Get( string $key )
     {
-        return self::_init()->Get( self::GetToken(), $key );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return false;
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return false;
+        }
+        return $conn->Get( self::GetToken(), $key );
     }
 
     /**
@@ -140,7 +168,18 @@ class Session
      */
     public static function Del( string $key ) : bool
     {
-        return self::_init()->Del( self::GetToken(), $key );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return false;
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return false;
+        }
+        return $conn->Del( $token, $key );
     }
 
     /**
@@ -149,9 +188,18 @@ class Session
      */
     public static function Info() : array
     {
-        $handler = self::_init();
-        $token   = self::GetToken();
-        return $handler->Info( $token );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return [];
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return [];
+        }
+        return $conn->Info( self::GetToken() );
     }
 
     /**
@@ -159,7 +207,18 @@ class Session
      */
     public static function Destroy() : bool
     {
-        return self::_init()->Destroy( self::GetToken() );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return false;
+        }
+
+        $conn = self::_getConn();
+        if( false==$conn )
+        {
+            return '';
+        }
+        return $conn->Destroy( $token );
     }
 
     /**
@@ -167,68 +226,14 @@ class Session
      */
     public static function GetToken() : string
     {
-        $token = Cookie::Get( self::$_tokenKey );
-        if ( '' !== $token )
+        if( !isset(self::$_config[Request::Host()]['tokenFrom']) )
         {
-            return $token;
+            return '';
         }
 
-        $token = Request::Get( self::$_tokenKey );
-        if ( '' !== $token )
-        {
-            return $token;
-        }
-
-        $token = Request::Post( self::$_tokenKey );
-        if ( '' !== $token )
-        {
-            return $token;
-        }
-
-        return '';
-
-    }
-
-    /**
-     * _setSessionCookie : save session cookies
-     * @return bool
-     */
-    private static function _setSessionCookie() : bool
-    {
-        return Cookie::Set( self::$_tokenKey,
-            self::$_token[ Coroutine::Id() ],
-            self::$_config[ 'cookie' ][ 'expire' ],
-            self::$_config[ 'cookie' ][ 'path' ],
-            self::$_config[ 'cookie' ][ 'domain' ],
-            self::$_config[ 'cookie' ][ 'secure' ],
-            self::$_config[ 'cookie' ][ 'httponly' ]
-        );
-    }
-
-    /**
-     * _generateToken : generate a session id(token)
-     */
-    private static function _generateToken()
-    {
-        $coId = Coroutine::Id();
-        if ( self::$_token[ $coId ] != '' )
-        {
-            return;
-        }
-
-        self::$_token[ $coId ] = self::$_config[ 'prefix' ] .
-                                 crc32( Request::Server( 'REMOTE_ADDR' ) . microtime( false ) . mt_rand( 1, 1000000 ) );
-        self::_setSessionCookie();
-    }
-
-    public static function Release()
-    {
-        $coId = Coroutine::Id();
-
-        if ( isset( self::$_token[ $coId ] ) )
-        {
-            unset( self::$_token[ $coId ] );
-        }
+        $tokenKey  = self::$_config[Request::Host()]['tokenKey'];
+        $tokenFrom = self::$_config[Request::Host()]['tokenFrom'];
+        return 'Cookie'==$tokenFrom ? Cookie::Get( $tokenKey ) : Request::$tokenFrom( $tokenKey );
     }
 
 }

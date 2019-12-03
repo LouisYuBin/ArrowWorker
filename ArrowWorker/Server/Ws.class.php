@@ -109,6 +109,7 @@ class Ws extends ServerPattern
     private function __construct( array $config )
     {
         $this->_port            = $config['port'] ?? 8081;
+        $this->_mode            = $config['mode'] ?? SWOOLE_PROCESS;
         $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
         $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
         $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;

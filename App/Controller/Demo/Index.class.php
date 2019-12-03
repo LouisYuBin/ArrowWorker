@@ -29,10 +29,16 @@ class Index
         $rnd  = Request::Get("rnd");
         $this->db();
         $this->memory();
-        $this->log();
+        //$this->log();
         $this->cache();
+        $this->session();
         //Coroutine::Sleep(2);
         Response::Json(200,['random'=>(int)$rnd],"ok");
+    }
+
+    public function session()
+    {
+        var_dump( Session::Get('loginTime') );
     }
 
     public function cache()
@@ -88,10 +94,6 @@ class Index
 
     }
 
-	function session()
-	{
-       Response::Json(200,Request::Servers());
-	}
 
     public function cookie()
     {

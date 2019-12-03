@@ -194,7 +194,6 @@ class ArrowWorker
 
             'ArrowWorker\Component\View'    => ArrowWorker . '/Component/View' . self::CLASS_EXT,
             'ArrowWorker\Component\Worker'  => ArrowWorker . '/Component/Worker' . self::CLASS_EXT,
-            'ArrowWorker\Component\Session' => ArrowWorker . '/Component/Session' . self::CLASS_EXT,
 
             'ArrowWorker\Component\Db\Db'         => ArrowWorker . '/Component/Db/Db' . self::INTERFACE_EXT,
             'ArrowWorker\Component\Db\Mysqli'     => ArrowWorker . '/Component/Db/Mysqli' . self::CLASS_EXT,
@@ -209,8 +208,6 @@ class ArrowWorker
             'ArrowWorker\Component\View\Smarty'              => ArrowWorker . '/Component/View/Smarty' . self::CLASS_EXT,
             'ArrowWorker\Component\Worker\ArrowDaemon'       => ArrowWorker . '/Component/Worker/ArrowDaemon' . self::CLASS_EXT,
             'ArrowWorker\Component\Channel\Queue'            => ArrowWorker . '/Component/Channel/Queue' . self::CLASS_EXT,
-            'ArrowWorker\Component\Session\RedisSession'     => ArrowWorker . '/Component/Session/RedisSession' . self::CLASS_EXT,
-            'ArrowWorker\Component\Session\MemcachedSession' => ArrowWorker . '/Component/Session/MemcachedSession' . self::CLASS_EXT,
             'ArrowWorker\Component\Memory\SwTable'           => ArrowWorker . '/Component/Memory/SwTable' . self::CLASS_EXT,
         ];
     }

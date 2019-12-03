@@ -13,84 +13,75 @@ namespace ArrowWorker;
  */
 class Exception
 {
-	/**
-	 * @var int error/exception code
-	 */
-	private static $code  = 0;
 
-	/**
-	 * @var string error/exception message
-	 */
-    private static $msg   = '';
-
-	/**
-	 * @var int file which error/exception happend
-	 */
-    private static $file  = '';
-
-	/**
-	 * @var int exception/error line number
-	 */
-    private static $line  = 0;
-
-	/**
-	 * @var int exception file trace
-	 */
-    private static $trace = '';
-
-	/**
-	 * init : set handle-function of error/exception
-	 */
-	static function Init()
+    /**
+     * init : set handle-function of error/exception
+     */
+    static function Init()
     {
-        set_error_handler([__CLASS__ , 'error']);
-        set_exception_handler([__CLASS__,'exception']);
+        set_error_handler( [
+            __CLASS__,
+            'Error',
+        ] );
+        set_exception_handler( [
+            __CLASS__,
+            'Exception',
+        ] );
     }
 
 
-	/**
-	 * error : error-handle function
-	 * @param int $code
-	 * @param string $msg
-	 * @param string $file
-	 * @param int $line
-	 */
-	static function error(int $code=0, string $msg='', string $file='', int $line=0 )
+    /**
+     * error : error-handle function
+     * @param int    $code
+     * @param string $msg
+     * @param string $file
+     * @param int    $line
+     * @param array  $parameters
+     * @return false
+     */
+    public static function Error( int $code, string $msg, string $file, int $line, array $parameters)
     {
-        Log::Dump("[ Exception ] Message: {$msg}, File:{$file} ,Line: {$line}");
+        Log::Dump( "[ error ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : ".json_encode($parameters) );
+        return false;
     }
 
 
-	/**
-	 * exception : exception function
-	 * @param string $msg
-	 */
-	static function exception(string $msg = '')
+    /**
+     * exception : exception function
+     * @param array $exception
+     * @return false
+     */
+    public static function Exception( array $exception )
     {
-        $exception = (array)$msg;
+        $msg        = '';
+        $file       = '';
+        $line       = 0;
+        $code       = 0;
+        $backtrace  = '';
         $elementNum = 0;
-        foreach ($exception as $key => $val)
+        foreach ( $exception as $key => $val )
         {
-            switch ($elementNum)
+            switch ( $elementNum )
             {
                 case 0:
-                    self::$msg = $val;
+                    $msg = $val;
                     break;
                 case 3:
-                    self::$file = $val;
+                    $file = $val;
                     break;
                 case 4:
-                    self::$line = $val;
+                    $line = $val;
                     break;
                 case 2:
-                    self::$code = $val;
+                    $code = $val;
                     break;
                 case 5:
-                    self::$trace = json_encode($val);
+                    $backtrace = json_encode( $val );
             }
             $elementNum++;
         }
-        self::error( self::$code, self::$msg, self::$file, self::$line );
+        Log::Dump( "[ Exception ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, backtrace : {$backtrace}" );
+        return false;
     }
 
 }

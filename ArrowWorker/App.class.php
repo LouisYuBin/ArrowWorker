@@ -60,7 +60,6 @@ class App
 
     private static function _initOptions()
     {
-        set_time_limit( 0 );
         $options = Config::Get('Global');
         if( !is_array($options) )
         {

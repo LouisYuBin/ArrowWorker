@@ -23,13 +23,16 @@ class Console
 
     private $_env = '';
 
-    private $_isDemonize = false;
+    private $_isDebug = false;
 
 
     private function __construct()
     {
         $this->_checkStartEnv();
         $this->_parseArgv();
+        $this->_checkExtension();
+
+        Config::Init( $this->GetEnv() );
     }
 
     private function _stop()
@@ -108,9 +111,8 @@ class Console
 
     private function _start()
     {
-        $this->_checkExtension();
         Log::Hint( "starting ...{$this->_application}({$this->_env})" );
-        Daemon::Start( $this->_application, $this->_isDemonize );
+        Daemon::Start( $this->_application, $this->_isDebug );
     }
 
     private function _getStatus()
@@ -147,7 +149,7 @@ class Console
 
         $this->_application = $argv[ 2 ] ?? '';
         $this->_env         = $argv[ 3 ] ?? '';
-        $this->_isDemonize  = isset( $argv[ 4 ] ) && 'true' === trim( $argv[ 4 ] ) ? true : false;
+        $this->_isDebug  = isset( $argv[ 4 ] ) && 'true' === trim( $argv[ 4 ] ) ? true : false;
     }
 
     private function _checkStartEnv()
@@ -163,25 +165,25 @@ class Console
     {
         if ( !extension_loaded( 'swoole' ) )
         {
-            self::DumpExit( 'extension swoole is not installed/loaded.' );
+            Log::DumpExit( 'extension swoole is not installed/loaded.' );
         }
 
         if ( !extension_loaded( 'sysvmsg' ) )
         {
-            self::DumpExit( 'extension sysvmsg is not installed/loaded.' );
+            Log::DumpExit( 'extension sysvmsg is not installed/loaded.' );
         }
 
         if ( (int)str_replace( '.', '', ( new \ReflectionExtension( 'swoole' ) )->getVersion() ) < 400 )
         {
-            self::DumpExit( 'swoole version must be newer than 4.0 .' );
+            Log::DumpExit( 'swoole version must be newer than 4.0 .' );
         }
 
     }
 
 
-    public function GetIsDemonize()
+    public function IsDebug()
     {
-        return $this->_isDemonize;
+        return $this->_isDebug;
     }
 
     public function GetEnv()

@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Web;
 
+use ArrowWorker\Console;
 use ArrowWorker\Log;
 use \Swoole\Http\Response as SwResponse;
 
@@ -89,11 +90,8 @@ class Response
     public static function Write(string $msg)
     {
         $coId = Coroutine::Id();
-        if( DEBUG )
-        {
-            $header = isset(self::$_header[$coId]) ? json_encode(self::$_header[$coId],JSON_UNESCAPED_UNICODE) : '';
-            Log::Debug("Response,  data : {$msg}, header : {$header}", self::LOG_NAME);
-        }
+        $header = isset(self::$_header[$coId]) ? json_encode(self::$_header[$coId],JSON_UNESCAPED_UNICODE) : '';
+        Log::Debug("Response, data : {$msg}, header : {$header}", self::LOG_NAME);
         self::$_response[$coId]->end( $msg );
     }
 
@@ -108,6 +106,11 @@ class Response
         $coId = Coroutine::Id();
         self::$_header[ $coId ][$key] = $val;
         self::$_response[ $coId ]->header($key, $val);
+    }
+
+    public static function Status(int $status)
+    {
+        self::$_response[ Coroutine::Id() ]->status($status);
     }
 
     /**

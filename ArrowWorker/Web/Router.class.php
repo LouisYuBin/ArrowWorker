@@ -8,6 +8,7 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Config;
+use ArrowWorker\Console;
 use ArrowWorker\Log;
 use ArrowWorker\App;
 
@@ -176,7 +177,7 @@ class Router
         $uri        = Request::Uri();
         $nodes      = explode( '/', $uri );
         $nodeLen    = count( $nodes );
-        $serverName = Request::Header( 'host' );
+        $serverName = Request::Host();
 
         for ( $i = $nodeLen; $i > 1; $i-- )
         {
@@ -224,7 +225,7 @@ class Router
             return;
         }
 
-        $this->_logAndResponse( "request does not match any router" );
+        $this->_response( "controller->method not found" );
     }
 
     /**
@@ -234,7 +235,7 @@ class Router
     {
         $key        = $this->_getRestUriKey();
         $method     = Request::Method();
-        $serverName = Request::Header( 'host' );
+        $serverName = Request::Host();
 
         if ( empty( $key ) )
         {
@@ -246,7 +247,7 @@ class Router
             return false;
         }
 
-        list( $class, $function ) = explode( '::', $this->_restApiConfig[ $serverName ][ $key ][ $method ] );
+        list( $class, $function ) = explode( '@', $this->_restApiConfig[ $serverName ][ $key ][ $method ] );
         $class = $this->_controller . $class;
         return $this->_routeToFunction( $class, $function );
     }
@@ -292,13 +293,13 @@ class Router
     {
         if ( !class_exists( $class ) )
         {
-            return $this->_logAndResponse( "controller class : {$class} does not exists." );
+            return $this->_response( "controller {$class} not found" );
         }
 
         $controller = new $class;
         if ( !method_exists( $controller, $function ) )
         {
-            return $this->_logAndResponse( "controller function : {$class}->{$function} does not exists." );
+            return $this->_response( "controller method {$class}->{$function} not found" );
         }
         $controller->$function();
         unset( $controller );
@@ -309,10 +310,10 @@ class Router
      * @param string $msg
      * @return bool
      */
-    private function _logAndResponse( string $msg )
+    private function _response( string $msg )
     {
-        Log::Warning( $msg, self::LOG_NAME );
-        if ( !DEBUG )
+        Response::Status(404);
+        if ( !Console::Init()->IsDebug() )
         {
             $msg = $this->_404;
         }

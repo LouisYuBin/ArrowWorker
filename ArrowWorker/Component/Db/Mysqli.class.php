@@ -136,14 +136,14 @@ class Mysqli implements Db
     {
         $isRetried = false;
         _RETRY:
-        $result = $this->_conn->query( $sql );
+        $result = @$this->_conn->query( $sql );
         if(false !== $result && !is_null($result) )
         {
             Log::Debug( $sql, self::SQL_LOG_NAME );
             return $result;
         }
 
-        if( 0!==$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
+        if( 0!==@$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
             Log::Notice( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", self::LOG_NAME );
             $this->InitConnection();
@@ -151,7 +151,7 @@ class Mysqli implements Db
             goto _RETRY;
         }
 
-        Log::Notice( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
+        @Log::Notice( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
         return false;
     }
 

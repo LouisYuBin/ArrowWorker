@@ -79,7 +79,7 @@ class Daemon
      */
     public static $identity = '';
 
-    private static $_isDemonize = false;
+    private static $_isDebug = false;
 
     private static $_application = [];
 
@@ -104,9 +104,10 @@ class Daemon
         $this->_setProcessName("started at ".date("Y-m-d H:i:s"));
     }
 
-    public static function Start(string $application, bool $isDemonize=false)
+    public static function Start(string $application, bool $isDebug=false)
     {
-        self::_initParameter($application, $isDemonize);
+        set_time_limit( 0 );
+        self::_initParameter($application, $isDebug);
         self::_initFunction();
         self::_demonize();
 
@@ -118,9 +119,9 @@ class Daemon
     }
 
 
-    public static function SetDemonize(bool $isDemonize)
+    public static function SetDemonize(bool $isDebug)
     {
-        self::$_isDemonize = $isDemonize;
+        self::$_isDebug = $isDebug;
     }
 
     public static function SetStartApp(string $apps)
@@ -458,11 +459,11 @@ class Daemon
         return (int)file_get_contents(self::PID);
     }
 
-    private static function _initParameter(string $application, bool $isDemonize)
+    private static function _initParameter(string $application, bool $isDebug)
     {
         self::_initPid();
         self::SetStartApp($application);
-        self::SetDemonize($isDemonize);
+        self::SetDemonize($isDebug);
     }
 
     private static function _initFunction()
@@ -486,7 +487,7 @@ class Daemon
 
     private static function _demonize()
     {
-        if( !self::$_isDemonize )
+        if( self::$_isDebug )
         {
             goto SET_IDENTITY;
         }

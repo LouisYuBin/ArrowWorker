@@ -11,6 +11,7 @@ use Swoole\Http\Response as SwResponse;
 
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
+use ArrowWorker\Web\Session;
 
 /**
  * Class Component
@@ -23,7 +24,6 @@ class Component
      */
     const WEB_COMPONENTS = [
         '\ArrowWorker\Web\Request',
-        '\ArrowWorker\Web\Session',
         '\ArrowWorker\Web\Response',
     ];
 
@@ -73,7 +73,7 @@ class Component
 
     public function InitWebWorkerStart(array $components, bool $isEnableCORS)
     {
-        //Session::Init();
+        Session::Init();
         Upload::Init();
         self::InitPool($components);
         Response::SetCORS( $isEnableCORS );

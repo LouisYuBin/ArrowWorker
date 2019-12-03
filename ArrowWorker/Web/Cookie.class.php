@@ -30,7 +30,7 @@ class Cookie
     /**
      * Get : get specified cookie by $key
      * @param string $key
-     * @return bool|string
+     * @return string
      */
     public static function Get(string $key)
 	{
@@ -38,7 +38,7 @@ class Cookie
 		{
 			return CryptoArrow::Decrypt(self::$_data[Coroutine::Id()][$key]);
 		}
-		return false;
+		return '';
 	}
 
     /**

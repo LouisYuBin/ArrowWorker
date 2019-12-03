@@ -9,13 +9,13 @@ namespace ArrowWorker;
 class Config
 {
 
-    const LOG_NAME = 'Config';
-
     const ENV_DEV = 'Dev';
 
     const ENV_TEST = 'Test';
 
     const ENV_PRODUCTION = 'Production';
+
+    const EXT = '.php';
 
     /**
      * @var Config
@@ -36,16 +36,9 @@ class Config
      */
     private $_configMap = [];
 
-    /**
-     * 配置文件后缀
-     * @var array
-     */
-    private $_configExt = '.php';
 
-
-    private function __construct()
+    private function __construct(string $env)
     {
-        $env         = ucfirst(Console::Init()->GetEnv());
         $this->_env  = in_array( $env, [
             self::ENV_DEV,
             self::ENV_TEST,
@@ -54,77 +47,54 @@ class Config
         $this->_path = $this->_path . $this->_env . DIRECTORY_SEPARATOR;
     }
 
-    /**
-     * Init
-     * @param string $subPath
-     * @return string
-     * @author Louis
-     */
-    private function _getPath( string $subPath = '' )
-    {
-        if ( empty( $subPath ) )
-        {
-            return $this->_path;
-        }
 
-        return $this->_path . $subPath . DIRECTORY_SEPARATOR;
+    /**
+     * @param string $env
+     */
+    public static function Init( string $env)
+    {
+        self::$_instance = new self($env);
     }
 
     /**
-     * Get
-     * @param string $configName
+     * @param string $name
      * @return bool|mixed
      * @author Louis
      */
-    public static function Get( string $configName = APP_CONFIG_FILE )
+    public static function Get( string $name = APP_CONFIG_FILE )
     {
-        if ( self::$_instance instanceof Config )
-        {
-            goto _RETURN;
-        }
-
-        self::$_instance = new self();
-
-        _RETURN:
-        return self::$_instance->_getConfig( $configName );
+        return self::$_instance->_get($name);
     }
 
-    public static function SetEnv( string $env = self::ENV_DEV )
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    private function _get( string $name)
     {
-        $env        = ucfirst( $env );
-        self::$_env = !in_array( $env, [
-            self::ENV_DEV,
-            self::ENV_TEST,
-            self::ENV_PRODUCTION,
-        ] ) ? $env : self::ENV_DEV;
-    }
-
-    private function _getConfig( string $configName )
-    {
-        if ( isset( $this->_configMap[ $configName ] ) )
+        if ( isset( $this->_configMap[ $name ] ) )
         {
-            return $this->_configMap[ $configName ];
+            return $this->_configMap[ $name ];
         }
-        return $this->_load( $configName );
+        return $this->_load( $name );
     }
 
     /**
      * Load
-     * @param string $configName
-     * @param string $subPath
+     * @param string $name
      * @return mixed
      * @author Louis
      */
-    private function _load( string $configName, string $subPath = '' )
+    private function _load( string $name )
     {
-        $configPath = $this->_getPath( $subPath ) . $configName . $this->_configExt;
-        if ( !file_exists( $configPath ) )
+        $path = $this->_path . $name . self::EXT;
+        if ( !file_exists( $path ) )
         {
-            Log::Error( "Config File : {$configPath} does not exists.", self::LOG_NAME );
+            Log::Dump( "[ Config  ] file : {$path} not found." );
             return false;
         }
-        $this->_configMap[ $configName ] = require( $configPath );
-        return $this->_configMap[ $configName ];
+        $this->_configMap[ $name ] = require( $path );
+        return $this->_configMap[ $name ];
     }
 
 }

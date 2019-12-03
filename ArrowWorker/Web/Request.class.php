@@ -212,6 +212,11 @@ class Request
             self::$_header[ Coroutine::Id() ][ $key ];
     }
 
+    public static function Host()
+    {
+        return self::$_header[ Coroutine::Id() ][ 'host' ];
+    }
+
     /**
      * Headers : return specified post data
      * @return array

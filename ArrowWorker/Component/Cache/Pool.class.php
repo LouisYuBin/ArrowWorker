@@ -11,21 +11,13 @@ use ArrowWorker\Pool as ConnPool;
 
 class Pool implements ConnPool
 {
-    /**
-     *
-     */
+
     const LOG_NAME          = 'Cache';
 
 
-
-    /**
-     *
-     */
     const CONFIG_NAME       = 'Cache';
 
-    /**
-     *
-     */
+
     const DEFAULT_DRIVER    = 'Redis';
 
     /**
@@ -123,6 +115,7 @@ class Pool implements ConnPool
                 self::$_pool[$index]->Push( $conn );
             }
         }
+        var_dump(self::$_pool);
     }
 
     /**

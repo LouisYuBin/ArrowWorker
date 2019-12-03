@@ -766,7 +766,7 @@ class Log
 
     private static function _resetStd()
     {
-        if( !Console::Init()->GetIsDemonize() )
+        if( Console::Init()->IsDebug() )
         {
             return ;
         }
