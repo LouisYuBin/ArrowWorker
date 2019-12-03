@@ -188,6 +188,6 @@ class Console
 
     public function GetEnv()
     {
-        return $this->_env;
+        return ucfirst($this->_env);
     }
 }
