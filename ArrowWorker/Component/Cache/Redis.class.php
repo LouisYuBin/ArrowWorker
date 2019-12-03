@@ -7,6 +7,7 @@ use ArrowWorker\Log;
 class Redis implements Cache
 {
 
+    const LOG_PREFIX = "[  Redis  ] ";
 
     /**
      * @var \Redis
@@ -37,13 +38,13 @@ class Redis implements Cache
         {
             if ( false === @$this->_conn->connect( $this->_config['host'], $this->_config['port'] ) )
             {
-                Log::Dump( "[  Redis  ] connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config) );
+                Log::Dump( self::LOG_PREFIX."connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config) );
                 return false;
             }
         }
         catch (\RedisException $e)
         {
-            Log::Dump( "[  Redis  ] connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config) );
+            Log::Dump( self::LOG_PREFIX."connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config) );
             return false;
         }
 

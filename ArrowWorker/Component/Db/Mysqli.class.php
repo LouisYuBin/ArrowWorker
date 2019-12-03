@@ -13,6 +13,8 @@ class Mysqli implements Db
 {
 
 
+    const LOG_PREFIX = "[  Mysqli  ] ";
+
     /**
      * @var \mysqli
      */
@@ -40,13 +42,13 @@ class Mysqli implements Db
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
-            Log::Dump( "[  Mysqli  ] connect failed : " . $this->_conn->connect_error );
+            Log::Dump( self::LOG_PREFIX."connect failed : " . $this->_conn->connect_error );
             return false;
         }
 
         if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
         {
-            Log::Dump( "[  Mysqli  ] mysqi set names({$this->_config['charset']}) failed." );
+            Log::Dump( self::LOG_PREFIX."set names({$this->_config['charset']}) failed." );
         }
         return true;
     }

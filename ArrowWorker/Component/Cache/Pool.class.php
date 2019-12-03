@@ -14,6 +14,8 @@ class Pool implements ConnPool
 
     const LOG_NAME          = 'Cache';
 
+    const LOP_PREFIX = "[ CachePool ] ";
+
 
     const CONFIG_NAME       = 'Cache';
 
@@ -61,7 +63,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Critical( 'incorrect config file', self::LOG_NAME );
+            Log::Dump( '[ CachePool ] incorrect config file' );
             return ;
         }
 
@@ -81,7 +83,7 @@ class Pool implements ConnPool
                 !isset( $value['password'] )
             )
             {
-                Log::Dump( "[ CachePool ] incorrect configuration . {$index}=>".json_encode($value) );
+                Log::Dump( self::LOP_PREFIX."incorrect configuration . {$index}=>".json_encode($value) );
                 continue;
             }
 
@@ -108,7 +110,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Dump("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Dump(self::LOP_PREFIX."initialize connection failed, config : {$index}=>".json_encode($config));
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;

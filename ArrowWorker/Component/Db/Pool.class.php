@@ -23,6 +23,8 @@ class Pool implements ConnPool
      */
     const LOG_NAME          = 'Db';
 
+    const LOG_PREFIX = "[  DbPool  ]";
+
     /**
      *
      */
@@ -74,7 +76,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Dump( '[  DbPool  ] incorrect config file' );
+            Log::Dump( self::LOG_PREFIX.'incorrect config file' );
             return ;
         }
 
@@ -99,7 +101,7 @@ class Pool implements ConnPool
                 !isset( $value['charset'] )
             )
             {
-                Log::Dump( "[  DbPool  ] incorrect configuration. {$index}=> ".json_encode($value) );
+                Log::Dump( self::LOG_PREFIX."incorrect configuration. {$index}=> ".json_encode($value) );
                 continue;
             }
 
@@ -125,7 +127,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Critical("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Critical(self::LOG_PREFIX." initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
