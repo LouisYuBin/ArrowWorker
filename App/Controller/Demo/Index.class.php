@@ -38,7 +38,18 @@ class Index
 
     public function session()
     {
-        var_dump( Session::Get('loginTime') );
+        Session::Set('loginTime', date('Y-m-d H:i:s'));
+        Session::Get('loginTime');
+        Session::MSet([
+            'name'=> 'louis',
+            'age' => 32,
+            'home' => 'xunyi'
+        ]);
+        Session::Info();
+        Session::Exists();
+        Session::Has('name');
+        Session::Destroy();
+        Session::Create('b');
     }
 
     public function cache()

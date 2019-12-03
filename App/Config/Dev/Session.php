@@ -1,7 +1,7 @@
 <?php
 
 return [
-    '127.0.0.1:8081, 127.0.0.1:4433' => [
+    'arrow.com, web.com, ws.com' => [
         'handler'   => 'redis',
         'host'      => '127.0.0.1',
         'port'      => 6379,

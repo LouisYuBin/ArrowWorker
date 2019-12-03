@@ -8,7 +8,6 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Component\Cache\Pool;
-use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 
@@ -93,9 +92,28 @@ class Session
     }
 
 
-    private static function _getConn()
+    private static function _getResource()
     {
-        return Pool::GetConnection( Request::Host() );
+        $token = self::GetToken();
+        if( ''==$token )
+        {
+            return ['', false];
+        }
+
+        return [
+            $token,
+            Pool::GetConnection( Request::Host() )
+        ];
+    }
+
+    public static function Create(string $token) : bool
+    {
+        $conn = Pool::GetConnection( Request::Host() );
+        if( false==$conn )
+        {
+            return false;
+        }
+        return $conn->HSet( $token, 'createTime', date('Y-m-d H:i:s') );
     }
 
     /**
@@ -105,18 +123,12 @@ class Session
      */
     public static function Set( string $key, string $val ) : bool
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return false;
         }
-
-        $conn = self::_getConn();
-        if( false==$conn )
-        {
-            return false;
-        }
-        return $conn->Set( self::GetToken(), $key, $val );
+        return $conn->HSet( self::GetToken(), $key, $val );
     }
 
     /**
@@ -124,20 +136,14 @@ class Session
      * @param array $val
      * @return bool
      */
-    public static function MultiSet( array $val ) : bool
+    public static function MSet( array $val ) : bool
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return false;
         }
-
-        $conn = self::_getConn();
-        if( false==$conn )
-        {
-            return false;
-        }
-        return $conn->MSet( self::GetToken(), $val );
+        return $conn->HmSet( self::GetToken(), $val );
     }
 
     /**
@@ -147,18 +153,12 @@ class Session
      */
     public static function Get( string $key )
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return false;
         }
-
-        $conn = self::_getConn();
-        if( false==$conn )
-        {
-            return false;
-        }
-        return $conn->Get( self::GetToken(), $key );
+        return $conn->HGet( self::GetToken(), $key );
     }
 
     /**
@@ -168,18 +168,12 @@ class Session
      */
     public static function Del( string $key ) : bool
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return false;
         }
-
-        $conn = self::_getConn();
-        if( false==$conn )
-        {
-            return false;
-        }
-        return $conn->Del( $token, $key );
+        return $conn->HDel( $token, $key );
     }
 
     /**
@@ -188,18 +182,12 @@ class Session
      */
     public static function Info() : array
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return [];
         }
-
-        $conn = self::_getConn();
-        if( false==$conn )
-        {
-            return [];
-        }
-        return $conn->Info( self::GetToken() );
+        return $conn->HGetAll($token);
     }
 
     /**
@@ -207,18 +195,32 @@ class Session
      */
     public static function Destroy() : bool
     {
-        $token = self::GetToken();
-        if( ''==$token )
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
             return false;
         }
+        return $conn->Del( $token );
+    }
 
-        $conn = self::_getConn();
-        if( false==$conn )
+    public static function Exists()
+    {
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
         {
-            return '';
+            return false;
         }
-        return $conn->Destroy( $token );
+        return $conn->Exists( $token );
+    }
+
+    public static function Has(string $key)
+    {
+        [$token, $conn] = self::_getResource();
+        if( ''==$token || false==$conn )
+        {
+            return false;
+        }
+        return $conn->HExists( $token, $key );
     }
 
     /**

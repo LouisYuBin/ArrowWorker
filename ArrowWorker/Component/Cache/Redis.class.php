@@ -126,6 +126,20 @@ class Redis implements Cache
 
     /**
      * @param string $key
+     * @return string|false
+     */
+    public function Del(string $key) : bool
+    {
+        return $this->_exec('del', $key);
+    }
+
+    public function Exists( string $key) : bool
+    {
+        return $this->_exec('exists', $key);
+    }
+
+    /**
+     * @param string $key
      * @param string $value
      * @return mixed
      */
@@ -257,7 +271,7 @@ class Redis implements Cache
 	 */
 	public function HSet(string $key, string $hashKey, string $value)
     {
-        return $this->_exec('hSet', $hashKey, $value);
+        return $this->_exec('hSet', $key, $hashKey, $value);
     }
 
     /**
@@ -274,14 +288,26 @@ class Redis implements Cache
     /**
      * Hset hash table 写入
      * @param string $key
-     * @param string $hashKey
+     * @param array $values
+     * @return mixed
+     *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
+     */
+    public function HmSet(string $key, array $values)
+    {
+        return $this->_execMulti('hMSet', $key, $values);
+    }
+
+    /**
+     * Hset hash table 写入
+     * @param string $key
+     * @param string ...$hashKeys
      * @param string $value
      * @return mixed
      *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
      */
-    public function HmSet(string $key, string $hashKey, string $value)
+    public function HmGet(string $key, string ...$hashKeys)
     {
-        return $this->_exec('hmSet', $hashKey, $value);
+        return $this->_exec('hMGet', $key, ...$hashKeys);
     }
 
 	/**
@@ -312,18 +338,19 @@ class Redis implements Cache
      * @param string $key
      * @return bool
      */
-    public function HExists( string $key) : bool
+    public function HExists( string $key, string $hashKey) : bool
     {
-        return $this->_exec('hExists', $key);
+        return $this->_exec('hExists', $key, $hashKey);
     }
 
     /**
      * @param string $key
+     * @param string $hashKey
      * @return bool
      */
-    public function HDel( string $key) : bool
+    public function HDel( string $key, string $hashKey) : bool
     {
-        return $this->_exec('hDel', $key);
+        return $this->_exec('hDel', $key, $hashKey);
     }
 
     /**
@@ -481,6 +508,7 @@ class Redis implements Cache
                     break;
                 case 'get':     //done
                 case 'select':   //done
+                case 'del':   //done
                 case 'watch':    //done
                 case 'decr':     //done
                 case 'incr':     //done
@@ -488,6 +516,7 @@ class Redis implements Cache
                 case 'hGetAll':  //done
                 case 'hVals':    //done
                 case 'hLen':     //done
+                case 'exists':
                     $result = $this->_conn->$function($key);
                     break;
                 case 'set':  //done
@@ -520,20 +549,45 @@ class Redis implements Cache
                     $result = $this->_conn->$function( $key, (int)$values[0]);
                     break;
                 case 'hDel':   //done
-                case 'hMGet':  //单独处理
-                    $result = $this->_conn->$function($key, $values);
-                    break;
-                case 'hMSet': //单独处理
+                case 'hMGet':  //done
                     $result = $this->_conn->$function($key, $values);
                     break;
                 case 'hIncrBy':  //done
                     $result = $this->_conn->$function($key, $values[0], (int)$values[1]);
                     break;
                 case 'setex':  //done
-                    $result = $this->_conn->multi($key, (int)$values[1], $values[0]);
+                    $result = $this->_conn->$function($key, (int)$values[1], $values[0]);
                     break;
                 case 'multi':    //done
                     $result = $this->_conn->$function( (int)$key );
+                    break;
+                default:
+                    return false;
+            }
+        }
+        catch(\RedisException $exception)
+        {
+            if( !$isRetried )
+            {
+                $this->_handleException($exception, $function);
+                $isRetried = true;
+                goto START;
+            }
+            return false;
+        }
+        return $result;
+    }
+
+    public function _execMulti(string $function, string $key, array $values)
+    {
+        $isRetried = false;
+        START:
+        try
+        {
+            switch ($function)
+            {
+                case 'hMSet': //单独处理
+                    $result = $this->_conn->$function($key, $values);
                     break;
                 default:
                     return false;
