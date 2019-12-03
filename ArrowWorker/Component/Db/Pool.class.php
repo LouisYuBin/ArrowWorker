@@ -127,7 +127,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Critical(self::LOG_PREFIX." initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Dump(self::LOG_PREFIX." initialize connection failed, config : {$index}=>".json_encode($config));
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
@@ -166,7 +166,7 @@ class Pool implements ConnPool
             if( $retryTimes<=2 )
             {
                 $retryTimes++;
-                Log::Warning("get ( {$alias} : {$retryTimes} ) connection failed, retrying...",self::LOG_NAME);
+                Log::Dump(self::LOG_PREFIX."get ( {$alias} : {$retryTimes} ) connection failed, retrying...");
                 goto _RETRY;
             }
         }

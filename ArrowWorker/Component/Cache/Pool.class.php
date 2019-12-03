@@ -149,7 +149,7 @@ class Pool implements ConnPool
             if( $retryTimes<=2 )
             {
                 $retryTimes++;
-                Log::Warning("get ( {$alias} : {$retryTimes} ) connection failed,retrying...",self::LOG_NAME);
+                Log::Dump(self::LOP_PREFIX."get ( {$alias} : {$retryTimes} ) connection failed,retrying...");
                 goto _RETRY;
             }
 
