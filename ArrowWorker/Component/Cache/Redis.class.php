@@ -37,13 +37,13 @@ class Redis implements Cache
         {
             if ( false === @$this->_conn->connect( $this->_config['host'], $this->_config['port'] ) )
             {
-                Log::Warning( "connect redis failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config), self::LOG_NAME );
+                Log::Dump( "[  Redis  ] connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config) );
                 return false;
             }
         }
         catch (\RedisException $e)
         {
-            Log::Warning( "connect redis failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config), self::LOG_NAME );
+            Log::Dump( "[  Redis  ] connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config) );
             return false;
         }
 

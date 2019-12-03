@@ -81,7 +81,7 @@ class Pool implements ConnPool
                 !isset( $value['password'] )
             )
             {
-                Log::Critical( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
+                Log::Dump( "[ CachePool ] incorrect configuration . {$index}=>".json_encode($value) );
                 continue;
             }
 
@@ -108,7 +108,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Critical("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Dump("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
