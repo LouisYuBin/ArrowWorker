@@ -40,13 +40,13 @@ class Mysqli implements Db
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
-            Log::Error( "connecting to mysql failed : " . $this->_conn->connect_error, self::LOG_NAME );
+            Log::Dump( "[  Mysqli  ] connect failed : " . $this->_conn->connect_error );
             return false;
         }
 
         if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
         {
-            Log::Warning( "mysqi set names(charset) failed.", self::LOG_NAME );
+            Log::Dump( "[  Mysqli  ] mysqi set names({$this->_config['charset']}) failed." );
         }
         return true;
     }

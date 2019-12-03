@@ -74,7 +74,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Critical( 'incorrect config file', self::LOG_NAME );
+            Log::Dump( '[  DbPool  ] incorrect config file' );
             return ;
         }
 
@@ -99,7 +99,7 @@ class Pool implements ConnPool
                 !isset( $value['charset'] )
             )
             {
-                Log::Critical( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
+                Log::Dump( "[  DbPool  ] incorrect configuration. {$index}=> ".json_encode($value) );
                 continue;
             }
 
