@@ -115,7 +115,6 @@ class Pool implements ConnPool
                 self::$_pool[$index]->Push( $conn );
             }
         }
-        var_dump(self::$_pool);
     }
 
     /**
