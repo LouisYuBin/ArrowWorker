@@ -148,7 +148,6 @@ class ArrowWorker
             'ArrowWorker\Cache'     => ArrowWorker . '/Cache' . self::CLASS_EXT,
 
             'ArrowWorker\Web\Session'  => ArrowWorker . '/Web/Session' . self::CLASS_EXT,
-            'ArrowWorker\Web\Cookie'   => ArrowWorker . '/Web/Cookie' . self::CLASS_EXT,
             'ArrowWorker\Web\Response' => ArrowWorker . '/Web/Response' . self::CLASS_EXT,
             'ArrowWorker\Web\Request'  => ArrowWorker . '/Web/Request' . self::CLASS_EXT,
             'ArrowWorker\Web\Router'   => ArrowWorker . '/Web/Router' . self::CLASS_EXT,

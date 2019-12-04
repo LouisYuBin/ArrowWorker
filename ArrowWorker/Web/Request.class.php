@@ -35,6 +35,8 @@ class Request
 
     private static $_file = [];
 
+    private static $_cookie = [];
+
     /**
      * @var array
      */
@@ -61,8 +63,7 @@ class Request
         self::$_raw[ $coId ]    = $request->rawContent();
         self::$_header[ $coId ] = is_array( $request->header ) ? $request->header : [];
         self::$_params[ $coId ] = [];
-
-        Cookie::Init( is_array( $request->cookie ) ? $request->cookie : [] );
+        self::$_cookie[ $coId ] = is_array( $request->cookie ) ? $request->cookie : [];
 
         self::InitUrlPostParams();
 
@@ -179,6 +180,10 @@ class Request
         return ( !isset( self::$_post[ Coroutine::Id() ][ $key ] ) ) ? '' : self::$_post[ Coroutine::Id() ][ $key ];
     }
 
+    public static function Cookie(string $key)
+    {
+        return  self::$_cookie[ Coroutine::Id() ][ $key ] ?? '';
+    }
 
     /**
      * @param string $key
@@ -306,7 +311,7 @@ class Request
     public static function Release()
     {
         $coId = Coroutine::Id();
-        unset( self::$_get[ $coId ], self::$_post[ $coId ], self::$_file[ $coId ], self::$_server[ $coId ], self::$_params[ $coId ], self::$_header[ $coId ], static::$_raw[ $coId ], static::$_routeType[ $coId ], $coId );
+        unset( self::$_get[ $coId ], self::$_post[ $coId ], self::$_file[ $coId ], self::$_server[ $coId ], self::$_params[ $coId ], self::$_header[ $coId ], self::$_raw[ $coId ], self::$_routeType[ $coId ], self::$_cookie[$coId], $coId );
     }
 
     private static function _logRequest()
@@ -321,12 +326,12 @@ class Request
         $files  = json_encode( self::$_file[ $coId ], JSON_UNESCAPED_UNICODE );
         $server = json_encode( self::$_server[ $coId ], JSON_UNESCAPED_UNICODE );
         $header = json_encode( self::$_header[ $coId ], JSON_UNESCAPED_UNICODE );
+        $cookie = json_encode( self::$_cookie[ $coId ], JSON_UNESCAPED_UNICODE );
 
         $routeType = self::RouteType();
 
-        Log::Debug( " {$uri} [{$method}:$routeType]   Params : {$params}   Get : {$get}   Post : {$post}   Header : {$header}   Server : {$server}   raw : {$raw}   Files : {$files}", self::LOG_NAME );
+        Log::Debug( " {$uri} [{$method}:$routeType]   Params : {$params}   Get : {$get}   Post : {$post}   Header : {$header}   Server : {$server}   raw : {$raw},  cookie : {$cookie},  Files : {$files}", self::LOG_NAME );
         unset( $method, $get, $post, $files, $params, $header, $server );
-        Cookie::Release();
     }
 
 }

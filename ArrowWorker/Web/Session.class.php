@@ -24,6 +24,8 @@ class Session
      */
     const CONFIG_NAME = 'Session';
 
+    const DEFAULT_TOKEN_KEY = 'token';
+
     /**
      * @var array
      */
@@ -228,14 +230,14 @@ class Session
      */
     public static function GetToken() : string
     {
-        if( !isset(self::$_config[Request::Host()]['tokenFrom']) )
+        $tokenFrom = self::$_config[Request::Host()]['tokenFrom'] ?? '';
+        if( ''==$tokenFrom )
         {
             return '';
         }
 
-        $tokenKey  = self::$_config[Request::Host()]['tokenKey'];
-        $tokenFrom = self::$_config[Request::Host()]['tokenFrom'];
-        return 'Cookie'==$tokenFrom ? Cookie::Get( $tokenKey ) : Request::$tokenFrom( $tokenKey );
+        $tokenKey  = self::$_config[Request::Host()]['tokenKey'] ?? self::DEFAULT_TOKEN_KEY;
+        return Request::$tokenFrom( $tokenKey );
     }
 
 }

@@ -66,6 +66,12 @@ class Response
         return self::$_isAllowCORS;
     }
 
+    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
+    {
+        $expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
+        $val    = CryptoArrow::Encrypt($val);
+        return Response::Cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+    }
 
     /**
      * Json : return formated json to browser
@@ -141,6 +147,7 @@ class Response
      */
     public static function Cookie( string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
     {
+        $expire = ($expire==0) ? 0 : time()+$expire;
         self::$_response[Coroutine::Id()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
     }
