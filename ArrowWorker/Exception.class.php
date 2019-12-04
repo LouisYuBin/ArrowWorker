@@ -53,6 +53,7 @@ class Exception
      */
     public static function Exception( object $exception )
     {
+        $exception = (array)$exception;
         $msg        = '';
         $file       = '';
         $line       = 0;
