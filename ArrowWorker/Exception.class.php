@@ -41,7 +41,7 @@ class Exception
      */
     public static function Error( int $code, string $msg, string $file, int $line, array $parameters)
     {
-        Log::Dump( "[ error ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : ".json_encode($parameters) );
+        Log::Dump( "[ error ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : ".json_encode($parameters).", backtrace : ".json_encode(debug_backtrace()) );
         return false;
     }
 
