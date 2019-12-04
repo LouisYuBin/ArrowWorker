@@ -29,7 +29,7 @@ class Index
         $rnd  = Request::Get("rnd");
         $this->db();
         $this->memory();
-        //$this->log();
+        $this->log();
         $this->cache();
         $this->session();
         //Coroutine::Sleep(2);
