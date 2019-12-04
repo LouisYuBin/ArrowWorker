@@ -75,7 +75,7 @@ class Tcp extends ServerPattern
     {
         $server = new self( $config );
         $server->_initServer();
-        $server->_initComponent();
+        $server->_initComponent(App::TYPE_TCP);
         $server->_setConfig();
         $server->_onStart();
         $server->_onWorkerStart();
@@ -162,7 +162,7 @@ class Tcp extends ServerPattern
         {
             $this->_component->InitCommon();
             ($this->_handlerConnect)( $server, $fd );
-            $this->_component->Release( App::TYPE_TCP );
+            $this->_component->Release();
         } );
     }
 
@@ -175,7 +175,7 @@ class Tcp extends ServerPattern
         {
             $this->_component->InitCommon();
             ($this->_handlerReceive)( $server, $fd, $data );
-            $this->_component->Release( App::TYPE_TCP );
+            $this->_component->Release();
         } );
     }
 
@@ -188,7 +188,7 @@ class Tcp extends ServerPattern
         {
             $this->_component->InitCommon();
             ($this->_handlerClose)( $server, $fd );
-            $this->_component->Release( App::TYPE_TCP );
+            $this->_component->Release();
         } );
     }
 

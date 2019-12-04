@@ -90,7 +90,7 @@ class Ws extends ServerPattern
     {
         $server = new self( $config );
         $server->_initServer();
-        $server->_initComponent();
+        $server->_initComponent(App::TYPE_WEBSOCKET );
         $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
@@ -176,7 +176,7 @@ class Ws extends ServerPattern
         $this->_server->on('open', function(Server $server, SwRequest $request)  {
             $this->_component->InitOpen($request);
             ($this->_handlerOpen)($server, $request->fd);
-            $this->_component->Release(App::TYPE_WEBSOCKET);
+            $this->_component->Release();
         });
     }
 
@@ -185,7 +185,7 @@ class Ws extends ServerPattern
         $this->_server->on('message', function(Server $server, Frame $frame)  {
             $this->_component->InitCommon();
             ($this->_handlerMessage)($server, $frame);
-            $this->_component->Release(App::TYPE_BASE);
+            $this->_component->Release();
         });
     }
 
@@ -194,7 +194,7 @@ class Ws extends ServerPattern
         $this->_server->on('close',   function(Server $server, int $fd) {
             $this->_component->InitCommon();
             ($this->_handlerClose)($server, $fd);
-            $this->_component->Release(App::TYPE_BASE);
+            $this->_component->Release();
         });
     }
 
@@ -211,7 +211,7 @@ class Ws extends ServerPattern
         {
             $this->_component->InitWeb($request, $response);
             $this->_router->Go();
-            $this->_component->Release(App::TYPE_WEBSOCKET);;
+            $this->_component->Release();;
         } );
     }
 

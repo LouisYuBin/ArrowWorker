@@ -78,7 +78,7 @@ class Http extends ServerPattern
     {
         $server = new self( $config );
         $server->_initServer();
-        $server->_initComponent();
+        $server->_initComponent(App::TYPE_HTTP);
         $server->_initRouter();
         $server->_setConfig();
         $server->_onStart();
@@ -176,7 +176,7 @@ class Http extends ServerPattern
         {
             $this->_component->InitWeb( $request, $response );
             $this->_router->Go();
-            $this->_component->Release( App::TYPE_HTTP );
+            $this->_component->Release();
         } );
     }
 

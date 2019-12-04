@@ -117,11 +117,11 @@ class Server
     protected $_component;
 
     /**
-     *
+     * @param string $type
      */
-    protected function _initComponent()
+    protected function _initComponent(int $type)
     {
-        $this->_component = Component::Init();
+        $this->_component = Component::Init($type);
     }
 
 }

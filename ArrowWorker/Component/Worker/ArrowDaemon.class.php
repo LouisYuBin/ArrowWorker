@@ -441,7 +441,7 @@ class ArrowDaemon extends Worker
 
     private function _initComponent()
     {
-        $this->_component = Component::Init();
+        $this->_component = Component::Init('worker');
     }
 
     /**

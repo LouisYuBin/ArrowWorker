@@ -49,11 +49,21 @@ class Component
     /**
      * @var array
      */
-    private $_poolComponents = [];
+    private $_components = [];
 
-    public static function Init()
+    public static function Init(int $type)
     {
-        return new self();
+        return new self($type);
+    }
+
+    private function __construct(int $type)
+    {
+        $this->_components = !in_array( $type, [
+                                            App::TYPE_HTTP,
+                                            App::TYPE_WEBSOCKET,
+                                        ] ) ?
+                            self::BASE_COMPONENTS :
+                            array_merge(self::WEB_COMPONENTS, self::BASE_COMPONENTS );
     }
 
     public function InitCommon()
@@ -97,23 +107,14 @@ class Component
             if ( '' !== $component )
             {
                 $component::Init( $config );
-                $this->_poolComponents[] = $component;
+                $this->_components[] = $component;
             }
         }
     }
 
-    /**
-     * @param int $type
-     */
-    public function Release( int $type = App::TYPE_HTTP )
+    public function Release()
     {
-        $components = !in_array( $type, [
-                App::TYPE_HTTP,
-                App::TYPE_WEBSOCKET,
-            ] ) ?
-            array_merge( $this->_poolComponents, self::BASE_COMPONENTS ) :
-            array_merge( $this->_poolComponents, self::WEB_COMPONENTS, self::BASE_COMPONENTS );
-        foreach ( $components as $component )
+        foreach ( $this->_components as $component )
         {
             $component::Release();
         }
