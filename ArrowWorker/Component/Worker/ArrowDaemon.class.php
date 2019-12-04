@@ -2,6 +2,7 @@
 
 namespace ArrowWorker\Component\Worker;
 
+use ArrowWorker\App;
 use ArrowWorker\Log;
 use ArrowWorker\Component;
 use ArrowWorker\Daemon;
@@ -441,7 +442,7 @@ class ArrowDaemon extends Worker
 
     private function _initComponent()
     {
-        $this->_component = Component::Init('worker');
+        $this->_component = Component::Init(App::TYPE_WORKER );
     }
 
     /**
