@@ -51,7 +51,7 @@ class Exception
      * @param array $exception
      * @return false
      */
-    public static function Exception( array $exception )
+    public static function Exception( object $exception )
     {
         $msg        = '';
         $file       = '';
