@@ -66,13 +66,6 @@ class Response
         return self::$_isAllowCORS;
     }
 
-    public static function Set(string $name, string $val, int $expireSeconds=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true) : bool
-    {
-        $expire = ($expireSeconds==0) ? 0 : time()+$expireSeconds;
-        $val    = CryptoArrow::Encrypt($val);
-        return Response::Cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
-    }
-
     /**
      * Json : return formated json to browser
      * @param int $code
@@ -96,8 +89,7 @@ class Response
     public static function Write(string $msg)
     {
         $coId = Coroutine::Id();
-        $header = isset(self::$_header[$coId]) ? json_encode(self::$_header[$coId],JSON_UNESCAPED_UNICODE) : '';
-        Log::Debug("Response, data : {$msg}, header : {$header}", self::LOG_NAME);
+        Log::Debug("Response : {$msg}", self::LOG_NAME);
         self::$_response[$coId]->end( $msg );
     }
 

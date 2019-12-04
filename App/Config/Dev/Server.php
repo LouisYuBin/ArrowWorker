@@ -17,7 +17,7 @@ return [
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
         'isEnableStatic'   => true,
-        'isEnableCORS'     => true,
+        'isEnableCORS'     => false,
         'isEnableHttp2'    => true,
         'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
