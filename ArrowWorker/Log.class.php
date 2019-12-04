@@ -453,7 +453,7 @@ class Log
             goto WRITE_LOG;
         }
 
-        $fileRes = $this->_initFileHandle( $module, $this->_getFileName( $level, $date ) );
+        $fileRes = $this->_initFileHandler( $module, $this->_getFileName( $level, $date ) );
         if ( false === $fileRes )
         {
             goto CHECK_FILE_HANDLER;
@@ -474,7 +474,7 @@ class Log
      * @param string $fileExt
      * @return bool|resource
      */
-    private function _initFileHandle( string $fileDir, string $fileExt )
+    private function _initFileHandler( string $fileDir, string $fileExt )
     {
         $fileDir  = self::$_baseDir . $fileDir;
         $filePath = "{$fileDir}/{$fileExt}";
@@ -491,7 +491,7 @@ class Log
                     Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
                     return false;
                 }
-                Coroutine::Sleep(0.2);
+                Coroutine::Sleep(0.5);
                 goto RE_CHECK_DIR;
             }
         }
