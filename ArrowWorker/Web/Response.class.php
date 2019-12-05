@@ -39,7 +39,7 @@ class Response
     public static function Init(SwResponse $response)
     {
         self::$_response[Coroutine::Id()] = $response;
-        self::Header('Supplier','Arrow, Louis');
+        self::Header('Server','Arrow, Louis!');
         if( self::$_isAllowCORS )
         {
             self::AllowCORS();
