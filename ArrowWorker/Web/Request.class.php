@@ -40,9 +40,10 @@ class Request
 	 */
 	public static function Init( SwRequest $request )
 	{
-		$coId                     = Coroutine::Id();
-		self::$_params[ $coId ]   = [];
-		self::$_requests[ $coId ] = $request;
+		$coId                      = Coroutine::Id();
+		self::$_params[ $coId ]    = [];
+		self::$_requests[ $coId ]  = $request;
+		self::$_routeType[ $coId ] = 'none';
 		self::InitUrlPostParams();
 	}
 	
@@ -107,7 +108,7 @@ class Request
 	 */
 	public static function RouteType() : string
 	{
-		return self::$_routeType[ Coroutine::Id() ] ?? '';
+		return self::$_routeType[ Coroutine::Id() ];
 	}
 	
 	/**
