@@ -107,7 +107,7 @@ class Request
 	 */
 	public static function RouteType() : string
 	{
-		return self::$_routeType[ Coroutine::Id() ];
+		return self::$_routeType[ Coroutine::Id() ] ?? '';
 	}
 	
 	/**
