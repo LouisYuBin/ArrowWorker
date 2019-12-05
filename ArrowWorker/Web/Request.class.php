@@ -262,12 +262,12 @@ class Request
 		$coId                      = Coroutine::Id();
 		self::$_params[ $coId ]    = $params;
 		self::$_routeType[ $coId ] = $routeType;
+		self::_logRequest( );
 	}
 	
 	public static function Release()
 	{
 		$coId = Coroutine::Id();
-		self::_logRequest( );
 		unset( self::$_requests[ $coId ], self::$_params[ $coId ], self::$_routeType[ $coId ], $coId );
 	}
 	
