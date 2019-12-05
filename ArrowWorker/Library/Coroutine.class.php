@@ -41,7 +41,7 @@ class Coroutine
     /**
      * @param int $seconds
      */
-    public static function Sleep( int $seconds)
+    public static function Sleep( float $seconds)
     {
         Co::sleep($seconds);
     }
