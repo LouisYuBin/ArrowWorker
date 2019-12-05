@@ -39,6 +39,12 @@ class Index
 
     public function post()
     {
-        Response::Write('rest post');
+        Response::Json(200,[
+        	'post' => Request::Posts(),
+	        'get'  => Request::Gets(),
+	        'server' => Request::Servers(),
+	        'header' => Request::Headers(),
+	        'file' => Request::Files(),
+        ],'rest post');
     }
 }

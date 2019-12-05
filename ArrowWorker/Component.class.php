@@ -85,7 +85,7 @@ class Component
     {
         Session::Init();
         Upload::Init();
-        self::InitPool($components);
+        $this->InitPool($components);
         Response::SetCORS( $isEnableCORS );
     }
 
