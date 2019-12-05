@@ -135,6 +135,8 @@ class Log
      * @var array
      */
     private static $_logId = [];
+    
+    private static $_coBuffer = [];
 
     /**
      * Whether to close the log process
@@ -363,8 +365,10 @@ class Log
     private static function _fillLog( string $log, string $module = '', string $level = 'D' )
     {
         $time  = date( 'Y-m-d H:i:s' );
-        $logId = self::GetLogId();
-        self::$_msgObject->Write( "{$level}�{$module}�{$time} | {$logId} | $log" . PHP_EOL );
+	    self::$_coBuffer[Coroutine::Id()][] = [
+											    "{$level}�{$module}�{$time}",
+											    $log
+	                                          ];
     }
 
     /**
@@ -881,6 +885,7 @@ class Log
                                                  Process::Id() .
                                                  $coId .
                                                  mt_rand( 100, 999 ) : $logId;
+	    self::$_coBuffer[$coId] = [];
     }
 
     /**
@@ -896,7 +901,14 @@ class Log
      */
     public static function Release()
     {
-        unset( self::$_logId[ Coroutine::Id() ] );
+    	$coId = Coroutine::Id();
+    	$msgObj = self::$_msgObject;
+    	$logId = self::$_logId[ Coroutine::Id() ];
+    	foreach (self::$_coBuffer[$coId] as $log)
+	    {
+		    $msgObj->Write( "{$log[0]} | {$logId} : $log[1]" . PHP_EOL );
+	    }
+        unset( self::$_logId[ Coroutine::Id() ], self::$_coBuffer[$coId] );
     }
 
 }
