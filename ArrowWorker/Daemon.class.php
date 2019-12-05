@@ -384,7 +384,7 @@ class Daemon
     private function _exitLogProcess()
     {
         //check whether there are only one process left
-        if( count($this->_pidMap)>2 )
+        if( count($this->_pidMap)>4 )
         {
             return ;
         }
