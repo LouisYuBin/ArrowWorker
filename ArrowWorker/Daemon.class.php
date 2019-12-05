@@ -170,7 +170,7 @@ class Daemon
 
     private function _startLogProcess()
     {
-        for ($i=0; $i<2; $i++)
+        for ($i=0; $i<4; $i++)
         {
             $pid = Process::Fork();
             if($pid == 0)
