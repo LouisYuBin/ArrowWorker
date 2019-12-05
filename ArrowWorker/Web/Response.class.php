@@ -82,8 +82,8 @@ class Response
      */
     public static function Write(string $msg)
     {
-        Log::Debug("Response : {$msg}", self::LOG_NAME);
         self::$_response[ Coroutine::Id() ]->end( $msg );
+	    Log::Debug("Response : {$msg}", self::LOG_NAME);
     }
 
     /**
