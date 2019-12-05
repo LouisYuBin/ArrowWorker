@@ -15,6 +15,9 @@ use ArrowWorker\Server\Udp;
  */
 class Daemon
 {
+	
+	const LOG_PROCESS_NUM = 4;
+	
     /**
      *
      */
@@ -170,7 +173,7 @@ class Daemon
 
     private function _startLogProcess()
     {
-        for ($i=0; $i<4; $i++)
+        for ($i=0; $i<self::LOG_PROCESS_NUM; $i++)
         {
             $pid = Process::Fork();
             if($pid == 0)
@@ -384,11 +387,7 @@ class Daemon
     private function _exitLogProcess()
     {
         //check whether there are only one process left
-        if( count($this->_pidMap)>4 )
-        {
-            return ;
-        }
-
+	    var_dump($this->_pidMap);
         //check whether the process left is log process
         $logProcessId = 0;
         foreach ($this->_pidMap as $eachProcess)
