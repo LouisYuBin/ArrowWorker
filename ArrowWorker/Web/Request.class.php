@@ -41,6 +41,8 @@ class Request
 	public static function Init( SwRequest $request )
 	{
 		$coId                      = Coroutine::Id();
+		self::$_params[ $coId ]    = [];
+		self::$_routeType[ $coId ] = '';
 		self::$_requests[ $coId ]  = $request;
 		self::InitUrlPostParams();
 	}
@@ -275,8 +277,8 @@ class Request
 		$request   = self::$_requests[ Coroutine::Id() ];
 		$uri       = $request->server[ 'request_uri' ];
 		$method    = $request->server[ 'request_method' ];
-		$params    = json_encode( self::$_params[ $coId ] ?? [], JSON_UNESCAPED_UNICODE );
-		$routeType = self::$_routeType[ $coId ] ?? '';
+		$params    = json_encode( self::$_params[ $coId ], JSON_UNESCAPED_UNICODE );
+		$routeType = self::$_routeType[ $coId ];
 		
 		Log::Debug( " {$uri} [{$method}:{$routeType}]   Params : {$params} , Request : " .
 		            json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
