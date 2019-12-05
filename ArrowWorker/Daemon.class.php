@@ -301,7 +301,7 @@ class Daemon
                 {
                     if( $this->_exitWorkerProcess('worker') )
                     {
-                        $this->_exitLogProcess();
+	                    $this->_exitWorkerProcess('log');
                     }
                 }
 
@@ -375,34 +375,10 @@ class Daemon
             if( $eachProcess['type']==$type )
             {
                 $isExisted = false;
-                $this->_exitProcess($eachProcess['type'], $eachProcess['pid']);
+                $this->_exitProcess($type, $eachProcess['pid']);
             }
         }
         return $isExisted;
-    }
-
-    /**
-     * _exitLogProcess
-     */
-    private function _exitLogProcess()
-    {
-        //check whether there are only one process left
-	    var_dump($this->_pidMap);
-        //check whether the process left is log process
-        $logProcessId = 0;
-        foreach ($this->_pidMap as $eachProcess)
-        {
-            if( $eachProcess['type']==self::PROCESS_LOG )
-            {
-                $logProcessId = $eachProcess['pid'];
-            }
-        }
-
-        //exit log process if only log process left
-        if( $logProcessId>0 )
-        {
-            $this->_exitProcess(self::PROCESS_LOG, $logProcessId);
-        }
     }
 
     /**
