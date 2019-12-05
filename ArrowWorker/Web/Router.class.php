@@ -52,7 +52,7 @@ class Router
     private function __construct( string $_404 )
     {
         $this->_loadRestConfig();
-        $this->_buildRestPatton();
+        $this->_buildRestPattern();
         $this->_init404( $_404 );
         $this->_controller = App::GetController();
     }
@@ -135,7 +135,7 @@ class Router
     /**
      *
      */
-    private function _buildRestPatton()
+    private function _buildRestPattern()
     {
         foreach ( $this->_restApiConfig as $serverName => $restMap )
         {
@@ -196,7 +196,6 @@ class Router
                     continue;
                 }
 
-                //获取对应参数值
                 $params = [];
                 foreach ( $eachNode[ 'params' ] as $index => $param )
                 {
@@ -208,11 +207,7 @@ class Router
         }
         return '';
     }
-
-
-    /**
-     * Exec 返回要调用的控制器和方法
-     */
+    
     public function Go()
     {
         if ( $this->_restRouter() )
