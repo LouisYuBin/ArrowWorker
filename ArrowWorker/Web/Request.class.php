@@ -277,7 +277,7 @@ class Request
 		$uri       = $request->server[ 'request_uri' ];
 		$method    = $request->server[ 'request_method' ];
 		$params    = json_encode( self::$_params[ $coId ], JSON_UNESCAPED_UNICODE );
-		$routeType = self::RouteType();
+		$routeType = self::$_routeType[$coId];
 		
 		Log::Debug( " {$uri} [{$method}:{$routeType}]   Params : {$params} , Request : ".json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
 		unset( $method, $params, $request, $routeType, $coId );
