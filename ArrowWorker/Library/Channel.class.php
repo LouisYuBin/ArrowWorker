@@ -59,11 +59,10 @@ class Channel
     }
 
     /**
-     * @param int $timeout
-     *
+     * @param float $timeout
      * @return mixed
      */
-    public function Pop(int $timeout=1)
+    public function Pop(float $timeout=1)
     {
         return $this->_instance->pop($timeout);
     }
