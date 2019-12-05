@@ -259,8 +259,9 @@ class Request
 	 */
 	public static function SetParams( array $params, string $routeType = 'path' )
 	{
-		self::$_params[ Coroutine::Id() ]    = $params;
-		self::$_routeType[ Coroutine::Id() ] = $routeType;
+		$coId = Coroutine::Id();
+		self::$_params[ $coId ]    = $params;
+		self::$_routeType[ $coId ] = $routeType;
 		
 		self::_logRequest();
 	}

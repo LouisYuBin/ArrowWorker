@@ -24,26 +24,22 @@ class Response
     const LOG_NAME = 'Http';
 
     /**
-     * response handler for swoole
-     * @var null
+     * @var array
      */
     private static $_response = [];
-
-    private static $_header = [];
-
+    
     /**
      * @var bool
      */
     private static $_isAllowCORS = false;
 
     /**
-     * Init : init swoole response handler
      * @param SwResponse $response
      */
     public static function Init(SwResponse $response)
     {
         self::$_response[Coroutine::Id()] = $response;
-        self::Header('Server','Arrow V1.0, By Louis');
+        self::Header('Supplier','Arrow, Louis');
         if( self::$_isAllowCORS )
         {
             self::AllowCORS();
@@ -67,7 +63,6 @@ class Response
     }
 
     /**
-     * Json : return formated json to browser
      * @param int $code
      * @param array $data
      * @param string $msg
@@ -83,27 +78,22 @@ class Response
     }
 
     /**
-     * Write : write data to browser
      * @param string $msg
      */
     public static function Write(string $msg)
     {
-        $coId = Coroutine::Id();
         Log::Debug("Response : {$msg}", self::LOG_NAME);
-        self::$_response[$coId]->end( $msg );
+        self::$_response[ Coroutine::Id() ]->end( $msg );
     }
 
     /**
-     * Header : set response header
      * @param string $key
      * @param string $val
      * @return void
      */
     public static function Header(string $key, string $val)
     {
-        $coId = Coroutine::Id();
-        self::$_header[ $coId ][$key] = $val;
-        self::$_response[ $coId ]->header($key, $val);
+        self::$_response[ Coroutine::Id() ]->header($key, $val);
     }
 
     public static function Status(int $status)
@@ -112,7 +102,6 @@ class Response
     }
 
     /**
-     * Header : set response header
      * @param array $data
      * @return void
      */
@@ -143,10 +132,7 @@ class Response
         self::$_response[Coroutine::Id()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
     }
-
-    /**
-     *
-     */
+    
     public static function AllowCORS()
     {
         self::Headers([
@@ -155,14 +141,10 @@ class Response
             'Access-Control-Allow-Methods' => 'GET,POST,PUT,DELETE,OPTIONS'
         ]);
     }
-
-    /**
-     *
-     */
+    
     public static function Release()
     {
-        $coId = Coroutine::Id();
-        unset( self::$_response[$coId], self::$_header[$coId], $coId );
+        unset( self::$_response[Coroutine::Id()] );
     }
 
 }

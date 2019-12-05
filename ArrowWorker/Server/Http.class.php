@@ -174,7 +174,7 @@ class Http extends ServerPattern
     {
         $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            $this->_component->InitWeb( $request, $response );
+            $this->_component->InitWebRequest( $request, $response );
             $this->_router->Go();
             $this->_component->Release();
         } );

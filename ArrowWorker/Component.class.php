@@ -74,7 +74,7 @@ class Component
         }
     }
 
-    public function InitWeb( SwRequest $request, SwResponse $response )
+    public function InitWebRequest( SwRequest $request, SwResponse $response )
     {
         $this->InitCommon();
         Request::Init( $request );
