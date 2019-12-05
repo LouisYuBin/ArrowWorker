@@ -652,6 +652,11 @@ class Log
             {
                 goto FLUSH;
             }
+            
+            if( false !==$data )
+            {
+            	var_dump($data);
+            }
 
             $date      = date( 'Ymd' );
             $log       = $this->_parseModuleLevel( $data );
