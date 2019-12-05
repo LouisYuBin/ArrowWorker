@@ -41,9 +41,7 @@ class Request
 	public static function Init( SwRequest $request )
 	{
 		$coId                      = Coroutine::Id();
-		self::$_params[ $coId ]    = [];
 		self::$_requests[ $coId ]  = $request;
-		self::$_routeType[ $coId ] = 'none';
 		self::InitUrlPostParams();
 	}
 	
@@ -165,8 +163,7 @@ class Request
 	 */
 	public static function Param( string $key ) : string
 	{
-		return ( !isset( self::$_params[ Coroutine::Id() ][ $key ] ) ) ? '' :
-			self::$_params[ Coroutine::Id() ][ $key ];
+		return self::$_params[ Coroutine::Id() ][ $key ] ?? '';
 	}
 	
 	/**
@@ -175,7 +172,7 @@ class Request
 	 */
 	public static function Params() : array
 	{
-		return self::$_params[ Coroutine::Id() ];
+		return self::$_params[ Coroutine::Id() ] ?? [];
 	}
 	
 	/**
