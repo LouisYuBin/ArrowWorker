@@ -265,12 +265,13 @@ class Request
 	public static function Release()
 	{
 		$coId = Coroutine::Id();
-		self::_logRequest( $coId );
+		self::_logRequest( );
 		unset( self::$_requests[ $coId ], self::$_params[ $coId ], self::$_routeType[ $coId ], $coId );
 	}
 	
-	private static function _logRequest( int $coId )
+	private static function _logRequest( )
 	{
+		$coId = Coroutine::Id();
 		$request   = self::$_requests[ Coroutine::Id() ];
 		$uri       = $request->server[ 'request_uri' ];
 		$method    = $request->server[ 'request_method' ];
