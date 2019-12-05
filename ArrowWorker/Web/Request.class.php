@@ -40,9 +40,9 @@ class Request
 	 */
 	public static function Init( SwRequest $request )
 	{
-		$coId                               = Coroutine::Id();
-		self::$_params[ $coId ]             = [];
-		self::$_requests[ Coroutine::Id() ] = $request;
+		$coId                     = Coroutine::Id();
+		self::$_params[ $coId ]   = [];
+		self::$_requests[ $coId ] = $request;
 		self::InitUrlPostParams();
 	}
 	
@@ -259,7 +259,7 @@ class Request
 	 */
 	public static function SetParams( array $params, string $routeType = 'path' )
 	{
-		$coId = Coroutine::Id();
+		$coId                      = Coroutine::Id();
 		self::$_params[ $coId ]    = $params;
 		self::$_routeType[ $coId ] = $routeType;
 	}
@@ -267,19 +267,20 @@ class Request
 	public static function Release()
 	{
 		$coId = Coroutine::Id();
-		self::_logRequest($coId);
+		self::_logRequest( $coId );
 		unset( self::$_requests[ $coId ], self::$_params[ $coId ], self::$_routeType[ $coId ], $coId );
 	}
 	
-	private static function _logRequest( int $coId)
+	private static function _logRequest( int $coId )
 	{
 		$request   = self::$_requests[ Coroutine::Id() ];
 		$uri       = $request->server[ 'request_uri' ];
 		$method    = $request->server[ 'request_method' ];
 		$params    = json_encode( self::$_params[ $coId ], JSON_UNESCAPED_UNICODE );
-		$routeType = self::$_routeType[$coId];
+		$routeType = self::$_routeType[ $coId ];
 		
-		Log::Debug( " {$uri} [{$method}:{$routeType}]   Params : {$params} , Request : ".json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
+		Log::Debug( " {$uri} [{$method}:{$routeType}]   Params : {$params} , Request : " .
+		            json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
 		unset( $method, $params, $request, $routeType, $coId );
 	}
 	
