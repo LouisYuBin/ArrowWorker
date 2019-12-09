@@ -58,157 +58,162 @@ defined( 'DEBUG' ) or define( 'DEBUG', true );
  */
 class ArrowWorker
 {
-    /**
-     * class extension
-     */
-    const CLASS_EXT = '.class.php';
-
-    const INTERFACE_EXT = '.interface.php';
-
-    /**
-     * @var $Arrow ArrowWorker
-     */
-    private static $_arrow = null;
-
-    /**
-     * ArrowWorker constructor.
-     */
-    private function __construct()
-    {
-        spl_autoload_register( [
-            $this,
-            'LoadClass',
-        ] );
-    }
-
-
-    /**
-     * Start : frame start method
-     * @author Louis
-     */
-    static function Start()
-    {
-        if ( self::$_arrow instanceof self )
-        {
-            return;
-        }
-        self::$_arrow = new self;
-        App::Run();
-    }
-
-
-    /**
-     * LoadClass : auto-load class method
-     * @param string $class
-     * @author Louis
-     */
-    public function LoadClass( string $class )
-    {
-        $fileAlias = $this->_GetAutoLoadAlias();
-        if ( isset( $fileAlias[ $class ] ) )
-        {
-            $class = $fileAlias[ $class ];
-        }
-        else
-        {
-            $class = APP_PATH . '/' . str_replace( [ '\\', explode( '\\', $class )[ 0 ], ], "/", $class ) . static::CLASS_EXT;
-            if ( !file_exists( $class ) )
-            {
-                Log::Error( "Auto load class error : " . $class . " does not exists." );
-                return;
-            }
-        }
-        require $class;
-    }
-
-
-    /**
-     * _GetAutoLoadAlias frame class alias
-     * @return array
-     * @author Louis
-     */
-    private function _GetAutoLoadAlias()
-    {
-        return [
-            'ArrowWorker\App'       => ArrowWorker . '/App' . self::CLASS_EXT,
-            'ArrowWorker\Di'        => ArrowWorker . '/Di' . self::CLASS_EXT,
-            'ArrowWorker\Config'    => ArrowWorker . '/Config' . self::CLASS_EXT,
-            'ArrowWorker\Exception' => ArrowWorker . '/Exception' . self::CLASS_EXT,
-
-            'ArrowWorker\Pool'    => ArrowWorker . '/Pool' . self::INTERFACE_EXT,
-            'ArrowWorker\Console' => ArrowWorker . '/Console' . self::CLASS_EXT,
-            'ArrowWorker\Daemon'  => ArrowWorker . '/Daemon' . self::CLASS_EXT,
-
-            'ArrowWorker\Log'       => ArrowWorker . '/Log' . self::CLASS_EXT,
-            'ArrowWorker\Worker'    => ArrowWorker . '/Worker' . self::CLASS_EXT,
-            'ArrowWorker\Db'        => ArrowWorker . '/Db' . self::CLASS_EXT,
-            'ArrowWorker\Chan'      => ArrowWorker . '/Chan' . self::CLASS_EXT,
-            'ArrowWorker\Memory'    => ArrowWorker . '/Memory' . self::CLASS_EXT,
-            'ArrowWorker\Component' => ArrowWorker . '/Component' . self::CLASS_EXT,
-            'ArrowWorker\Cache'     => ArrowWorker . '/Cache' . self::CLASS_EXT,
-
-            'ArrowWorker\Web\Session'  => ArrowWorker . '/Web/Session' . self::CLASS_EXT,
-            'ArrowWorker\Web\Response' => ArrowWorker . '/Web/Response' . self::CLASS_EXT,
-            'ArrowWorker\Web\Request'  => ArrowWorker . '/Web/Request' . self::CLASS_EXT,
-            'ArrowWorker\Web\Router'   => ArrowWorker . '/Web/Router' . self::CLASS_EXT,
-            'ArrowWorker\Web\Upload'   => ArrowWorker . '/Web/Upload' . self::CLASS_EXT,
-
-            'ArrowWorker\Library\Bytes'                   => ArrowWorker . '/Library/Crypto/Bytes' . self::CLASS_EXT,
-            'ArrowWorker\Library\Coroutine'               => ArrowWorker . '/Library/Coroutine' . self::CLASS_EXT,
-            'ArrowWorker\Library\Channel'                 => ArrowWorker . '/Library/Channel' . self::CLASS_EXT,
-            'ArrowWorker\Library\Process'                 => ArrowWorker . '/Library/Process' . self::CLASS_EXT,
-            'ArrowWorker\Library\Crypto\CryptoArrow'      => ArrowWorker . '/Library/Crypto/CryptoArrow' . self::CLASS_EXT,
-            'ArrowWorker\Library\Validation\ValidateImg'  => ArrowWorker . '/Library/Validation/ValidateImg' . self::CLASS_EXT,
-            'ArrowWorker\Library\Image\Gd'                => ArrowWorker . '/Library/Image/Gd' . self::CLASS_EXT,
-            'ArrowWorker\Library\Image\ImageMagick'       => ArrowWorker . '/Library/Image/ImageMagick' . self::CLASS_EXT,
-            'ArrowWorker\Library\Image\Image'             => ArrowWorker . '/Library/Image/Image' . self::CLASS_EXT,
-            'ArrowWorker\Library\Image\ImageInterface'    => ArrowWorker . '/Library/Image/ImageInterface' . self::INTERFACE_EXT,
-            'ArrowWorker\Library\Image\Gif\GifHelper'     => ArrowWorker . '/Library/Image/Gif/GifHelper' . self::CLASS_EXT,
-            'ArrowWorker\Library\Image\Gif\GifByteStream' => ArrowWorker . '/Library/Image/Gif/GifByteStream' . self::CLASS_EXT,
-            'ArrowWorker\Library\System\LoadAverage'      => ArrowWorker . '/Library/System/LoadAverage' . self::CLASS_EXT,
-
-            'ArrowWorker\Library\Xml\Writer'    => ArrowWorker . '/Library/Xml/Writer' . self::CLASS_EXT,
-            'ArrowWorker\Library\Xml\Reader'    => ArrowWorker . '/Library/Xml/Reader' . self::CLASS_EXT,
-            'ArrowWorker\Library\Xml\Converter' => ArrowWorker . '/Library/Xml/Converter' . self::CLASS_EXT,
-
-            'ArrowWorker\Server\Server' => ArrowWorker . '/Server/Server' . self::CLASS_EXT,
-            'ArrowWorker\Server\Http'   => ArrowWorker . '/Server/Http' . self::CLASS_EXT,
-            'ArrowWorker\Server\Ws'     => ArrowWorker . '/Server/Ws' . self::CLASS_EXT,
-            'ArrowWorker\Server\Tcp'    => ArrowWorker . '/Server/Tcp' . self::CLASS_EXT,
-            'ArrowWorker\Server\Udp'    => ArrowWorker . '/Server/Udp' . self::CLASS_EXT,
-            'ArrowWorker\Server\GRpc'   => ArrowWorker . '/Server/GRpc' . self::CLASS_EXT,
-
-            'ArrowWorker\Client\Ws\Pool'   => ArrowWorker . '/Client/Ws/Pool' . self::CLASS_EXT,
-            'ArrowWorker\Client\Ws\Client' => ArrowWorker . '/Client/Ws/Client' . self::CLASS_EXT,
-
-            'ArrowWorker\Client\Http\Pool'  => ArrowWorker . '/Client/Http/Pool' . self::CLASS_EXT,
-            'ArrowWorker\Client\Http\Http'  => ArrowWorker . '/Client/Http/Http' . self::CLASS_EXT,
-            'ArrowWorker\Client\Http\Http2' => ArrowWorker . '/Client/Http/Http2' . self::CLASS_EXT,
-
-            'ArrowWorker\Client\Tcp\Pool'   => ArrowWorker . '/Client/Tcp/Pool' . self::CLASS_EXT,
-            'ArrowWorker\Client\Tcp\Client' => ArrowWorker . '/Client/Tcp/Client' . self::CLASS_EXT,
-
-            'ArrowWorker\Client\GRpc\Pool'   => ArrowWorker . '/Client/GRpc/Pool' . self::CLASS_EXT,
-            'ArrowWorker\Client\GRpc\Client' => ArrowWorker . '/Client/GRpc/Client' . self::CLASS_EXT,
-
-            'ArrowWorker\Component\View'    => ArrowWorker . '/Component/View' . self::CLASS_EXT,
-            'ArrowWorker\Component\Worker'  => ArrowWorker . '/Component/Worker' . self::CLASS_EXT,
-
-            'ArrowWorker\Component\Db\Db'         => ArrowWorker . '/Component/Db/Db' . self::INTERFACE_EXT,
-            'ArrowWorker\Component\Db\Mysqli'     => ArrowWorker . '/Component/Db/Mysqli' . self::CLASS_EXT,
-            'ArrowWorker\Component\Db\Pdo'        => ArrowWorker . '/Component/Db/Pdo' . self::CLASS_EXT,
-            'ArrowWorker\Component\Db\Pool'       => ArrowWorker . '/Component/Db/Pool' . self::CLASS_EXT,
-            'ArrowWorker\Component\Db\SqlBuilder' => ArrowWorker . '/Component/Db/SqlBuilder' . self::CLASS_EXT,
-
-            'ArrowWorker\Component\Cache\Cache' => ArrowWorker . '/Component/Cache/Cache' . self::INTERFACE_EXT,
-            'ArrowWorker\Component\Cache\Redis' => ArrowWorker . '/Component/Cache/Redis' . self::CLASS_EXT,
-            'ArrowWorker\Component\Cache\Pool'  => ArrowWorker . '/Component/Cache/Pool' . self::CLASS_EXT,
-
-            'ArrowWorker\Component\View\Smarty'              => ArrowWorker . '/Component/View/Smarty' . self::CLASS_EXT,
-            'ArrowWorker\Component\Worker\ArrowDaemon'       => ArrowWorker . '/Component/Worker/ArrowDaemon' . self::CLASS_EXT,
-            'ArrowWorker\Component\Channel\Queue'            => ArrowWorker . '/Component/Channel/Queue' . self::CLASS_EXT,
-            'ArrowWorker\Component\Memory\SwTable'           => ArrowWorker . '/Component/Memory/SwTable' . self::CLASS_EXT,
-        ];
-    }
-
+	/**
+	 * class extension
+	 */
+	const EXT = '.php';
+	
+	/**
+	 * @var $Arrow ArrowWorker
+	 */
+	private static $_arrow = null;
+	
+	/**
+	 * ArrowWorker constructor.
+	 */
+	private function __construct()
+	{
+		spl_autoload_register( [
+			$this,
+			'LoadClass',
+		] );
+	}
+	
+	
+	/**
+	 * Start : frame start method
+	 * @author Louis
+	 */
+	static function Start()
+	{
+		if ( self::$_arrow instanceof self )
+		{
+			return;
+		}
+		self::$_arrow = new self;
+		App::Run();
+	}
+	
+	
+	/**
+	 * LoadClass : auto-load class method
+	 * @param string $class
+	 * @author Louis
+	 */
+	public function LoadClass( string $class )
+	{
+		$fileAlias = $this->_GetAutoLoadAlias();
+		if ( isset( $fileAlias[ $class ] ) )
+		{
+			$class = $fileAlias[ $class ];
+		}
+		else
+		{
+			$class = APP_PATH .
+			         '/' .
+			         str_replace( [
+				         '\\',
+				         explode( '\\', $class )[ 0 ],
+			         ], "/", $class ) .
+			         self::EXT;
+			if ( !file_exists( $class ) )
+			{
+				Log::Error( "Auto load class error : " . $class . " does not exists." );
+				return;
+			}
+		}
+		require $class;
+	}
+	
+	
+	/**
+	 * _GetAutoLoadAlias frame class alias
+	 * @return array
+	 * @author Louis
+	 */
+	private function _GetAutoLoadAlias()
+	{
+		return [
+			'ArrowWorker\App'       => ArrowWorker . '/App' . self::EXT,
+			'ArrowWorker\Di'        => ArrowWorker . '/Di' . self::EXT,
+			'ArrowWorker\Config'    => ArrowWorker . '/Config' . self::EXT,
+			'ArrowWorker\Exception' => ArrowWorker . '/Exception' . self::EXT,
+			
+			'ArrowWorker\PoolInterface' => ArrowWorker . '/PoolInterface' . self::EXT,
+			'ArrowWorker\Console'       => ArrowWorker . '/Console' . self::EXT,
+			'ArrowWorker\Daemon'        => ArrowWorker . '/Daemon' . self::EXT,
+			
+			'ArrowWorker\Log'       => ArrowWorker . '/Log' . self::EXT,
+			'ArrowWorker\Worker'    => ArrowWorker . '/Worker' . self::EXT,
+			'ArrowWorker\Db'        => ArrowWorker . '/Db' . self::EXT,
+			'ArrowWorker\Chan'      => ArrowWorker . '/Chan' . self::EXT,
+			'ArrowWorker\Memory'    => ArrowWorker . '/Memory' . self::EXT,
+			'ArrowWorker\Component' => ArrowWorker . '/Component' . self::EXT,
+			'ArrowWorker\Cache'     => ArrowWorker . '/Cache' . self::EXT,
+			
+			'ArrowWorker\Web\Session'  => ArrowWorker . '/Web/Session' . self::EXT,
+			'ArrowWorker\Web\Response' => ArrowWorker . '/Web/Response' . self::EXT,
+			'ArrowWorker\Web\Request'  => ArrowWorker . '/Web/Request' . self::EXT,
+			'ArrowWorker\Web\Router'   => ArrowWorker . '/Web/Router' . self::EXT,
+			'ArrowWorker\Web\Upload'   => ArrowWorker . '/Web/Upload' . self::EXT,
+			
+			'ArrowWorker\Library\Bytes'                   => ArrowWorker . '/Library/Crypto/Bytes' . self::EXT,
+			'ArrowWorker\Library\Coroutine'               => ArrowWorker . '/Library/Coroutine' . self::EXT,
+			'ArrowWorker\Library\Channel'                 => ArrowWorker . '/Library/Channel' . self::EXT,
+			'ArrowWorker\Library\Process'                 => ArrowWorker . '/Library/Process' . self::EXT,
+			'ArrowWorker\Library\Crypto\CryptoArrow'      => ArrowWorker . '/Library/Crypto/CryptoArrow' . self::EXT,
+			'ArrowWorker\Library\Validation\ValidateImg'  => ArrowWorker . '/Library/Validation/ValidateImg' .
+			                                                 self::EXT,
+			'ArrowWorker\Library\Image\Gd'                => ArrowWorker . '/Library/Image/Gd' . self::EXT,
+			'ArrowWorker\Library\Image\ImageMagick'       => ArrowWorker . '/Library/Image/ImageMagick' . self::EXT,
+			'ArrowWorker\Library\Image\Image'             => ArrowWorker . '/Library/Image/Image' . self::EXT,
+			'ArrowWorker\Library\Image\ImageInterface'    => ArrowWorker . '/Library/Image/ImageInterface' . self::EXT,
+			'ArrowWorker\Library\Image\Gif\GifHelper'     => ArrowWorker . '/Library/Image/Gif/GifHelper' . self::EXT,
+			'ArrowWorker\Library\Image\Gif\GifByteStream' => ArrowWorker . '/Library/Image/Gif/GifByteStream' .  self::EXT,
+			'ArrowWorker\Library\System\LoadAverage'      => ArrowWorker . '/Library/System/LoadAverage' . self::EXT,
+			
+			'ArrowWorker\Library\Xml\Writer'    => ArrowWorker . '/Library/Xml/Writer' . self::EXT,
+			'ArrowWorker\Library\Xml\Reader'    => ArrowWorker . '/Library/Xml/Reader' . self::EXT,
+			'ArrowWorker\Library\Xml\Converter' => ArrowWorker . '/Library/Xml/Converter' . self::EXT,
+			
+			'ArrowWorker\Server\Server' => ArrowWorker . '/Server/Server' . self::EXT,
+			'ArrowWorker\Server\Http'   => ArrowWorker . '/Server/Http' . self::EXT,
+			'ArrowWorker\Server\Ws'     => ArrowWorker . '/Server/Ws' . self::EXT,
+			'ArrowWorker\Server\Tcp'    => ArrowWorker . '/Server/Tcp' . self::EXT,
+			'ArrowWorker\Server\Udp'    => ArrowWorker . '/Server/Udp' . self::EXT,
+			'ArrowWorker\Server\GRpc'   => ArrowWorker . '/Server/GRpc' . self::EXT,
+			
+			'ArrowWorker\Client\Ws\Pool'   => ArrowWorker . '/Client/Ws/Pool' . self::EXT,
+			'ArrowWorker\Client\Ws\Client' => ArrowWorker . '/Client/Ws/Client' . self::EXT,
+			
+			'ArrowWorker\Client\Http\Pool'  => ArrowWorker . '/Client/Http/Pool' . self::EXT,
+			'ArrowWorker\Client\Http\Http'  => ArrowWorker . '/Client/Http/Http' . self::EXT,
+			'ArrowWorker\Client\Http\Http2' => ArrowWorker . '/Client/Http/Http2' . self::EXT,
+			
+			'ArrowWorker\Client\Tcp\Pool'   => ArrowWorker . '/Client/Tcp/Pool' . self::EXT,
+			'ArrowWorker\Client\Tcp\Client' => ArrowWorker . '/Client/Tcp/Client' . self::EXT,
+			
+			'ArrowWorker\Client\GRpc\Pool'   => ArrowWorker . '/Client/GRpc/Pool' . self::EXT,
+			'ArrowWorker\Client\GRpc\Client' => ArrowWorker . '/Client/GRpc/Client' . self::EXT,
+			
+			'ArrowWorker\Component\View'   => ArrowWorker . '/Component/View' . self::EXT,
+			'ArrowWorker\Component\Worker' => ArrowWorker . '/Component/Worker' . self::EXT,
+			
+			'ArrowWorker\Component\Db\DbInterface' => ArrowWorker . '/Component/Db/DbInterface' . self::EXT,
+			'ArrowWorker\Component\Db\Mysqli'      => ArrowWorker . '/Component/Db/Mysqli' . self::EXT,
+			'ArrowWorker\Component\Db\Pdo'         => ArrowWorker . '/Component/Db/Pdo' . self::EXT,
+			'ArrowWorker\Component\Db\Pool'        => ArrowWorker . '/Component/Db/Pool' . self::EXT,
+			'ArrowWorker\Component\Db\SqlBuilder'  => ArrowWorker . '/Component/Db/SqlBuilder' . self::EXT,
+			
+			'ArrowWorker\Component\Cache\CacheInterface' => ArrowWorker . '/Component/Cache/CacheInterface' . self::EXT,
+			'ArrowWorker\Component\Cache\Redis'          => ArrowWorker . '/Component/Cache/Redis' . self::EXT,
+			'ArrowWorker\Component\Cache\Pool'           => ArrowWorker . '/Component/Cache/Pool' . self::EXT,
+			
+			'ArrowWorker\Component\View\Smarty'        => ArrowWorker . '/Component/View/Smarty' . self::EXT,
+			'ArrowWorker\Component\Worker\ArrowDaemon' => ArrowWorker . '/Component/Worker/ArrowDaemon' . self::EXT,
+			'ArrowWorker\Component\Channel\Queue'      => ArrowWorker . '/Component/Channel/Queue' . self::EXT,
+			'ArrowWorker\Component\Memory\SwTable'     => ArrowWorker . '/Component/Memory/SwTable' . self::EXT,
+		];
+	}
+	
 }

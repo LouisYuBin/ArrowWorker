@@ -4,7 +4,7 @@ namespace ArrowWorker\Component\Cache;
 
 use ArrowWorker\Log;
 
-class Redis implements Cache
+class Redis implements CacheInterface
 {
 
     const LOG_PREFIX = "[  Redis  ] ";

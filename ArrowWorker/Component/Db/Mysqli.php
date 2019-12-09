@@ -9,7 +9,7 @@ namespace ArrowWorker\Component\Db;
 
 use ArrowWorker\Log;
 
-class Mysqli implements Db
+class Mysqli implements DbInterface
 {
 
 

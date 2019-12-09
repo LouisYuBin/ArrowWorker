@@ -3,7 +3,7 @@
 namespace ArrowWorker\Component\Cache;
 
 
-interface Cache
+interface CacheInterface
 {
 
     /**

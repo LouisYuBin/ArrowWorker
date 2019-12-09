@@ -6,10 +6,9 @@
 namespace ArrowWorker\Client\Ws;
 
 use ArrowWorker\Config;
-use ArrowWorker\Pool as ConnPool;
+use ArrowWorker\PoolInterface as ConnPool;
 use ArrowWorker\Log;
 use ArrowWorker\Library\Coroutine;
-
 use ArrowWorker\Library\Channel as SwChan;
 
 class Pool implements ConnPool

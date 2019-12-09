@@ -3,7 +3,7 @@
 namespace ArrowWorker;
 
 
-interface Pool
+interface PoolInterface
 {
 
     /**

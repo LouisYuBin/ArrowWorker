@@ -7,7 +7,7 @@ use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
 use ArrowWorker\Library\Coroutine;
-use ArrowWorker\Pool as ConnPool;
+use ArrowWorker\PoolInterface as ConnPool;
 
 class Pool implements ConnPool
 {
