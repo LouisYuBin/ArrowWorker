@@ -116,12 +116,6 @@ class Log
 	];
 	
 	/**
-	 * queue of redis for log
-	 * @var string
-	 */
-	private static $queue = 'ArrowLog';
-	
-	/**
 	 * @var
 	 */
 	public static $StdoutFile;
@@ -152,15 +146,15 @@ class Log
 	
 	/**
 	 *
-	 * @var Tcp
+	 * @var array
 	 */
-	private $_tcpClient;
+	private $_tcpClient = [];
 	
 	/**
 	 * redis instance
-	 * @var Redis
+	 * @var array
 	 */
-	private $_redisClient;
+	private $_redisClient = [];
 	
 	/**
 	 * @var SwChan;
@@ -219,18 +213,33 @@ class Log
 			return;
 		}
 		
-		self::$_tcpConfig = isset( $config[ 'tcp' ] ) && is_array( $config[ 'tcp' ] ) ?
-			array_merge( self::$_tcpConfig, $config[ 'tcp' ] ) :
-			self::$_tcpConfig;
+		self::$_writeType = [ self::TO_FILE ];
+		$toTcp            = self::TO_TCP;
+		if ( isset( $config[ $toTcp ] ) &&
+		     isset( $config[ $toTcp ][ 'host' ] ) &&
+		     isset( $config[ $toTcp ][ 'port' ] ) )
+		{
+			$config[ $toTcp ]['poolSize'] = $config[ $toTcp ]['poolSize'] ?? 10;
+			self::$_writeType[] = $toTcp;
+			self::$_tcpConfig   = $config[ $toTcp ];
+		}
 		
-		self::$_redisConfig = isset( $config[ 'redis' ] ) && is_array( $config[ 'redis' ] ) ?
-			array_merge( self::$_redisConfig, $config[ 'redis' ] ) :
-			self::$_redisConfig;
+		$toRedis = self::TO_REDIS;
+		if ( isset( $config[ $toRedis ] ) &&
+		     isset( $config[ $toRedis ][ 'host' ] ) &&
+		     isset( $config[ $toRedis ][ 'port' ] ) &&
+		     isset( $config[ $toRedis ][ 'password' ] ) &&
+		     isset( $config[ $toRedis ][ 'queue' ] )
+		)
+		{
+			$config[ $toRedis ]['poolSize'] = $config[ $toRedis ]['poolSize'] ?? 10;
+			self::$_writeType[] = $toRedis;
+			self::$_redisConfig = $config[ $toRedis ];
+		}
 		
 		self::$_bufSize   = $config[ 'bufSize' ] ?? self::$_bufSize;
 		self::$_chanSize  = $config[ 'chanSize' ] ?? self::$_bufSize;
 		self::$_baseDir   = $config[ 'baseDir' ] ?? self::$_baseDir;
-		self::$_writeType = $config[ 'type' ] ?? self::$_writeType;
 		self::$StdoutFile = self::$_baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 	}
 	
@@ -245,20 +254,50 @@ class Log
 			{
 				case self::TO_REDIS:
 					
+					$config = self::$_redisConfig;
+					for ($i=0; $i<$config[ 'poolSize' ]; $i++)
+					{
+						$client =  Redis::Init( [
+							'host'     => $config[ 'host' ],
+							'port'     => $config[ 'port' ],
+							'password' => $config[ 'password' ],
+						] );
+						if( $client->InitConnection() )
+						{
+							$this->_redisClient[] = $client;
+						}
+						else
+						{
+							if( 0==$i )
+							{
+								self::Dump(self::LOG_PREFIX.'init redis client failed, config : '.json_encode($config));
+							}
+						}
+					}
 					$this->_toRedisChan = SwChan::Init( self::$_chanSize );
-					$this->_redisClient = Redis::Init( [
-						'host'     => self::$_redisConfig[ 'host' ],
-						'port'     => self::$_redisConfig[ 'port' ],
-						'password' => self::$_redisConfig[ 'password' ],
-					],
-						'log'
-					);
+					
 					break;
 				
 				case self::TO_TCP;
 					
 					$this->_toTcpChan = SwChan::Init( self::$_chanSize );
-					$this->_tcpClient = Tcp::Init( self::$_tcpConfig[ 'host' ], self::$_tcpConfig[ 'port' ] );
+					$config = self::$_tcpConfig;
+					for ( $i=0; $i<$config['poolSize']; $i++ )
+					{
+						$client = Tcp::Init( $config[ 'host' ], $config[ 'port' ] );
+						if( $client->IsConnected() )
+						{
+							$this->_tcpClient[] = $client;
+						}
+						else
+						{
+							if( 0==$i )
+							{
+								Log::Dump( self::LOG_PREFIX.'init tcp client failed. config : '.json_encode($config));
+							}
+						}
+					}
+					
 					break;
 				
 				default:
@@ -567,19 +606,21 @@ class Log
 			} );
 		}
 		
-		if ( in_array( self::TO_TCP, self::$_writeType ) )
+		$tcpClientCount = count($this->_tcpClient);
+		for ( $i=0; $i<$tcpClientCount; $i++ )
 		{
-			Coroutine::Create( function ()
+			Coroutine::Create( function () use ($i)
 			{
-				$this->WriteToTcp();
+				$this->WriteToTcp($i);
 			} );
 		}
 		
-		if ( in_array( self::TO_REDIS, self::$_writeType ) )
+		$redisClientCount = count($this->_redisClient);
+		for ( $i=0; $i<$redisClientCount; $i++ )
 		{
-			Coroutine::Create( function ()
+			Coroutine::Create( function () use ($i)
 			{
-				$this->WriteToRedis();
+				$this->WriteToRedis($i);
 			} );
 		}
 		
@@ -704,9 +745,9 @@ class Log
 	}
 	
 	/**
-	 *
+	 * @var int $clientIndex
 	 */
-	public function WriteToTcp()
+	public function WriteToTcp(int $clientIndex)
 	{
 		while ( true )
 		{
@@ -722,19 +763,20 @@ class Log
 				continue;
 			}
 			
-			if ( false == $this->_tcpClient->Send( $data, 3 ) )
+			if ( false == $this->_tcpClient[$clientIndex]->Send( $data, 3 ) )
 			{
-				Log::Dump( self::LOG_PREFIX . "write tcp client failed. data : {$data}" );
+				Log::Dump( self::LOG_PREFIX . "tcpClient[{$clientIndex}]->Send( {$data}, 3 ) failed" );
 			}
 		}
 		self::Dump( self::LOG_PREFIX . 'tcp-writing coroutine exited' );
 	}
 	
 	/**
-	 * public : write log to redis queue
+	 * @var int $clientIndex
 	 */
-	public function WriteToRedis()
+	public function WriteToRedis(int $clientIndex)
 	{
+		$queue = self::$_redisConfig['queue'];
 		while ( true )
 		{
 			$data = $this->_toRedisChan->Pop( 0.5 );
@@ -751,10 +793,11 @@ class Log
 			
 			for ( $i = 0; $i < 3; $i++ )
 			{
-				if ( false !== $this->_redisClient->Lpush( self::$queue, $data ) )
+				if ( false !== $this->_redisClient[$clientIndex]->Lpush( $queue, $data ) )
 				{
 					break;
 				}
+				Log::Dump(self::LOG_PREFIX."redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed");
 			}
 			
 		}

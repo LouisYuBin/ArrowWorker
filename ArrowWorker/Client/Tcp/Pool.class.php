@@ -18,6 +18,8 @@ class Pool implements ConnPool
     const LOG_NAME          = 'TcpClient';
 
     const CONFIG_NAME       = 'TcpClient';
+    
+    const LOG_PREFIX = "[ TcpPool ] ";
 
     /**
      * @var array
@@ -60,7 +62,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Critical( 'incorrect config file', self::LOG_NAME );
+            Log::Dump( self::LOG_PREFIX.'load config file failed' );
             return ;
         }
 
@@ -77,14 +79,13 @@ class Pool implements ConnPool
                 !isset( $value['port'] )
             )
             {
-                Log::Critical( "configuration for {$index} is incorrect. config : ".json_encode($value), self::LOG_NAME );
+                Log::Dump( self::LOG_PREFIX."configuration for {$index} is incorrect. config : ".json_encode($value) );
                 continue;
             }
 
             $value['poolSize']     = (int)$appAlias[$index]>0 ? $appAlias[$index] : self::DEFAULT_POOL_SIZE;
             $value['connectedNum'] = 0;
-
-
+            
             self::$_configs[$index] = $value;
             self::$_pool[$index]    = SwChan::Init( $value['poolSize'] );
         }
@@ -103,7 +104,7 @@ class Pool implements ConnPool
                 $conn = Client::Init( $config['host'], $config['port'] );
                 if( false===$conn->IsConnected() )
                 {
-                    Log::Critical("initialize connection failed, config : {$index}=>".json_encode($config), self::LOG_NAME);
+                    Log::Dump(self::LOG_PREFIX."initialize connection failed, config : {$index}=>".json_encode($config));
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;

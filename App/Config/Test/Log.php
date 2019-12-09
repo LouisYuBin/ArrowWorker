@@ -5,20 +5,16 @@ return [
     'bufSize'  => 104857600,     //100M
     'msgSize'  => 1048576,      //1M
     'chanSize' => 1024,
-    'type'     => [
-        'file',
-        //'tcp',
-        //'redis'
-    ],
     'tcp'      => [
-        'host' => '127.0.0.1',
-        'port' => 9666,
+        'host'     => '127.0.0.1',
+        'port'     => 9666,
+        'poolSize' => 10
     ],
     'redis'    => [
         'host'     => '127.0.0.1',
         'port'     => 6379,
-        'password' => 'louis',
+        'password' => 'r9&BsY$gKumtp7ic\n=pntpe?n6vtjchFijK',
         'queue'    => 'ArrowWorkerLog',
+        'poolSize' => 10
     ],
-    'timeZone' => 'Asia/Shanghai'
 ];

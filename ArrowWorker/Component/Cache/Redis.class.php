@@ -65,7 +65,7 @@ class Redis implements Cache
      * @param array $config
      * @return Redis
      */
-    public function Init( array $config)
+    public static function Init( array $config)
     {
         return new self($config);
     }
