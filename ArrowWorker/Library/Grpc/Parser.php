@@ -52,10 +52,7 @@ class Parser
 
         if ( is_array( $deserialize ) )
         {
-            [
-                $className,
-                $deserializeFunc,
-            ] = $deserialize;
+            [ $className, $deserializeFunc] = $deserialize;
             /** @var \Google\Protobuf\Internal\Message $object */
             $object = new $className();
             if ( $deserializeFunc && method_exists( $object, $deserializeFunc ) )

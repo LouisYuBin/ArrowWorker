@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Library\Process;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server;
@@ -158,6 +159,7 @@ class Http extends ServerPattern
     {
         $this->_server->on( 'start', function ( $server )
         {
+	        Process::SetName('Arrow_Http : '.$this->_port.' Manager');
             Log::Dump( "[  Http   ] : {$this->_port} started" );
         } );
     }
@@ -166,6 +168,7 @@ class Http extends ServerPattern
     {
         $this->_server->on( 'WorkerStart', function ()
         {
+        	Process::SetName('Arrow_Http : '.$this->_port.' Worker');
             $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }

@@ -6,25 +6,25 @@ return [
         'type'             => Server::TYPE_HTTP,
         'host'             => '0.0.0.0',
         'port'             => 4433,
-        'workerNum'        => 1,
-        'reactorNum'       => 2,
-        'backlog'          => 2000,
+        'workerNum'        => 4,
+        'reactorNum'       => 4,
+        'backlog'          => 200000,
         'user'             => 'www',
         'group'            => 'www',
-        'pipeBufferSize'   => 1024*1024*20,
-        'socketBufferSize' =>  1024*1024*20,
+        'pipeBufferSize'   => 1024*1024*200,
+        'socketBufferSize' =>  1024*1024*200,
         'maxRequest'       => 100000,
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,
-        'isEnableStatic'   => true,
+        'isEnableStatic'   => false,
         'isEnableCORS'     => false,
-        'isEnableHttp2'    => true,
-        'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
-        'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
+        'isEnableHttp2'    => false,
+        //'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
+        //'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
         'documentRoot'     => APP_PATH.'/Static/Web',
         '404'              => APP_PATH.'/Static/Web/404.html',
         'components' => [
-            'db' => [
+            /*'db' => [
                 'default' => 2
             ],
             'cache' => [
@@ -36,7 +36,7 @@ return [
             ],
             'ws_client' => [
                 'default' => 2
-            ]
+            ]*/
         ]
     ],
     [

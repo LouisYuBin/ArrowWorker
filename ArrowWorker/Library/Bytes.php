@@ -53,9 +53,9 @@ class Bytes
     public static function IntegerToBytes(int $val): array
     {
         $bytes = [];
-        $bytes[3] = ($val & 0xFF);
-        $bytes[2] = ($val >> 8 & 0xFF);
-        $bytes[1] = ($val >> 16 & 0xFF);
+        $bytes[3] = ($val & 0xff);
+        $bytes[2] = ($val >> 8 & 0xff);
+        $bytes[1] = ($val >> 16 & 0xff);
         $bytes[0] = ($val >> 24 & 0xff);
         return $bytes;
     }
@@ -79,9 +79,9 @@ class Bytes
     public static function BytesToShort(array $bytes): int
     {
         $val = 0;
-        $val = $bytes[1] & 0xFF;
+        $val = $bytes[1] & 0xff;
         $val = $val << 8;
-        $val |= $bytes[0] & 0xFF;
+        $val |= $bytes[0] & 0xff;
         return $val;
     }
 

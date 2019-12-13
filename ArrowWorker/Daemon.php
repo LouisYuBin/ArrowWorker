@@ -200,7 +200,7 @@ class Daemon
         if($pid == 0)
         {
             Log::Dump(static::LOG_PREFIX.'starting worker process( '.Process::Id().' )');
-            $this->_setProcessName('Worker-group monitor');
+            $this->_setProcessName('Worker-group master');
             Worker::Start();
         }
         else
@@ -257,7 +257,7 @@ class Daemon
         if($pid == 0)
         {
             $pid = Process::Id();
-            $processName = "{$config['type']} : {$config['port']}";
+            $processName = "{$config['type']} : {$config['port']} master";
             Log::Dump(self::LOG_PREFIX."starting {$processName} process ( $pid )");
             $this->_setProcessName($processName);
             if( $config['type']==self::PROCESS_HTTP )
