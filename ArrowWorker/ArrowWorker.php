@@ -99,7 +99,7 @@ class ArrowWorker
 		$class   .= self::EXT;
 		if ( !file_exists( $class ) )
 		{
-			trigger_error( "Auto load class error : " . $class . " does not exists.", E_USER_ERROR );
+			Log::Dump( "Auto load class error : " . $class . " does not exists." );
 			return;
 		}
 		require $class;
