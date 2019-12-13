@@ -115,6 +115,8 @@ class Server
      * @var Component
      */
     protected $_component;
+    
+    protected $_identity = 0;
 
     /**
      * @param string $type

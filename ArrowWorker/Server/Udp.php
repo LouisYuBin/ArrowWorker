@@ -6,6 +6,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Library\Process;
 use \Swoole\Server;
 
 use ArrowWorker\App;
@@ -118,7 +119,9 @@ class Udp extends ServerPattern
         $this->_handlerClose   = $controller.($config[ 'handler' ]['close'] ?? '');
 
         $this->_isUdp6 = $config[ 'isUdp6' ] ?? false;
-
+	
+	    $this->_identity         = $config['identity'];
+	
     }
 
     private function _start()
@@ -139,7 +142,8 @@ class Udp extends ServerPattern
     {
         $this->_server->on( 'start', function ( $server )
         {
-            Log::Dump( "[   Tcp   ] : {$this->_port} started" );
+	        Process::SetName('Arrow'.$this->_identity.'_Udp:'.$this->_port.' Manager');
+	        Log::Dump( "[   Tcp   ] : {$this->_port} started" );
         } );
     }
 
@@ -177,7 +181,8 @@ class Udp extends ServerPattern
     {
         $this->_server->on( 'WorkerStart', function ()
         {
-            $this->_component->InitPool( $this->_components );
+	        Process::SetName('Arrow'.$this->_identity.'_Udp:'.$this->_port.' Worker');
+	        $this->_component->InitPool( $this->_components );
         } );
     }
 

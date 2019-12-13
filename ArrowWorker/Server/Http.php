@@ -115,6 +115,7 @@ class Http extends ServerPattern
         $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
         $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
         $this->_components       = $config[ 'components' ] ?? [];
+        $this->_identity         = $config['identity'];
     }
 
     private function _start()
@@ -159,7 +160,7 @@ class Http extends ServerPattern
     {
         $this->_server->on( 'start', function ( $server )
         {
-	        Process::SetName('Arrow_Http : '.$this->_port.' Manager');
+	        Process::SetName('Arrow'.$this->_identity.'_Http : '.$this->_port.' Manager');
             Log::Dump( "[  Http   ] : {$this->_port} started" );
         } );
     }
@@ -168,7 +169,7 @@ class Http extends ServerPattern
     {
         $this->_server->on( 'WorkerStart', function ()
         {
-        	Process::SetName('Arrow_Http : '.$this->_port.' Worker');
+        	Process::SetName('Arrow'.$this->_identity.'_Http : '.$this->_port.' Worker');
             $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }

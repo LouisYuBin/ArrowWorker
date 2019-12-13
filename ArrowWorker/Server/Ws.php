@@ -6,6 +6,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Library\Process;
 use \Swoole\WebSocket\Server;
 use \Swoole\WebSocket\Frame;
 use \Swoole\Http\Request as SwRequest;
@@ -133,6 +134,7 @@ class Ws extends ServerPattern
         $this->_handlerOpen      = $controller.($config['handler']['open'] ?? '');
         $this->_handlerMessage   = $controller.($config['handler']['message'] ?? '');
         $this->_handlerClose     = $controller.($config['handler']['close'] ?? '');
+	    $this->_identity         = $config['identity'];
     }
 
     private function _start()
@@ -167,7 +169,8 @@ class Ws extends ServerPattern
     private function _onStart()
     {
         $this->_server->on( 'start', function ( $server ) {
-            Log::Dump( "[   Ws    ] : {$this->_port} started" );
+	        Process::SetName('Arrow'.$this->_identity.'_Ws:'.$this->_port.' Manager');
+	        Log::Dump( "[   Ws    ] : {$this->_port} started" );
         } );
     }
 
@@ -201,7 +204,8 @@ class Ws extends ServerPattern
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function () {
-            $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
+	        Process::SetName('Arrow'.$this->_identity.'_Ws:'.$this->_port.' Worker');
+	        $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }
 
