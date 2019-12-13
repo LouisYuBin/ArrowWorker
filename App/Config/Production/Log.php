@@ -5,7 +5,7 @@ return [
     'bufSize'  => 104857600,     //100M
     'msgSize'  => 1048576,      //1M
     'chanSize' => 1024,
-    'tcp'      => [
+    /*'tcp'      => [
         'host' => '127.0.0.1',
         'port' => 9666,
     ],
@@ -14,5 +14,5 @@ return [
         'port'     => 6379,
         'password' => 'louis',
         'queue'    => 'ArrowWorkerLog',
-    ],
+    ],*/
 ];
