@@ -169,7 +169,7 @@ class Ws extends ServerPattern
     private function _onStart()
     {
         $this->_server->on( 'start', function ( $server ) {
-	        Process::SetName('Arrow'.$this->_identity.'_Ws:'.$this->_port.' Manager');
+	        Process::SetName("{$this->_identity}_Ws:{$this->_port} Manager");
 	        Log::Dump( "[   Ws    ] : {$this->_port} started" );
         } );
     }
@@ -204,7 +204,7 @@ class Ws extends ServerPattern
     private function _onWorkerStart()
     {
         $this->_server->on( 'WorkerStart', function () {
-	        Process::SetName('Arrow'.$this->_identity.'_Ws:'.$this->_port.' Worker');
+	        Process::SetName("{$this->_identity}_Ws:{$this->_port} Worker");
 	        $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
         } );
     }

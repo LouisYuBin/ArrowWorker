@@ -142,7 +142,7 @@ class Udp extends ServerPattern
     {
         $this->_server->on( 'start', function ( $server )
         {
-	        Process::SetName('Arrow'.$this->_identity.'_Udp:'.$this->_port.' Manager');
+	        Process::SetName("{$this->_identity}_Udp:{$this->_port} Manager");
 	        Log::Dump( "[   Tcp   ] : {$this->_port} started" );
         } );
     }
@@ -181,7 +181,7 @@ class Udp extends ServerPattern
     {
         $this->_server->on( 'WorkerStart', function ()
         {
-	        Process::SetName('Arrow'.$this->_identity.'_Udp:'.$this->_port.' Worker');
+	        Process::SetName("{$this->_identity}_Udp:{$this->_port} Worker");
 	        $this->_component->InitPool( $this->_components );
         } );
     }
