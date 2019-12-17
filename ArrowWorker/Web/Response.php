@@ -10,6 +10,7 @@ namespace ArrowWorker\Web;
 use ArrowWorker\Console;
 use ArrowWorker\Log;
 use \Swoole\Http\Response as SwResponse;
+use ArrowWorker\Library\Coroutine as Co;
 
 use ArrowWorker\Library\Coroutine;
 
@@ -22,11 +23,6 @@ class Response
 {
 
     const LOG_NAME = 'Http';
-
-    /**
-     * @var array
-     */
-    private static $_response = [];
     
     /**
      * @var bool
@@ -38,7 +34,7 @@ class Response
      */
     public static function Init(SwResponse $response)
     {
-        self::$_response[Coroutine::Id()] = $response;
+        Co::GetContext()[__CLASS__] = $response;
         self::Header('Server','Arrow, Louis!');
         if( self::$_isAllowCORS )
         {
@@ -82,7 +78,7 @@ class Response
      */
     public static function Write(string $msg)
     {
-        self::$_response[ Coroutine::Id() ]->end( $msg );
+	    Co::GetContext()[__CLASS__]->end( $msg );
 	    Log::Debug("Response : {$msg}", self::LOG_NAME);
     }
 
@@ -93,12 +89,12 @@ class Response
      */
     public static function Header(string $key, string $val)
     {
-        self::$_response[ Coroutine::Id() ]->header($key, $val);
+        Co::GetContext()[__CLASS__]->header($key, $val);
     }
 
     public static function Status(int $status)
     {
-        self::$_response[ Coroutine::Id() ]->status($status);
+	    Co::GetContext()[__CLASS__]->status($status);
     }
 
     /**
@@ -107,12 +103,10 @@ class Response
      */
     public static function Headers(array $data)
     {
-        $coId = Coroutine::Id();
         foreach ($data as $key=>$val)
         {
-            self::$_response[ $coId ]->header($key, $val);
+	        Co::GetContext()[__CLASS__]->header($key, $val);
         }
-        unset($coId);
     }
 
 
@@ -129,7 +123,7 @@ class Response
     public static function Cookie( string $name, string $val, int $expire=0, string $path='/', string $domain=null, bool $secure=false, bool $httpOnly=true)
     {
         $expire = ($expire==0) ? 0 : time()+$expire;
-        self::$_response[Coroutine::Id()]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+	    Co::GetContext()[__CLASS__]->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
         return true;
     }
     
@@ -144,7 +138,7 @@ class Response
     
     public static function Release()
     {
-        unset( self::$_response[Coroutine::Id()] );
+    
     }
 
 }
