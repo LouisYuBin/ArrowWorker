@@ -51,10 +51,10 @@ class Router
 	
 	private function __construct( string $_404 )
 	{
+		$this->_controller = App::GetController();
 		$this->_loadRestConfig();
 		$this->_buildRestPattern();
 		$this->_init404( $_404 );
-		$this->_controller = App::GetController();
 	}
 	
 	private function _loadRestConfig()
