@@ -125,6 +125,8 @@ class Log
 	 */
 	private static $_msgObject;
 	
+	private static $processNum = 1;
+	
 	/**
 	 * Whether to close the log process
 	 * @var bool
@@ -170,6 +172,7 @@ class Log
 	private $_fileHandlerMap = [];
 	
 	
+	
 	/**
 	 * @var bool $isDemonize
 	 */
@@ -179,6 +182,12 @@ class Log
 		self::_checkLogDir();
 		self::_initMsgObj();
 		self::_resetStd();
+	}
+	
+	
+	public static function GetProcessNum() : int
+	{
+		return (int)self::$processNum;
 	}
 	
 	private function __construct()
@@ -234,6 +243,7 @@ class Log
 		self::$_chanSize  = $config[ 'chanSize' ] ?? self::$_bufSize;
 		self::$_baseDir   = $config[ 'baseDir' ] ?? self::$_baseDir;
 		self::$StdoutFile = self::$_baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
+		self::$processNum = $config[ 'process' ] ?? 1;
 	}
 	
 	

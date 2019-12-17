@@ -16,8 +16,6 @@ use ArrowWorker\Server\Udp;
 class Daemon
 {
 	
-	const LOG_PROCESS_NUM = 4;
-	
 	/**
 	 *
 	 */
@@ -176,7 +174,8 @@ class Daemon
 	
 	private function _startLogProcess()
 	{
-		for ( $i = 0; $i < self::LOG_PROCESS_NUM; $i++ )
+		$processNUm = Log::GetProcessNum();
+		for ( $i = 0; $i < $processNUm; $i++ )
 		{
 			$pid = Process::Fork();
 			if ( $pid == 0 )
