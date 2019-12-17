@@ -125,34 +125,37 @@ class Request
 	
 	/**
 	 * @param string $key
+	 * @param string $default
 	 * @return string|bool
 	 */
-	public static function Get( string $key ) : string
+	public static function Get( string $key, string $default='' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->get[ $key ] ?? '';
+		return Co::GetContext()[__CLASS__]->get[ $key ] ?? $default;
 	}
 	
 	/**
 	 * @param string $key
+	 * @param string $default
 	 * @return string
 	 */
-	public static function Post( string $key ) : string
+	public static function Post( string $key, string $default='' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->post[ $key ] ?? '';
+		return Co::GetContext()[__CLASS__]->post[ $key ] ?? $default;
 	}
 	
-	public static function Cookie( string $key ) : string
+	public static function Cookie( string $key, string $default='' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->cookie[ $key ] ?? '';
+		return Co::GetContext()[__CLASS__]->cookie[ $key ] ?? $default;
 	}
 	
 	/**
 	 * @param string $key
+	 * @param string $default
 	 * @return string
 	 */
-	public static function Param( string $key ) : string
+	public static function Param( string $key, string $default='' ) : string
 	{
-		return Co::GetContext()['urlParameters'][ $key ] ?? '';
+		return Co::GetContext()['urlParameters'][ $key ] ?? $default;
 	}
 	
 	/**
@@ -166,11 +169,12 @@ class Request
 	
 	/**
 	 * @param string $key
+	 * @param string $default
 	 * @return string
 	 */
-	public static function Header( string $key ) : string
+	public static function Header( string $key,string $default='' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->header[ $key ] ?? '';
+		return Co::GetContext()[__CLASS__]->header[ $key ] ?? $default;
 	}
 	
 	public static function Host() : string

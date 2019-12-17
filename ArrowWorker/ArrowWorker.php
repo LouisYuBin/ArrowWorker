@@ -139,6 +139,7 @@ class ArrowWorker
 			'ArrowWorker\Library\Locker'                 => ArrowWorker . '/Library/Locker',
 			'ArrowWorker\Library\Bytes'                  => ArrowWorker . '/Library/Bytes',
 			'ArrowWorker\Library\Coroutine'              => ArrowWorker . '/Library/Coroutine',
+			'ArrowWorker\Library\Context'                => ArrowWorker . '/Library/Context',
 			'ArrowWorker\Library\Channel'                => ArrowWorker . '/Library/Channel',
 			'ArrowWorker\Library\Process'                => ArrowWorker . '/Library/Process',
 			'ArrowWorker\Library\Crypto\CryptoArrow'     => ArrowWorker . '/Library/Crypto/CryptoArrow',
