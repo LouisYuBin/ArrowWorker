@@ -126,13 +126,6 @@ class Log
 	private static $_msgObject;
 	
 	/**
-	 * @var array
-	 */
-	private static $_logId = [];
-	
-	private static $_coBuffer = [];
-	
-	/**
 	 * Whether to close the log process
 	 * @var bool
 	 */
@@ -404,7 +397,7 @@ class Log
 	private static function _fillLog( string $log, string $module = '', string $level = 'D' )
 	{
 		$time                                 = date( 'Y-m-d H:i:s' );
-		self::$_coBuffer[ Coroutine::Id() ][] = [
+		Coroutine::GetContext()[__CLASS__][] = [
 			"{$level}�{$module}�{$time}",
 			$log,
 		];
@@ -925,12 +918,9 @@ class Log
 	 */
 	public static function Init( string $logId = '' )
 	{
-		$coId                     = Coroutine::Id();
-		self::$_logId[ $coId ]    = '' === $logId ? date( 'ymdHis' ) .
-		                                            Process::Id() .
-		                                            $coId .
+		Coroutine::GetContext()[__CLASS__.'_id']  = '' === $logId ? date( 'ymdHis' ) .
+		                                            Process::Id() . Coroutine::Id() .
 		                                            mt_rand( 100, 999 ) : $logId;
-		self::$_coBuffer[ $coId ] = [];
 	}
 	
 	/**
@@ -938,7 +928,7 @@ class Log
 	 */
 	public static function GetLogId() : string
 	{
-		return self::$_logId[ Coroutine::Id() ];
+		return Coroutine::GetContext()[__CLASS__.'_id'];
 	}
 	
 	/**
@@ -946,14 +936,17 @@ class Log
 	 */
 	public static function Release()
 	{
-		$coId   = Coroutine::Id();
+		$context = Coroutine::GetContext();
+		if( !isset($context[__CLASS__]) )
+		{
+			return ;
+		}
 		$msgObj = self::$_msgObject;
-		$logId  = self::$_logId[ Coroutine::Id() ];
-		foreach ( self::$_coBuffer[ $coId ] as $log )
+		$logId  = $context[__CLASS__.'_id'];
+		foreach ( $context[__CLASS__] as $log )
 		{
 			$msgObj->Write( "{$log[0]} | {$logId} | $log[1]" . PHP_EOL );
 		}
-		unset( self::$_logId[ $coId ], self::$_coBuffer[ $coId ] );
 	}
 	
 }
