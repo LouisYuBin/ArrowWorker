@@ -119,10 +119,10 @@ class Pool implements ConnPool
      */
     public static function GetConnection( string $alias = 'default' )
     {
-        $coId = Coroutine::Id();
-        if( isset(self::$_connections[$coId][$alias]) )
+        $context = Coroutine::GetContext();
+        if( isset($context[__CLASS__][$alias]) )
         {
-            return self::$_connections[$coId][$alias];
+            return $context[__CLASS__][$alias];
         }
 
         if( !isset(self::$_pool[$alias] ) )
@@ -147,7 +147,7 @@ class Pool implements ConnPool
                 goto _RETRY;
             }
         }
-        self::$_connections[$coId][$alias] = $conn;
+	    $context[__CLASS__][$alias] = $conn;
         return $conn;
     }
 
@@ -156,17 +156,17 @@ class Pool implements ConnPool
      */
     public static function Release() : void
     {
-        $coId = Coroutine::Id();
-        if( !isset(self::$_connections[$coId]) )
+	    $context = Coroutine::GetContext();
+	
+	    if( !isset($context[__CLASS__]) )
         {
             return ;
         }
 
-        foreach ( self::$_connections[$coId] as $alias=>$connection )
+        foreach ( $context[__CLASS__] as $alias=>$connection )
         {
             self::$_pool[$alias]->Push( $connection );
         }
-        unset(self::$_connections[$coId], $coId);
     }
 
 }
