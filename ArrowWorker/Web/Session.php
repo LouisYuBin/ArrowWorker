@@ -19,9 +19,6 @@ use ArrowWorker\Log;
 class Session
 {
 
-    /**
-     *
-     */
     const CONFIG_NAME = 'Session';
 
     const DEFAULT_TOKEN_KEY = 'token';
