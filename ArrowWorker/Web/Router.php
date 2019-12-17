@@ -262,6 +262,8 @@ class Router
 		[ $class, $method ] = $this->_restApiConfig[ $serverName ][ $uri ][ $requestMethod ];
 		Request::SetParams($params, 'REST');
 		( new $class )->$method();
+		
+		return true;
 	}
 	
 	/**
