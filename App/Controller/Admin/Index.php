@@ -47,4 +47,10 @@ class Index
 	        'file' => Request::Files(),
         ],'rest post');
     }
+    
+    public function delete()
+    {
+    
+    }
+    
 }
