@@ -147,8 +147,8 @@ class Console
             $this->_action,
         ] = $argv;
 
-        $this->_application = $argv[ 2 ] ?? '';
-        $this->_env         = $argv[ 3 ] ?? '';
+        $this->_application = $argv[ 2 ] ?? 'server';
+        $this->_env         = $argv[ 3 ] ?? 'Dev';
         $this->_isDebug  = isset( $argv[ 4 ] ) && 'true' === trim( $argv[ 4 ] ) ? true : false;
     }
 
