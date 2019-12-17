@@ -32,8 +32,6 @@ class Request
 	public static function Init( SwRequest $request )
 	{
 		Co::GetContext()[ __CLASS__ ]  = $request;
-		var_dump(Co::GetContext());
-		
 		self::InitUrlPostParams();
 	}
 	
