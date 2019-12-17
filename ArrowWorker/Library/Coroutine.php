@@ -122,5 +122,10 @@ class Coroutine
         }
         return false;
     }
+    
+    public static function GetContext()
+    {
+    	return Co::getContext();
+    }
 
 }
