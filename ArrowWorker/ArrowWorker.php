@@ -99,10 +99,7 @@ class ArrowWorker
 		$class   .= self::EXT;
 		if ( !file_exists( $class ) )
 		{
-			if( Console::Init()->IsDebug() )
-			{
-				Log::Dump( "{$class} not found ", Log::TYPE_WARNING, 'AutoLoad' );
-			}
+			Log::Dump( "{$class} not found ", Log::TYPE_NOTICE, 'AutoLoad' );
 			return;
 		}
 		require $class;
