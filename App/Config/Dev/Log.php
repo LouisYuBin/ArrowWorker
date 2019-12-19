@@ -2,7 +2,7 @@
 
 return [
 	'baseDir'  => APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . DIRECTORY_SEPARATOR . 'Log/',
-	'process'  => 1,
+	'process'  => 2,
 	'bufSize'  => 104857600,  //100M
 	'msgSize'  => 1048576,    //1M
 	'chanSize' => 1024,
