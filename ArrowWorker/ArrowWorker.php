@@ -101,7 +101,7 @@ class ArrowWorker
 		{
 			if( Console::Init()->IsDebug() )
 			{
-				Log::Dump( "[ AutoLoad ] {$class} not found." );
+				Log::Dump( "{$class} not found ", Log::TYPE_WARNING, 'AutoLoad' );
 			}
 			return;
 		}

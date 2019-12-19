@@ -18,7 +18,7 @@ class ArrowDaemon extends Worker
     /**
      *
      */
-    const LOG_PREFIX = '[ Worker  ] ';
+    const MODULE_NAME = 'Worker';
 
     /**
      * process life time
@@ -83,11 +83,7 @@ class ArrowDaemon extends Worker
      *
      * @param $config
      *
-     * @return ArrowD
-     *
-     *
-     *
-     * aemon
+     * @return ArrowDaemon
      */
     public static function Init( $config ) : self
     {
@@ -175,7 +171,7 @@ class ArrowDaemon extends Worker
      */
     public function signalHandler( int $signal )
     {
-        //Log::Dump(static::LOG_PREFIX . "got a signal {$signal} : " . Process::SignalName($signal));
+        //Log::Dump(static::MODULE_NAME . "got a signal {$signal} : " . Process::SignalName($signal));
         switch ( $signal )
         {
             case SIGUSR1:
@@ -231,7 +227,7 @@ class ArrowDaemon extends Worker
 
         if ( $this->_jobNum == 0 )
         {
-            Log::Dump(static::LOG_PREFIX . "please add one task at least.");
+            Log::Dump('please add one task at least.', Log::TYPE_WARNING, self::MODULE_NAME,);
             $this->_exitMonitor();
         }
         $this->_setSignalHandler('monitorHandler');
@@ -363,7 +359,7 @@ class ArrowDaemon extends Worker
         $taskId = $this->_pidMap[ $pid ];
         unset($this->_pidMap[ $pid ]);
 
-        Log::Dump(self::LOG_PREFIX . $this->_jobs[ $taskId ]["processName"] . "({$pid}) exited at status {$status}");
+        Log::Dump( "{$this->_jobs[ $taskId ]["processName"]}({$pid}) exited at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
         usleep(0==$status ? 10 : 10000 );
 
         //监控进程收到退出信号时则无需开启新的worker
@@ -425,7 +421,7 @@ class ArrowDaemon extends Worker
      */
     private function _runWorker( int $index, int $lifecycle )
     {
-        Log::Dump(self::LOG_PREFIX . 'starting ' . $this->_jobs[ $index ]['processName'] . '(' . Process::Id() . ')');
+        Log::Dump('starting ' . $this->_jobs[ $index ]['processName'] . '(' . Process::Id() . ')', Log::TYPE_DEBUG, self::MODULE_NAME );
         $this->_setSignalHandler('workerHandler');
         $this->_setAlarm($index,$lifecycle);
         $this->_setProcessName($this->_jobs[ $index ]['processName']);
@@ -455,7 +451,7 @@ class ArrowDaemon extends Worker
     {
         $timeStart = time();
 
-        Log::Dump(self::LOG_PREFIX . 'process : ' . $this->_jobs[ $index ]['processName'] . ' started.');
+        Log::Dump("{$this->_jobs[ $index ]['processName']} started.",Log::TYPE_DEBUG, self::MODULE_NAME);
 
         while ( $this->_jobs[ $index ]['coCount'] < $this->_jobs[ $index ]['coQuantity'] )
         {
@@ -494,7 +490,7 @@ class ArrowDaemon extends Worker
 
         Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
-        Log::DumpExit(self::LOG_PREFIX . $this->_jobs[ $index ]['processName'] . " finished {$this->_execCount} times / {$execTimeSpan} S.");
+        Log::DumpExit("{$this->_jobs[ $index ]['processName']} finished {$this->_execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME );
 
     }
 
@@ -504,7 +500,7 @@ class ArrowDaemon extends Worker
      */
     private function _exitMonitor()
     {
-        Log::Dump(static::LOG_PREFIX . "monitor exited.");
+        Log::Dump( "exited", Log::TYPE_DEBUG, self::MODULE_NAME);
         exit(0);
     }
 
@@ -519,7 +515,7 @@ class ArrowDaemon extends Worker
 
         if ( !isset($job['function']) || empty($job['function']) )
         {
-            Log::DumpExit(self::LOG_PREFIX . " one Task at least is needed.");
+            Log::DumpExit("one Task at least is needed ", Log::TYPE_ERROR, self::MODULE_NAME);
         }
 
         $job['coCount']    = 0;

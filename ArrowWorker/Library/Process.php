@@ -18,7 +18,7 @@ class Process
     /**
      *
      */
-    const LOG_PREFIX = '[ Process ] ';
+    const MODULE_NAME = 'Process';
 
     const SIGNAL_COMMON_MAP = [
         's1'  => 'SIGHUP',
@@ -191,12 +191,12 @@ class Process
 
         if( !$user || !$group )
         {
-            Log::Dump(self::LOG_PREFIX. ' '.__FUNCTION__.", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！");
+            Log::Dump(__METHOD__.", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！",Log::TYPE_WARNING, self::MODULE_NAME );
         }
 
         if( !posix_setgid($group['gid']) || !posix_setuid($user['uid']) )
         {
-            Log::Dump(self::LOG_PREFIX. ' '.__FUNCTION__.",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！");
+            Log::Dump(__METHOD__.",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！", Log::TYPE_WARNING, self::MODULE_NAME);
         }
     }
 

@@ -13,7 +13,7 @@ class Mysqli implements DbInterface
 {
 
 
-    const LOG_PREFIX = "[  Mysqli  ] ";
+    const MODULE_NAME = "Mysqli";
 
     /**
      * @var \mysqli
@@ -42,13 +42,13 @@ class Mysqli implements DbInterface
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
-            Log::Dump( self::LOG_PREFIX."connect failed : " . $this->_conn->connect_error );
+            Log::Dump( "connect failed : " . $this->_conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
 
         if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
         {
-            Log::Dump( self::LOG_PREFIX."set names({$this->_config['charset']}) failed." );
+            Log::Dump( "set names({$this->_config['charset']}) failed.", Log::TYPE_WARNING, self::MODULE_NAME  );
         }
         return true;
     }

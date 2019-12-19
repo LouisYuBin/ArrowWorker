@@ -26,6 +26,8 @@ use ArrowWorker\App;
  */
 class Http extends ServerPattern
 {
+	
+	const MODULE_NAME = 'Http Server';
 
     /**
      * @var string
@@ -161,7 +163,7 @@ class Http extends ServerPattern
         $this->_server->on( 'start', function ( $server )
         {
 	        Process::SetName("{$this->_identity}_Http:{$this->_port} Manager");
-            Log::Dump( "[  Http   ] : {$this->_port} started" );
+            Log::Dump( "listening at port {$this->_port}",Log::TYPE_DEBUG, self::MODULE_NAME );
         } );
     }
 

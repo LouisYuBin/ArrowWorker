@@ -14,6 +14,7 @@ namespace ArrowWorker;
 class Exception
 {
 
+	const MODULE_NAME = 'Exception';
     /**
      * init : set handle-function of error/exception
      */
@@ -41,7 +42,7 @@ class Exception
      */
     public static function Error( int $code, string $msg, string $file, int $line, array $parameters)
     {
-        Log::Dump( "[ error ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : ".json_encode($parameters).", backtrace : ".json_encode(debug_backtrace()) );
+        Log::Dump( "code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : ".json_encode($parameters).", backtrace : ".json_encode(debug_backtrace()), Log::TYPE_ERROR, self::MODULE_NAME );
         return false;
     }
 
@@ -81,7 +82,7 @@ class Exception
             }
             $elementNum++;
         }
-        Log::Dump( "[ Exception ] code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, backtrace : {$backtrace}" );
+        Log::Dump( "code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, backtrace : {$backtrace}", Log::TYPE_EXCEPTION,self::MODULE_NAME );
         return false;
     }
 

@@ -19,7 +19,7 @@ class Daemon
 	/**
 	 *
 	 */
-	const LOG_PREFIX = '[ Monitor ] ';
+	const MODULE_NAME = 'Monitor';
 	
 	/**
 	 *
@@ -180,7 +180,7 @@ class Daemon
 			$pid = Process::Fork();
 			if ( $pid == 0 )
 			{
-				Log::Dump( static::LOG_PREFIX . 'starting log process ( ' . Process::Id() . ' )' );
+				Log::Dump(  'starting log process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME );
 				$this->_setProcessName( static::PROCESS_LOG );
 				Log::Start();
 			}
@@ -201,7 +201,7 @@ class Daemon
 		$pid = Process::Fork();
 		if ( $pid == 0 )
 		{
-			Log::Dump( static::LOG_PREFIX . 'starting worker process( ' . Process::Id() . ' )' );
+			Log::Dump( 'starting worker process( ' . Process::Id() . ' )', Log::TYPE_DEBUG, static::MODULE_NAME);
 			$this->_setProcessName( 'Worker-group master' );
 			Worker::Start();
 		}
@@ -269,7 +269,7 @@ class Daemon
 			$config[ 'identity' ] = self::$identity;
 			
 			$processName = "{$config['type']}:{$config['port']} Master";
-			Log::Dump( self::LOG_PREFIX . "starting {$processName} process ( $pid )" );
+			Log::Dump( "starting {$processName} process ( {$pid} )", Log::TYPE_DEBUG, self::MODULE_NAME );
 			$this->_setProcessName( $processName );
 			if ( $config[ 'type' ] == self::PROCESS_HTTP )
 			{
@@ -302,7 +302,7 @@ class Daemon
 	
 	private function _startMonitor()
 	{
-		Log::Dump( static::LOG_PREFIX . 'starting monitor process ( ' . Process::Id() . ' )' );
+		Log::Dump(  'starting monitor process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG,self::MODULE_NAME );
 		while ( 1 )
 		{
 			if ( $this->_terminate )
@@ -351,11 +351,11 @@ class Daemon
 			
 			if ( $this->_terminate )
 			{
-				Log::Dump( self::LOG_PREFIX . "{$appType} process : {$pid} exited at status : {$status}" );
+				Log::Dump( "{$appType} process : {$pid} exited at status : {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
 				return;
 			}
 			
-			Log::Dump( self::LOG_PREFIX . "{$appType} process restarting at status {$status}" );
+			Log::Dump( "{$appType} process restarting at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME );
 			
 			if ( $appType == self::PROCESS_LOG )
 			{
@@ -401,7 +401,7 @@ class Daemon
 		$signal = SIGTERM;
 		if ( !Process::IsKillNotified( (string)( $pid . $signal ) ) )
 		{
-			Log::Dump( self::LOG_PREFIX . "sending SIGTERM signal to {$appType}:{$pid} process" );
+			Log::Dump( "sending SIGTERM signal to {$appType}:{$pid} process", Log::TYPE_DEBUG, self::MODULE_NAME );
 		}
 		
 		for ( $i = 0; $i < 3; $i++ )
@@ -428,7 +428,7 @@ class Daemon
 		
 		Chan::Close();
 		
-		Log::Dump( static::LOG_PREFIX . 'exited' );
+		Log::Dump( 'exited', Log::TYPE_DEBUG, static::MODULE_NAME );
 		exit( 0 );
 	}
 	
@@ -571,7 +571,7 @@ class Daemon
 	 */
 	public function SignalHandler( int $signal )
 	{
-		//Log::Dump(static::LOG_PREFIX."got a signal {$signal} : ".Process::SignalName($signal));
+		//Log::Dump(static::MODULE_NAME."got a signal {$signal} : ".Process::SignalName($signal));
 		switch ( $signal )
 		{
 			case SIGUSR1:

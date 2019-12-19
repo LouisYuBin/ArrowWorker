@@ -18,7 +18,7 @@ use ArrowWorker\App;
  */
 class Router
 {
-	const LOG_NAME = 'router';
+	const MODULE_NAME = 'router';
 	
 	/**
 	 * @var string
@@ -62,12 +62,12 @@ class Router
 		$config = Config::Get( 'WebRouter' );
 		if ( false === $config )
 		{
-			Log::Warning( "Load rest api configuration failed" );
+			Log::Dump( "Load rest api configuration failed", Log::TYPE_WARNING, self::MODULE_NAME);
 			return;
 		}
 		if ( !is_array( $config ) )
 		{
-			Log::Warning( " rest api configuration format is incorrect." );
+			Log::Dump( " rest api configuration format is incorrect.", Log::TYPE_WARNING, self::MODULE_NAME );
 			return;
 		}
 		
@@ -112,7 +112,7 @@ class Router
 					[ $controller, $errorMsg ] = $this->checkClassMethod( $class, $method );
 					if ( !empty( $errorMsg ) )
 					{
-						Log::Dump("[ Router ] {$errorMsg}");
+						Log::Dump( $errorMsg, Log::TYPE_WARNING, self::MODULE_NAME );
 						continue;
 					}
 					

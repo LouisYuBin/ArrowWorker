@@ -15,7 +15,7 @@ class Chan
      */
     const CONFIG_NAME = 'Chan';
 
-    const LOG_PREFIX  = '[  Chan   ] ';
+    const MODULE_NAME  = 'Chan';
 
     /**
      * default config for each channel
@@ -40,9 +40,9 @@ class Chan
      */
     public static function Get( string $alias = 'default', array $userConfig = [] )
     {
-        if ( isset( static::$pool[$alias] ) )
+        if ( isset( self::$pool[$alias] ) )
         {
-            return static::$pool[$alias];  //channel is already been initialized
+            return self::$pool[$alias];  //channel is already been initialized
         }
 
         if ( 0 == count( $userConfig ) )
@@ -54,7 +54,7 @@ class Chan
             }
             else
             {
-                Log::Dump( self::LOG_PREFIX."{$alias} config does not exists/is not array." );
+                Log::Dump( "{$alias} config does not exists/is not array.", Log::TYPE_WARNING ,self::MODULE_NAME);
             }
         }
 
@@ -71,7 +71,7 @@ class Chan
     {
         foreach ( self::$pool as $eachQueue )
         {
-            Log::Dump( self::LOG_PREFIX."msg_remove_queue result : " . $eachQueue->Close() );
+            Log::Dump( "msg_remove_queue result : " . $eachQueue->Close(), Log::TYPE_DEBUG ,self::MODULE_NAME );
         }
     }
 

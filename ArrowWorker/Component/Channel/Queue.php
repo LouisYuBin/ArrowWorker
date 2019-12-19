@@ -6,11 +6,10 @@ use ArrowWorker\Log;
 
 class Queue
 {
-
-    /**
-     * 打开方式
-     */
+	
     const MODE = 0666;
+    
+    const MODULE_NAME = 'Queue';
 
     private $_queue;
 
@@ -61,7 +60,7 @@ class Queue
             }
         }
 
-        Log::Dump("[  Queue  ] Write:msg_send failed. error code : {$errorCode}, data : {$message}");
+        Log::Dump("Write:msg_send failed. error code : {$errorCode}, data : {$message}", Log::TYPE_WARNING, self::MODULE_NAME);
         return false;
 	}
 

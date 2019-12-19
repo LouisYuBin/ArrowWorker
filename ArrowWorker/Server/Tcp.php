@@ -22,7 +22,8 @@ use ArrowWorker\Server\Server as ServerPattern;
 class Tcp extends ServerPattern
 {
 
-
+	const MODULE_NAME = 'Tcp Server';
+	
     /**
      * @var int|mixed
      */
@@ -153,7 +154,7 @@ class Tcp extends ServerPattern
         $this->_server->on( 'start', function ( $server )
         {
 	        Process::SetName("{$this->_identity}_Tcp:{$this->_port} Manager");
-	        Log::Dump( "[   Tcp   ] : {$this->_port} started" );
+	        Log::Dump( "listening at port {$this->_port}", Log::TYPE_DEBUG, self::MODULE_NAME);
         } );
     }
 

@@ -18,7 +18,7 @@ class Pool implements ConnPool
 
     const CONFIG_NAME       = 'WsClient';
     
-    const LOG_PREFIX = '[ WsPool  ] ';
+    const MODULE_NAME = '[ WsPool  ] ';
 
     /**
      * @var array
@@ -61,7 +61,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Dump( self::LOG_PREFIX.'incorrect config file' );
+            Log::Dump( 'incorrect config file', Log::TYPE_WARNING, self::MODULE_NAME );
             return ;
         }
 
@@ -80,7 +80,7 @@ class Pool implements ConnPool
                 !isset( $value['isSsl'])
             )
             {
-                Log::Dump( self::LOG_PREFIX."configuration for {$index} is incorrect. config : ".json_encode($value) );
+                Log::Dump( "configuration for {$index} is incorrect. config : ".json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME );
                 continue;
             }
 
@@ -106,7 +106,7 @@ class Pool implements ConnPool
                 $upgrade = $wsClient->Upgrade();
                 if( false===$upgrade )
                 {
-                    Log::Dump(self::LOG_PREFIX."initialize connection failed, config : {$index}=>".json_encode($config));
+                    Log::Dump("initialize connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME);
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;

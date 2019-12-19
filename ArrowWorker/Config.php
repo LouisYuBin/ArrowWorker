@@ -8,6 +8,7 @@ namespace ArrowWorker;
  */
 class Config
 {
+	const MODULE_NAME = 'Config';
 
     const ENV_DEV = 'Dev';
 
@@ -90,7 +91,7 @@ class Config
         $path = $this->_path . $name . self::EXT;
         if ( !file_exists( $path ) )
         {
-            Log::Dump( "[ Config  ] file : {$path} not found." );
+            Log::Dump( "file : {$path} not found.", Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
         $this->_configMap[ $name ] = require( $path );

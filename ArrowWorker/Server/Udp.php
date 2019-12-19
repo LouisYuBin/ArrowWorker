@@ -22,6 +22,8 @@ use ArrowWorker\Server\Server as ServerPattern;
 class Udp extends ServerPattern
 {
 
+	const MODULE_NAME = 'Udp Server';
+	
     /**
      * @var int|mixed
      */
@@ -143,7 +145,7 @@ class Udp extends ServerPattern
         $this->_server->on( 'start', function ( $server )
         {
 	        Process::SetName("{$this->_identity}_Udp:{$this->_port} Manager");
-	        Log::Dump( "[   Tcp   ] : {$this->_port} started" );
+	        Log::Dump( "listening at port {$this->_port}", Log::TYPE_DEBUG, self::MODULE_NAME );
         } );
     }
 

@@ -21,6 +21,19 @@ use ArrowWorker\Library\Channel as SwChan;
  */
 class Log
 {
+	
+	const TYPE_WARNING = 'Warning';
+	
+	const TYPE_NOTICE = 'Notice';
+	
+	const TYPE_DEBUG = 'Debug';
+	
+	const TYPE_ERROR = 'Error';
+	
+	const TYPE_EMERGENCY = 'Emergency';
+	
+	const TYPE_EXCEPTION = 'Exception';
+	
 	/**
 	 * write log to file
 	 * @var string
@@ -60,7 +73,7 @@ class Log
 	/**
 	 *
 	 */
-	const LOG_PREFIX = '[   Log   ] ';
+	const MODULE_NAME = 'Log';
 	
 	
 	/**
@@ -273,7 +286,7 @@ class Log
 						{
 							if( 0==$i )
 							{
-								self::Dump(self::LOG_PREFIX.'init redis client failed, config : '.json_encode($config));
+								self::Dump('init redis client failed, config : '.json_encode($config),self::TYPE_WARNING, self::MODULE_NAME );
 							}
 						}
 					}
@@ -296,7 +309,7 @@ class Log
 						{
 							if( 0==$i )
 							{
-								Log::Dump( self::LOG_PREFIX.'init tcp client failed. config : '.json_encode($config));
+								Log::Dump( 'init tcp client failed. config : '.json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME);
 							}
 						}
 					}
@@ -395,7 +408,7 @@ class Log
 	 */
 	public static function Critical( string $log, string $module = '' )
 	{
-		self::Dump( '[' . str_pad( $module, 9, ' ', STR_PAD_BOTH ) . '] ' . $log );
+		self::Dump( $log, self::TYPE_EMERGENCY, self::MODULE_NAME );
 		self::_fillLog( $log, $module, 'C' );
 	}
 	
@@ -416,10 +429,12 @@ class Log
 	/**
 	 * Dump : echo log to standard output
 	 * @param string $log
+	 * @param string $type
+	 * @param string $module
 	 */
-	public static function Dump( string $log )
+	public static function Dump( string $log, string $type=self::TYPE_DEBUG, string $module='Unknown' )
 	{
-		echo sprintf( "%s %s" . PHP_EOL, static::_getTime(), $log );
+		echo sprintf( "%s | %s | %s | %s " . PHP_EOL, self::_getTime(), $type, $module, $log );
 	}
 	
 	/**
@@ -510,7 +525,7 @@ class Log
 		$result = Coroutine::FileWrite( $this->_fileHandlerMap[ $alias ], $log );
 		if ( false === $result )
 		{
-			Log::Dump( self::LOG_PREFIX . " [ Emergency ] Coroutine::FileWrite failed, log : {$log}" );
+			Log::Dump( "Coroutine::FileWrite failed, log : {$log}", self::TYPE_EMERGENCY, self::MODULE_NAME );
 		}
 		
 	}
@@ -534,7 +549,7 @@ class Log
 			{
 				if ( $checkDirTimes > 2 )
 				{
-					Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] make log directory:{$fileDir} failed . " );
+					Log::Dump( "make log directory:{$fileDir} failed", self::TYPE_EMERGENCY, self::MODULE_NAME );
 					return false;
 				}
 				Coroutine::Sleep( 0.5 );
@@ -545,7 +560,7 @@ class Log
 		$fileRes = fopen( $filePath, 'a' );
 		if ( false === $fileRes )
 		{
-			Log::Dump( self::LOG_PREFIX . " [ EMERGENCY ] fopen log file:{$filePath} failed . " );
+			Log::Dump( "fopen log file:{$filePath} failed", Log::TYPE_EMERGENCY, self::MODULE_NAME );
 			return false;
 		}
 		return $fileRes;
@@ -660,9 +675,9 @@ class Log
 			
 			if ( false == $this->_toFileChan->Push( $log, 1 ) )
 			{
-				Log::Dump( "Push log chan failed, data:{$log}, error code： " .
+				Log::Dump( "push log chan failed, data:{$log}, error code： " .
 				           $this->_toFileChan->GetErrorCode() .
-				           "}" );
+				           "}" , self::TYPE_WARNING,self::MODULE_NAME);
 			}
 			
 			if ( in_array( static::TO_TCP, static::$_writeType ) )
@@ -680,7 +695,7 @@ class Log
 		}
 		
 		$this->_isTerminateChan = true;
-		//self::Dump( self::LOG_PREFIX.'dispatch coroutine exited' );
+		//self::Dump( self::MODULE_NAME.'dispatch coroutine exited' );
 	}
 	
 	/**
@@ -744,7 +759,7 @@ class Log
 			}
 			$break = count( $buffer ) == $emptyBufferCount ? true : false;
 		}
-		//self::Dump( self::LOG_PREFIX.'file-writing coroutine exited' );
+		//self::Dump( self::MODULE_NAME.'file-writing coroutine exited' );
 	}
 	
 	/**
@@ -768,10 +783,10 @@ class Log
 			
 			if ( false == $this->_tcpClient[$clientIndex]->Send( $data, 3 ) )
 			{
-				Log::Dump( self::LOG_PREFIX . "tcpClient[{$clientIndex}]->Send( {$data}, 3 ) failed" );
+				Log::Dump( " tcpClient[{$clientIndex}]->Send( {$data}, 3 ) failed", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 		}
-		self::Dump( self::LOG_PREFIX . 'tcp-writing coroutine exited' );
+		//self::Dump( self::MODULE_NAME . ' [ Debug ] tcp-writing coroutine exited' );
 	}
 	
 	/**
@@ -800,7 +815,7 @@ class Log
 				{
 					break;
 				}
-				Log::Dump(self::LOG_PREFIX."redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed");
+				Log::Dump("redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed", self::TYPE_WARNING, self::MODULE_NAME);
 			}
 			
 		}
@@ -812,7 +827,7 @@ class Log
 	 */
 	private function _exit()
 	{
-		static::Dump( self::LOG_PREFIX . ' exited. queue status : ' . json_encode( self::$_msgObject->Status() ) );
+		static::Dump( ' exited. queue status : ' . json_encode( self::$_msgObject->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
 		exit( 0 );
 	}
 	

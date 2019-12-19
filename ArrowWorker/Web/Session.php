@@ -19,7 +19,7 @@ use ArrowWorker\Log;
 class Session
 {
 
-    const CONFIG_NAME = 'Session';
+    const MODULE_NAME = 'Session';
 
     const DEFAULT_TOKEN_KEY = 'token';
 
@@ -45,10 +45,10 @@ class Session
 
     private static function _initConfig()
     {
-        $configs = Config::Get( self::CONFIG_NAME );
+        $configs = Config::Get( self::MODULE_NAME );
         if ( !is_array( $configs ) )
         {
-            Log::Dump( '[ Session ] initialize config failed' );
+            Log::Dump( 'initialize config failed', Log::TYPE_WARNING, self::MODULE_NAME );
             return;
         }
         self::$_config = self::_parseConfig( $configs );
@@ -77,7 +77,7 @@ class Session
                 ] )
             )
             {
-                Log::Dump( "[ Session ] {$serverNames} config incorrect : " . json_encode( $config ) );
+                Log::Dump( "{$serverNames} config incorrect : " . json_encode( $config ), Log::TYPE_WARNING, self::MODULE_NAME );
                 continue;
             }
             $config['tokenFrom'] = ucfirst($config['tokenFrom']);

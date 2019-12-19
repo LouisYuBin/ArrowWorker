@@ -19,7 +19,7 @@ class Pool implements ConnPool
 
     const CONFIG_NAME       = 'TcpClient';
     
-    const LOG_PREFIX = "[ TcpPool ] ";
+    const MODULE_NAME = "[ TcpPool ] ";
 
     /**
      * @var array
@@ -62,7 +62,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Dump( self::LOG_PREFIX.'load config file failed' );
+            Log::Dump( 'load config file failed', Log::TYPE_WARNING, self::MODULE_NAME );
             return ;
         }
 
@@ -79,7 +79,7 @@ class Pool implements ConnPool
                 !isset( $value['port'] )
             )
             {
-                Log::Dump( self::LOG_PREFIX."configuration for {$index} is incorrect. config : ".json_encode($value) );
+                Log::Dump( "configuration for {$index} is incorrect. config : ".json_encode($value), Log::TYPE_WARNING,self::MODULE_NAME );
                 continue;
             }
 
@@ -104,7 +104,7 @@ class Pool implements ConnPool
                 $conn = Client::Init( $config['host'], $config['port'] );
                 if( false===$conn->IsConnected() )
                 {
-                    Log::Dump(self::LOG_PREFIX."initialize connection failed, config : {$index}=>".json_encode($config));
+                    Log::Dump("initialize connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;

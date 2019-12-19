@@ -23,7 +23,7 @@ class Pool implements ConnPool
      */
     const LOG_NAME          = 'Db';
 
-    const LOG_PREFIX = "[  DbPool  ]";
+    const MODULE_NAME = "DbPool";
 
     /**
      *
@@ -69,7 +69,7 @@ class Pool implements ConnPool
         $config = Config::Get( self::CONFIG_NAME );
         if ( !is_array( $config ) || count( $config ) == 0 )
         {
-            Log::Dump( self::LOG_PREFIX.'incorrect config file' );
+            Log::Dump( 'incorrect config file', Log::TYPE_WARNING, self::MODULE_NAME );
             return ;
         }
 
@@ -94,7 +94,7 @@ class Pool implements ConnPool
                 !isset( $value['charset'] )
             )
             {
-                Log::Dump( self::LOG_PREFIX."incorrect configuration. {$index}=> ".json_encode($value) );
+                Log::Dump( "incorrect configuration. {$index}=> ".json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME );
                 continue;
             }
 
@@ -120,7 +120,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Dump(self::LOG_PREFIX." initialize connection failed, config : {$index}=>".json_encode($config));
+                    Log::Dump(" initialize connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
@@ -160,7 +160,7 @@ class Pool implements ConnPool
             if( $retryTimes<=2 )
             {
                 $retryTimes++;
-                Log::Dump(self::LOG_PREFIX."get ( {$alias} : {$retryTimes} ) connection failed, retrying...");
+                Log::Dump("get ( {$alias} : {$retryTimes} ) connection failed, retrying...", Log::TYPE_WARNING, self::MODULE_NAME);
                 goto _RETRY;
             }
         }
