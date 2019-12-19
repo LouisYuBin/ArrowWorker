@@ -11,7 +11,7 @@ interface DbInterface
     /**
      *
      */
-    const LOG_NAME     = 'Db';
+    const MODULE_NAME     = 'Db';
 
     /**
      *

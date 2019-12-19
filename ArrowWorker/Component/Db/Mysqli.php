@@ -147,13 +147,13 @@ class Mysqli implements DbInterface
 
         if( 0!==@$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
-            Log::Notice( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", self::LOG_NAME );
+            Log::Dump( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", Log::TYPE_NOTICE, self::MODULE_NAME );
             $this->InitConnection();
             $isRetried = true;
             goto _RETRY;
         }
 
-        @Log::Notice( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", self::SQL_LOG_NAME );
+        @Log::Dump( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", Log::TYPE_WARNING, self::MODULE_NAME );
         return false;
     }
 
