@@ -101,13 +101,13 @@ class Session
 
         return [
             $token,
-            Pool::GetConnection( Request::Host() )
+            Pool::Get( Request::Host() )
         ];
     }
 
     public static function Create(string $token) : bool
     {
-        $conn = Pool::GetConnection( Request::Host() );
+        $conn = Pool::Get( Request::Host() );
         if( false==$conn )
         {
             return false;
