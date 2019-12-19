@@ -243,6 +243,8 @@ class Ws extends ServerPattern
             'ssl_key_file'          => $this->_sslKeyFile,
             'mode'                  => $this->_mode,
             'open_http2_protocol'   => $this->_isEnableHttp2,
+            'hook_flags'            => SWOOLE_HOOK_ALL
+
         ]);
     }
 

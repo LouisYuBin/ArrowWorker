@@ -233,6 +233,8 @@ class Tcp extends ServerPattern
             'open_eof_check'           => $this->_openEofCheck,
             'package_eof'              => $this->_packageEof,
             'open_eof_split'           => $this->_openEofSplit,
+            'hook_flags'               => SWOOLE_HOOK_ALL
+
         ] );
     }
 
