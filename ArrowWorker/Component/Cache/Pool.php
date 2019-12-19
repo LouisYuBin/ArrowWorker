@@ -123,7 +123,7 @@ class Pool implements ConnPool
      * @param string $alias
      * @return false|Redis
      */
-    public static function GetConnection( string $alias = 'default' )
+    public static function Get( string $alias = 'default' )
     {
         $coId = Coroutine::Id();
         $context = Coroutine::GetContext();

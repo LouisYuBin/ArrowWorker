@@ -119,7 +119,7 @@ class Pool implements ConnPool
      * @param string $alias
      * @return false|Client
      */
-    public static function GetConnection( $alias = 'default' )
+    public static function Get( $alias = 'default' )
     {
         $context = Coroutine::GetContext();
         if( isset($context[__CLASS__][$alias]) )

@@ -28,7 +28,7 @@ class Cache
      */
     public static function Get( string $alias=self::DEFAULT_ALIAS )
     {
-        return Pool::GetConnection($alias);
+        return Pool::Get($alias);
     }
 
     public static function Release()

@@ -55,7 +55,6 @@ class SqlBuilder
     /**
      * SqlBuilder constructor.
      * @param string $alias
-     * @param string $driver
      */
     public function __construct( string $alias = 'default' )
     {
@@ -63,11 +62,11 @@ class SqlBuilder
     }
 
     /**
-     * @return \ArrowWorker\Driver\Db\Mysqli
+     * @return \ArrowWorker\Component\Db\Mysqli
      */
     private function _getDb()
     {
-        return Pool::GetConnection($this->alias);
+        return Pool::Get($this->alias);
     }
 
 

@@ -22,7 +22,7 @@ interface PoolInterface
      * @param string $alias
      * @return mixed
      */
-    public static function GetConnection( string $alias = 'default' );
+    public static function Get( string $alias = 'default' );
 
     /**
      * @return void

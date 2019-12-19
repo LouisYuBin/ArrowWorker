@@ -41,7 +41,7 @@ class Db
      */
     public static function Get( string $alias=self::DEFAULT_ALIAS )
     {
-        return Pool::GetConnection($alias);
+        return Pool::Get($alias);
     }
 
     /**

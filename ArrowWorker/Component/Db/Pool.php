@@ -133,10 +133,9 @@ class Pool implements ConnPool
      * @param string $alias
      * @return false|Mysqli|Pdo
      */
-    public static function GetConnection( string $alias = 'default' )
+    public static function Get( string $alias = 'default' )
     {
     	$context = Coroutine::GetContext();
-        $coId = Coroutine::Id();
         if( isset($context[__CLASS__][$alias]) )
         {
             return $context[__CLASS__][$alias];
