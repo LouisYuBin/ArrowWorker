@@ -11,10 +11,7 @@ use ArrowWorker\Log;
 
 class Mysqli implements DbInterface
 {
-
-
-    const MODULE_NAME = "Mysqli";
-
+	
     /**
      * @var \mysqli
      */
