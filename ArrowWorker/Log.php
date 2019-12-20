@@ -97,22 +97,27 @@ class Log
 	private static $stdoutFile;
 	
 	/**
+	 * @var Queue
+	 */
+	private static $msgInstance;
+	/**
 	 * bufSize : log buffer size 10M
 	 * @var int
 	 */
-	private $bufSize = 10485760;
-	
-	/**
-	 * chanSize : log buffer size 10M
-	 * @var int
-	 */
-	private $chanSize = 10485760;
+	private static $bufSize = 10485760;
 	
 	/**
 	 * msgSize : a single log size 1M
 	 * @var int
 	 */
-	private $msgSize = 1048576;
+	private static $msgSize = 1048576;
+	
+	
+	/**
+	 * chanSize : log buffer size 10M
+	 * @var int
+	 */
+	private $chanSize = 10240;
 	
 	/**
 	 * Whether to close the log process
@@ -184,11 +189,7 @@ class Log
 		'queue'    => 'ArrowLog',
 		'password' => '',
 	];
-	
-	/**
-	 * @var Queue
-	 */
-	private $msgInstance;
+
 	
 	
 	/**
@@ -196,8 +197,11 @@ class Log
 	 */
 	public static function Initialize()
 	{
-		self::_initConfig();
-		self::_checkLogDir();
+		self::initConfig();
+		self::checkLogDir();
+		self::resetStd();
+		self::initMsgInstance();
+		
 	}
 	
 	
@@ -213,11 +217,12 @@ class Log
 	
 	private function __construct()
 	{
-		$this->_initHandler();
-		$this->_initSignalHandler();
+		$this->parseConfig();
+		$this->initHandler();
+		$this->initSignalHandler();
 	}
 	
-	private static function _checkLogDir()
+	private static function checkLogDir()
 	{
 		if ( !is_dir( self::$baseDir ) )
 		{
@@ -228,7 +233,7 @@ class Log
 		}
 	}
 	
-	private static function _initConfig()
+	private static function initConfig()
 	{
 		$config = Config::Get( 'Log' );
 		if ( !is_array( $config ) )
@@ -240,6 +245,9 @@ class Log
 		self::$processNum = $config[ 'process' ] ?? 1;
 		self::$baseDir    = $config[ 'baseDir' ] ?? self::$baseDir;
 		self::$stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
+		
+		self::$bufSize    = $config[ 'bufSize' ] ?? self::$bufSize;
+		self::$msgSize   = $config[ 'chanSize' ] ?? self::$bufSize;
 	}
 	
 	private function parseConfig()
@@ -268,12 +276,11 @@ class Log
 			$this->redisConfig                = $config[ $toRedis ];
 		}
 		
-		$this->bufSize    = $config[ 'bufSize' ] ?? $this->bufSize;
-		$this->chanSize   = $config[ 'chanSize' ] ?? $this->bufSize;
+		$this->chanSize = $config['chanSize'] ?? 10240;
 	}
 	
 	
-	private function _initHandler()
+	private function initHandler()
 	{
 		$this->_toFileChan = SwChan::Init( $this->chanSize );
 		foreach ( $this->writeType as $type )
@@ -480,15 +487,15 @@ class Log
 	 * _selectLogChan : select the log chan
 	 * @return void
 	 */
-	private function initMsgObj()
+	private static function initMsgInstance()
 	{
-		if ( !is_object( $this->msgInstance ) )
+		if ( !is_object( self::$msgInstance ) )
 		{
-			$this->msgInstance = Chan::Get(
+			self::$msgInstance = Chan::Get(
 				'log',
 				[
-					'msgSize' => $this->msgSize,
-					'bufSize' => $this->bufSize,
+					'msgSize' => self::$msgSize,
+					'bufSize' => self::$bufSize,
 				]
 			);
 		}
@@ -622,16 +629,8 @@ class Log
 	{
 		$log            = new  self();
 		self::$instance = $log;
-		$log->parseConfig();
-		$log->initMsgObj();
-		$log->resetStd();
 		$log->initCoroutine();
 		$log->_exit();
-	}
-	
-	public static function GetQueue()
-	{
-		return self::$instance->msgInstance;
 	}
 	
 	private function initCoroutine()
@@ -679,7 +678,7 @@ class Log
 		{
 			if (
 				$this->_isTerminate &&
-				$this->msgInstance->Status()[ 'msg_qnum' ] == 0
+				self::$msgInstance->Status()[ 'msg_qnum' ] == 0
 			)
 			{
 				break;
@@ -687,7 +686,7 @@ class Log
 			
 			pcntl_signal_dispatch();
 			
-			$log = $this->msgInstance->Read( 10000 );
+			$log = self::$msgInstance->Read( 10000 );
 			if ( $log === false )
 			{
 				continue;
@@ -733,12 +732,12 @@ class Log
 				break;
 			}
 			
+			$date = date( 'Ymd' );
 			if ( $data === false )
 			{
 				goto FLUSH;
 			}
 			
-			$date      = date( 'Ymd' );
 			$log       = $this->_parseModuleLevel( $data );
 			$bufferKey = $log[ 'module' ] . $log[ 'level' ];
 			if ( isset( $buffer[ $bufferKey ] ) )
@@ -848,11 +847,11 @@ class Log
 	private function _exit()
 	{
 		self::Dump( ' exited. queue status : ' .
-		              json_encode( $this->msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
+		              json_encode( self::$msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
 		exit( 0 );
 	}
 	
-	private function resetStd()
+	private static function resetStd()
 	{
 		if ( Console::Init()->IsDebug() )
 		{
@@ -860,7 +859,7 @@ class Log
 		}
 		
 		global $STDOUT, $STDERR;
-		$newStdResource = fopen( $this->stdoutFile, "a" );
+		$newStdResource = fopen( self::$stdoutFile, "a" );
 		if ( !is_resource( $newStdResource ) )
 		{
 			die( "ArrowWorker hint : can not open stdoutFile" . PHP_EOL );
@@ -868,15 +867,15 @@ class Log
 		
 		fclose( STDOUT );
 		fclose( STDERR );
-		$STDOUT = fopen( $this->stdoutFile, 'a' );
-		$STDERR = fopen( $this->stdoutFile, 'a' );
+		$STDOUT = fopen( self::$stdoutFile, 'a' );
+		$STDERR = fopen( self::$stdoutFile, 'a' );
 	}
 	
 	/**
 	 * _setSignalHandler : set function for signal handler
 	 * @author Louis
 	 */
-	private function _initSignalHandler()
+	private function initSignalHandler()
 	{
 		pcntl_signal( SIGALRM, [
 			$this,
@@ -987,7 +986,8 @@ class Log
 		{
 			return;
 		}
-		$msgObj = self::GetQueue();
+		
+		$msgObj = self::$msgInstance;
 		$logId  = $context[ __CLASS__ . '_id' ];
 		foreach ( $context[ __CLASS__ ] as $log )
 		{
