@@ -24,17 +24,17 @@ return [
         '404'              => APP_PATH.'/Static/Web/404.html',
         'components' => [
             'db' => [
-                'default' => 2
+                'default' => 150
             ],
             'cache' => [
-                'default' => 2
+                'default' => 150
             ],
            'tcp_client' => [
-                'default' => 3,
-                'conner'  => 2
+                'default' => 100,
+                'conner'  => 200
             ],
             'ws_client' => [
-                'default' => 2
+                'default' => 100
             ]
         ]
     ],
