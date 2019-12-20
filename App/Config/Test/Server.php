@@ -29,13 +29,13 @@ return [
             'cache' => [
                 'default' => 150
             ],
-           'tcp_client' => [
+           /*'tcp_client' => [
                 'default' => 100,
                 'conner'  => 200
             ],
             'ws_client' => [
                 'default' => 100
-            ]
+            ]*/
         ]
     ],
     [
