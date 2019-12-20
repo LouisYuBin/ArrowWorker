@@ -14,11 +14,11 @@ use ArrowWorker\Library\Channel as SwChan;
 class Pool implements ConnPool
 {
 
-    const LOG_NAME          = 'WsClient';
+    const LOG_NAME     = 'WsClient';
 
-    const CONFIG_NAME       = 'WsClient';
+    const CONFIG_NAME  = 'WsClient';
     
-    const MODULE_NAME = '[ WsPool  ] ';
+    const MODULE_NAME  = 'WsPool';
 
     /**
      * @var array
@@ -29,13 +29,7 @@ class Pool implements ConnPool
      * @var array
      */
     private static $_configs = [];
-
-    /**
-     * @var array
-     */
-    private static $_connections = [
-
-    ];
+    
 
     /**
      * @param  array $appAlias
