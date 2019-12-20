@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'memory_limit'        => '100M',
+    'memory_limit'        => '128M',
     'date.timezone'       => 'Asia/Shanghai',
     'serialize_precision' => 14,
     'log_errors'          => 'On',

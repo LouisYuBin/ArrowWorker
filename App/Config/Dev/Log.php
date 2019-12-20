@@ -3,9 +3,8 @@
 return [
 	'baseDir'  => APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . DIRECTORY_SEPARATOR . 'Log/',
 	'process'  => 2,
-	'bufSize'  => 104857600,  //100M
+	'bufSize'  => 10485760,  //10M
 	'msgSize'  => 1048576,    //1M
-	'chanSize' => 1024,
 	'tcp'      => [
 		'host'     => '127.0.0.1',
 		'port'     => 4436,
