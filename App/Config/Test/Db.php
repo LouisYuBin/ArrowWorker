@@ -17,6 +17,6 @@ return [
         //端口
         'port'     => 3306,
         //连接池大小
-        'poolSize' => 10,
+        'poolSize' => 150,
     ],
 ];
