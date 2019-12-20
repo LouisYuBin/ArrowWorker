@@ -238,7 +238,7 @@ class Ws extends ServerPattern
             'enable_coroutine'      => $this->_enableCoroutine,
             'max_coroutine'         => $this->_maxCoroutine,
             'document_root'         => $this->_documentRoot,
-            'log_file'              => Log::$StdoutFile,
+            'log_file'              => Log::GetStdOutFilePath(),
             'ssl_cert_file'         => $this->_sslCertFile,
             'ssl_key_file'          => $this->_sslKeyFile,
             'mode'                  => $this->_mode,

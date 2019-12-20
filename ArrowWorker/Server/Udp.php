@@ -203,7 +203,7 @@ class Udp extends ServerPattern
             'socket_buffer_size'       => $this->_socketBufferSize,
             'enable_coroutine'         => $this->_enableCoroutine,
             'max_coroutine'            => $this->_maxCoroutine,
-            'log_file'                 => Log::$StdoutFile,
+            'log_file'                 => Log::GetStdOutFilePath(),
             'heartbeat_check_interval' => $this->_heartbeatCheckInterval,
             'heartbeat_idle_time'      => $this->_heartbeatIdleTime,
             'open_eof_check'           => $this->_openEofCheck,

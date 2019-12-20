@@ -201,7 +201,7 @@ class Http extends ServerPattern
             'max_request'         => $this->_maxRequest,
             'enable_coroutine'    => $this->_enableCoroutine,
             'max_coroutine'       => $this->_maxCoroutine,
-            'log_file'            => Log::$StdoutFile,
+            'log_file'            => Log::GetStdOutFilePath(),
             'mode'                => $this->_mode,
             'open_http2_protocol' => $this->_isEnableHttp2,
             'ssl_cert_file'       => $this->_sslCertFile,

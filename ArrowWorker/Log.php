@@ -90,6 +90,12 @@ class Log
 	 */
 	private static $baseDir = APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . '/Log/';
 	
+	
+	/**
+	 * @var
+	 */
+	private static $stdoutFile;
+	
 	/**
 	 * bufSize : log buffer size 10M
 	 * @var int
@@ -186,12 +192,6 @@ class Log
 	
 	
 	/**
-	 * @var
-	 */
-	public $stdoutFile;
-	
-	
-	/**
 	 * @var bool $isDemonize
 	 */
 	public static function Initialize()
@@ -204,6 +204,11 @@ class Log
 	public static function GetProcessNum() : int
 	{
 		return (int)self::$processNum;
+	}
+	
+	public static function GetStdOutFilePath()
+	{
+		return self::$stdoutFile;
 	}
 	
 	private function __construct()
@@ -234,7 +239,7 @@ class Log
 		self::$config     = $config;
 		self::$processNum = $config[ 'process' ] ?? 1;
 		self::$baseDir    = $config[ 'baseDir' ] ?? self::$baseDir;
-		
+		self::$stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 	}
 	
 	private function parseConfig()
@@ -265,7 +270,6 @@ class Log
 		
 		$this->bufSize    = $config[ 'bufSize' ] ?? $this->bufSize;
 		$this->chanSize   = $config[ 'chanSize' ] ?? $this->bufSize;
-		$this->stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 	}
 	
 	
