@@ -5,7 +5,7 @@ return [
     'process'  => 4,
     'bufSize'  => 10485760,     //100M
     'msgSize'  => 1048576,      //1M
-    'tcp'      => [
+    /*'tcp'      => [
         'host'     => '127.0.0.1',
         'port'     => 9666,
         'poolSize' => 10
@@ -16,5 +16,5 @@ return [
         'password' => 'r9&BsY$gKumtp7ic\n=pntpe?n6vtjchFijK',
         'queue'    => 'ArrowWorkerLog',
         'poolSize' => 10
-    ],
+    ],*/
 ];
