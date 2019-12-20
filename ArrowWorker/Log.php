@@ -674,11 +674,12 @@ class Log
 	
 	public function Dispatch()
 	{
+		$queue = self::$msgInstance;
 		while ( true )
 		{
 			if (
 				$this->_isTerminate &&
-				self::$msgInstance->Status()[ 'msg_qnum' ] == 0
+				$queue->Status()[ 'msg_qnum' ] == 0
 			)
 			{
 				break;
@@ -686,7 +687,7 @@ class Log
 			
 			pcntl_signal_dispatch();
 			
-			$log = self::$msgInstance->Read( 10000 );
+			$log = $queue->Read( 10000 );
 			if ( $log === false )
 			{
 				continue;
