@@ -178,6 +178,7 @@ class Pool implements ConnPool
             return ;
         }
 
+        var_dump($context[__CLASS__]);
         foreach ( $context[__CLASS__] as $alias=>$connection )
         {
             self::$_pool[$alias]->Push( $connection );
