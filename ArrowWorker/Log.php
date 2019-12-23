@@ -54,7 +54,7 @@ class Log
 	const TO_TCP = 'tcp';
 	
 	
-	const MAX_BUFFER_SIZE = 512;
+	const MAX_BUFFER_SIZE = 1024;
 	
 	/**
 	 *
@@ -663,7 +663,7 @@ class Log
 			} );
 		}
 		
-		for ( $i = 0; $i < 128; $i++ )
+		for ( $i = 0; $i < 1024; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
