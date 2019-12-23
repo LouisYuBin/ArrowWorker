@@ -74,7 +74,7 @@ class Log
 	 * chanSize : log buffer size 10M
 	 * @var int
 	 */
-	const  CHAN_SIZE = 102400;
+	const  CHAN_SIZE = 409600;
 	
 	
 	/**
