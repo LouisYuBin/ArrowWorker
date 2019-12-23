@@ -675,7 +675,7 @@ class Log
 	
 	public function Dispatch()
 	{
-		$queue = self::$msgInstance;
+		$queue = clone self::$msgInstance;
 		while ( true )
 		{
 			if (
