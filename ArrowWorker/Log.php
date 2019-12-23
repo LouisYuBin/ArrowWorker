@@ -663,7 +663,7 @@ class Log
 			} );
 		}
 		
-		for ( $i = 0; $i < 2; $i++ )
+		for ( $i = 0; $i < 16; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
@@ -1005,7 +1005,7 @@ class Log
 		$logId  = $context[ __CLASS__ . '_id' ];
 		foreach ( $context[ __CLASS__ ] as $log )
 		{
-			$msgObj->Write( "{$log[0]} | {$logId} | $log[1]" . PHP_EOL );
+			$msgObj->Write( "{$log[0]} | {$logId} | {$log[1]}" . PHP_EOL );
 		}
 	}
 	
