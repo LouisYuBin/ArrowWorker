@@ -79,7 +79,7 @@ class Response
     public static function Write(string $msg)
     {
 	    Co::GetContext()[__CLASS__]->end( $msg );
-	    Log::Debug("Response : {$msg}", self::LOG_NAME);
+	    //Log::Debug("Response : {$msg}", self::LOG_NAME);
     }
 
     /**
