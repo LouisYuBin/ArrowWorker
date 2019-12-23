@@ -636,7 +636,7 @@ class Log
 	
 	private function initCoroutine()
 	{
-		Coroutine::Enable(null,SWOOLE_HOOK_ALL);
+		Coroutine::Enable(true,SWOOLE_HOOK_ALL);
 		for ( $i = 0; $i < 128; $i++ )
 		{
 			Coroutine::Create( function ()

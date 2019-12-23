@@ -106,9 +106,9 @@ class Coroutine
         });
     }
 
-    public static function Enable()
+    public static function Enable(bool $isEnable=true, int $flag=SWOOLE_HOOK_ALL)
     {
-        Runtime::enableCoroutine();
+        Runtime::enableCoroutine($isEnable, $flag);
     }
 
     public static function FileWrite($handle,string $data, $length=null) : bool
