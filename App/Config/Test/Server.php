@@ -5,7 +5,7 @@ return [
         'type'             => 'Http',
         'host'             => '0.0.0.0',
         'port'             => 4433,
-        'workerNum'        => 8,
+        'workerNum'        => 4,
         'reactorNum'       => 4,
         'backlog'          => 20000,
         'user'             => 'www',
