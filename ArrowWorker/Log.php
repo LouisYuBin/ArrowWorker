@@ -100,7 +100,7 @@ class Log
 	 * write log to file
 	 * @var array
 	 */
-	private static $writeType = [
+	private static $toTypes = [
 		'file',
 	];
 	
@@ -186,10 +186,10 @@ class Log
 	 */
 	public static function Initialize()
 	{
-		self::_initConfig();
-		self::_checkLogDir();
-		self::_initMsgObj();
-		self::_resetStd();
+		self::initConfig();
+		self::checkDir();
+		self::initMsgInstance();
+		self::resetStd();
 	}
 
 	public static function GetStdOutFilePath()
@@ -208,7 +208,7 @@ class Log
 		$this->_initSignalHandler();
 	}
 	
-	private static function _checkLogDir()
+	private static function checkDir()
 	{
 		if ( !is_dir( self::$baseDir ) )
 		{
@@ -219,7 +219,7 @@ class Log
 		}
 	}
 	
-	private static function _initConfig()
+	private static function initConfig()
 	{
 		$config = Config::Get( 'Log' );
 		if ( false === $config )
@@ -227,14 +227,14 @@ class Log
 			return;
 		}
 		
-		self::$writeType = [ self::TO_FILE ];
+		self::$toTypes = [ self::TO_FILE ];
 		$toTcp            = self::TO_TCP;
 		if ( isset( $config[ $toTcp ] ) &&
 		     isset( $config[ $toTcp ][ 'host' ] ) &&
 		     isset( $config[ $toTcp ][ 'port' ] ) )
 		{
 			$config[ $toTcp ]['poolSize'] = $config[ $toTcp ]['poolSize'] ?? 10;
-			self::$writeType[] = $toTcp;
+			self::$toTypes[] = $toTcp;
 			self::$tcpConfig   = $config[ $toTcp ];
 		}
 		
@@ -247,7 +247,7 @@ class Log
 		)
 		{
 			$config[ $toRedis ]['poolSize'] = $config[ $toRedis ]['poolSize'] ?? 10;
-			self::$writeType[] = $toRedis;
+			self::$toTypes[] = $toRedis;
 			self::$redisConfig = $config[ $toRedis ];
 		}
 		
@@ -263,7 +263,7 @@ class Log
 	{
 		$this->toFileChan = SwChan::Init( self::$chanSize );
 		
-		foreach ( self::$writeType as $type )
+		foreach ( self::$toTypes as $type )
 		{
 			switch ( $type )
 			{
@@ -467,7 +467,7 @@ class Log
 	 * _selectLogChan : select the log chan
 	 * @return void
 	 */
-	private static function _initMsgObj()
+	private static function initMsgInstance()
 	{
 		if ( !is_object( self::$msgInstance ) )
 		{
@@ -648,12 +648,25 @@ class Log
 				$this->Dispatch();
 			} );
 		}
+		
+		Coroutine::Create(function (){
+			while (true)
+			{
+				if ( $this->isTerminate )
+				{
+					break;
+				}
+				Coroutine::Sleep(0.2);
+				pcntl_signal_dispatch();
+			}
+		});
 		Coroutine::Wait();
 	}
 	
 	public function Dispatch()
 	{
 		$msgQueue = self::$msgInstance;
+		$toTypes  = static::$toTypes;
 		while ( true )
 		{
 			if (
@@ -663,8 +676,6 @@ class Log
 			{
 				break;
 			}
-			
-			pcntl_signal_dispatch();
 			
 			$log = $msgQueue->Read( 10000 );
 			if ( $log === false )
@@ -679,17 +690,15 @@ class Log
 				           "}" , self::TYPE_WARNING,self::MODULE_NAME);
 			}
 			
-			if ( in_array( static::TO_TCP, static::$writeType ) )
+			if ( in_array( self::TO_TCP, $toTypes ) )
 			{
 				$this->toTcpChan->Push( $log, 1 );
 			}
 			
-			if ( in_array( static::TO_REDIS, static::$writeType ) )
+			if ( in_array( self::TO_REDIS, $toTypes ) )
 			{
 				$this->toRedisChan->Push( $log, 1 );
 			}
-			
-			pcntl_signal_dispatch();
 			
 		}
 		
@@ -830,7 +839,7 @@ class Log
 		exit( 0 );
 	}
 	
-	private static function _resetStd()
+	private static function resetStd()
 	{
 		if ( Console::Init()->IsDebug() )
 		{
