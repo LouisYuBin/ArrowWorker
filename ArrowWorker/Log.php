@@ -701,7 +701,7 @@ class Log
 				           "}", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
-			/*if ( in_array( self::TO_TCP, $this->writeType ) )
+			if ( in_array( self::TO_TCP, $this->writeType ) )
 			{
 				$this->_toTcpChan->Push( $log, 1 );
 			}
@@ -709,7 +709,7 @@ class Log
 			if ( in_array( self::TO_REDIS, $this->writeType ) )
 			{
 				$this->_toRedisChan->Push( $log, 1 );
-			}*/
+			}
 			
 			pcntl_signal_dispatch();
 			
@@ -726,9 +726,10 @@ class Log
 	{
 		$buffer = [];
 		$break  = true;
+		$chan   = clone $this->_toFileChan;
 		while ( true )
 		{
-			$data = $this->_toFileChan->Pop( 0.2 );
+			$data = $chan->Pop( 0.2 );
 			if ( $this->_isTerminateChan && $data === false && $break )
 			{
 				break;
