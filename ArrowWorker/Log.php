@@ -13,6 +13,7 @@ use ArrowWorker\Client\Tcp\Client as Tcp;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Library\Channel as SwChan;
+use Swoole\Runtime;
 
 
 /**
@@ -636,6 +637,7 @@ class Log
 	private function initCoroutine()
 	{
 		Coroutine::Enable();
+		Runtime::enableCoroutine();
 		for ( $i = 0; $i < 128; $i++ )
 		{
 			Coroutine::Create( function ()
