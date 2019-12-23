@@ -70,18 +70,18 @@ class Log
 	 */
 	const MODULE_NAME = 'Log';
 	
+	/**
+	 * chanSize : log buffer size 10M
+	 * @var int
+	 */
+	const  CHAN_SIZE = 102400;
+	
 	
 	/**
 	 * bufSize : log buffer size 10M
 	 * @var int
 	 */
 	private static $bufSize = 10485760;
-	
-	/**
-	 * chanSize : log buffer size 10M
-	 * @var int
-	 */
-	private static $chanSize = 10485760;
 	
 	/**
 	 * msgSize : a single log size 1M
@@ -252,7 +252,6 @@ class Log
 		}
 		
 		self::$bufSize   = $config[ 'bufSize' ] ?? self::$bufSize;
-		self::$chanSize  = $config[ 'chanSize' ] ?? self::$bufSize;
 		self::$baseDir   = $config[ 'baseDir' ] ?? self::$baseDir;
 		self::$stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 		self::$processNum = $config[ 'process' ] ?? 1;
@@ -261,7 +260,7 @@ class Log
 	
 	private function _initHandler()
 	{
-		$this->toFileChan = SwChan::Init( self::$chanSize );
+		$this->toFileChan = SwChan::Init( self::CHAN_SIZE );
 		
 		foreach ( self::$toTypes as $type )
 		{
@@ -289,13 +288,13 @@ class Log
 							}
 						}
 					}
-					$this->toRedisChan = SwChan::Init( self::$chanSize );
+					$this->toRedisChan = SwChan::Init( self::CHAN_SIZE );
 					
 					break;
 				
 				case self::TO_TCP;
 					
-					$this->toTcpChan = SwChan::Init( self::$chanSize );
+					$this->toTcpChan = SwChan::Init( self::CHAN_SIZE );
 					$config = self::$tcpConfig;
 					for ( $i=0; $i<$config['poolSize']; $i++ )
 					{
