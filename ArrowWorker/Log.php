@@ -71,10 +71,9 @@ class Log
 	const MODULE_NAME = 'Log';
 	
 	/**
-	 * chanSize : log buffer size 10M
 	 * @var int
 	 */
-	const  CHAN_SIZE = 409600;
+	const  CHAN_SIZE = 204800;
 	
 	
 	/**
