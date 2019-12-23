@@ -206,7 +206,7 @@ class Http extends ServerPattern
             'open_http2_protocol' => $this->_isEnableHttp2,
             'ssl_cert_file'       => $this->_sslCertFile,
             'ssl_key_file'        => $this->_sslKeyFile,
-            //'hook_flags'          => SWOOLE_HOOK_TCP
+            'hook_flags'          => SWOOLE_HOOK_ALL
         ];
 
 
