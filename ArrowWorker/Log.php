@@ -118,7 +118,7 @@ class Log
 	 * chanSize : log buffer size 10M
 	 * @var int
 	 */
-	private $chanSize = 10240000;
+	private $chanSize = 1024000;
 	
 	/**
 	 * Whether to close the log process
@@ -277,7 +277,7 @@ class Log
 			$this->redisConfig                = $config[ $toRedis ];
 		}
 		
-		$this->chanSize = $config['chanSize'] ?? 10240000;
+		$this->chanSize = $config['chanSize'] ?? 1024000;
 	}
 	
 	
