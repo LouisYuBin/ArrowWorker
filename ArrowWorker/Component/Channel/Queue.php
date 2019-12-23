@@ -54,7 +54,7 @@ class Queue
     {
         for( $i=0; $i<3; $i++)
         {
-            if( @msg_send( $this->_queue, $msgType, (string)$message,false, false, $errorCode) )
+            if( @msg_send( $this->_queue, $msgType, (string)$message,false, true, $errorCode) )
             {
                 return true;
             }
