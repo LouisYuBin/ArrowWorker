@@ -54,7 +54,7 @@ class Log
 	const TO_TCP = 'tcp';
 	
 	
-	const MAX_BUFFER_SIZE = 1024;
+	const MAX_BUFFER_SIZE = 2048;
 	
 	/**
 	 *
