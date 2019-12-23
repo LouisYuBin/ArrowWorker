@@ -277,7 +277,7 @@ class Log
 			$this->redisConfig                = $config[ $toRedis ];
 		}
 		
-		$this->chanSize = $config['chanSize'] ?? 10240;
+		$this->chanSize = $config['chanSize'] ?? 10240000;
 	}
 	
 	
@@ -637,7 +637,7 @@ class Log
 	private function initCoroutine()
 	{
 		Coroutine::Enable(true,SWOOLE_HOOK_ALL);
-		for ( $i = 0; $i < 128; $i++ )
+		for ( $i = 0; $i < 256; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
@@ -663,7 +663,7 @@ class Log
 			} );
 		}
 		
-		for ( $i = 0; $i < 128; $i++ )
+		for ( $i = 0; $i < 256; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
