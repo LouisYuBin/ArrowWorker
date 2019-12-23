@@ -269,7 +269,6 @@ class Request
 		
 		Log::Debug( " {$request->server[ 'request_uri' ]} [{$request->server[ 'request_method' ]}:{$context['routerType']}]   Params : {$params} , Request : " .
 		            json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
-		unset($params);
 	}
 	
 }
