@@ -701,15 +701,15 @@ class Log
 				           "}", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
-			if ( in_array( static::TO_TCP, $this->writeType ) )
+			/*if ( in_array( self::TO_TCP, $this->writeType ) )
 			{
 				$this->_toTcpChan->Push( $log, 1 );
 			}
 			
-			if ( in_array( static::TO_REDIS, $this->writeType ) )
+			if ( in_array( self::TO_REDIS, $this->writeType ) )
 			{
 				$this->_toRedisChan->Push( $log, 1 );
-			}
+			}*/
 			
 			pcntl_signal_dispatch();
 			
