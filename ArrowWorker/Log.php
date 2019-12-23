@@ -3,13 +3,19 @@
  * User: louis
  * Time: 18-6-10 上午1:16
  */
+
 namespace ArrowWorker;
+
+
 use ArrowWorker\Component\Cache\Redis;
 use ArrowWorker\Component\Channel\Queue;
 use ArrowWorker\Client\Tcp\Client as Tcp;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Library\Channel as SwChan;
+use Swoole\Runtime;
+
+
 /**
  * Class Log
  * @package ArrowWorker
@@ -48,7 +54,7 @@ class Log
 	const TO_TCP = 'tcp';
 	
 	
-	const MAX_BUFFER_SIZE = 512;
+	const MAX_BUFFER_SIZE = 1024;
 	
 	/**
 	 *
@@ -70,70 +76,49 @@ class Log
 	 */
 	const MODULE_NAME = 'Log';
 	
+	private static $config = [];
 	
+	/**
+	 * @var Log
+	 */
+	private static $instance;
+	
+	
+	private static $processNum = 1;
+	
+	/**
+	 * @var string
+	 */
+	private static $baseDir = APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . '/Log/';
+	
+	
+	/**
+	 * @var
+	 */
+	private static $stdoutFile;
+	
+	/**
+	 * @var Queue
+	 */
+	private static $msgInstance;
 	/**
 	 * bufSize : log buffer size 10M
 	 * @var int
 	 */
-	private static $_bufSize = 10485760;
-	
-	/**
-	 * chanSize : log buffer size 10M
-	 * @var int
-	 */
-	private static $_chanSize = 10485760;
+	private static $bufSize = 10485760;
 	
 	/**
 	 * msgSize : a single log size 1M
 	 * @var int
 	 */
-	private static $_msgSize = 1048576;
+	private static $msgSize = 1048576;
 	
 	
 	/**
-	 * directory for store log files
-	 * @var string
+	 * chanSize : log buffer size 10M
+	 * @var int
 	 */
-	private static $_baseDir = APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . '/Log/';
-	
-	/**
-	 * write log to file
-	 * @var array
-	 */
-	private static $_writeType = [
-		'file',
-	];
-	
-	/**
-	 * password of redis
-	 * @var array
-	 */
-	private static $_tcpConfig = [
-		'host' => '127.0.0.1',
-		'port' => '6379',
-	];
-	
-	/**
-	 * @var array
-	 */
-	private static $_redisConfig = [
-		'host'     => '127.0.0.1',
-		'port'     => '6379',
-		'queue'    => 'ArrowLog',
-		'password' => '',
-	];
-	
-	/**
-	 * @var
-	 */
-	public static $StdoutFile;
-	
-	/**
-	 * @var Queue
-	 */
-	private static $_msgObject;
-	
-	private static $processNum = 1;
+	private $chanSize = 1024000;
 	
 	/**
 	 * Whether to close the log process
@@ -151,7 +136,7 @@ class Log
 	 *
 	 * @var array
 	 */
-	private $_tcpClient = [];
+	private $tcpClient = [];
 	
 	/**
 	 * redis instance
@@ -179,6 +164,33 @@ class Log
 	 */
 	private $_fileHandlerMap = [];
 	
+	/**
+	 * write log to file
+	 * @var array
+	 */
+	private $writeType = [
+		self::TO_FILE,
+	];
+	
+	/**
+	 * password of redis
+	 * @var array
+	 */
+	private $tcpConfig = [
+		'host' => '127.0.0.1',
+		'port' => '6379',
+	];
+	
+	/**
+	 * @var array
+	 */
+	private $redisConfig = [
+		'host'     => '127.0.0.1',
+		'port'     => '6379',
+		'queue'    => 'ArrowLog',
+		'password' => '',
+	];
+
 	
 	
 	/**
@@ -186,10 +198,11 @@ class Log
 	 */
 	public static function Initialize()
 	{
-		self::_initConfig();
-		self::_checkLogDir();
-		self::_initMsgObj();
-		self::_resetStd();
+		self::initConfig();
+		self::checkLogDir();
+		self::resetStd();
+		self::initMsgInstance();
+		
 	}
 	
 	
@@ -198,40 +211,57 @@ class Log
 		return (int)self::$processNum;
 	}
 	
-	private function __construct()
+	public static function GetStdOutFilePath()
 	{
-		$this->_initHandler();
-		$this->_initSignalHandler();
+		return self::$stdoutFile;
 	}
 	
-	private static function _checkLogDir()
+	private function __construct()
 	{
-		if ( !is_dir( self::$_baseDir ) )
+		$this->parseConfig();
+		$this->initHandler();
+		$this->initSignalHandler();
+	}
+	
+	private static function checkLogDir()
+	{
+		if ( !is_dir( self::$baseDir ) )
 		{
-			if ( !mkdir( self::$_baseDir, 0777, true ) )
+			if ( !mkdir( self::$baseDir, 0777, true ) )
 			{
 				self::DumpExit( 'creating log directory failed.' );
 			}
 		}
 	}
 	
-	private static function _initConfig()
+	private static function initConfig()
 	{
 		$config = Config::Get( 'Log' );
-		if ( false === $config )
+		if ( !is_array( $config ) )
 		{
+			self::DumpExit( 'incorrect log config' );
 			return;
 		}
+		self::$config     = $config;
+		self::$processNum = $config[ 'process' ] ?? 1;
+		self::$baseDir    = $config[ 'baseDir' ] ?? self::$baseDir;
+		self::$stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 		
-		self::$_writeType = [ self::TO_FILE ];
-		$toTcp            = self::TO_TCP;
+		self::$bufSize    = $config[ 'bufSize' ] ?? self::$bufSize;
+		self::$msgSize   = $config[ 'chanSize' ] ?? self::$bufSize;
+	}
+	
+	private function parseConfig()
+	{
+		$config = self::$config;
+		$toTcp  = self::TO_TCP;
 		if ( isset( $config[ $toTcp ] ) &&
 		     isset( $config[ $toTcp ][ 'host' ] ) &&
 		     isset( $config[ $toTcp ][ 'port' ] ) )
 		{
-			$config[ $toTcp ]['poolSize'] = $config[ $toTcp ]['poolSize'] ?? 10;
-			self::$_writeType[] = $toTcp;
-			self::$_tcpConfig   = $config[ $toTcp ];
+			$config[ $toTcp ][ 'poolSize' ] = $config[ $toTcp ][ 'poolSize' ] ?? 10;
+			$this->writeType[]              = $toTcp;
+			$this->tcpConfig                = $config[ $toTcp ];
 		}
 		
 		$toRedis = self::TO_REDIS;
@@ -242,69 +272,64 @@ class Log
 		     isset( $config[ $toRedis ][ 'queue' ] )
 		)
 		{
-			$config[ $toRedis ]['poolSize'] = $config[ $toRedis ]['poolSize'] ?? 10;
-			self::$_writeType[] = $toRedis;
-			self::$_redisConfig = $config[ $toRedis ];
+			$config[ $toRedis ][ 'poolSize' ] = $config[ $toRedis ][ 'poolSize' ] ?? 10;
+			$this->writeType[]                = $toRedis;
+			$this->redisConfig                = $config[ $toRedis ];
 		}
 		
-		self::$_bufSize   = $config[ 'bufSize' ] ?? self::$_bufSize;
-		self::$_chanSize  = $config[ 'chanSize' ] ?? self::$_bufSize;
-		self::$_baseDir   = $config[ 'baseDir' ] ?? self::$_baseDir;
-		self::$StdoutFile = self::$_baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
-		self::$processNum = $config[ 'process' ] ?? 1;
+		$this->chanSize = $config['chanSize'] ?? 1024000;
 	}
 	
 	
-	private function _initHandler()
+	private function initHandler()
 	{
-		$this->_toFileChan = SwChan::Init( self::$_chanSize );
-		
-		foreach ( self::$_writeType as $type )
+		$this->_toFileChan = SwChan::Init( $this->chanSize );
+		foreach ( $this->writeType as $type )
 		{
 			switch ( $type )
 			{
 				case self::TO_REDIS:
 					
-					$config = self::$_redisConfig;
-					for ($i=0; $i<$config[ 'poolSize' ]; $i++)
+					for ( $i = 0; $i < $this->redisConfig[ 'poolSize' ]; $i++ )
 					{
-						$client =  Redis::Init( [
-							'host'     => $config[ 'host' ],
-							'port'     => $config[ 'port' ],
-							'password' => $config[ 'password' ],
+						$client = Redis::Init( [
+							'host'     => $this->redisConfig[ 'host' ],
+							'port'     => $this->redisConfig[ 'port' ],
+							'password' => $this->redisConfig[ 'password' ],
 						] );
-						if( $client->InitConnection() )
+						if ( $client->InitConnection() )
 						{
 							$this->_redisClient[] = $client;
 						}
 						else
 						{
-							if( 0==$i )
+							if ( 0 == $i )
 							{
-								self::Dump('init redis client failed, config : '.json_encode($config),self::TYPE_WARNING, self::MODULE_NAME );
+								self::Dump( 'init redis client failed, config : ' .
+								            json_encode( $this->redisConfig ), self::TYPE_WARNING, self::MODULE_NAME );
 							}
 						}
 					}
-					$this->_toRedisChan = SwChan::Init( self::$_chanSize );
+					$this->_toRedisChan = SwChan::Init( $this->chanSize );
 					
 					break;
 				
 				case self::TO_TCP;
 					
-					$this->_toTcpChan = SwChan::Init( self::$_chanSize );
-					$config = self::$_tcpConfig;
-					for ( $i=0; $i<$config['poolSize']; $i++ )
+					$this->_toTcpChan = SwChan::Init( $this->chanSize );
+					for ( $i = 0; $i < $this->tcpConfig[ 'poolSize' ]; $i++ )
 					{
-						$client = Tcp::Init( $config[ 'host' ], $config[ 'port' ] );
-						if( $client->IsConnected() )
+						$client = Tcp::Init( $this->tcpConfig[ 'host' ], $this->tcpConfig[ 'port' ] );
+						if ( $client->IsConnected() )
 						{
-							$this->_tcpClient[] = $client;
+							$this->tcpClient[] = $client;
 						}
 						else
 						{
-							if( 0==$i )
+							if ( 0 == $i )
 							{
-								Log::Dump( 'init tcp client failed. config : '.json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME);
+								Log::Dump( 'init tcp client failed. config : ' .
+								           json_encode( $this->tcpConfig ), Log::TYPE_WARNING, self::MODULE_NAME );
 							}
 						}
 					}
@@ -414,8 +439,8 @@ class Log
 	 */
 	private static function _fillLog( string $log, string $module = '', string $level = 'D' )
 	{
-		$time                                 = date( 'Y-m-d H:i:s' );
-		Coroutine::GetContext()[__CLASS__][] = [
+		$time                                  = date( 'Y-m-d H:i:s' );
+		Coroutine::GetContext()[ __CLASS__ ][] = [
 			"{$level}�{$module}�{$time}",
 			$log,
 		];
@@ -427,7 +452,7 @@ class Log
 	 * @param string $type
 	 * @param string $module
 	 */
-	public static function Dump( string $log, string $type=self::TYPE_DEBUG, string $module='Unknown' )
+	public static function Dump( string $log, string $type = self::TYPE_DEBUG, string $module = 'Unknown' )
 	{
 		echo sprintf( "%s | %s | %s | %s " . PHP_EOL, self::_getTime(), $type, $module, $log );
 	}
@@ -463,15 +488,15 @@ class Log
 	 * _selectLogChan : select the log chan
 	 * @return void
 	 */
-	private static function _initMsgObj()
+	private static function initMsgInstance()
 	{
-		if ( !is_object( self::$_msgObject ) )
+		if ( !is_object( self::$msgInstance ) )
 		{
-			self::$_msgObject = Chan::Get(
+			self::$msgInstance = Chan::Get(
 				'log',
 				[
-					'msgSize' => self::$_msgSize,
-					'bufSize' => self::$_bufSize,
+					'msgSize' => self::$msgSize,
+					'bufSize' => self::$bufSize,
 				]
 			);
 		}
@@ -532,7 +557,7 @@ class Log
 	 */
 	private function _initFileHandler( string $fileDir, string $fileExt )
 	{
-		$fileDir  = self::$_baseDir . $fileDir;
+		$fileDir  = self::$baseDir . $fileDir;
 		$filePath = "{$fileDir}/{$fileExt}";
 		
 		$checkDirTimes = 0;
@@ -603,12 +628,13 @@ class Log
 	 */
 	public static function Start()
 	{
-		$log = new self();
-		$log->_initCoroutine();
+		$log            = new  self();
+		self::$instance = $log;
+		$log->initCoroutine();
 		$log->_exit();
 	}
 	
-	private function _initCoroutine()
+	private function initCoroutine()
 	{
 		Coroutine::Enable();
 		for ( $i = 0; $i < 64; $i++ )
@@ -619,21 +645,21 @@ class Log
 			} );
 		}
 		
-		$tcpClientCount = count($this->_tcpClient);
-		for ( $i=0; $i<$tcpClientCount; $i++ )
+		$tcpClientCount = count( $this->tcpClient );
+		for ( $i = 0; $i < $tcpClientCount; $i++ )
 		{
-			Coroutine::Create( function () use ($i)
+			Coroutine::Create( function () use ( $i )
 			{
-				$this->WriteToTcp($i);
+				$this->WriteToTcp( $i );
 			} );
 		}
 		
-		$redisClientCount = count($this->_redisClient);
-		for ( $i=0; $i<$redisClientCount; $i++ )
+		$redisClientCount = count( $this->_redisClient );
+		for ( $i = 0; $i < $redisClientCount; $i++ )
 		{
-			Coroutine::Create( function () use ($i)
+			Coroutine::Create( function () use ( $i )
 			{
-				$this->WriteToRedis($i);
+				$this->WriteToRedis( $i );
 			} );
 		}
 		
@@ -644,25 +670,38 @@ class Log
 				$this->Dispatch();
 			} );
 		}
+		
+		Coroutine::Create( function ()
+		{
+			while ( true )
+			{
+				if ( $this->_isTerminate )
+				{
+					break;
+				}
+				Coroutine::Sleep(0.2);
+				pcntl_signal_dispatch();
+				
+			}
+		} );
+		
 		Coroutine::Wait();
 	}
 	
 	public function Dispatch()
 	{
-		$msgQueue = self::$_msgObject;
+		$queue = self::$msgInstance;
 		while ( true )
 		{
 			if (
 				$this->_isTerminate &&
-				$msgQueue->Status()[ 'msg_qnum' ] == 0
+				$queue->Status()[ 'msg_qnum' ] == 0
 			)
 			{
 				break;
 			}
 			
-			pcntl_signal_dispatch();
-			
-			$log = $msgQueue->Read( 10000 );
+			$log = $queue->Read( 10000 );
 			if ( $log === false )
 			{
 				continue;
@@ -672,20 +711,18 @@ class Log
 			{
 				Log::Dump( "push log chan failed, data:{$log}, error code： " .
 				           $this->_toFileChan->GetErrorCode() .
-				           "}" , self::TYPE_WARNING,self::MODULE_NAME);
+				           "}", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
-			if ( in_array( static::TO_TCP, static::$_writeType ) )
+			if ( in_array( self::TO_TCP, $this->writeType ) )
 			{
 				$this->_toTcpChan->Push( $log, 1 );
 			}
 			
-			if ( in_array( static::TO_REDIS, static::$_writeType ) )
+			if ( in_array( self::TO_REDIS, $this->writeType ) )
 			{
 				$this->_toRedisChan->Push( $log, 1 );
 			}
-			
-			pcntl_signal_dispatch();
 			
 		}
 		
@@ -700,20 +737,21 @@ class Log
 	{
 		$buffer = [];
 		$break  = true;
+		$chan   = $this->_toFileChan;
 		while ( true )
 		{
-			$data = $this->_toFileChan->Pop( 0.2 );
+			$data = $chan->Pop( 0.2 );
 			if ( $this->_isTerminateChan && $data === false && $break )
 			{
 				break;
 			}
 			
+			$date = date( 'Ymd' );
 			if ( $data === false )
 			{
 				goto FLUSH;
 			}
 			
-			$date      = date( 'Ymd' );
 			$log       = $this->_parseModuleLevel( $data );
 			$bufferKey = $log[ 'module' ] . $log[ 'level' ];
 			if ( isset( $buffer[ $bufferKey ] ) )
@@ -760,7 +798,7 @@ class Log
 	/**
 	 * @var int $clientIndex
 	 */
-	public function WriteToTcp(int $clientIndex)
+	public function WriteToTcp( int $clientIndex )
 	{
 		while ( true )
 		{
@@ -776,7 +814,7 @@ class Log
 				continue;
 			}
 			
-			if ( false == $this->_tcpClient[$clientIndex]->Send( $data, 3 ) )
+			if ( false == $this->tcpClient[ $clientIndex ]->Send( $data, 3 ) )
 			{
 				Log::Dump( " tcpClient[{$clientIndex}]->Send( {$data}, 3 ) failed", self::TYPE_WARNING, self::MODULE_NAME );
 			}
@@ -787,9 +825,9 @@ class Log
 	/**
 	 * @var int $clientIndex
 	 */
-	public function WriteToRedis(int $clientIndex)
+	public function WriteToRedis( int $clientIndex )
 	{
-		$queue = self::$_redisConfig['queue'];
+		$queue = $this->redisConfig[ 'queue' ];
 		while ( true )
 		{
 			$data = $this->_toRedisChan->Pop( 0.5 );
@@ -806,11 +844,11 @@ class Log
 			
 			for ( $i = 0; $i < 3; $i++ )
 			{
-				if ( false !== $this->_redisClient[$clientIndex]->Lpush( $queue, $data ) )
+				if ( false !== $this->_redisClient[ $clientIndex ]->Lpush( $queue, $data ) )
 				{
 					break;
 				}
-				Log::Dump("redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed", self::TYPE_WARNING, self::MODULE_NAME);
+				Log::Dump( "redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
 		}
@@ -822,11 +860,12 @@ class Log
 	 */
 	private function _exit()
 	{
-		static::Dump( ' exited. queue status : ' . json_encode( self::$_msgObject->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
+		self::Dump( ' exited. queue status : ' .
+		              json_encode( self::$msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
 		exit( 0 );
 	}
 	
-	private static function _resetStd()
+	private static function resetStd()
 	{
 		if ( Console::Init()->IsDebug() )
 		{
@@ -834,7 +873,7 @@ class Log
 		}
 		
 		global $STDOUT, $STDERR;
-		$newStdResource = fopen( static::$StdoutFile, "a" );
+		$newStdResource = fopen( self::$stdoutFile, "a" );
 		if ( !is_resource( $newStdResource ) )
 		{
 			die( "ArrowWorker hint : can not open stdoutFile" . PHP_EOL );
@@ -842,15 +881,15 @@ class Log
 		
 		fclose( STDOUT );
 		fclose( STDERR );
-		$STDOUT = fopen( static::$StdoutFile, 'a' );
-		$STDERR = fopen( static::$StdoutFile, 'a' );
+		$STDOUT = fopen( self::$stdoutFile, 'a' );
+		$STDERR = fopen( self::$stdoutFile, 'a' );
 	}
 	
 	/**
 	 * _setSignalHandler : set function for signal handler
 	 * @author Louis
 	 */
-	private function _initSignalHandler()
+	private function initSignalHandler()
 	{
 		pcntl_signal( SIGALRM, [
 			$this,
@@ -892,15 +931,15 @@ class Log
 	 */
 	private function _handleAlarm()
 	{
-		self::_sendTcpHeartbeat();
-		self::_cleanUselessFileHandler();
+		$this->sendTcpHeartbeat();
+		$this->cleanUselessFileHandler();
 		pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
 	}
 	
 	/**
 	 *
 	 */
-	private function _cleanUselessFileHandler()
+	private function cleanUselessFileHandler()
 	{
 		$time = (int)date( 'Hi' );
 		if ( $time > 2 )
@@ -925,11 +964,11 @@ class Log
 	/**
 	 *
 	 */
-	private function _sendTcpHeartbeat()
+	private function sendTcpHeartbeat()
 	{
-		if ( is_object( $this->_tcpClient ) )
+		foreach ($this->tcpClient as $client )
 		{
-			$this->_tcpClient->Send( 'heartbeat' );
+			$client->Send( 'heartbeat' );
 		}
 	}
 	
@@ -938,9 +977,9 @@ class Log
 	 */
 	public static function Init( string $logId = '' )
 	{
-		Coroutine::GetContext()[__CLASS__.'_id']  = '' === $logId ? date( 'ymdHis' ) .
-		                                                            Process::Id() . Coroutine::Id() .
-		                                                            mt_rand( 100, 999 ) : $logId;
+		Coroutine::GetContext()[ __CLASS__ . '_id' ] = '' === $logId ? date( 'ymdHis' ) .
+		                                                               Process::Id() . Coroutine::Id() .
+		                                                               mt_rand( 100, 999 ) : $logId;
 	}
 	
 	/**
@@ -948,7 +987,7 @@ class Log
 	 */
 	public static function GetLogId() : string
 	{
-		return Coroutine::GetContext()[__CLASS__.'_id'];
+		return Coroutine::GetContext()[ __CLASS__ . '_id' ];
 	}
 	
 	/**
@@ -957,13 +996,14 @@ class Log
 	public static function Release()
 	{
 		$context = Coroutine::GetContext();
-		if( !isset($context[__CLASS__]) )
+		if ( !isset( $context[ __CLASS__ ] ) )
 		{
-			return ;
+			return;
 		}
-		$msgObj = self::$_msgObject;
-		$logId  = $context[__CLASS__.'_id'];
-		foreach ( $context[__CLASS__] as $log )
+		
+		$msgObj = self::$msgInstance;
+		$logId  = $context[ __CLASS__ . '_id' ];
+		foreach ( $context[ __CLASS__ ] as $log )
 		{
 			$msgObj->Write( "{$log[0]} | {$logId} | $log[1]" . PHP_EOL );
 		}
