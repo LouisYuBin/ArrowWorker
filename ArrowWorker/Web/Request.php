@@ -253,7 +253,7 @@ class Request
 		$context = Co::GetContext();
 		$context['urlParameters'] = $params;
 		$context['routerType'] = $routeType;
-		//self::_logRequest( );
+		self::_logRequest( );
 	}
 	
 	public static function Release()
