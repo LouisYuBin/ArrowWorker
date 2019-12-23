@@ -638,7 +638,7 @@ class Log
 	{
 		Coroutine::Enable();
 		Runtime::enableCoroutine();
-		for ( $i = 0; $i < 12; $i++ )
+		for ( $i = 0; $i < 128; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
