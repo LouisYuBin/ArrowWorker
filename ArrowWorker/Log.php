@@ -709,12 +709,12 @@ class Log
 			
 			if ( false == $this->_toFileChan->Push( $log, 1 ) )
 			{
-				Log::Dump( "push log chan failed, data:{$log}, error code： " .
+				/*Log::Dump( "push log chan failed, data:{$log}, error code： " .
 				           $this->_toFileChan->GetErrorCode() .
-				           "}", self::TYPE_WARNING, self::MODULE_NAME );
+				           "}", self::TYPE_WARNING, self::MODULE_NAME );*/
 			}
 			
-			if ( in_array( self::TO_TCP, $this->writeType ) )
+			/*if ( in_array( self::TO_TCP, $this->writeType ) )
 			{
 				$this->_toTcpChan->Push( $log, 1 );
 			}
@@ -722,7 +722,7 @@ class Log
 			if ( in_array( self::TO_REDIS, $this->writeType ) )
 			{
 				$this->_toRedisChan->Push( $log, 1 );
-			}
+			}*/
 			
 		}
 		
