@@ -637,7 +637,7 @@ class Log
 	private function initCoroutine()
 	{
 		Coroutine::Enable(true,SWOOLE_HOOK_ALL^SWOOLE_HOOK_BLOCKING_FUNCTION);
-		for ( $i = 0; $i < 64; $i++ )
+		for ( $i = 0; $i < 32; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
@@ -663,7 +663,7 @@ class Log
 			} );
 		}
 		
-		for ( $i = 0; $i < 2; $i++ )
+		for ( $i = 0; $i < 1024; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
