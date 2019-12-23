@@ -117,7 +117,7 @@ class Log
 	 * chanSize : log buffer size 10M
 	 * @var int
 	 */
-	private $chanSize = 10240;
+	private $chanSize = 10240000;
 	
 	/**
 	 * Whether to close the log process
@@ -662,7 +662,7 @@ class Log
 			} );
 		}
 		
-		for ( $i = 0; $i < 32; $i++ )
+		for ( $i = 0; $i < 64; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
