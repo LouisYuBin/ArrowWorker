@@ -27,7 +27,7 @@ return [
                 'default' => 150
             ],
             'cache' => [
-                'default' => 150
+                'default' => 300
             ],
            /*'tcp_client' => [
                 'default' => 100,
