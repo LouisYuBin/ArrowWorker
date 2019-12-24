@@ -268,8 +268,6 @@ class ArrowDaemon extends Worker
             {
                 $toBeExitedGroupId = $this->calcToBeExitedGroup();
                 
-                var_dump($toBeExitedGroupId);
-                
                 //给工作进程发送退出信号
                 $this->exitWorkers($toBeExitedGroupId);
                 //等待进程退出
