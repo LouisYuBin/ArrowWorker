@@ -39,32 +39,32 @@ class ArrowDaemon extends Worker
      * 是否退出 标识
      * @var bool
      */
-    private $_terminate = false;
+    private $terminateFlag = false;
 
     /**
      * 任务数量
      * @var int
      */
-    private $_jobNum = 0;
+    private $jobNum = 0;
 
     /**
      * 任务map
      * @var array
      */
-    private  $_jobs = [];
+    private  $jobs = [];
 
     /**
      * 任务进程 ID map(不带管道消费的进程)
      * @var array
      */
-    private $_pidMap = [];
+    private $pidMap = [];
 
-    private $_execCount = 0;
+    private $execCount = 0;
 
     /**
      * @var Component;
      */
-    private $_component;
+    private $component;
 
 
     /**
@@ -87,24 +87,24 @@ class ArrowDaemon extends Worker
      */
     public static function Init( $config ) : self
     {
-        self::$_user = $config['user']  ?? 'root';
-        self::$_group = $config['group'] ?? 'root';
+        self::$user = $config['user']  ?? 'root';
+        self::$group = $config['group'] ?? 'root';
 
-        if ( !self::$daemonObj )
+        if ( !self::$instance )
         {
-            self::$daemonObj = new self($config);
+            self::$instance = new self($config);
         }
 
-        return self::$daemonObj;
+        return self::$instance;
     }
 
     /**
-     * _setSignalHandler 进程信号处理设置
+     * setSignalHandler 进程信号处理设置
      * @author Louis
      *
      * @param string $type 设置信号类型（子进程/监控进程）
      */
-    private function _setSignalHandler( string $type = 'parentsQuit' )
+    private function setSignalHandler( string $type = 'parentsQuit' )
     {
         // SIGTSTP have to be ignored on mac os
         switch ( $type )
@@ -176,17 +176,17 @@ class ArrowDaemon extends Worker
         {
             case SIGUSR1:
             case SIGALRM:
-                $this->_terminate = true;
+                $this->terminateFlag = true;
                 break;
             case SIGTERM:
             case SIGHUP:
             case SIGINT:
             case SIGQUIT:
-                $this->_terminate = true;
+                $this->terminateFlag = true;
                 break;
             case SIGUSR2:
                 //剩余队列消费专用
-                $this->_terminate = true;
+                $this->terminateFlag = true;
                 break;
             default:
                 return;
@@ -196,12 +196,12 @@ class ArrowDaemon extends Worker
 
 
     /**
-     * _setProcessName  进程名称设置
+     * setProcessName  进程名称设置
      * @author Louis
      *
      * @param string $proName
      */
-    private function _setProcessName( string $proName )
+    private function setProcessName( string $proName )
     {
         Process::SetName(Daemon::$identity . '_Worker_' . $proName);
     }
@@ -210,7 +210,7 @@ class ArrowDaemon extends Worker
      * @param int $processGroupId
      * @param int $lifecycle
      */
-    private function _setAlarm(int $processGroupId, int $lifecycle )
+    private function setAlarm(int $processGroupId, int $lifecycle )
     {
         Process::SetAlarm(mt_rand(($processGroupId+1)*$lifecycle, ($processGroupId+2)*$lifecycle));
     }
@@ -223,31 +223,30 @@ class ArrowDaemon extends Worker
     public function Start()
     {
 
-        $this->_jobNum = count($this->_jobs, 0);
+        $this->jobNum = count($this->jobs, 0);
 
-        if ( $this->_jobNum == 0 )
+        if ( $this->jobNum == 0 )
         {
             Log::Dump('please add one task at least.', Log::TYPE_WARNING, self::MODULE_NAME,);
-            $this->_exitMonitor();
+            $this->exitMonitor();
         }
-        $this->_setSignalHandler('monitorHandler');
-        $this->_forkWorkers();
-        $this->_startMonitor();
+        $this->setSignalHandler('monitorHandler');
+        $this->forkWorkers();
+        $this->startMonitor();
     }
 
     /**
-     * _exitWorkers 退出当前进程组中最前面的进程
      * @param int $headGroupId
      */
-    private function _exitWorkers(int $headGroupId)
+    private function exitWorkers(int $headGroupId)
     {
-        foreach ( $this->_pidMap as $pid => $groupId )
+        foreach ( $this->pidMap as $pid => $groupId )
         {
             if ( $groupId != $headGroupId )
             {
                 continue;
             }
-
+            
             if ( !Process::Kill($pid, SIGUSR1) )
             {
                 Process::Kill($pid, SIGUSR1);
@@ -258,25 +257,28 @@ class ArrowDaemon extends Worker
 
 
     /**
-     * _exitWorkers 开启worker监控
+     * exitWorkers 开启worker监控
      * @author Louis
      */
-    private function _startMonitor()
+    private function startMonitor()
     {
         while ( 1 )
         {
-            if ( $this->_terminate )
+            if ( $this->terminateFlag )
             {
-                $toBeExitedGroupId = $this->_calcToBeExitedGroup();
+                $toBeExitedGroupId = $this->calcToBeExitedGroup();
+                
+                var_dump($toBeExitedGroupId);
+                
                 //给工作进程发送退出信号
-                $this->_exitWorkers($toBeExitedGroupId);
+                $this->exitWorkers($toBeExitedGroupId);
                 //等待进程退出
-                $this->_waitToBeExitedProcess($toBeExitedGroupId);
+                $this->waitToBeExitedProcess($toBeExitedGroupId);
 
-                if( 0==count($this->_pidMap) )
+                if( 0==count($this->pidMap) )
                 {
                     //退出监控进程相关操作
-                    $this->_exitMonitor();
+                    $this->exitMonitor();
                 }
                 else
                 {
@@ -291,7 +293,7 @@ class ArrowDaemon extends Worker
             //returns the process ID of the child which exited, -1 on error or zero if WNOHANG was provided as an option (on wait3-available systems) and no child was available
             $pid = Process::Wait($status);
             pcntl_signal_dispatch();
-            $this->_handleExited($pid, $status, false);
+            $this->handleExited($pid, $status, false);
 
         }
     }
@@ -299,9 +301,9 @@ class ArrowDaemon extends Worker
     /**
      * @return int
      */
-    private function _calcToBeExitedGroup() : int
+    private function calcToBeExitedGroup() : int
     {
-        $groups = array_unique(array_values($this->_pidMap));
+        $groups = array_unique(array_values($this->pidMap));
         if( 0==count($groups) )
         {
             return 0;
@@ -314,10 +316,10 @@ class ArrowDaemon extends Worker
     /**
      * @param  int $groupId
      */
-    private function _waitToBeExitedProcess(int $groupId)
+    private function waitToBeExitedProcess(int $groupId)
     {
         $leftProcessCount = 0;
-        foreach ($this->_pidMap as $pid=>$gid)
+        foreach ($this->pidMap as $pid=>$gid)
         {
             if( $gid==$groupId )
             {
@@ -335,75 +337,71 @@ class ArrowDaemon extends Worker
                 goto RE_WAIT;
             }
 
-            $this->_handleExited($pid, $status, $this->_pidMap[$pid]==$groupId ? true : false);
+            $this->handleExited($pid, $status, $this->pidMap[$pid]==$groupId ? true : false);
         }
     }
 
 
 
     /**
-     * _handleExited 处理退出的进程
+     * handleExited 处理退出的进程
      * @author Louis
      *
      * @param int  $pid
      * @param int  $status
      * @param bool $isExit
      */
-    private function _handleExited( int $pid, int $status, bool $isExit = true )
+    private function handleExited( int $pid, int $status, bool $isExit = true )
     {
         if ( $pid < 0 )
         {
             return;
         }
 
-        $taskId = $this->_pidMap[ $pid ];
-        unset($this->_pidMap[ $pid ]);
+        $taskId = $this->pidMap[ $pid ];
+        unset($this->pidMap[ $pid ]);
 
-        Log::Dump( "{$this->_jobs[ $taskId ]["processName"]}({$pid}) exited at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump( "{$this->jobs[ $taskId ]["processName"]}({$pid}) exited at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
         usleep(0==$status ? 10 : 10000 );
 
         //监控进程收到退出信号时则无需开启新的worker
         if ( !$isExit )
         {
-            $this->_forkOneWorker($taskId);
+            $this->forkOneWorker($taskId);
         }
 
     }
 
 
     /**
-     * _forkWorkers 给多有任务开启对应任务执行worker组
-     * @author Louis
      */
-    private function _forkWorkers()
+    private function forkWorkers()
     {
-        for ( $i = 0; $i < $this->_jobNum; $i++ )
+        for ( $i = 0; $i < $this->jobNum; $i++ )
         {
-            for($j=0; $j<$this->_jobs[$i]['processQuantity']; $j++)
+            for($j=0; $j<$this->jobs[$i]['processQuantity']; $j++)
             {
-                $this->_forkOneWorker($i);
+                $this->forkOneWorker($i);
             }
         }
     }
 
 
     /**
-     * _forkOneWork 生成一个任务worker
-     * @author Louis
      *
      * @param int $taskId
      */
-    private function _forkOneWorker( int $taskId )
+    private function forkOneWorker( int $taskId )
     {
         $pid = Process::Fork();
 
         if ( $pid > 0 )
         {
-            $this->_pidMap[ $pid ] = $taskId;
+            $this->pidMap[ $pid ] = $taskId;
         }
         else if ( $pid == 0 )
         {
-            $this->_runWorker($taskId, self::LIFE_CYCLE);
+            $this->runWorker($taskId, self::LIFE_CYCLE);
         }
         else
         {
@@ -413,80 +411,75 @@ class ArrowDaemon extends Worker
 
 
     /**
-     * _runWorker 常驻执行任务
-     * @author Louis
      *
      * @param int $index
      * @param int $lifecycle
      */
-    private function _runWorker( int $index, int $lifecycle )
+    private function runWorker( int $index, int $lifecycle )
     {
-        Log::Dump('starting ' . $this->_jobs[ $index ]['processName'] . '(' . Process::Id() . ')', Log::TYPE_DEBUG, self::MODULE_NAME );
-        $this->_setSignalHandler('workerHandler');
-        $this->_setAlarm($index,$lifecycle);
-        $this->_setProcessName($this->_jobs[ $index ]['processName']);
-        $this->_initComponent();
-        Process::SetExecGroupUser(self::$_group, self::$_user);
+        Log::Dump('starting ' . $this->jobs[ $index ]['processName'] . '(' . Process::Id() . ')', Log::TYPE_DEBUG, self::MODULE_NAME );
+        $this->setSignalHandler('workerHandler');
+        $this->setAlarm($index,$lifecycle);
+        $this->setProcessName($this->jobs[ $index ]['processName']);
+        $this->initComponent();
+        Process::SetExecGroupUser(self::$group, self::$user);
         Coroutine::enable();
         Coroutine::Create(function () use ( $index )
         {
-            $this->_component->InitPool($this->_jobs[ $index ]['components']);
+            $this->component->InitPool($this->jobs[ $index ]['components']);
         });
         Coroutine::Wait();
-        $this->_runProcessTask($index);
+        $this->runProcessTask($index);
     }
 
-    private function _initComponent()
+    private function initComponent()
     {
-        $this->_component = Component::Init(App::TYPE_WORKER );
+        $this->component = Component::Init(App::TYPE_WORKER );
     }
 
     /**
-     * _runProcessTask 进程形式执行任务
-     * @author Louis
-     *
      * @param int $index
      */
-    private function _runProcessTask( int $index )
+    private function runProcessTask( int $index )
     {
         $timeStart = time();
 
-        Log::Dump("{$this->_jobs[ $index ]['processName']} started.",Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump("{$this->jobs[ $index ]['processName']} started.",Log::TYPE_DEBUG, self::MODULE_NAME);
 
-        while ( $this->_jobs[ $index ]['coCount'] < $this->_jobs[ $index ]['coQuantity'] )
+        while ( $this->jobs[ $index ]['coCount'] < $this->jobs[ $index ]['coQuantity'] )
         {
             Coroutine::Create(function () use ( $index, $timeStart)
             {
                 while ( true )
                 {
                     Log::Init();
-                    if ( isset($this->_jobs[ $index ]['argv']) )
+                    if ( isset($this->jobs[ $index ]['argv']) )
                     {
-                        $result = call_user_func_array($this->_jobs[ $index ]['function'], $this->_jobs[ $index ]['argv']);
+                        $result = call_user_func_array($this->jobs[ $index ]['function'], $this->jobs[ $index ]['argv']);
                     }
                     else
                     {
-                        $result = call_user_func($this->_jobs[ $index ]['function']);
+                        $result = call_user_func($this->jobs[ $index ]['function']);
                     }
-                    $this->_execCount++;
+                    $this->execCount++;
 
                     //release components resource after finish one work
-                    $this->_component->Release();
+                    $this->component->Release();
 
-                    if ( $this->_terminate && false==(bool)$result )
+                    if ( $this->terminateFlag && false==(bool)$result )
                     {
                     	break;
                     }
                 }
 
             });
-            $this->_jobs[ $index ]['coCount']++;
+            $this->jobs[ $index ]['coCount']++;
         }
         
         Coroutine::Create(function (){
         	while (true)
 	        {
-		        if ( $this->_terminate )
+		        if ( $this->terminateFlag )
 		        {
 			        break;
 		        }
@@ -497,16 +490,15 @@ class ArrowDaemon extends Worker
 
         Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
-        Log::Dump("{$this->_jobs[ $index ]['processName']} finished {$this->_execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME );
+        Log::Dump("{$this->jobs[ $index ]['processName']} finished {$this->execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME );
         exit(0);
 
     }
 
     /**
-     * _exitMonitor 删除进程pid文件、记录退出信息后正常退出粗
-     * @author Louis
+     * 
      */
-    private function _exitMonitor()
+    private function exitMonitor()
     {
         Log::Dump( "exited", Log::TYPE_DEBUG, self::MODULE_NAME);
         exit(0);
@@ -523,7 +515,7 @@ class ArrowDaemon extends Worker
 
         if ( !isset($job['function']) || empty($job['function']) )
         {
-            Log::DumpExit("one Task at least is needed ", Log::TYPE_ERROR, self::MODULE_NAME);
+            Log::DumpExit("one Task at least is needed ");
         }
 
         $job['coCount']    = 0;
@@ -534,7 +526,7 @@ class ArrowDaemon extends Worker
         $job['processName'] = ( isset($job['name']) && !empty($job['name']) ) ? $job['name'] : self::PROCESS_NAME;
         $job['components'] = isset($job['components']) && is_array($job['components']) ? $job['components'] : [];
 
-        $this->_jobs[] = $job;
+        $this->jobs[] = $job;
     }
 
 }

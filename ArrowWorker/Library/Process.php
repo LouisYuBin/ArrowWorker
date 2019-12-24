@@ -138,6 +138,7 @@ class Process
         }
 
         KILL:
+	    Log::Dump("killing {$pid}", Log::TYPE_DEBUG, self::MODULE_NAME);
         if( posix_kill( $pid, $signal ) )
         {
             self::$_killNotificationPidMap[] = $pid.$signal;
