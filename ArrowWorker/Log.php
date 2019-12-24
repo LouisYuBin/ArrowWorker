@@ -613,7 +613,7 @@ class Log
 	private function _initCoroutine()
 	{
 		Coroutine::Enable();
-		for ( $i = 0; $i < 96; $i++ )
+		for ( $i = 0; $i < 128; $i++ )
 		{
 			Coroutine::Create( function ()
 			{
