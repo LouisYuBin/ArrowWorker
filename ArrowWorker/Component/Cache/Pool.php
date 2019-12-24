@@ -33,27 +33,20 @@ class Pool implements ConnPool
     private static $_configs = [];
 
     /**
-     * @var array
-     */
-    private static $_connections = [
-
-    ];
-
-    /**
      * @param array $appAlias specified keys and pool size
      * @param array $config
      */
     public static function Init(array $appAlias, array $config=[]) : void
     {
-        self::_initConfig($appAlias, $config);
-        self::_initPool();
+        self::initConfig($appAlias, $config);
+        self::initPool();
     }
 
     /**
      * @param array $appAlias specified keys and pool size
      * @param array $config
      */
-    private static function _initConfig( array $appAlias, array $config=[])
+    private static function initConfig( array $appAlias, array $config=[])
     {
         if( count($config)>0 )
         {
@@ -83,7 +76,7 @@ class Pool implements ConnPool
                 !isset( $value['password'] )
             )
             {
-                Log::Dump( "incorrect configuration . {$index}=>".json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME );
+                Log::Dump( __CLASS__.'::'.__FUNCTION__."incorrect configuration . {$index}=>".json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME );
                 continue;
             }
 
@@ -100,7 +93,7 @@ class Pool implements ConnPool
     /**
      * initialize connection pool
      */
-    public static function _initPool()
+    public static function initPool()
     {
         foreach (self::$_configs as $index=>$config)
         {
@@ -110,7 +103,7 @@ class Pool implements ConnPool
                 $conn = new $driver( $config );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Dump("initialize connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
+                    Log::Dump(__CLASS__.'::'.__FUNCTION__." InitConnection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
                     continue ;
                 }
                 self::$_configs[$index]['connectedNum']++;
@@ -144,13 +137,13 @@ class Pool implements ConnPool
         {
             if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
             {
-                self::_initPool();
+                self::initPool();
             }
             
             if( $retryTimes<=2 )
             {
                 $retryTimes++;
-                Log::Dump("get ( {$alias} : {$retryTimes} ) connection failed,retrying...", Log::TYPE_WARNING, self::MODULE_NAME );
+                Log::Dump(__CLASS__.'::'.__FUNCTION__." get connection( {$alias} : {$retryTimes} ) failed,retrying...", Log::TYPE_WARNING, self::MODULE_NAME );
                 goto _RETRY;
             }
 

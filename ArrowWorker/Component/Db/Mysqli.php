@@ -39,13 +39,13 @@ class Mysqli implements DbInterface
         @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
         if ( $this->_conn->connect_errno )
         {
-            Log::Dump( "connect failed : " . $this->_conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__."connect failed : " . $this->_conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
 
         if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
         {
-            Log::Dump( "set names({$this->_config['charset']}) failed.", Log::TYPE_WARNING, self::MODULE_NAME  );
+            Log::Dump( __CLASS__.'::'.__METHOD__."set names({$this->_config['charset']}) failed.", Log::TYPE_WARNING, self::MODULE_NAME  );
         }
         return true;
     }
@@ -144,7 +144,7 @@ class Mysqli implements DbInterface
 
         if( 0!==@$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
-            Log::Dump( "mysql Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", Log::TYPE_NOTICE, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__." Mysqli::query Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", Log::TYPE_NOTICE, self::MODULE_NAME );
             $this->InitConnection();
             $isRetried = true;
             goto _RETRY;

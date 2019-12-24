@@ -60,7 +60,7 @@ class Queue
             }
         }
 
-        Log::Dump("Write:msg_send failed. error code : {$errorCode}, data : {$message}", Log::TYPE_WARNING, self::MODULE_NAME);
+        Log::Dump(__CLASS__.'::'.__METHOD__." msg_send failed. error code : {$errorCode}, data : {$message}", Log::TYPE_WARNING, self::MODULE_NAME);
         return false;
 	}
 

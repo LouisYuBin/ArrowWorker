@@ -460,7 +460,6 @@ class ArrowDaemon extends Worker
                 while ( true )
                 {
                     Log::Init();
-                    pcntl_signal_dispatch();
                     if ( isset($this->_jobs[ $index ]['argv']) )
                     {
                         $result = call_user_func_array($this->_jobs[ $index ]['function'], $this->_jobs[ $index ]['argv']);
@@ -470,27 +469,36 @@ class ArrowDaemon extends Worker
                         $result = call_user_func($this->_jobs[ $index ]['function']);
                     }
                     $this->_execCount++;
-                    pcntl_signal_dispatch();
 
                     //release components resource after finish one work
                     $this->_component->Release();
 
-                    if ( $this->_terminate )
+                    if ( $this->_terminate && false==(bool)$result )
                     {
-                        if( false==(bool)$result )
-                        {
-                            break;
-                        }
+                    	break;
                     }
                 }
 
             });
             $this->_jobs[ $index ]['coCount']++;
         }
+        
+        Coroutine::Create(function (){
+        	while (true)
+	        {
+		        if ( $this->_terminate )
+		        {
+			        break;
+		        }
+		        Coroutine::Sleep(0.2);
+		        pcntl_signal_dispatch();
+	        }
+        });
 
         Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
-        Log::DumpExit("{$this->_jobs[ $index ]['processName']} finished {$this->_execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME );
+        Log::Dump("{$this->_jobs[ $index ]['processName']} finished {$this->_execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME );
+        exit(0);
 
     }
 

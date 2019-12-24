@@ -38,13 +38,13 @@ class Redis implements CacheInterface
         {
             if ( false === @$this->_conn->connect( $this->_config['host'], $this->_config['port'] ) )
             {
-                Log::Dump( "connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config),Log::TYPE_WARNING, self::MODULE_NAME );
+                Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config),Log::TYPE_WARNING, self::MODULE_NAME );
                 return false;
             }
         }
         catch (\RedisException $e)
         {
-            Log::Dump( "connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config), Log::TYPE_WARNING, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config), Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
 

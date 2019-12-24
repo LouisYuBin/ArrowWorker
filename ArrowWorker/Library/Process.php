@@ -191,12 +191,12 @@ class Process
 
         if( !$user || !$group )
         {
-            Log::Dump(__METHOD__.", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！",Log::TYPE_WARNING, self::MODULE_NAME );
+            Log::Dump(__CLASS__.'::'.__METHOD__.", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！",Log::TYPE_NOTICE, self::MODULE_NAME );
         }
 
         if( !posix_setgid($group['gid']) || !posix_setuid($user['uid']) )
         {
-            Log::Dump(__METHOD__.",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！", Log::TYPE_WARNING, self::MODULE_NAME);
+            Log::Dump(__CLASS__.'::'.__METHOD__.",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！", Log::TYPE_NOTICE, self::MODULE_NAME);
         }
     }
 
