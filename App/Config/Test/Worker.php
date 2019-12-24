@@ -11,13 +11,13 @@ return [
             'function'        => 'Demo\\Demo@Demo',
             'argv'            => [ 100 ],
             'processQuantity' => 1,
-            'coQuantity'      => 50,
+            'coQuantity'      => 100,
             'components'      => [
                 'db'    => [
-                    'default' => 50,
+                    'default' => 100,
                 ],
                 'cache' => [
-                    'default' => 50,
+                    'default' => 100,
                 ],
             ],
 
@@ -27,13 +27,13 @@ return [
             'function'        => 'Demo\\Demo@channelApp',
             'argv'            => [ 100 ],
             'processQuantity' => 2,
-            'coQuantity'      => 100,
+            'coQuantity'      => 200,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
                 'cache' => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
             ],
         ],
@@ -42,13 +42,13 @@ return [
             'function'        => 'Demo\\Demo@channelArrow',
             'argv'            => [ 100 ],
             'processQuantity' => 2,
-            'coQuantity'      => 100,
+            'coQuantity'      => 200,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
                 'cache' => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
             ],
         ],
@@ -57,13 +57,13 @@ return [
             'function'        => 'Demo\\Demo@channeltest',
             'argv'            => [ 100 ],
             'processQuantity' => 2,
-            'coQuantity'      => 100,
+            'coQuantity'      => 200,
             'components'      => [
                 'db'    => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
                 'cache' => [
-                    'default' => 100,
+                    'default' => 200,
                 ],
             ],
         ],
