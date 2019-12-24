@@ -452,7 +452,9 @@ class ArrowDaemon extends Worker
             {
                 while ( true )
                 {
-                    Log::Init();
+	                pcntl_signal_dispatch();
+	
+	                Log::Init();
                     if ( isset($this->jobs[ $index ]['argv']) )
                     {
                         $result = call_user_func_array($this->jobs[ $index ]['function'], $this->jobs[ $index ]['argv']);
@@ -465,8 +467,10 @@ class ArrowDaemon extends Worker
 
                     //release components resource after finish one work
                     $this->component->Release();
-
-                    if ( $this->terminateFlag && false==(bool)$result )
+                    
+	                pcntl_signal_dispatch();
+	
+	                if ( $this->terminateFlag && false==(bool)$result )
                     {
                     	break;
                     }
@@ -475,18 +479,6 @@ class ArrowDaemon extends Worker
             });
             $this->jobs[ $index ]['coCount']++;
         }
-        
-        Coroutine::Create(function (){
-        	while (true)
-	        {
-		        if ( $this->terminateFlag )
-		        {
-			        break;
-		        }
-		        Coroutine::Sleep(0.2);
-		        pcntl_signal_dispatch();
-	        }
-        });
 
         Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
