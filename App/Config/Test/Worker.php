@@ -11,13 +11,13 @@ return [
             'function'        => 'Demo\\Demo@Demo',
             'argv'            => [ 100 ],
             'processQuantity' => 1,
-            'coQuantity'      => 5,
+            'coQuantity'      => 50,
             'components'      => [
                 'db'    => [
-                    'default' => 5,
+                    'default' => 50,
                 ],
                 'cache' => [
-                    'default' => 5,
+                    'default' => 50,
                 ],
             ],
 
