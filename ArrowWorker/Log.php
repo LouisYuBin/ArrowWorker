@@ -48,7 +48,7 @@ class Log
 	const TO_TCP = 'tcp';
 	
 	
-	const MAX_BUFFER_SIZE = 4096;
+	const MAX_BUFFER_SIZE = 8192;
 	
 	/**
 	 *
@@ -203,8 +203,8 @@ class Log
 	
 	private function __construct()
 	{
-		$this->_initHandler();
-		$this->_initSignalHandler();
+		$this->initHandler();
+		$this->initSignalHandler();
 	}
 	
 	private static function checkDir()
@@ -257,7 +257,7 @@ class Log
 	}
 	
 	
-	private function _initHandler()
+	private function initHandler()
 	{
 		$this->toFileChan = SwChan::Init( self::CHAN_SIZE );
 		
@@ -329,7 +329,7 @@ class Log
 	 */
 	public static function Info( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'I' );
+		self::fillLog( $log, $module, 'I' );
 	}
 	
 	/**
@@ -340,7 +340,7 @@ class Log
 	 */
 	public static function Alert( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'A' );
+		self::fillLog( $log, $module, 'A' );
 	}
 	
 	/**
@@ -350,7 +350,7 @@ class Log
 	 */
 	public static function Debug( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'D' );
+		self::fillLog( $log, $module, 'D' );
 	}
 	
 	/**
@@ -361,7 +361,7 @@ class Log
 	 */
 	public static function Notice( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'N' );
+		self::fillLog( $log, $module, 'N' );
 	}
 	
 	/**
@@ -372,7 +372,7 @@ class Log
 	 */
 	public static function Warning( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'W' );
+		self::fillLog( $log, $module, 'W' );
 	}
 	
 	/**
@@ -383,7 +383,7 @@ class Log
 	 */
 	public static function Error( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'E' );
+		self::fillLog( $log, $module, 'E' );
 	}
 	
 	/**
@@ -394,7 +394,7 @@ class Log
 	 */
 	public static function Emergency( string $log, string $module = '' )
 	{
-		self::_fillLog( $log, $module, 'EM' );
+		self::fillLog( $log, $module, 'EM' );
 	}
 	
 	/**
@@ -406,7 +406,7 @@ class Log
 	public static function Critical( string $log, string $module = '' )
 	{
 		self::Dump( $log, self::TYPE_EMERGENCY, self::MODULE_NAME );
-		self::_fillLog( $log, $module, 'C' );
+		self::fillLog( $log, $module, 'C' );
 	}
 	
 	/**
@@ -414,7 +414,7 @@ class Log
 	 * @param string $module
 	 * @param string $level
 	 */
-	private static function _fillLog( string $log, string $module = '', string $level = 'D' )
+	private static function fillLog( string $log, string $module = '', string $level = 'D' )
 	{
 		$time                                 = date( 'Y-m-d H:i:s' );
 		Coroutine::GetContext()[__CLASS__][] = [
@@ -431,13 +431,13 @@ class Log
 	 */
 	public static function Dump( string $log, string $type=self::TYPE_DEBUG, string $module='Unknown' )
 	{
-		echo sprintf( "%s | %s | %s | %s " . PHP_EOL, self::_getTime(), $type, $module, $log );
+		echo sprintf( "%s | %s | %s | %s " . PHP_EOL, self::getTime(), $type, $module, $log );
 	}
 	
 	/**
 	 * @return false|string
 	 */
-	private static function _getTime()
+	private static function getTime()
 	{
 		return date( 'Y-m-d H:i:s' );
 	}
@@ -448,7 +448,7 @@ class Log
 	 */
 	public static function DumpExit( string $log )
 	{
-		echo( PHP_EOL . static::_getTime() . ' ' . $log . PHP_EOL );
+		echo( PHP_EOL . static::getTime() . ' ' . $log . PHP_EOL );
 		exit( 0 );
 	}
 	
@@ -483,7 +483,7 @@ class Log
 	 * @param string $log
 	 * @return array
 	 */
-	private function _parseModuleLevel( string $log )
+	private function parseModuleLevel( string $log )
 	{
 		$logInfo = explode( '�', $log );
 		$level   = $logInfo[ 0 ];
@@ -501,7 +501,7 @@ class Log
 	 * @param string $date
 	 * @return void
 	 */
-	private function _writeFile( string $module, string $level, string $log, string $date )
+	private function writeFile( string $module, string $level, string $log, string $date )
 	{
 		$alias = "{$module}{$level}{$date}";
 		
@@ -511,7 +511,7 @@ class Log
 			goto WRITE_LOG;
 		}
 		
-		$fileRes = $this->_initFileHandler( $module, $this->_getFileName( $level, $date ) );
+		$fileRes = $this->initFileHandler( $module, $this->getFileName( $level, $date ) );
 		if ( false === $fileRes )
 		{
 			goto CHECK_FILE_HANDLER;
@@ -532,7 +532,7 @@ class Log
 	 * @param string $fileExt
 	 * @return bool|resource
 	 */
-	private function _initFileHandler( string $fileDir, string $fileExt )
+	private function initFileHandler( string $fileDir, string $fileExt )
 	{
 		$fileDir  = self::$baseDir . $fileDir;
 		$filePath = "{$fileDir}/{$fileExt}";
@@ -569,7 +569,7 @@ class Log
 	 * @param string $date
 	 * @return string
 	 */
-	private function _getFileName( string $level, string $date )
+	private function getFileName( string $level, string $date )
 	{
 		switch ( $level )
 		{
@@ -606,11 +606,11 @@ class Log
 	public static function Start()
 	{
 		$log = new self();
-		$log->_initCoroutine();
-		$log->_exit();
+		$log->initCoroutine();
+		$log->exit();
 	}
 	
-	private function _initCoroutine()
+	private function initCoroutine()
 	{
 		Coroutine::Enable();
 		for ( $i = 0; $i < 64; $i++ )
@@ -725,7 +725,7 @@ class Log
 			}
 			
 			$date      = date( 'Ymd' );
-			$log       = $this->_parseModuleLevel( $data );
+			$log       = $this->parseModuleLevel( $data );
 			$bufferKey = $log[ 'module' ] . $log[ 'level' ];
 			if ( isset( $buffer[ $bufferKey ] ) )
 			{
@@ -757,7 +757,7 @@ class Log
 				
 				if ( time() - $eachBuffer[ 'flushTime' ] >= 2 || $eachBuffer[ 'size' ] >= self::MAX_BUFFER_SIZE )
 				{
-					$this->_writeFile( $eachBuffer[ 'module' ], $eachBuffer[ 'level' ], $eachBuffer[ 'body' ], $date );
+					$this->writeFile( $eachBuffer[ 'module' ], $eachBuffer[ 'level' ], $eachBuffer[ 'body' ], $date );
 					$buffer[ $eachBufKey ][ 'body' ]      = '';
 					$buffer[ $eachBufKey ][ 'size' ]      = 0;
 					$buffer[ $eachBufKey ][ 'flushTime' ] = time();
@@ -829,9 +829,9 @@ class Log
 	}
 	
 	/**
-	 * _exit : exit log process while there are no message in log queue
+	 * exit : exit log process while there are no message in log queue
 	 */
-	private function _exit()
+	private function exit()
 	{
 		static::Dump( ' exited. queue status : ' . json_encode( self::$msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
 		exit( 0 );
@@ -861,7 +861,7 @@ class Log
 	 * _setSignalHandler : set function for signal handler
 	 * @author Louis
 	 */
-	private function _initSignalHandler()
+	private function initSignalHandler()
 	{
 		pcntl_signal( SIGALRM, [
 			$this,
@@ -889,7 +889,7 @@ class Log
 		switch ( $signal )
 		{
 			case SIGALRM:
-				$this->_handleAlarm();
+				$this->handleAlarm();
 				break;
 			case SIGTERM:
 				$this->isTerminate = true;
@@ -901,17 +901,17 @@ class Log
 	/**
 	 * handle log process alarm signal
 	 */
-	private function _handleAlarm()
+	private function handleAlarm()
 	{
-		self::_sendTcpHeartbeat();
-		self::_cleanUselessFileHandler();
+		self::sendTcpHeartbeat();
+		self::cleanUselessFileHandler();
 		pcntl_alarm( self::TCP_HEARTBEAT_PERIOD );
 	}
 	
 	/**
 	 *
 	 */
-	private function _cleanUselessFileHandler()
+	private function cleanUselessFileHandler()
 	{
 		$time = (int)date( 'Hi' );
 		if ( $time > 2 )
@@ -936,7 +936,7 @@ class Log
 	/**
 	 *
 	 */
-	private function _sendTcpHeartbeat()
+	private function sendTcpHeartbeat()
 	{
 		foreach ($this->tcpClient as $client )
 		{
