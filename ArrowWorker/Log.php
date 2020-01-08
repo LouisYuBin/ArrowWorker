@@ -704,6 +704,7 @@ class Log
 				           "}", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
+			$log = json_encode($log, JSON_UNESCAPED_UNICODE);
 			if ( in_array( self::TO_TCP, $toTypes ) )
 			{
 				$this->toTcpChan->Push( $log, 1 );
@@ -1014,7 +1015,7 @@ class Log
 		$logId  = $context[ __CLASS__ . '_id' ];
 		foreach ( $context[ __CLASS__ ] as $log )
 		{
-			$log[6] = $logId;
+			$log[5] = $logId;
 			$msgObj->Write( $log );
 		}
 	}

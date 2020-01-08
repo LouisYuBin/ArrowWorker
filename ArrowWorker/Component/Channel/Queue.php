@@ -54,7 +54,7 @@ class Queue
     {
         for( $i=0; $i<3; $i++)
         {
-            if( @msg_send( $this->_queue, $msgType, (string)$message,false, true, $errorCode) )
+            if( @msg_send( $this->_queue, $msgType, $message,true, true, $errorCode) )
             {
                 return true;
             }
@@ -88,7 +88,7 @@ class Queue
             $messageType,
             $this->_config['msgSize'],
             $message,
-            false,
+            true,
             MSG_IPC_NOWAIT,
             $errorCode
         );
