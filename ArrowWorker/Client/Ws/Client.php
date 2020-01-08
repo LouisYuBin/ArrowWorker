@@ -81,7 +81,7 @@ class Client
             {
                 return true;
             }
-            Log::Error( "upgrade failed : {$i}th", $this->_logName );
+            Log::Error( "upgrade failed : {$i}th", [], $this->_logName );
         }
         return false;
     }
@@ -117,7 +117,7 @@ class Client
             {
                 $this->Upgrade();
             }
-            Log::Warning( "push failed : {$i}", $this->_logName );
+            Log::Warning( "push failed : {$i}", [], $this->_logName );
         }
         return false;
     }

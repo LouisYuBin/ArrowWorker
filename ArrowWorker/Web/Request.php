@@ -31,7 +31,7 @@ class Request
 	 */
 	public static function Init( SwRequest $request )
 	{
-		Co::GetContext()[ __CLASS__ ]  = $request;
+		Co::GetContext()[ __CLASS__ ] = $request;
 		self::InitUrlPostParams();
 	}
 	
@@ -95,7 +95,7 @@ class Request
 	 */
 	public static function RouteType() : string
 	{
-		return Co::GetContext()['routerType'] ?? '';
+		return Co::GetContext()[ 'routerType' ] ?? '';
 	}
 	
 	/**
@@ -111,7 +111,7 @@ class Request
 	 */
 	public static function UserAgent() : string
 	{
-		return Co::GetContext()[__CLASS__]->header[ 'user-agent' ];
+		return Co::GetContext()[ __CLASS__ ]->header[ 'user-agent' ];
 	}
 	
 	
@@ -120,7 +120,7 @@ class Request
 	 */
 	public static function ClientIp() : string
 	{
-		return Co::GetContext()[__CLASS__]->server[ 'remote_addr' ];
+		return Co::GetContext()[ __CLASS__ ]->server[ 'remote_addr' ];
 	}
 	
 	/**
@@ -128,9 +128,9 @@ class Request
 	 * @param string $default
 	 * @return string|bool
 	 */
-	public static function Get( string $key, string $default='' ) : string
+	public static function Get( string $key, string $default = '' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->get[ $key ] ?? $default;
+		return Co::GetContext()[ __CLASS__ ]->get[ $key ] ?? $default;
 	}
 	
 	/**
@@ -138,14 +138,14 @@ class Request
 	 * @param string $default
 	 * @return string
 	 */
-	public static function Post( string $key, string $default='' ) : string
+	public static function Post( string $key, string $default = '' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->post[ $key ] ?? $default;
+		return Co::GetContext()[ __CLASS__ ]->post[ $key ] ?? $default;
 	}
 	
-	public static function Cookie( string $key, string $default='' ) : string
+	public static function Cookie( string $key, string $default = '' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->cookie[ $key ] ?? $default;
+		return Co::GetContext()[ __CLASS__ ]->cookie[ $key ] ?? $default;
 	}
 	
 	/**
@@ -153,9 +153,9 @@ class Request
 	 * @param string $default
 	 * @return string
 	 */
-	public static function Param( string $key, string $default='' ) : string
+	public static function Param( string $key, string $default = '' ) : string
 	{
-		return Co::GetContext()['urlParameters'][ $key ] ?? $default;
+		return Co::GetContext()[ 'urlParameters' ][ $key ] ?? $default;
 	}
 	
 	/**
@@ -164,7 +164,7 @@ class Request
 	 */
 	public static function Params() : array
 	{
-		return Co::GetContext()['urlParameters'] ?? [];
+		return Co::GetContext()[ 'urlParameters' ] ?? [];
 	}
 	
 	/**
@@ -172,14 +172,14 @@ class Request
 	 * @param string $default
 	 * @return string
 	 */
-	public static function Header( string $key,string $default='' ) : string
+	public static function Header( string $key, string $default = '' ) : string
 	{
-		return Co::GetContext()[__CLASS__]->header[ $key ] ?? $default;
+		return Co::GetContext()[ __CLASS__ ]->header[ $key ] ?? $default;
 	}
 	
 	public static function Host() : string
 	{
-		return Co::GetContext()[__CLASS__]->header[ 'host' ];
+		return Co::GetContext()[ __CLASS__ ]->header[ 'host' ];
 	}
 	
 	/**
@@ -187,7 +187,7 @@ class Request
 	 */
 	public static function Headers() : array
 	{
-		return (array)Co::GetContext()[__CLASS__]->header;
+		return (array)Co::GetContext()[ __CLASS__ ]->header;
 	}
 	
 	/**
@@ -196,7 +196,7 @@ class Request
 	 */
 	public static function Gets() : array
 	{
-		return (array)Co::GetContext()[__CLASS__]->get;
+		return (array)Co::GetContext()[ __CLASS__ ]->get;
 	}
 	
 	/**
@@ -204,7 +204,7 @@ class Request
 	 */
 	public static function Posts() : array
 	{
-		return (array)Co::GetContext()[__CLASS__]->post;
+		return (array)Co::GetContext()[ __CLASS__ ]->post;
 	}
 	
 	/**
@@ -213,7 +213,7 @@ class Request
 	 */
 	public static function Server( string $key ) : string
 	{
-		return Co::GetContext()[__CLASS__]->server[ $key ] ?? '';
+		return Co::GetContext()[ __CLASS__ ]->server[ $key ] ?? '';
 	}
 	
 	/**
@@ -221,7 +221,7 @@ class Request
 	 */
 	public static function Servers()
 	{
-		return (array)Co::GetContext()[__CLASS__]->server;
+		return (array)Co::GetContext()[ __CLASS__ ]->server;
 	}
 	
 	/**
@@ -230,7 +230,7 @@ class Request
 	 */
 	public static function File( string $name )
 	{
-		$file = Co::GetContext()[__CLASS__]->files[ $name ];
+		$file = Co::GetContext()[ __CLASS__ ]->files[ $name ];
 		return is_null( $file ) ?
 			false :
 			new Upload( (array)$file );
@@ -241,7 +241,7 @@ class Request
 	 */
 	public static function Files() : array
 	{
-		return (array)Co::GetContext()[__CLASS__]->files;
+		return (array)Co::GetContext()[ __CLASS__ ]->files;
 	}
 	
 	/**
@@ -250,25 +250,31 @@ class Request
 	 */
 	public static function SetParams( array $params, string $routeType = 'path' )
 	{
-		$context = Co::GetContext();
-		$context['urlParameters'] = $params;
-		$context['routerType'] = $routeType;
-		self::_logRequest( );
+		$context                    = Co::GetContext();
+		$context[ 'urlParameters' ] = $params;
+		$context[ 'routerType' ]    = $routeType;
+		self::_logRequest();
 	}
 	
 	public static function Release()
 	{
-
+	
 	}
 	
-	private static function _logRequest( )
+	private static function _logRequest()
 	{
-		$context   = Co::GetContext();
-		$request   = $context[__CLASS__];
-		$params    = json_encode( $context['urlParameters'], JSON_UNESCAPED_UNICODE );
+		$context = Co::GetContext();
+		$request = $context[ __CLASS__ ];
 		
-		Log::Debug( " {$request->server[ 'request_uri' ]} [{$request->server[ 'request_method' ]}:{$context['routerType']}]   Params : {$params} , Request : " .
-		            json_encode( $request, JSON_UNESCAPED_UNICODE ), self::LOG_NAME );
+		Log::Debug( '{uri} [{method}:{routeType}] Params:{params}, Request : {request}',
+			[
+				'uri'       => $request->server[ 'request_uri' ],
+				'method'    => $request->server[ 'request_method' ],
+				'routeType' => $context[ 'routerType' ],
+				'params'    => json_encode( $context[ 'urlParameters' ], JSON_UNESCAPED_UNICODE ),
+				'request'   => json_encode( $request, JSON_UNESCAPED_UNICODE ),
+			]
+			, self::LOG_NAME );
 	}
 	
 }

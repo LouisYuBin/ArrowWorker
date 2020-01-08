@@ -90,7 +90,11 @@ class Client
             }
             catch ( \Exception $e )
             {
-                Log::Error( "connect failed : {$this->_host}:{$this->_port}, error code : {$this->_client->errCode}", $this->_logName );
+                Log::Error( "connect failed : {host}:{}, error code : {code}", [
+                	'host' => $this->_host,
+	                'port' => $this->_port,
+	                'code' => $this->_client->errCode
+                ], $this->_logName );
             }
         }
 
@@ -134,7 +138,11 @@ class Client
             }
             catch ( \Exception $e )
             {
-                Log::Error( "send data failed : {$this->_host}:{$this->_port}, error code : {$this->_client->errCode} , data : {$data}", $this->_logName );
+                Log::Error( "send data failed : {host}:{port}, error code : {code} , data : {$data}", [
+                	'host' => $this->_host,
+	                'port' => $this->_port,
+	                'code' => $this->_client->errCode
+                ], $this->_logName );
                 $this->InitClient( $retryTimes );
                 $result = false;
             }

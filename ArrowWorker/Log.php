@@ -3,13 +3,16 @@
  * User: louis
  * Time: 18-6-10 上午1:16
  */
+
 namespace ArrowWorker;
+
 use ArrowWorker\Component\Cache\Redis;
 use ArrowWorker\Component\Channel\Queue;
 use ArrowWorker\Client\Tcp\Client as Tcp;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Library\Channel as SwChan;
+
 /**
  * Class Log
  * @package ArrowWorker
@@ -179,7 +182,6 @@ class Log
 	private $fileHandlerMap = [];
 	
 	
-	
 	/**
 	 * @var bool $isDemonize
 	 */
@@ -190,7 +192,7 @@ class Log
 		self::initMsgInstance();
 		self::resetStd();
 	}
-
+	
 	public static function GetStdOutFilePath()
 	{
 		return self::$stdoutFile;
@@ -227,14 +229,14 @@ class Log
 		}
 		
 		self::$toTypes = [ self::TO_FILE ];
-		$toTcp            = self::TO_TCP;
+		$toTcp         = self::TO_TCP;
 		if ( isset( $config[ $toTcp ] ) &&
 		     isset( $config[ $toTcp ][ 'host' ] ) &&
 		     isset( $config[ $toTcp ][ 'port' ] ) )
 		{
-			$config[ $toTcp ]['poolSize'] = $config[ $toTcp ]['poolSize'] ?? 10;
-			self::$toTypes[] = $toTcp;
-			self::$tcpConfig   = $config[ $toTcp ];
+			$config[ $toTcp ][ 'poolSize' ] = $config[ $toTcp ][ 'poolSize' ] ?? 10;
+			self::$toTypes[]                = $toTcp;
+			self::$tcpConfig                = $config[ $toTcp ];
 		}
 		
 		$toRedis = self::TO_REDIS;
@@ -245,13 +247,13 @@ class Log
 		     isset( $config[ $toRedis ][ 'queue' ] )
 		)
 		{
-			$config[ $toRedis ]['poolSize'] = $config[ $toRedis ]['poolSize'] ?? 10;
-			self::$toTypes[] = $toRedis;
-			self::$redisConfig = $config[ $toRedis ];
+			$config[ $toRedis ][ 'poolSize' ] = $config[ $toRedis ][ 'poolSize' ] ?? 10;
+			self::$toTypes[]                  = $toRedis;
+			self::$redisConfig                = $config[ $toRedis ];
 		}
 		
-		self::$bufSize   = $config[ 'bufSize' ] ?? self::$bufSize;
-		self::$baseDir   = $config[ 'baseDir' ] ?? self::$baseDir;
+		self::$bufSize    = $config[ 'bufSize' ] ?? self::$bufSize;
+		self::$baseDir    = $config[ 'baseDir' ] ?? self::$baseDir;
 		self::$stdoutFile = self::$baseDir . DIRECTORY_SEPARATOR . 'Arrow.log';
 		self::$processNum = $config[ 'process' ] ?? 1;
 	}
@@ -268,22 +270,23 @@ class Log
 				case self::TO_REDIS:
 					
 					$config = self::$redisConfig;
-					for ($i=0; $i<$config[ 'poolSize' ]; $i++)
+					for ( $i = 0; $i < $config[ 'poolSize' ]; $i++ )
 					{
-						$client =  Redis::Init( [
+						$client = Redis::Init( [
 							'host'     => $config[ 'host' ],
 							'port'     => $config[ 'port' ],
 							'password' => $config[ 'password' ],
 						] );
-						if( $client->InitConnection() )
+						if ( $client->InitConnection() )
 						{
 							$this->redisClient[] = $client;
 						}
 						else
 						{
-							if( 0==$i )
+							if ( 0 == $i )
 							{
-								self::Dump('init redis client failed, config : '.json_encode($config),self::TYPE_WARNING, self::MODULE_NAME );
+								self::Dump( 'init redis client failed, config : ' .
+								            json_encode( $config ), self::TYPE_WARNING, self::MODULE_NAME );
 							}
 						}
 					}
@@ -294,19 +297,20 @@ class Log
 				case self::TO_TCP;
 					
 					$this->toTcpChan = SwChan::Init( self::CHAN_SIZE );
-					$config = self::$tcpConfig;
-					for ( $i=0; $i<$config['poolSize']; $i++ )
+					$config          = self::$tcpConfig;
+					for ( $i = 0; $i < $config[ 'poolSize' ]; $i++ )
 					{
 						$client = Tcp::Init( $config[ 'host' ], $config[ 'port' ] );
-						if( $client->IsConnected() )
+						if ( $client->IsConnected() )
 						{
 							$this->tcpClient[] = $client;
 						}
 						else
 						{
-							if( 0==$i )
+							if ( 0 == $i )
 							{
-								Log::Dump( 'init tcp client failed. config : '.json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME);
+								Log::Dump( 'init tcp client failed. config : ' .
+								           json_encode( $config ), Log::TYPE_WARNING, self::MODULE_NAME );
 							}
 						}
 					}
@@ -324,102 +328,113 @@ class Log
 	/**
 	 * Info write an information log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Info( string $log, string $module = '' )
+	public static function Info( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'I' );
+		self::rebuildLog( $log, $context, $module, 'I' );
 	}
 	
 	/**
 	 * Info write an information log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Alert( string $log, string $module = '' )
+	public static function Alert( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'A' );
+		self::rebuildLog( $log, $context, $module, 'A' );
 	}
 	
 	/**
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Debug( string $log, string $module = '' )
+	public static function Debug( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'D' );
+		self::rebuildLog( $log, $context, $module, 'D' );
 	}
 	
 	/**
 	 * Notice : write an notice log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Notice( string $log, string $module = '' )
+	public static function Notice( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'N' );
+		self::rebuildLog( $log, $context, $module, 'N' );
 	}
 	
 	/**
 	 * Warning : write an warning log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Warning( string $log, string $module = '' )
+	public static function Warning( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'W' );
+		self::rebuildLog( $log, $context, $module, 'W' );
 	}
 	
 	/**
 	 * Error : write an error log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Error( string $log, string $module = '' )
+	public static function Error( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'E' );
+		self::rebuildLog( $log, $context, $module, 'E' );
 	}
 	
 	/**
 	 * Emergency : write an Emergency log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Emergency( string $log, string $module = '' )
+	public static function Emergency( string $log, array $context = [], string $module = '' )
 	{
-		self::fillLog( $log, $module, 'EM' );
+		self::rebuildLog( $log, $context, $module, 'EM' );
 	}
 	
 	/**
 	 * Critical : write a Critical log
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @return void
 	 */
-	public static function Critical( string $log, string $module = '' )
+	public static function Critical( string $log, array $context = [], string $module = '' )
 	{
 		self::Dump( $log, self::TYPE_EMERGENCY, self::MODULE_NAME );
-		self::fillLog( $log, $module, 'C' );
+		self::rebuildLog( $log, $context, $module, 'C' );
 	}
 	
 	/**
 	 * @param string $log
+	 * @param array  $context
 	 * @param string $module
 	 * @param string $level
 	 */
-	private static function fillLog( string $log, string $module = '', string $level = 'D' )
+	private static function rebuildLog( string $log, array $context = [], string $module = '', string $level = 'D' )
 	{
-		$time                                 = date( 'Y-m-d H:i:s' );
-		Coroutine::GetContext()[__CLASS__][] = [
-			"{$level}�{$module}�{$time}",
+		Coroutine::GetContext()[ __CLASS__ ][] = [
+			$level,
+			$module,
+			date( 'Y-m-d H:i:s' ),
 			$log,
+			$context,
 		];
 	}
 	
@@ -429,7 +444,7 @@ class Log
 	 * @param string $type
 	 * @param string $module
 	 */
-	public static function Dump( string $log, string $type=self::TYPE_DEBUG, string $module='Unknown' )
+	public static function Dump( string $log, string $type = self::TYPE_DEBUG, string $module = 'Unknown' )
 	{
 		echo sprintf( "%s | %s | %s | %s " . PHP_EOL, self::getTime(), $type, $module, $log );
 	}
@@ -621,21 +636,21 @@ class Log
 			} );
 		}
 		
-		$tcpClientCount = count($this->tcpClient);
-		for ( $i=0; $i<$tcpClientCount; $i++ )
+		$tcpClientCount = count( $this->tcpClient );
+		for ( $i = 0; $i < $tcpClientCount; $i++ )
 		{
-			Coroutine::Create( function () use ($i)
+			Coroutine::Create( function () use ( $i )
 			{
-				$this->WriteToTcp($i);
+				$this->WriteToTcp( $i );
 			} );
 		}
 		
-		$redisClientCount = count($this->redisClient);
-		for ( $i=0; $i<$redisClientCount; $i++ )
+		$redisClientCount = count( $this->redisClient );
+		for ( $i = 0; $i < $redisClientCount; $i++ )
 		{
-			Coroutine::Create( function () use ($i)
+			Coroutine::Create( function () use ( $i )
 			{
-				$this->WriteToRedis($i);
+				$this->WriteToRedis( $i );
 			} );
 		}
 		
@@ -647,17 +662,18 @@ class Log
 			} );
 		}
 		
-		Coroutine::Create(function (){
-			while (true)
+		Coroutine::Create( function ()
+		{
+			while ( true )
 			{
 				if ( $this->isTerminate )
 				{
 					break;
 				}
-				Coroutine::Sleep(0.2);
+				Coroutine::Sleep( 0.2 );
 				pcntl_signal_dispatch();
 			}
-		});
+		} );
 		Coroutine::Wait();
 	}
 	
@@ -683,9 +699,9 @@ class Log
 			
 			if ( false == $this->toFileChan->Push( $log, 1 ) )
 			{
-				Log::Dump( "push log chan failed, data:{$log}, error code： " .
+				Log::Dump( "push log chan failed, data:" . json_encode( $log ) . ", error code： " .
 				           $this->toFileChan->GetErrorCode() .
-				           "}" , self::TYPE_WARNING,self::MODULE_NAME);
+				           "}", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
 			if ( in_array( self::TO_TCP, $toTypes ) )
@@ -719,27 +735,35 @@ class Log
 				break;
 			}
 			
+			$date = date( 'Ymd' );
 			if ( $data === false )
 			{
 				goto FLUSH;
 			}
 			
-			$date      = date( 'Ymd' );
-			$log       = $this->parseModuleLevel( $data );
-			$bufferKey = $log[ 'module' ] . $log[ 'level' ];
+			[
+				$level,
+				$module,
+				$time,
+				$message,
+				$context,
+				$id,
+			] = $data;
+			$body      = "{$time} | {$id} | ".$this->parseLog( $message, $context );
+			$bufferKey = $module . $level;
 			if ( isset( $buffer[ $bufferKey ] ) )
 			{
-				$buffer[ $bufferKey ][ 'body' ] = $buffer[ $bufferKey ][ 'body' ] . $log[ 'body' ];
-				$buffer[ $bufferKey ][ 'size' ] += strlen( $log[ 'body' ] );
+				$buffer[ $bufferKey ][ 'body' ] = $buffer[ $bufferKey ][ 'body' ] . $body;
+				$buffer[ $bufferKey ][ 'size' ] += strlen( $body );
 			}
 			else
 			{
 				$buffer[ $bufferKey ] = array_merge(
-					$log,
 					[
-						'size'      => strlen( $log[ 'body' ] ),
-						'module'    => $log[ 'module' ],
-						'level'     => $log[ 'level' ],
+						'body'      => $body,
+						'size'      => strlen( $body ),
+						'module'    => $module,
+						'level'     => $level,
 						'flushTime' => time(),
 					]
 				);
@@ -768,10 +792,23 @@ class Log
 		//self::Dump( self::MODULE_NAME.'file-writing coroutine exited' );
 	}
 	
+	private function parseLog( string $message, array $context = [] ) : string
+	{
+		$replace = [];
+		foreach ( $context as $key => $val )
+		{
+			if ( is_string( $val ) )
+			{
+				$replace[ "{{$key}}" ] = $val;
+			}
+		}
+		return strtr( $message, $replace );
+	}
+	
 	/**
 	 * @var int $clientIndex
 	 */
-	public function WriteToTcp(int $clientIndex)
+	public function WriteToTcp( int $clientIndex )
 	{
 		while ( true )
 		{
@@ -787,7 +824,7 @@ class Log
 				continue;
 			}
 			
-			if ( false == $this->tcpClient[$clientIndex]->Send( $data, 3 ) )
+			if ( false == $this->tcpClient[ $clientIndex ]->Send( $data, 3 ) )
 			{
 				Log::Dump( " tcpClient[{$clientIndex}]->Send( {$data}, 3 ) failed", self::TYPE_WARNING, self::MODULE_NAME );
 			}
@@ -798,9 +835,9 @@ class Log
 	/**
 	 * @var int $clientIndex
 	 */
-	public function WriteToRedis(int $clientIndex)
+	public function WriteToRedis( int $clientIndex )
 	{
-		$queue = self::$redisConfig['queue'];
+		$queue = self::$redisConfig[ 'queue' ];
 		while ( true )
 		{
 			$data = $this->toRedisChan->Pop( 0.5 );
@@ -817,11 +854,11 @@ class Log
 			
 			for ( $i = 0; $i < 3; $i++ )
 			{
-				if ( false !== $this->redisClient[$clientIndex]->Lpush( $queue, $data ) )
+				if ( false !== $this->redisClient[ $clientIndex ]->Lpush( $queue, $data ) )
 				{
 					break;
 				}
-				Log::Dump("redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed", self::TYPE_WARNING, self::MODULE_NAME);
+				Log::Dump( "redisClient[{$clientIndex}]->Lpush( {$queue}, {$data} ) failed", self::TYPE_WARNING, self::MODULE_NAME );
 			}
 			
 		}
@@ -833,7 +870,8 @@ class Log
 	 */
 	private function exit()
 	{
-		static::Dump( ' exited. queue status : ' . json_encode( self::$msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
+		static::Dump( ' exited. queue status : ' .
+		              json_encode( self::$msgInstance->Status() ), self::TYPE_DEBUG, self::MODULE_NAME );
 		exit( 0 );
 	}
 	
@@ -928,7 +966,7 @@ class Log
 			{
 				fclose( $this->fileHandlerMap[ $alias ] );
 				unset( $this->fileHandlerMap[ $alias ] );
-				Log::Debug( "log file handler : {$alias} was cleaned.", self::LOG_NAME );
+				Log::Debug( "log file handler : {$alias} was cleaned.", [], self::LOG_NAME );
 			}
 		}
 	}
@@ -938,7 +976,7 @@ class Log
 	 */
 	private function sendTcpHeartbeat()
 	{
-		foreach ($this->tcpClient as $client )
+		foreach ( $this->tcpClient as $client )
 		{
 			$client->Send( 'heartbeat' );
 		}
@@ -949,9 +987,9 @@ class Log
 	 */
 	public static function Init( string $logId = '' )
 	{
-		Coroutine::GetContext()[__CLASS__.'_id']  = '' === $logId ? date( 'ymdHis' ) .
-		                                                            Process::Id() . Coroutine::Id() .
-		                                                            mt_rand( 100, 999 ) : $logId;
+		Coroutine::GetContext()[ __CLASS__ . '_id' ] = '' === $logId ? date( 'ymdHis' ) .
+		                                                               Process::Id() . Coroutine::Id() .
+		                                                               mt_rand( 100, 999 ) : $logId;
 	}
 	
 	/**
@@ -959,7 +997,7 @@ class Log
 	 */
 	public static function GetLogId() : string
 	{
-		return Coroutine::GetContext()[__CLASS__.'_id'];
+		return Coroutine::GetContext()[ __CLASS__ . '_id' ];
 	}
 	
 	/**
@@ -968,15 +1006,16 @@ class Log
 	public static function Release()
 	{
 		$context = Coroutine::GetContext();
-		if( !isset($context[__CLASS__]) )
+		if ( !isset( $context[ __CLASS__ ] ) )
 		{
-			return ;
+			return;
 		}
 		$msgObj = self::$msgInstance;
-		$logId  = $context[__CLASS__.'_id'];
-		foreach ( $context[__CLASS__] as $log )
+		$logId  = $context[ __CLASS__ . '_id' ];
+		foreach ( $context[ __CLASS__ ] as $log )
 		{
-			$msgObj->Write( "{$log[0]} | {$logId} | $log[1]" . PHP_EOL );
+			$log[6] = $logId;
+			$msgObj->Write( $log );
 		}
 	}
 	

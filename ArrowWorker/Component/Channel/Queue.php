@@ -46,11 +46,11 @@ class Queue
     /**
      * Write  写入消息
      * @author Louis
-     * @param string $message 要写入的消息
+     * @param     $message
      * @param int $msgType 消息类型
      * @return bool
      */
-    public function Write( string $message, int $msgType=1 ) : bool
+    public function Write( $message, int $msgType=1 ) : bool
     {
         for( $i=0; $i<3; $i++)
         {

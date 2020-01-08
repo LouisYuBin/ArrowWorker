@@ -138,7 +138,7 @@ class Mysqli implements DbInterface
         $result = @$this->_conn->query( $sql );
         if(false !== $result && !is_null($result) )
         {
-            Log::Debug( $sql, self::SQL_LOG_NAME );
+            Log::Debug( $sql, [], self::SQL_LOG_NAME );
             return $result;
         }
 

@@ -60,7 +60,9 @@ class SwTable
     {
         if ( !$this->_table->create() )
         {
-            Log::Error( 'create memory table failed, config is : ' . json_encode( $this->_structure ), self::LOG_NAME );
+            Log::Error( 'create memory table failed, config is : {config}', [
+            	'config'=> json_encode( $this->_structure )
+            ],  self::LOG_NAME );
             return false;
         }
         return true;

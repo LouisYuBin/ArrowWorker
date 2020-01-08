@@ -58,12 +58,20 @@ class ArrowWorker
 	/**
 	 * @var $Arrow ArrowWorker
 	 */
-	private static $_arrow = null;
+	
+	private $container;
 	
 	/**
 	 * ArrowWorker constructor.
 	 */
 	private function __construct()
+	{
+		$this->setAutoLoad();
+		$this->container = $container = new Container();
+		App::Run();
+	}
+	
+	private function setAutoLoad()
 	{
 		spl_autoload_register( [
 			$this,
@@ -74,16 +82,10 @@ class ArrowWorker
 	
 	/**
 	 * Start : frame start method
-	 * @author Louis
 	 */
-	static function Start()
+	public static function Start()
 	{
-		if ( self::$_arrow instanceof self )
-		{
-			return;
-		}
-		self::$_arrow = new self;
-		App::Run();
+		new self;
 	}
 	
 	
