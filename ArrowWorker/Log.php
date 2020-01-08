@@ -803,7 +803,7 @@ class Log
 				$replace[ "{{$key}}" ] = $val;
 			}
 		}
-		return strtr( $message, $replace );
+		return strtr( $message, $replace ).PHP_EOL;
 	}
 	
 	/**
