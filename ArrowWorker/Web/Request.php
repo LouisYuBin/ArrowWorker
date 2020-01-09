@@ -266,13 +266,11 @@ class Request
 		$context = Co::GetContext();
 		$request = $context[ __CLASS__ ];
 		
-		Log::Debug( '{uri} [{method}:{routeType}] Params:{params}, Request : {request}',
+		Log::Debug( '{uri} : {method} Request : {request}',
 			[
-				'uri'       => $request->server[ 'request_uri' ],
-				'method'    => $request->server[ 'request_method' ],
-				'routeType' => $context[ 'routerType' ],
-				'params'    => json_encode( $context[ 'urlParameters' ], JSON_UNESCAPED_UNICODE ),
-				'request'   => json_encode( $request, JSON_UNESCAPED_UNICODE ),
+				'uri'     => $request->server[ 'request_uri' ],
+				'method'  => $request->server[ 'request_method' ],
+				'request' => json_encode( $request, JSON_UNESCAPED_UNICODE ),
 			]
 			, self::LOG_NAME );
 	}
