@@ -274,6 +274,7 @@ class Router
 		$uri      = Request::Uri();
 		$pathInfo = explode( '/', $uri );
 		$pathLen  = count( $pathInfo );
+		Request::SetParams( [], 'PATH' );
 		
 		if ( $pathLen < 3 )
 		{
