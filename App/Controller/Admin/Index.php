@@ -23,7 +23,7 @@ class Index
     {
         //$this->_webSocketClient();
 	    //Log::Info('hese functions let you read andhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year',[],'ccc');
-        Response::Write('rest get'.Request::Server('REQUEST_URI').json_encode(Request::Params()));
+        Response::Write('rest get'.Request::Server('REQUEST_URI'));
     }
 
     private function _webSocketClient()
