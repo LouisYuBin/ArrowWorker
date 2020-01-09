@@ -23,12 +23,12 @@ return [
         'documentRoot'     => APP_PATH.'/Static/Web',
         '404'              => APP_PATH.'/Static/Web/404.html',
         'components' => [
-            'db' => [
+            /*'db' => [
                 'default' => 150
             ],
             'cache' => [
                 'default' => 300
-            ],
+            ],*/
            /*'tcp_client' => [
                 'default' => 100,
                 'conner'  => 200
@@ -62,12 +62,12 @@ return [
             'close'   => 'Demo\\WebSocket::Close'
         ],
         'components' => [
-            'db' => [
+            /*'db' => [
                 'default' => 100
             ],
             'cache' => [
                 'default' => 100
-            ]
+            ]*/
         ]
     ],
     [
