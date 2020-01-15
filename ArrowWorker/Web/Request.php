@@ -266,7 +266,7 @@ class Request
 		$context = Co::GetContext();
 		$request = $context[ __CLASS__ ];
 		
-		Log::Debug( '{uri} : {method} Request : {request}',
+		Log::Debug( ' Request : {uri}[{method}], {request}',
 			[
 				'uri'     => $request->server[ 'request_uri' ],
 				'method'  => $request->server[ 'request_method' ],
