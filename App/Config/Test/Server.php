@@ -48,7 +48,7 @@ return [
         'user'             => 'www',
         'group'            => 'www',
         'pipeBufferSize'   => 1024*1024*200,
-        'socketBufferSize' =>  1024*1024*200,
+        'socketBufferSize' => 1024*1024*200,
         'maxRequest'       => 100000,
         'maxCoroutine'     => 50000,
         'maxContentLength' => 20889600,

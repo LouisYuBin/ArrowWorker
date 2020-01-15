@@ -179,7 +179,7 @@ class Request
 	
 	public static function Host() : string
 	{
-		return Co::GetContext()[ __CLASS__ ]->header[ 'host' ];
+		return Co::GetContext()[ __CLASS__ ]->header[ 'host' ] ?? '';
 	}
 	
 	/**
