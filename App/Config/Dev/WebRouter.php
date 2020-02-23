@@ -3,7 +3,7 @@
 return [
     'ws.com, web.com, arrow.com' => [
         '/' => [
-            'get'    => 'index.html',
+            'get'    => APP_PATH.'/Static/Web/index.html',
             'put'    => 'Admin\\Index@put',
             'post'   => 'Admin\\Index@post',
             'delete' => 'Admin\\Index@delete'
