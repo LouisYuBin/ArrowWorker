@@ -9,7 +9,7 @@ namespace ArrowWorker;
 class Container
 {
 	
-	private array $entries = [];
+	private $entries = [];
 	
 	public function Has(string $name)
 	{

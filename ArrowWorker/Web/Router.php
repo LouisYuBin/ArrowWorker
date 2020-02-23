@@ -100,29 +100,43 @@ class Router
 			foreach ( $alias as $requestMethod => $function )
 			{
 				$requestMethod = strtoupper( $requestMethod );
-				if ( in_array( $requestMethod, [
+				if ( !in_array( $requestMethod, [
 					'GET',
 					'POST',
 					'DELETE',
 					'PUT',
 				] ) )
 				{
-					list( $class, $method ) = explode( '@', $function );
-					$class = $this->_controller . $class;
-					[ $controller, $errorMsg ] = $this->checkClassMethod( $class, $method );
-					if ( !empty( $errorMsg ) )
-					{
-						Log::Dump( $errorMsg, Log::TYPE_WARNING, self::MODULE_NAME );
-						continue;
-					}
-					
-					$restAlias[ $uri ][ $requestMethod ] = [
-						$class,
-						$method,
-					];
-					$isGroup = false;
 					continue;
 				}
+				
+				$classMethod = explode( '@', $function );
+				
+				if( count($classMethod)<2 )
+				{
+					if( file_exists($function) )
+					{
+						$restAlias[ $uri ][ $requestMethod ] = file_get_contents($function);
+					}
+					continue;
+				}
+				
+				list( $class, $method ) = $classMethod;
+				$class = $this->_controller . $class;
+				[ $controller, $errorMsg ] = $this->checkClassMethod( $class, $method );
+				if ( !empty( $errorMsg ) )
+				{
+					Log::Dump( $errorMsg, Log::TYPE_WARNING, self::MODULE_NAME );
+					continue;
+				}
+				
+				$restAlias[ $uri ][ $requestMethod ] = [
+					$class,
+					$method,
+				];
+				$isGroup = false;
+				continue;
+				
 			}
 			
 			if ( !$isGroup )
@@ -259,6 +273,12 @@ class Router
 			return false;
 		}
 		
+		$classMethod = $this->_restApiConfig[ $serverName ][ $uri ][ $requestMethod ];
+		if( is_string($classMethod) )
+		{
+			Response::Write($classMethod);
+			return true;
+		}
 		[ $class, $method ] = $this->_restApiConfig[ $serverName ][ $uri ][ $requestMethod ];
 		Request::SetParams($params, 'REST');
 		( new $class )->$method();

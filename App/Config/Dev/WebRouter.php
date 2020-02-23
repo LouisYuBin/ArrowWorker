@@ -3,7 +3,7 @@
 return [
     'ws.com, web.com, arrow.com' => [
         '/' => [
-            'get'    => 'Admin\\Index@get',
+            'get'    => 'index.html',
             'put'    => 'Admin\\Index@put',
             'post'   => 'Admin\\Index@post',
             'delete' => 'Admin\\Index@delete'

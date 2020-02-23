@@ -3,7 +3,7 @@
 return [
     'api.dugujiujian.com, www.dugujiujian.net, dugujiujian.net, 127.0.0.1' => [
         '/' => [
-            'get'    => 'Admin\\Index@get',
+            'get'    => 'index.html',
             'put'    => 'Admin\\Index@put',
             'post'   => 'Admin\\Index@post',
             'delete' => 'Admin\\Index@delete'

@@ -3,7 +3,7 @@
 return [
     'ws.com, web.com, arrow.com, 127.0.0.1:4433, 127.0.0.1:8081' => [
         '/' => [
-            'get'    => 'Admin\\Index@get',
+            'get'    => 'index.html',
             'put'    => 'Admin\\Index@put',
             'post'   => 'Admin\\Index@post',
             'delete' => 'Admin\\Index@delete'
