@@ -6,6 +6,8 @@
 namespace ArrowWorker\Component\Db;
 
 
+use ArrowWorker\Container;
+
 interface DbInterface
 {
     /**
@@ -19,7 +21,7 @@ interface DbInterface
     const SQL_LOG_NAME = 'Sql';
 
 
-    public function __construct( array $config );
+    public function __construct( Container $container, array $config );
 
     /**
      * @return bool

@@ -8,7 +8,10 @@ return [
     'worker' => [
         [
             'name'        => 'producer',
-            'function'        => 'Demo\\Demo@Demo',
+            'callback'        => [
+	            \App\Controller\Demo\Demo::class,
+	            'Demo'
+            ],
             'argv'            => [ 100 ],
             'processQuantity' => 1,
             'coQuantity'      => 5,
@@ -23,8 +26,11 @@ return [
 
         ],
         [
-            'name'        => 'consumer_1',
-            'function'        => 'Demo\\Demo@channelApp',
+            'name'            => 'consumer_1',
+            'callback'        => [
+            	\App\Controller\Demo\Demo::class,
+	            'channelApp'
+            ],
             'argv'            => [ 100 ],
             'processQuantity' => 2,
             'coQuantity'      => 100,
@@ -39,7 +45,10 @@ return [
         ],
         [
             'name'        => 'consumer_2',
-            'function'        => 'Demo\\Demo@channelArrow',
+            'callback'        => [
+	            \App\Controller\Demo\Demo::class,
+	            'channelArrow'
+            ],
             'argv'            => [ 100 ],
             'processQuantity' => 2,
             'coQuantity'      => 100,
@@ -54,7 +63,10 @@ return [
         ],
         [
             'name'        => 'consumer_3',
-            'function'        => 'Demo\\Demo@channeltest',
+            'callback'        => [
+	            \App\Controller\Demo\Demo::class,
+	            'channeltest'
+            ],
             'argv'            => [ 100 ],
             'processQuantity' => 2,
             'coQuantity'      => 100,

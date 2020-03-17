@@ -5,6 +5,7 @@
 
 namespace ArrowWorker\Component\Db;
 
+use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Config;
 use ArrowWorker\Log;
@@ -34,35 +35,42 @@ class Pool implements ConnPool
      *
      */
     const DEFAULT_DRIVER = 'Mysqli';
-
-    /**
-     * @var array
+	
+	private $drivers = [
+		'REDIS' => Mysqli::class,
+		'PDO' => Pdo::class,
+	];
+	/**
+	 * @var array
+	 */
+	private $pool = [];
+	
+	/**
+	 * @var array
+	 */
+	private $config = [];
+	
+	private $container;
+	
+	private static $instance;
+	
+	public function __construct( Container $container, array $presetConfig, array $userConfig = [] )
+	{
+		self::$instance = $this;
+		$this->container = $container;
+		$this->initConfig( $presetConfig, $userConfig );
+		$this->initPool();
+	}
+	
+	/**
+     * @param array $presetConfig
+     * @param array $userConfig
      */
-    private static $_pool   = [];
-
-    /**
-     * @var array
-     */
-    private static $_configs = [];
-
-    /**
-     * @param array $appAlias
-     * @param array $config
-     */
-    public static function Init(array $appAlias, array $config=[]) : void
+    private function initConfig( array $presetConfig, array $userConfig)
     {
-        self::_initConfig($appAlias, $config);
-        self::_initPool();
-    }
-
-    /**
-     * @param array $appAlias specified keys and pool size
-     * @param array $config
-     */
-    private static function _initConfig( array $appAlias, array $config)
-    {
-        if( count($config)>0 )
+        if( count($userConfig)>0 )
         {
+        	$config = $userConfig;
             goto INIT;
         }
 
@@ -76,7 +84,7 @@ class Pool implements ConnPool
         INIT:
         foreach ( $config as $index => $value )
         {
-            if( !isset($appAlias[$index]) )
+            if( !isset($presetConfig[$index]) )
             {
                 //initialize specified db config only
                 continue ;
@@ -85,7 +93,7 @@ class Pool implements ConnPool
             //ignore incorrect config
             if (
                 !isset( $value['driver'] )   ||
-                !in_array($value['driver'], ['Mysqli', 'Pdo']) ||
+                !isset($this->drivers[strtoupper($value['driver'])]) ||
                 !isset( $value['host'] )     ||
                 !isset( $value['dbName'] )   ||
                 !isset( $value['userName'] ) ||
@@ -97,12 +105,13 @@ class Pool implements ConnPool
                 Log::Dump( __CLASS__.'::'.__FUNCTION__." incorrect configuration. {$index}=> ".json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME );
                 continue;
             }
-
-            $value['poolSize']     = (int)$appAlias[$index]>0 ? $appAlias[$index] : self::DEFAULT_POOL_SIZE;
+	
+	        $value['driver']       = strtoupper($value['driver']);
+            $value['poolSize']     = (int)$presetConfig[$index]>0 ? $presetConfig[$index] : self::DEFAULT_POOL_SIZE;
             $value['connectedNum'] = 0;
 
-            self::$_configs[$index] = $value;
-            self::$_pool[$index]    = SwChan::Init( $value['poolSize'] );
+            $this->config[$index] = $value;
+	        $this->pool[$index]    = $this->container->Make(SwChan::class, [ $this->container, $value['poolSize']]);
         }
     }
 
@@ -110,21 +119,20 @@ class Pool implements ConnPool
     /**
      * initialize connection pool
      */
-    public static function _initPool()
+    public function initPool()
     {
-        foreach (self::$_configs as $index=>$config)
+        foreach ($this->config as $index=>$config)
         {
             for ($i=$config['connectedNum']; $i<$config['poolSize']; $i++)
             {
-                $driver = __NAMESPACE__.'\\'.$config['driver'];
-                $conn = new $driver( $config );
+                $conn = $this->container->Make($this->drivers[$config['driver']], [ $this->container, $config] );
                 if( false===$conn->InitConnection() )
                 {
-                    Log::Dump(__CLASS__.'::'.__FUNCTION__." {$driver}->InitConnection connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
+                    Log::Dump(__CLASS__.'::'.__FUNCTION__." {$config['driver']}->InitConnection connection failed, config : {$index}=>".json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME );
                     continue ;
                 }
-                self::$_configs[$index]['connectedNum']++;
-                self::$_pool[$index]->Push( $conn );
+                $this->config[$index]['connectedNum']++;
+	            $this->pool[$index]->Push( $conn );
             }
         }
     }
@@ -135,42 +143,48 @@ class Pool implements ConnPool
      */
     public static function Get( string $alias = 'default' )
     {
+	    $class   = __CLASS__;
     	$context = Coroutine::GetContext();
-        if( isset($context[__CLASS__][$alias]) )
+        if( isset($context[$class][$alias]) )
         {
-            return $context[__CLASS__][$alias];
+            return $context[$class][$alias];
         }
 
-        if( !isset(self::$_pool[$alias] ) )
-        {
-            return false;
-        }
-
-        $retryTimes = 0;
-        _RETRY:
-        $conn = self::$_pool[$alias]->Pop( 0.2 );
-        if ( false === $conn )
-        {
-            if( self::$_configs[$alias]['connectedNum']<self::$_configs[$alias]['poolSize'] )
-            {
-                self::_initPool();
-            }
-
-            if( $retryTimes<=2 )
-            {
-                $retryTimes++;
-                Log::Dump(__CLASS__.'::'.__FUNCTION__." get connection( {$alias} : {$retryTimes} ) failed, retrying...", Log::TYPE_WARNING, self::MODULE_NAME);
-                goto _RETRY;
-            }
-        }
-	    $context[__CLASS__][$alias] = $conn;
-        return $conn;
+       return self::$instance->getConnection($class, $alias);
+    }
+    
+    private function getConnection(string $class, string $alias)
+    {
+	    if( !isset($this->pool[$alias] ) )
+	    {
+		    return false;
+	    }
+	
+	    $retryTimes = 0;
+	    _RETRY:
+	    $conn = $this->pool[$alias]->Pop( 0.2 );
+	    if ( false === $conn )
+	    {
+		    if( $this->config[$alias]['connectedNum']<$this->config[$alias]['poolSize'] )
+		    {
+			    self::_initPool();
+		    }
+		
+		    if( $retryTimes<=2 )
+		    {
+			    $retryTimes++;
+			    Log::Dump(__CLASS__.'::'.__FUNCTION__." get connection( {$alias} : {$retryTimes} ) failed, retrying...", Log::TYPE_WARNING, self::MODULE_NAME);
+			    goto _RETRY;
+		    }
+	    }
+	    $context[$class][$alias] = $conn;
+	    return $conn;
     }
 
     /**
      * @return void
      */
-    public static function Release() : void
+    public function Release() : void
     {
         $context = Coroutine::GetContext();
         if( !isset($context[__CLASS__]) )
@@ -180,7 +194,7 @@ class Pool implements ConnPool
 
         foreach ( $context[__CLASS__] as $alias=>$connection )
         {
-            self::$_pool[$alias]->Push( $connection );
+            $this->pool[$alias]->Push( $connection );
         }
     }
 

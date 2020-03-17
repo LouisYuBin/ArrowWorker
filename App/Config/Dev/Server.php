@@ -57,7 +57,7 @@ return [
         'isEnableCORS'     => true,
         'documentRoot' => APP_PATH.'/Static/Web',
         '404'          => APP_PATH.'/Static/Web/404.html',
-        'handler'      => [
+        'callback'      => [
             'open'    => 'Demo\\WebSocket::Open',
             'message' => 'Demo\\WebSocket::Message',
             'close'   => 'Demo\\WebSocket::Close'
@@ -97,7 +97,7 @@ return [
         'openEofCheck'      => false,
         'packageEof'        => '\r\n',
         'openEofSplit'      => false,
-        'handler'           => [
+        'callback'           => [
             'connect' => 'Demo\\Tcp::Connect',
             'receive' => 'Demo\\Tcp::Receive',
             'close'   => 'Demo\\Tcp::Close'

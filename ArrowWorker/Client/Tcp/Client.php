@@ -59,7 +59,7 @@ class Client
      * @param float  $timeout
      * @param int    $connTryTimes
      */
-    private function __construct( string $host, int $port, float $timeout, int $connTryTimes = 3 )
+    public function __construct( string $host, int $port, float $timeout, int $connTryTimes = 3 )
     {
         $this->_host    = $host;
         $this->_port    = $port;
@@ -75,7 +75,6 @@ class Client
      */
     public function InitClient( int $connTryTimes = 3 )
     {
-        $connResult    = false;
         $this->_client = new SwClient( SWOOLE_SOCK_TCP );
 
         for ( $i = 0; $i < $connTryTimes; $i++ )

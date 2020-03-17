@@ -7,6 +7,8 @@ namespace ArrowWorker\Server;
 
 
 use ArrowWorker\Component;
+use ArrowWorker\Container;
+use ArrowWorker\Log;
 
 /**
  * Class Server
@@ -38,92 +40,102 @@ class Server
     /**
      * @var string
      */
-    protected $_host = '0.0.0.0';
+    protected $host = '0.0.0.0';
 
     /**
      * @var int
      */
-    protected $_port = 8888;
+    protected $port = 8888;
 
     /**
      * @var int
      */
-    protected $_reactorNum = 2;
+    protected $reactorNum = 2;
 
     /**
      * @var int
      */
-    protected $_workerNum = 1;
+    protected $workerNum = 1;
 
     /**
      * @var bool
      */
-    protected $_enableCoroutine = true;
+    protected $enableCoroutine = true;
 
     /**
      * @var string
      */
-    protected $_user = 'www';
+    protected $user = 'www';
 
     /**
      * @var string
      */
-    protected $_group = 'www';
+    protected $group = 'www';
 
     /**
      * @var int
      */
-    protected $_backlog = 1024000;
+    protected $backlog = 1024000;
 
     /**
      * @var int
      */
-    protected $_mode = SWOOLE_PROCESS;
+    protected $mode = SWOOLE_PROCESS;
 
     /**
      * @var int
      */
-    protected $_maxCoroutine = 1000;
+    protected $maxCoroutine = 1000;
 
     /**
      * @var int
      */
-    protected $_pipeBufferSize = 1024 * 1024 * 100;
+    protected $pipeBufferSize = 1024 * 1024 * 100;
 
     /**
      * @var int
      */
-    protected $_socketBufferSize = 1024 * 1024 * 100;
+    protected $socketBufferSize = 1024 * 1024 * 100;
 
     /**
      * @var int
      */
-    protected $_maxContentLength = 1024 * 1024 * 10;
+    protected $maxContentLength = 1024 * 1024 * 10;
 
     /**
      * @var array
      */
-    protected $_components = [];
+    protected $components = [];
 
     /**
      * @var \Swoole\Http\Server|\Swoole\WebSocket\Server|\Swoole\Server
      */
-    protected $_server;
+    protected $server;
 
 
     /**
      * @var Component
      */
-    protected $_component;
+    protected $component;
     
-    protected $_identity = 0;
+    protected $identity = 0;
+	
+	/**
+	 * @var Container
+	 */
+    protected $container;
+	
+	/**
+	 * @var Log
+	 */
+    protected $logger;
 
     /**
-     * @param string $type
+     * @param int $type
      */
-    protected function _initComponent(int $type)
+    protected function initComponent(int $type)
     {
-        $this->_component = Component::Init($type);
+        $this->_component = $this->container->Make(Component::class, [ $this->container, $this->logger, $type ]);
     }
 
 }

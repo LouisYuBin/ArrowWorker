@@ -11,6 +11,7 @@ declare( strict_types=1 );
 namespace ArrowWorker\Web;
 
 use \Swoole\Http\Request as SwRequest;
+use \Swoole\Http\Response as SwResponse;
 
 use ArrowWorker\Log;
 use ArrowWorker\Library\Coroutine as Co;
@@ -28,17 +29,18 @@ class Request
 	/**
 	 * Init : init request data(post/get/files...)
 	 * @param SwRequest $request
+	 * @param SwResponse $response
 	 */
-	public static function Init( SwRequest $request )
+	public static function Init( SwRequest $request, ?SwResponse $response )
 	{
-		Co::GetContext()[ __CLASS__ ] = $request;
-		self::InitUrlPostParams();
+		$context = Co::GetContext();
+		$context[ self::class ]     = $request;
+		$context[ Response::class ] = $response;
+		self::InitUrlPostParams($request);
 	}
 	
-	private static function InitUrlPostParams()
+	private static function InitUrlPostParams(SwRequest $request)
 	{
-		$request = Co::GetContext()[ __CLASS__ ];
-		
 		if ( !is_null( $request->post ) )
 		{
 			return;
@@ -254,11 +256,6 @@ class Request
 		$context[ 'urlParameters' ] = $params;
 		$context[ 'routerType' ]    = $routeType;
 		self::_logRequest();
-	}
-	
-	public static function Release()
-	{
-	
 	}
 	
 	private static function _logRequest()

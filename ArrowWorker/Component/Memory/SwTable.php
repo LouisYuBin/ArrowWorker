@@ -2,6 +2,7 @@
 
 namespace ArrowWorker\Component\Memory;
 
+use ArrowWorker\Container;
 use ArrowWorker\Log;
 use Swoole\Table;
 
@@ -19,37 +20,41 @@ class SwTable
     /**
      * @var Table
      */
-    private $_table;
+    private $table;
 
     /**
      * @var array
      */
-    private $_structure;
+    private $structure;
 
     /**
      * @var int
      */
-    private $_size = 10;
+    private $size = 10;
+    
+    private $container;
 
     /**
      * SwTable constructor.
+     * @param Container $container
      * @param array $structure
      * @param int   $size
      */
-    public function __construct( array $structure, int $size )
+    public function __construct( Container $container, array $structure, int $size )
     {
-        $this->_structure = $structure;
-        $this->_size      = $size;
+    	$this->container = $container;
+        $this->structure = $structure;
+        $this->size      = $size;
 
-        $this->_table     = new Table( $size );
+	    $this->table = $this->container->Make(Table::class, [$size] );
         foreach ( $structure as $name => $property )
         {
             if ( $property[ 'type' ] == Table::TYPE_FLOAT )
             {
-                $this->_table->column( $name, $property[ 'type' ] );
+                $this->table->column( $name, $property[ 'type' ] );
                 continue;
             }
-            $this->_table->column( $name, $property[ 'type' ], $property[ 'len' ] );
+            $this->table->column( $name, $property[ 'type' ], $property[ 'len' ] );
         }
     }
 
@@ -58,10 +63,10 @@ class SwTable
      */
     public function Create() : bool
     {
-        if ( !$this->_table->create() )
+        if ( !$this->table->create() )
         {
             Log::Error( 'create memory table failed, config is : {config}', [
-            	'config'=> json_encode( $this->_structure )
+            	'config'=> json_encode( $this->structure )
             ],  self::LOG_NAME );
             return false;
         }
@@ -74,7 +79,7 @@ class SwTable
      */
     public function Read( string $key )
     {
-        return $this->_table->get( $key );
+        return $this->table->get( $key );
     }
 
     /**
@@ -83,7 +88,7 @@ class SwTable
     public function ReadAll()
     {
         $list     = [];
-        $instance = $this->_table;
+        $instance = $this->table;
         foreach ( $instance as $key => $value )
         {
             $list[ $key ] = $value;
@@ -98,7 +103,7 @@ class SwTable
      */
     public function Write( string $key, array $value ) : bool
     {
-        return $this->_table->set( $key, $value );
+        return $this->table->set( $key, $value );
     }
 
     /**
@@ -107,7 +112,7 @@ class SwTable
      */
     public function IsKeyExists( string $key ) : bool
     {
-        return $this->_table->exist( $key );
+        return $this->table->exist( $key );
     }
 
     /**
@@ -115,7 +120,7 @@ class SwTable
      */
     public function Count() : int
     {
-        return $this->_table->count();
+        return $this->table->count();
     }
 
 
@@ -125,7 +130,7 @@ class SwTable
      */
     public function Delete( string $key ) : bool
     {
-        return $this->_table->del( $key );
+        return $this->table->del( $key );
     }
 
 
@@ -137,7 +142,7 @@ class SwTable
      */
     public function Incr( string $key, string $column, int $incrby = 1)
     {
-        return $this->_table->incr( $key, $column, $incrby );
+        return $this->table->incr( $key, $column, $incrby );
     }
 
 
@@ -149,7 +154,7 @@ class SwTable
      */
     public function Decr( string $key, string $column, int $decrby = 1)
     {
-        return $this->_table->decr( $key, $column, $decrby );
+        return $this->table->decr( $key, $column, $decrby );
     }
 
     /**
@@ -157,7 +162,7 @@ class SwTable
      */
     public function GetMemorySize()
     {
-        return $this->_table->getMemorySize();
+        return $this->table->getMemorySize();
     }
 
 }

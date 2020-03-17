@@ -2,7 +2,7 @@
 
 namespace ArrowWorker\Component\Db;
 
-class SqlBuilder
+class Query
 {
 
     private $alias = 'default';
@@ -53,16 +53,20 @@ class SqlBuilder
     private $forUpdate = "";
 
     /**
-     * SqlBuilder constructor.
-     * @param string $alias
+     * @param string $dbAlias
      */
-    public function __construct( string $alias = 'default' )
+    public function __construct( string $dbAlias = 'default' )
     {
-        $this->alias  = $alias;
+        $this->alias  = $dbAlias;
     }
 
+    public static function Table(string $table, string $dbAlias='default')
+    {
+    	return (new self($dbAlias))->setTable($table);
+    }
+    
     /**
-     * @return \ArrowWorker\Component\Db\Mysqli
+     * @return Mysqli|Pdo|false
      */
     private function _getDb()
     {
@@ -85,7 +89,7 @@ class SqlBuilder
      * @param string $table
      * @return $this
      */
-    public function Table( string $table )
+    public function setTable( string $table )
     {
         $this->table = $table;
         return $this;

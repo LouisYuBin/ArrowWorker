@@ -8,23 +8,44 @@ namespace ArrowWorker;
  */
 class Container
 {
+	private static $instance;
 	
-	private $entries = [];
+	private $alias = [];
 	
-	public function Has(string $name)
+	public function __construct()
 	{
-		return isset($this->entries[$name]);
+		self::$instance = $this;
 	}
 	
-	public function Get(string $name)
+	public function Has( string $name )
 	{
-		return $this->entries[$name];
+		return isset( $this->alias[ $name ] );
 	}
 	
-	public function Set(string $name, $value)
+	public function Get( string $name, array $parameters = [] )
 	{
-		$this->entries[$name] = $value;
+		if ( isset( $this->alias[ $name ] ) )
+		{
+			return $this->alias[ $name ];
+		}
+		$this->alias[ $name ] = $instance = $this->Make( $name, $parameters );
+		return $instance;
 	}
 	
+	public function Set( string $name, $value )
+	{
+		$this->alias[ $name ] = $value;
+		return $value;
+	}
+	
+	public function Make( string $class, array $parameters = [] )
+	{
+		return class_exists( $class ) ? new $class( ...$parameters ) : false;
+	}
+	
+	public static function GetInstance()
+	{
+		return self::$instance;
+	}
 	
 }

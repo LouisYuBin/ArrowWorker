@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Container;
 use ArrowWorker\Library\Process;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
@@ -32,191 +33,195 @@ class Http extends ServerPattern
     /**
      * @var string
      */
-    private $_404 = '';
+    private $page404 = '';
 
     /**
      * @var bool
      */
-    private $_isEnableStatic = true;
+    private $isEnableStatic = true;
 
     /**
      * @var string
      */
-    private $_documentRoot = '';
+    private $documentRoot = '';
 
     /**
      * @var string
      */
-    private $_sslCertFile = '';
+    private $sslCertFile = '';
 
     /**
      * @var string
      */
-    private $_sslKeyFile = '';
+    private $sslKeyFile = '';
 
     /**
      * @var int
      */
-    private $_maxRequest = 10000;
+    private $maxRequest = 10000;
 
     /**
      * @var bool
      */
-    private $_isEnableCORS = true;
+    private $isEnableCORS = true;
 
     /**
      * @var bool
      */
-    private $_isEnableHttp2 = false;
+    private $isEnableHttp2 = false;
 
     /**
      * @var Router
      */
-    private $_router;
+    private $router;
 
     /**
-     * @param array $config
+     * @return void
      */
-    public static function Start( array $config )
+    public function Start()
     {
-        $server = new self( $config );
-        $server->_initServer();
-        $server->_initComponent(App::TYPE_HTTP);
-        $server->_initRouter();
-        $server->_setConfig();
-        $server->_onStart();
-        $server->_onWorkerStart();
-        $server->_onRequest();
-        $server->_start();
+        $this->initServer();
+	    $this->initComponent(App::TYPE_HTTP);
+	    $this->initRouter();
+	    $this->setConfig();
+	    $this->onStart();
+	    $this->onWorkerStart();
+	    $this->onRequest();
+	    $this->startServer();
     }
 
     /**
      * Http constructor.
+     * @param Container $container
+     * @param Log $logger
      * @param array $config
      */
-    private function __construct( array $config )
+    public function __construct( Container $container, Log $logger, array $config )
     {
-        $this->_port            = $config[ 'port' ] ?? 8080;
-        $this->_mode            = $config['mode'] ?? SWOOLE_PROCESS;
-        $this->_reactorNum      = $config[ 'reactorNum' ] ?? 2;
-        $this->_workerNum       = $config[ 'workerNum' ] ?? 2;
-        $this->_enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
-        $this->_404             = $config[ '404' ] ?? '';
-        $this->_user            = $config[ 'user' ] ?? 'root';
-        $this->_group           = $config[ 'group' ] ?? 'root';
-        $this->_backlog         = $config[ 'backlog ' ] ?? 1024 * 100;
-        $this->_isEnableStatic  = $config[ 'isEnableStatic' ] ?? false;
-        $this->_documentRoot    = $config[ 'documentRoot' ] ?? '';
-        $this->_sslCertFile     = $config[ 'sslCertFile' ] ?? '';
-        $this->_sslKeyFile      = $config[ 'sslKeyFile' ] ?? '';
-        $this->_maxRequest      = $config[ 'maxRequest' ] ?? 1000;
-        $this->_maxCoroutine    = $config[ 'maxCoroutine' ] ?? 1000;
-        $this->_isEnableCORS    = $config[ 'isEnableCORS' ] ?? true;;
-        $this->_isEnableHttp2   = $config[ 'isEnableHttp2' ] ?? false;;
-        $this->_pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
-        $this->_components       = $config[ 'components' ] ?? [];
-        $this->_identity         = $config['identity'];
+    	$this->container = $container;
+    	$this->logger    = $logger;
+    	
+        $this->port            = $config[ 'port' ] ?? 8080;
+        $this->mode            = $config['mode'] ?? SWOOLE_PROCESS;
+        $this->reactorNum      = $config[ 'reactorNum' ] ?? 2;
+        $this->workerNum       = $config[ 'workerNum' ] ?? 2;
+        $this->enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
+        $this->page404             = $config[ '404' ] ?? '';
+        $this->user            = $config[ 'user' ] ?? 'root';
+        $this->group           = $config[ 'group' ] ?? 'root';
+        $this->backlog         = $config[ 'backlog ' ] ?? 1024 * 100;
+        $this->isEnableStatic  = $config[ 'isEnableStatic' ] ?? false;
+        $this->documentRoot    = $config[ 'documentRoot' ] ?? '';
+        $this->sslCertFile     = $config[ 'sslCertFile' ] ?? '';
+        $this->sslKeyFile      = $config[ 'sslKeyFile' ] ?? '';
+        $this->maxRequest      = $config[ 'maxRequest' ] ?? 1000;
+        $this->maxCoroutine    = $config[ 'maxCoroutine' ] ?? 1000;
+        $this->isEnableCORS    = $config[ 'isEnableCORS' ] ?? true;;
+        $this->isEnableHttp2   = $config[ 'isEnableHttp2' ] ?? false;;
+        $this->pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
+        $this->components       = $config[ 'components' ] ?? [];
+        $this->identity         = $config['identity'];
     }
 
-    private function _start()
+    private function startServer()
     {
-        $this->_server->start();
+        $this->server->start();
     }
 
-    private function _initServer()
+    private function initServer()
     {
-        if ( !file_exists( $this->_sslCertFile ) || !file_exists( $this->_sslKeyFile ) )
+        if ( !file_exists( $this->sslCertFile ) || !file_exists( $this->sslKeyFile ) )
         {
-            $this->_sslCertFile = '';
-            $this->_sslKeyFile  = '';
+            $this->sslCertFile = '';
+            $this->sslKeyFile  = '';
         }
 
-        $this->_server = new Server(
-            $this->_host,
-            $this->_port,
-            $this->_mode,
-            $this->_isSsl() ? SWOOLE_SOCK_TCP | SWOOLE_SSL : SWOOLE_SOCK_TCP
+        $this->server = new Server(
+            $this->host,
+            $this->port,
+            $this->mode,
+            $this->isSsl() ? SWOOLE_SOCK_TCP | SWOOLE_SSL : SWOOLE_SOCK_TCP
         );
     }
 
-    private function _initRouter()
+    private function initRouter()
     {
-        $this->_router = Router::Init( $this->_404 );
+        $this->router = $this->container->Make(Router::class, [$this->page404] );
     }
 
     /**
      * @return bool
      */
-    private function _isSsl()
+    private function isSsl()
     {
-        if ( !file_exists( $this->_sslCertFile ) || !file_exists( $this->_sslKeyFile ) )
+        if ( !file_exists( $this->sslCertFile ) || !file_exists( $this->sslKeyFile ) )
         {
             return false;
         }
         return true;
     }
 
-    private function _onStart()
+    private function onStart()
     {
-        $this->_server->on( 'start', function ( $server )
+        $this->server->on( 'start', function ( $server )
         {
-	        Process::SetName("{$this->_identity}_Http:{$this->_port} Manager");
-            Log::Dump( "listening at port {$this->_port}",Log::TYPE_DEBUG, self::MODULE_NAME );
+	        Process::SetName("{$this->identity}_Http:{$this->port} Manager");
+            Log::Dump( "listening at port {$this->port}",Log::TYPE_DEBUG, self::MODULE_NAME );
         } );
     }
 
-    private function _onWorkerStart()
+    private function onWorkerStart()
     {
-        $this->_server->on( 'WorkerStart', function ()
+        $this->server->on( 'WorkerStart', function ()
         {
-        	Process::SetName("{$this->_identity}_Http:{$this->_port} Worker");
-            $this->_component->InitWebWorkerStart( $this->_components, (bool)$this->_isEnableCORS );
+        	Process::SetName("{$this->identity}_Http:{$this->port} Worker");
+            $this->component->InitWebWorkerStart( $this->components, (bool)$this->isEnableCORS );
         } );
     }
 
-    private function _onRequest()
+    private function onRequest()
     {
-        $this->_server->on( 'request', function ( SwRequest $request, SwResponse $response )
+        $this->server->on( 'request', function ( SwRequest $request, SwResponse $response )
         {
-            $this->_component->InitWebRequest( $request, $response );
-            $this->_router->Go();
-            $this->_component->Release();
+            $this->component->InitRequest( $request, $response );
+            $this->router->Go();
+            $this->component->Release();
         } );
     }
 
-    private function _setConfig()
+    private function setConfig()
     {
         $options = [
-            'worker_num'          => $this->_workerNum,
+            'worker_num'          => $this->workerNum,
             'daemonize'           => false,
-            'backlog'             => $this->_backlog,
-            'user'                => $this->_user,
-            'group'               => $this->_group,
-            'package_max_length'  => $this->_maxContentLength,
-            'reactor_num'         => $this->_reactorNum,
-            'pipe_buffer_size'    => $this->_pipeBufferSize,
-            'socket_buffer_size'  => $this->_socketBufferSize,
-            'max_request'         => $this->_maxRequest,
-            'enable_coroutine'    => $this->_enableCoroutine,
-            'max_coroutine'       => $this->_maxCoroutine,
-            'log_file'            => Log::GetStdOutFilePath(),
-            'mode'                => $this->_mode,
-            'open_http2_protocol' => $this->_isEnableHttp2,
-            'ssl_cert_file'       => $this->_sslCertFile,
-            'ssl_key_file'        => $this->_sslKeyFile,
+            'backlog'             => $this->backlog,
+            'user'                => $this->user,
+            'group'               => $this->group,
+            'package_max_length'  => $this->maxContentLength,
+            'reactor_num'         => $this->reactorNum,
+            'pipe_buffer_size'    => $this->pipeBufferSize,
+            'socket_buffer_size'  => $this->socketBufferSize,
+            'max_request'         => $this->maxRequest,
+            'enable_coroutine'    => $this->enableCoroutine,
+            'max_coroutine'       => $this->maxCoroutine,
+            'log_file'            => $this->logger->GetStdOutFilePath(),
+            'mode'                => $this->mode,
+            'open_http2_protocol' => $this->isEnableHttp2,
+            'ssl_cert_file'       => $this->sslCertFile,
+            'ssl_key_file'        => $this->sslKeyFile,
             'hook_flags'          => SWOOLE_HOOK_ALL
         ];
 
 
-        if ( $this->_isEnableStatic && file_exists( $this->_documentRoot ) )
+        if ( $this->isEnableStatic && file_exists( $this->documentRoot ) )
         {
-            $options[ 'enable_static_handler' ] = $this->_isEnableStatic;
-            $options[ 'document_root' ]         = $this->_documentRoot;
+            $options[ 'enable_static_handler' ] = $this->isEnableStatic;
+            $options[ 'document_root' ]         = $this->documentRoot;
         }
 
-        $this->_server->set( $options );
+        $this->server->set( $options );
     }
 
 }

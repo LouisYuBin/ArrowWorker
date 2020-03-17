@@ -18,11 +18,6 @@ class Config
 	const MODULE_NAME = 'Config';
 	
 	const EXT = '.php';
-
-    /**
-     * @var Config
-     */
-    private static $instance;
 	
 	/**
 	 * @var string
@@ -39,30 +34,25 @@ class Config
      * @var array
      */
     private $config = [];
+    
+    private static $instance;
 	
 	
 	/**
 	 * Config constructor.
 	 * @param string $env
 	 */
-	private function __construct( string $env)
+	public function __construct( string $env)
     {
-        $this->env  = in_array( $env, [
+	    $this->env  = in_array( $env, [
             self::ENV_DEV,
             self::ENV_TEST,
             self::ENV_PRODUCTION,
         ] ) ? $env : self::ENV_DEV;
         $this->path = $this->path . $this->env . DIRECTORY_SEPARATOR;
+        self::$instance = $this;
     }
-
-
-    /**
-     * @param string $env
-     */
-    public static function Init( string $env)
-    {
-        self::$instance = new self($env);
-    }
+    
 
     /**
      * @param string $name
@@ -82,6 +72,14 @@ class Config
     {
 	    self::$instance->_set($name, $value);
 	    return $value;
+    }
+    
+    /**
+     * @return Config
+     */
+    public static function GetInstance()
+    {
+    	return self::$instance;
     }
 
     /**

@@ -55,7 +55,7 @@ class Client
      * @param string $uri
      * @param bool   $isSsl
      */
-    private function __construct( string $host, int $port = 80, string $uri='/', bool $isSsl = false )
+    public function __construct( string $host, int $port = 80, string $uri='/', bool $isSsl = false )
     {
         $this->_host  = $host;
         $this->_port  = $port;

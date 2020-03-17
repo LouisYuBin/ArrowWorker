@@ -18,7 +18,7 @@ class Queue
     private $_chanFileDir = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.DIRECTORY_SEPARATOR.'Chan/';
 
 
-    private function __construct(array $config, string $name)
+    public function __construct(array $config, string $name)
     {
         $this->_config = $config;
         $chanFile = $this->_chanFileDir.$name.'.chan';

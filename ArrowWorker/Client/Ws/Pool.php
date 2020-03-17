@@ -6,6 +6,7 @@
 namespace ArrowWorker\Client\Ws;
 
 use ArrowWorker\Config;
+use ArrowWorker\Container;
 use ArrowWorker\PoolInterface as ConnPool;
 use ArrowWorker\Log;
 use ArrowWorker\Library\Coroutine;
@@ -23,32 +24,34 @@ class Pool implements ConnPool
 	/**
 	 * @var array
 	 */
-	private static $_pool = [];
+	private $pool = [];
 	
 	/**
 	 * @var array
 	 */
-	private static $_configs = [];
+	private $config = [];
 	
+	private $container;
 	
-	/**
-	 * @param array $appAlias
-	 * @param array $config
-	 */
-	public static function Init( array $appAlias, array $config = [] ) : void
+	private static $instance;
+	
+	public function __construct( Container $container, array $presetConfig, array $userConfig=[])
 	{
-		self::_initConfig( $appAlias, $config );
-		self::InitPool();
+		self::$instance = $this;
+		$this->container = $container;
+		$this->initConfig($presetConfig, $userConfig);
+		$this->initPool();
 	}
 	
 	/**
-	 * @param array $appAlias specified keys and pool size
-	 * @param array $config
+	 * @param array $presetConfig specified keys and pool size
+	 * @param array $userConfig
 	 */
-	private static function _initConfig( array $appAlias, array $config )
+	private function initConfig( array $presetConfig, array $userConfig=[] )
 	{
-		if ( count( $config ) > 0 )
+		if ( count( $userConfig ) > 0 )
 		{
+			$config = $userConfig;
 			goto INIT;
 		}
 		
@@ -62,7 +65,7 @@ class Pool implements ConnPool
 		INIT:
 		foreach ( $config as $index => $value )
 		{
-			if ( !isset( $appAlias[ $index ] ) )
+			if ( !isset( $presetConfig[ $index ] ) )
 			{
 				continue;
 			}
@@ -79,11 +82,11 @@ class Pool implements ConnPool
 				continue;
 			}
 			
-			$value[ 'poolSize' ]     = (int)$appAlias[ $index ] > 0 ? $appAlias[ $index ] : self::DEFAULT_POOL_SIZE;
+			$value[ 'poolSize' ]     = (int)$presetConfig[ $index ] > 0 ? $presetConfig[ $index ] : self::DEFAULT_POOL_SIZE;
 			$value[ 'connectedNum' ] = 0;
 			
-			self::$_configs[ $index ] = $value;
-			self::$_pool[ $index ]    = SwChan::Init( $value[ 'poolSize' ] );
+			$this->config[ $index ] = $value;
+			$this->pool[ $index ]   = $this->container->Make(SwChan::class, [ $this->container, $value[ 'poolSize' ]] );
 		}
 	}
 	
@@ -91,9 +94,9 @@ class Pool implements ConnPool
 	/**
 	 * initialize connection pool
 	 */
-	public static function InitPool()
+	public function InitPool()
 	{
-		foreach ( self::$_configs as $index => $config )
+		foreach ( $this->config as $index => $config )
 		{
 			for ( $i = $config[ 'connectedNum' ]; $i < $config[ 'poolSize' ]; $i++ )
 			{
@@ -105,8 +108,8 @@ class Pool implements ConnPool
 					           json_encode( $config ), Log::TYPE_WARNING, self::MODULE_NAME );
 					continue;
 				}
-				self::$_configs[ $index ][ 'connectedNum' ]++;
-				self::$_pool[ $index ]->Push( $wsClient );
+				$this->config[ $index ][ 'connectedNum' ]++;
+				$this->pool[ $index ]->Push( $wsClient );
 			}
 		}
 	}
@@ -117,25 +120,31 @@ class Pool implements ConnPool
 	 */
 	public static function Get( $alias = 'default' )
 	{
+		$class = __CLASS__;
 		$context = Coroutine::GetContext();
-		if ( isset( $context[ __CLASS__ ][ $alias ] ) )
+		if ( isset( $context[ $class ][ $alias ] ) )
 		{
-			return $context[ __CLASS__ ][ $alias ];
+			return $context[ $class ][ $alias ];
 		}
 		
-		if ( !isset( self::$_pool[ $alias ] ) )
+		return self::$instance->getConnection($class, $alias);
+	}
+	
+	private function getConnection(string $class, string $alias)
+	{
+		if ( !isset( $pool->pool[ $alias ] ) )
 		{
 			return false;
 		}
 		
 		$retryTimes = 0;
 		_RETRY:
-		$conn = self::$_pool[ $alias ]->Pop( 0.2 );
+		$conn = $this->pool[ $alias ]->Pop( 0.2 );
 		if ( false === $conn )
 		{
-			if ( self::$_configs[ $alias ][ 'connectedNum' ] < self::$_configs[ $alias ][ 'poolSize' ] )
+			if ( $this->config[ $alias ][ 'connectedNum' ] < $this->config[ $alias ][ 'poolSize' ] )
 			{
-				self::InitPool();
+				$this->InitPool();
 			}
 			
 			if ( $retryTimes <= 2 )
@@ -148,24 +157,25 @@ class Pool implements ConnPool
 				goto _RETRY;
 			}
 		}
-		$context[ __CLASS__ ][ $alias ] = $conn;
+		$context[ $class ][ $alias ] = $conn;
 		return $conn;
 	}
 	
 	/**
 	 * @return void
 	 */
-	public static function Release() : void
+	public function Release() : void
 	{
+		$class = __CLASS__;
 		$context = Coroutine::GetContext();
-		if ( !isset( $context[ __CLASS__ ] ) )
+		if ( !isset( $context[ $class ] ) )
 		{
 			return;
 		}
 		
-		foreach ( $context[ __CLASS__ ] as $alias => $connection )
+		foreach ( $context[ $class ] as $alias => $connection )
 		{
-			self::$_pool[ $alias ]->Push( $connection );
+			$this->pool[ $alias ]->Push( $connection );
 		}
 	}
 	

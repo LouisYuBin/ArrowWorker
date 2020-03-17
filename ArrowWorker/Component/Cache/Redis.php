@@ -2,6 +2,7 @@
 
 namespace ArrowWorker\Component\Cache;
 
+use ArrowWorker\Container;
 use ArrowWorker\Log;
 
 class Redis implements CacheInterface
@@ -17,14 +18,18 @@ class Redis implements CacheInterface
     /**
      * @var array
      */
-    private $_config = [];
+    private $config = [];
+    
+    private $container;
 
     /**
+     * @param Container $container
      * @param array $config
      */
-    public function __construct( array $config )
+    public function __construct( Container $container, array $config )
     {
-        $this->_config = $config;
+        $this->config = $config;
+        $this->container = $container;
     }
 
     /**
@@ -32,42 +37,33 @@ class Redis implements CacheInterface
      */
     public function InitConnection() : bool
     {
-        @$this->_conn = new \Redis();
+        @$this->_conn = $this->container->Make( \Redis::class, []);
 
         try
         {
-            if ( false === @$this->_conn->connect( $this->_config['host'], $this->_config['port'] ) )
+            if ( false === @$this->_conn->connect( $this->config['host'], $this->config['port'] ) )
             {
-                Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->_config),Log::TYPE_WARNING, self::MODULE_NAME );
+                Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->config),Log::TYPE_WARNING, self::MODULE_NAME );
                 return false;
             }
         }
         catch (\RedisException $e)
         {
-            Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->_config), Log::TYPE_WARNING, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->config), Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
 
-        if( ''==$this->_config['password'] )
+        if( ''==$this->config['password'] )
         {
             return true;
         }
 
-        if( !$this->_conn->auth( $this->_config['password'] ) )
+        if( !$this->_conn->auth( $this->config['password'] ) )
         {
             return false;
         }
 
         return true;
-    }
-
-    /**
-     * @param array $config
-     * @return Redis
-     */
-    public static function Init( array $config)
-    {
-        return new self($config);
     }
 
 	/**

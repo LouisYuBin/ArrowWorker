@@ -23,7 +23,7 @@ class Upload
     /**
      * default configuraion
      */
-    private static $_config =[
+    private static $config =[
         'savePath'  => APP_PATH.'/Runtime/Upload/',
         'extension' => [
             'jpg',
@@ -69,7 +69,7 @@ class Upload
         {
             Log::Warning("Config::Get('Upload') failed");
         }
-        self::$_config = array_merge(self::$_config, $config);
+        self::$config = array_merge(self::$config, $config);
     }
 
     /**
@@ -80,7 +80,7 @@ class Upload
     {
         return in_array(
             $this->GetExt(),
-            self::$_config['extension'] );
+            self::$config['extension'] );
     }
 
     /**
@@ -168,7 +168,7 @@ class Upload
         {
             $this->_newFileName = dechex(Coroutine::Id()).dechex(time()).dechex(mt_rand(100,999));
         }
-        $savePath = empty($savePath) ? self::$_config['savePath'] : $savePath;
+        $savePath = empty($savePath) ? self::$config['savePath'] : $savePath;
 
         return move_uploaded_file( $this->_file['tmp_name'], $savePath.$this->_newFileName.'.'.$this->_extension);
     }

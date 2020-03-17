@@ -26,12 +26,21 @@ class Memory
 	];
 	
 	/**
+	 * @var $container Container
+	 */
+	private $container;
+	
+	/**
 	 * @var array
 	 */
-	private static $_table = [];
+	private $tables = [];
 	
-	public static function Init()
+	private static $instance;
+	
+	public function __construct( Container $container )
 	{
+		self::$instance = $this;
+		$this->container = $container;
 		$table = Config::Get( self::CONFIG_NAME );
 		foreach ( $table as $name => $definition )
 		{
@@ -49,15 +58,19 @@ class Memory
 				continue;
 			}
 			
-			$structure = self::_parseTableColumn( $definition[ 'column' ] );
+			$structure = $this->parseTableColumn( $definition[ 'column' ] );
 			if ( count( $structure ) == 0 )
 			{
 				continue;
 			}
-			$swTable = new SwTable( $structure, $definition[ 'size' ] );
+			
+			/**
+			 * @var $swTable SwTable
+			 */
+			$swTable = $this->container->Make(SwTable::class,[ $this->container, $structure, $definition[ 'size' ] ]);
 			if ( $swTable->Create() )
 			{
-				self::$_table[ $name ] = $swTable;
+				$this->tables[ $name ] = $swTable;
 			}
 		}
 	}
@@ -66,7 +79,7 @@ class Memory
 	 * @param array $columns
 	 * @return array
 	 */
-	private static function _parseTableColumn( array $columns ) : array
+	private function parseTableColumn( array $columns ) : array
 	{
 		$structure = [];
 		foreach ( $columns as $name => $type )
@@ -83,13 +96,14 @@ class Memory
 	
 	/**
 	 * @param string $name
-	 * @return bool|SwTable
+	 * @return false|SwTable
 	 */
 	public static function Get( string $name )
 	{
-		if ( isset( self::$_table[ $name ] ) )
+		$memory = self::$instance;
+		if ( isset( $memory->tables[ $name ] ) )
 		{
-			return self::$_table[ $name ];
+			return $memory->tables[ $name ];
 		}
 		return false;
 	}

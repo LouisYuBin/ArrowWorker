@@ -5,9 +5,17 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Web\Upload;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
+
+use ArrowWorker\Component\Cache\Pool as CachePool ;
+use ArrowWorker\Component\Db\Pool as DbPool ;
+
+use \ArrowWorker\Client\Tcp\Pool as TcpPool;
+use \ArrowWorker\Client\Ws\Pool as WsPool;
+use \ArrowWorker\Client\Http\Pool as HttpPool;
 
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
@@ -19,80 +27,57 @@ use ArrowWorker\Web\Session;
  */
 class Component
 {
-    /**
-     *
-     */
-    const WEB_COMPONENTS = [
-        '\ArrowWorker\Web\Request',
-        '\ArrowWorker\Web\Response',
-    ];
 
     /**
      *
      */
-    const BASE_COMPONENTS = [
-        '\ArrowWorker\Log',
-        '\ArrowWorker\Library\Coroutine',
-    ];
-
-    /**
-     *
-     */
-    const POOL_ALIAS = [
-        'DB'           => '\ArrowWorker\Db',
-        'CACHE'        => '\ArrowWorker\Cache',
-        'TCP_CLIENT'   => '\ArrowWorker\Client\Tcp\Pool',
-        'WS_CLIENT'    => '\ArrowWorker\Client\Ws\Pool',
-        'HTTP2_CLIENT' => '\ArrowWorker\Client\Http\Pool',
+    private $poolAlias = [
+        'DB'           => DbPool::class,
+        'CACHE'        => CachePool::class,
+        'TCP_CLIENT'   => TcpPool::class,
+        'WS_CLIENT'    => WsPool::class,
+        'HTTP2_CLIENT' => HttpPool::class,
     ];
 
     /**
      * @var array
      */
-    private $_components = [];
+    private $components = [];
+	
+	/**
+	 * @var Container $container
+	 */
+    private $container;
+	
+	/**
+	 * @var Log $logger
+	 */
+    private $logger;
 
-    public static function Init(int $type)
+    public function __construct(Container $container, Log $logger, int $type)
     {
-        return new self($type);
+    	$this->container  = $container;
+    	$this->logger     = $logger;
     }
 
-    private function __construct(int $type)
+    public function Init()
     {
-        $this->_components = !in_array( $type, [
-                                            App::TYPE_HTTP,
-                                            App::TYPE_WEBSOCKET,
-                                        ] ) ?
-                            self::BASE_COMPONENTS :
-                            array_merge(self::WEB_COMPONENTS, self::BASE_COMPONENTS );
+        $this->logger->Init();
+        Coroutine::Init();
     }
 
-    public function InitCommon()
+    public function InitRequest( SwRequest $request, ?SwResponse $response )
     {
-        foreach ( self::BASE_COMPONENTS as $component )
-        {
-            $component::Init();
-        }
-    }
-
-    public function InitWebRequest( SwRequest $request, SwResponse $response )
-    {
-        $this->InitCommon();
-        Request::Init( $request );
-        Response::Init( $response );
+        $this->Init();
+        Request::Init( $request, $response );
     }
 
     public function InitWebWorkerStart(array $components, bool $isEnableCORS)
     {
-        Session::Init();
-        Upload::Init();
+        $this->container->Get(Session::class, [ $this->container ]);
         $this->InitPool($components);
-        Response::SetCORS( $isEnableCORS );
-    }
-
-    public function InitOpen( SwRequest $request )
-    {
-        $this->InitCommon();
-        Request::Init( $request );
+	    Upload::Init();
+	    Response::SetCORS( $isEnableCORS );
     }
 
     /**
@@ -100,23 +85,25 @@ class Component
      */
     public function InitPool( array $components )
     {
-        Log::Init();
+        $this->logger->Init();
         foreach ( $components as $key => $config )
         {
-            $component = self::POOL_ALIAS[strtoupper( $key )] ?? '';
+            $component = $this->poolAlias[strtoupper( $key )] ?? '';
             if ( '' !== $component )
             {
-                $component::Init( $config );
-                $this->_components[] = $component;
+                $this->components[] = [
+                	'name'     => $component,
+	                'instance' => $this->container->Get($component,[ $this->container, $config ])
+                ];
             }
         }
     }
 
     public function Release()
     {
-        foreach ( $this->_components as $component )
+        foreach ( $this->components as $component )
         {
-            $component::Release();
+	        $component['instance']->Release();
         }
     }
 

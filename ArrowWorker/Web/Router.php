@@ -40,18 +40,8 @@ class Router
 	 */
 	private $_404 = 'page not found(该页面不存在).';
 	
-	/**
-	 * @param string $_404
-	 * @return self
-	 */
-	public static function Init( string $_404 ) : self
+	public function __construct( string $_404 )
 	{
-		return new self( $_404 );
-	}
-	
-	private function __construct( string $_404 )
-	{
-		$this->_controller = App::GetController();
 		$this->_loadRestConfig();
 		$this->_buildRestPattern();
 		$this->_init404( $_404 );
@@ -97,7 +87,7 @@ class Router
 			}
 			
 			$isGroup = true;
-			foreach ( $alias as $requestMethod => $function )
+			foreach ( $alias as $requestMethod => $classMethod )
 			{
 				$requestMethod = strtoupper( $requestMethod );
 				if ( !in_array( $requestMethod, [
@@ -110,19 +100,24 @@ class Router
 					continue;
 				}
 				
-				$classMethod = explode( '@', $function );
-				
-				if( count($classMethod)<2 )
+				//route to file
+				if( is_string($classMethod) )
 				{
-					if( file_exists($function) )
+					if( !file_exists($classMethod) )
 					{
-						$restAlias[ $uri ][ $requestMethod ] = file_get_contents($function);
+						continue;
 					}
+					$restAlias[ $uri ][ $requestMethod ] = file_get_contents($classMethod);
+					
+				}
+				
+				//wrong route setting
+				if( !is_array($classMethod) || count($classMethod) <2  )
+				{
 					continue;
 				}
 				
 				list( $class, $method ) = $classMethod;
-				$class = $this->_controller . $class;
 				[ $controller, $errorMsg ] = $this->checkClassMethod( $class, $method );
 				if ( !empty( $errorMsg ) )
 				{

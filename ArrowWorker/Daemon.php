@@ -8,6 +8,7 @@ use ArrowWorker\Server\Tcp;
 use ArrowWorker\Server\Http;
 use ArrowWorker\Server\Ws;
 use ArrowWorker\Server\Udp;
+use ArrowWorker\Component\Worker\Arrow as Worker;
 
 /**
  * Class Daemon : demonize process
@@ -83,6 +84,23 @@ class Daemon
 	private static $_isDebug = false;
 	
 	private static $_application = [];
+
+	private $serverClassAlias = [
+		self::PROCESS_HTTP => Http::class,
+		self::PROCESS_WEBSOCKET => Ws::class,
+		self::PROCESS_TCP => Tcp::class,
+		self::PROCESS_UDP => Udp::class
+	];
+	
+	/**
+	 * @var $container Container
+	 */
+	private $container;
+	
+	/**
+	 * @var $logger Log
+	 */
+	private $logger;
 	
 	
 	/**
@@ -98,34 +116,32 @@ class Daemon
 	private $_terminate = false;
 	
 	
-	public function __construct()
-	{
-		$this->_changeWorkDirectory();
-		$this->_createPidFile();
-		$this->_setProcessName( "started at " . date( "Y-m-d H:i:s" ) );
-	}
-	
-	public static function Start( string $application, bool $isDebug = false )
+	public function __construct(Container $container, string $application, bool $isDebug = false)
 	{
 		set_time_limit( 0 );
-		self::_initParameter( $application, $isDebug );
-		self::_initFunction();
-		self::_demonize();
-		
-		$daemon = new self();
-		$daemon->_initComponent();
-		$daemon->_setSignalHandler();
-		$daemon->_startProcess();
-		$daemon->_startMonitor();
+		$this->container = $container;
+		$this->initParameter( $application, $isDebug );
+		$this->initFunction();
 	}
 	
+	public function Start()
+	{
+		$this->changeWorkDirectory();
+		$this->demonize();
+		$this->createPidFile();
+		$this->setProcessName( "started at " . date( "Y-m-d H:i:s" ) );
+		$this->initComponent();
+		$this->setSignalHandler();
+		$this->startProcess();
+		$this->startMonitor();
+	}
 	
-	public static function SetDemonize( bool $isDebug )
+	public function setDemonize( bool $isDebug )
 	{
 		self::$_isDebug = $isDebug;
 	}
 	
-	public static function SetStartApp( string $apps )
+	public function setStartApp( string $apps )
 	{
 		$appList = explode( ':', $apps );
 		foreach ( $appList as $app )
@@ -147,13 +163,13 @@ class Daemon
 		}
 	}
 	
-	private function _initComponent()
+	private function initComponent()
 	{
-		Log::Initialize();
-		Memory::Init();
+		$this->logger = $this->container->Get(Log::class, [$this->container]);
+		$this->container->Get(Memory::class, [$this->container]);
 	}
 	
-	private function _startProcess()
+	private function startProcess()
 	{
 		$this->_startLogProcess();
 		
@@ -174,15 +190,15 @@ class Daemon
 	
 	private function _startLogProcess()
 	{
-		$processNUm = Log::GetProcessNum();
+		$processNUm = $this->logger->GetProcessNum();
 		for ( $i = 0; $i < $processNUm; $i++ )
 		{
 			$pid = Process::Fork();
 			if ( $pid == 0 )
 			{
 				Log::Dump(  'starting log process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME );
-				$this->_setProcessName( static::PROCESS_LOG );
-				Log::Start();
+				$this->setProcessName( static::PROCESS_LOG );
+				$this->logger->Start();
 			}
 			else
 			{
@@ -202,8 +218,8 @@ class Daemon
 		if ( $pid == 0 )
 		{
 			Log::Dump( 'starting worker process( ' . Process::Id() . ' )', Log::TYPE_DEBUG, static::MODULE_NAME);
-			$this->_setProcessName( 'Worker-group master' );
-			Worker::Start();
+			$this->setProcessName( 'Worker-group master' );
+			$this->container->Get(Worker::class, [ $this->container, $this->logger ])->Start();
 		}
 		else
 		{
@@ -231,12 +247,7 @@ class Daemon
 			//必要配置不完整则不开启
 			if ( !isset( $config[ 'type' ] ) ||
 			     !isset( $config[ 'port' ] ) ||
-			     !in_array( $config[ 'type' ], [
-				     self::PROCESS_HTTP,
-				     self::PROCESS_WEBSOCKET,
-				     self::PROCESS_TCP,
-				     self::PROCESS_UDP,
-			     ] ) )
+			     !isset( $this->serverClassAlias[ $config[ 'type' ] ] ) )
 			{
 				continue;
 			}
@@ -270,24 +281,11 @@ class Daemon
 			
 			$processName = "{$config['type']}:{$config['port']} Master";
 			Log::Dump( "starting {$processName} process ( {$pid} )", Log::TYPE_DEBUG, self::MODULE_NAME );
-			$this->_setProcessName( $processName );
-			if ( $config[ 'type' ] == self::PROCESS_HTTP )
+			$this->setProcessName( $processName );
+			if ( isset( $this->serverClassAlias[ $config[ 'type' ] ] ) )
 			{
-				Http::Start( $config );
+				$this->container->Make($this->serverClassAlias[$config[ 'type' ]],[ $this->container, $this->logger, $config ])->Start();
 			}
-			else if ( $config[ 'type' ] == self::PROCESS_WEBSOCKET )
-			{
-				Ws::Start( $config );
-			}
-			else if ( $config[ 'type' ] == self::PROCESS_TCP )
-			{
-				Tcp::Start( $config );
-			}
-			else if ( $config[ 'type' ] == self::PROCESS_UDP )
-			{
-				Udp::Start( $config );
-			}
-			
 			exit( 0 );
 		}
 		else
@@ -300,7 +298,7 @@ class Daemon
 		}
 	}
 	
-	private function _startMonitor()
+	private function startMonitor()
 	{
 		Log::Dump(  'starting monitor process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG,self::MODULE_NAME );
 		while ( 1 )
@@ -445,14 +443,14 @@ class Daemon
 		return (int)file_get_contents( self::PID );
 	}
 	
-	private static function _initParameter( string $application, bool $isDebug )
+	private function initParameter( string $application, bool $isDebug )
 	{
-		self::_initPid();
-		self::SetStartApp( $application );
-		self::SetDemonize( $isDebug );
+		$this->initPid();
+		$this->setStartApp( $application );
+		$this->setDemonize( $isDebug );
 	}
 	
-	private static function _initFunction()
+	private function initFunction()
 	{
 		if ( !function_exists( 'pcntl_signal_dispatch' ) )
 		{
@@ -471,11 +469,11 @@ class Daemon
 		
 	}
 	
-	private static function _demonize()
+	private function demonize()
 	{
 		if ( self::$_isDebug )
 		{
-			goto SET_IDENTITY;
+			return ;
 		}
 		
 		umask( self::$umask );
@@ -491,13 +489,12 @@ class Daemon
 		{
 			exit();
 		}
-		
-		SET_IDENTITY:
-		self::$identity = self::APP_NAME . '_' . Process::Id();
 	}
 	
-	private function _createPidFile()
+	private function createPidFile()
 	{
+		self::$identity = self::APP_NAME . '_' . Process::Id();
+		
 		if ( !is_dir( self::PID_DIR ) )
 		{
 			mkdir( self::PID_DIR, 0766, true );
@@ -508,7 +505,7 @@ class Daemon
 		fclose( $fp );
 	}
 	
-	private static function _initPid()
+	private function initPid()
 	{
 		if ( !file_exists( self::PID ) )
 		{
@@ -529,17 +526,17 @@ class Daemon
 		
 	}
 	
-	private function _changeWorkDirectory()
+	private function changeWorkDirectory()
 	{
 		chdir( APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR );
 	}
 	
 	
 	/**
-	 * _setSignalHandler : set handle function for process signal
+	 * setSignalHandler : set handle function for process signal
 	 * @author Louis
 	 */
-	private function _setSignalHandler()
+	private function setSignalHandler()
 	{
 		pcntl_signal( SIGCHLD, [
 			$this,
@@ -590,11 +587,11 @@ class Daemon
 	
 	
 	/**
-	 * _setProcessName  set process name
+	 * setProcessName  set process name
 	 * @param string $proName
 	 * @author Louis
 	 */
-	private function _setProcessName( string $proName )
+	private function setProcessName( string $proName )
 	{
 		Process::SetName( self::$identity . '_' . $proName );
 	}

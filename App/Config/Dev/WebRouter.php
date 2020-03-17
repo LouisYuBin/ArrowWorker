@@ -1,61 +1,62 @@
 <?php
 
+
 return [
     'ws.com, web.com, arrow.com' => [
         '/' => [
             'get'    => APP_PATH.'/Static/Web/index.html',
-            'put'    => 'Admin\\Index@put',
-            'post'   => 'Admin\\Index@post',
-            'delete' => 'Admin\\Index@delete'
+            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
         ],
         '/user/:id' => [
-            'get'    => 'Admin\\Index@get',
-            'put'    => 'Admin\\Index@put',
-            'post'   => 'Admin\\Index@post',
-            'delete' => 'Admin\\Index@delete'
+            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
         ],
         '/manager' =>  [
             '/user/:id' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/product/:id' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/product/:id/status/:status' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/product/:id/delete/:delete' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/category' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/attribute/:id' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ],
             '/attribute/:id/status/:status/startDate/:startDate/endDate/:endDate' => [
-                'get'    => 'Admin\\Index@get',
-                'put'    => 'Admin\\Index@put',
-                'post'   => 'Admin\\Index@post',
-                'delete' => 'Admin\\Index@delete'
+	            'get'    => [ \App\Controller\Admin\Index::class, 'get'],
+	            'put'    => [ \App\Controller\Admin\Index::class, 'put'],
+	            'post'   => [ \App\Controller\Admin\Index::class, 'post'],
+	            'delete' => [ \App\Controller\Admin\Index::class, 'delete']
             ]
         ]
     ]

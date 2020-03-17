@@ -47,18 +47,25 @@ class App
      *
      */
     const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
-
+    
     /**
-     * @author Louis
+     * @var Container
      */
-    public static function Run()
+    private $container;
+    
+    public function __construct(Container $container)
     {
-        $console = Console::Init();
-        self::_initOptions();
+    	$this->container = $container;
+    }
+    
+    public function Run()
+    {
+	    $console = $this->container->Get(Console::class, [$this->container] );
+        $this->initOptions();
         $console->Execute();
     }
 
-    private static function _initOptions()
+    private function initOptions()
     {
         $options = Config::Get('Global');
         if( !is_array($options) )

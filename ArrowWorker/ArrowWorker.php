@@ -56,9 +56,8 @@ class ArrowWorker
 	const EXT = '.php';
 	
 	/**
-	 * @var $Arrow ArrowWorker
+	 * @var $container Container
 	 */
-	
 	private $container;
 	
 	/**
@@ -67,8 +66,13 @@ class ArrowWorker
 	private function __construct()
 	{
 		$this->setAutoLoad();
+		$this->initContainer();
+		$this->container->Get( App::class, [ $this->container ] )->Run();
+	}
+	
+	private function initContainer()
+	{
 		$this->container = $container = new Container();
-		App::Run();
 	}
 	
 	private function setAutoLoad()
@@ -124,12 +128,9 @@ class ArrowWorker
 			'ArrowWorker\Daemon'        => ArrowWorker . '/Daemon',
 			
 			'ArrowWorker\Log'       => ArrowWorker . '/Log',
-			'ArrowWorker\Worker'    => ArrowWorker . '/Worker',
-			'ArrowWorker\Db'        => ArrowWorker . '/Db',
 			'ArrowWorker\Chan'      => ArrowWorker . '/Chan',
 			'ArrowWorker\Memory'    => ArrowWorker . '/Memory',
 			'ArrowWorker\Component' => ArrowWorker . '/Component',
-			'ArrowWorker\Cache'     => ArrowWorker . '/Cache',
 			
 			'ArrowWorker\Web\Session'  => ArrowWorker . '/Web/Session',
 			'ArrowWorker\Web\Response' => ArrowWorker . '/Web/Response',
@@ -180,22 +181,21 @@ class ArrowWorker
 			'ArrowWorker\Client\GRpc\Client' => ArrowWorker . '/Client/GRpc/Client',
 			
 			'ArrowWorker\Component\View'   => ArrowWorker . '/Component/View',
-			'ArrowWorker\Component\Worker' => ArrowWorker . '/Component/Worker',
 			
 			'ArrowWorker\Component\Db\DbInterface' => ArrowWorker . '/Component/Db/DbInterface',
 			'ArrowWorker\Component\Db\Mysqli'      => ArrowWorker . '/Component/Db/Mysqli',
 			'ArrowWorker\Component\Db\Pdo'         => ArrowWorker . '/Component/Db/Pdo',
 			'ArrowWorker\Component\Db\Pool'        => ArrowWorker . '/Component/Db/Pool',
-			'ArrowWorker\Component\Db\SqlBuilder'  => ArrowWorker . '/Component/Db/SqlBuilder',
+			'ArrowWorker\Component\Db\Query'       => ArrowWorker . '/Component/Db/Query',
 			
 			'ArrowWorker\Component\Cache\CacheInterface' => ArrowWorker . '/Component/Cache/CacheInterface',
 			'ArrowWorker\Component\Cache\Redis'          => ArrowWorker . '/Component/Cache/Redis',
 			'ArrowWorker\Component\Cache\Pool'           => ArrowWorker . '/Component/Cache/Pool',
 			
-			'ArrowWorker\Component\View\Smarty'        => ArrowWorker . '/Component/View/Smarty',
-			'ArrowWorker\Component\Worker\ArrowDaemon' => ArrowWorker . '/Component/Worker/ArrowDaemon',
-			'ArrowWorker\Component\Channel\Queue'      => ArrowWorker . '/Component/Channel/Queue',
-			'ArrowWorker\Component\Memory\SwTable'     => ArrowWorker . '/Component/Memory/SwTable',
+			'ArrowWorker\Component\View\Smarty'    => ArrowWorker . '/Component/View/Smarty',
+			'ArrowWorker\Component\Worker\Arrow'   => ArrowWorker . '/Component/Worker/Arrow',
+			'ArrowWorker\Component\Channel\Queue'  => ArrowWorker . '/Component/Channel/Queue',
+			'ArrowWorker\Component\Memory\SwTable' => ArrowWorker . '/Component/Memory/SwTable',
 		];
 	}
 	

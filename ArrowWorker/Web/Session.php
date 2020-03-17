@@ -9,6 +9,7 @@ namespace ArrowWorker\Web;
 
 use ArrowWorker\Component\Cache\Pool;
 use ArrowWorker\Config;
+use ArrowWorker\Container;
 use ArrowWorker\Log;
 
 
@@ -26,39 +27,48 @@ class Session
     /**
      * @var array
      */
-    private static $_config = [];
+    private static $config = [];
 
-    public static function Init()
+    private static $instance;
+	
+	private $container;
+	
+	private $pool;
+	
+	
+	public function __construct(Container $container)
     {
-        self::_initConfig();
-        self::_initPool();
+    	self::$instance = $this;
+    	$this->container = $container;
+    	$this->initConfig();
+    	$this->initPool();
     }
-
-    private static function _initPool()
+	
+	private function initPool()
     {
-        foreach ( self::$_config as $host => $config )
+        foreach ( self::$config as $host => $config )
         {
             $config[ 'driver' ] = 'Redis';
-            Pool::Init( [ $host => $config[ 'poolSize' ] ], [ $host => $config ] );
+            $this->pool = $this->container->Get(Pool::class, [ [ $host => $config[ 'poolSize' ] ], [ $host => $config ] ] );
         }
     }
 
-    private static function _initConfig()
+    private function initConfig()
     {
-        $configs = Config::Get( self::MODULE_NAME );
-        if ( !is_array( $configs ) )
+        $config = Config::Get( self::MODULE_NAME );
+        if ( !is_array( $config ) )
         {
             Log::Dump( 'initialize config failed', Log::TYPE_WARNING, self::MODULE_NAME );
             return;
         }
-        self::$_config = self::_parseConfig( $configs );
+        $this->config = $this->parseConfig( $config );
     }
 
     /**
      * @param array $configs
      * @return array
      */
-    private static function _parseConfig( array $configs ) : array
+    private function parseConfig( array $configs ) : array
     {
         $parsedConfig = [];
         foreach ( $configs as $serverNames => $config )
@@ -91,7 +101,7 @@ class Session
     }
 
 
-    private static function _getResource()
+    private function getResource()
     {
         $token = self::GetToken();
         if( ''==$token )
@@ -101,13 +111,13 @@ class Session
 
         return [
             $token,
-            Pool::Get( Request::Host() )
+            $this->pool[Request::Host()]
         ];
     }
 
     public static function Create(string $token) : bool
     {
-        $conn = Pool::Get( Request::Host() );
+        $conn = self::$instance->pool[Request::Host()];
         if( false==$conn )
         {
             return false;
@@ -122,7 +132,7 @@ class Session
      */
     public static function Set( string $key, string $val ) : bool
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -137,7 +147,7 @@ class Session
      */
     public static function MSet( array $val ) : bool
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -152,7 +162,7 @@ class Session
      */
     public static function Get( string $key )
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -167,7 +177,7 @@ class Session
      */
     public static function Del( string $key ) : bool
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -181,7 +191,7 @@ class Session
      */
     public static function Info() : array
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return [];
@@ -194,7 +204,7 @@ class Session
      */
     public static function Destroy() : bool
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -204,7 +214,7 @@ class Session
 
     public static function Exists()
     {
-        [$token, $conn] = self::_getResource();
+	    [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -214,7 +224,7 @@ class Session
 
     public static function Has(string $key)
     {
-        [$token, $conn] = self::_getResource();
+        [$token, $conn] = self::$instance->getResource();
         if( ''==$token || false==$conn )
         {
             return false;
@@ -223,17 +233,19 @@ class Session
     }
 
     /**
-     * GetToken : get session id(token) from cookie/get/post data
+     * @return string
      */
     public static function GetToken() : string
     {
-        $tokenFrom = self::$_config[Request::Host()]['tokenFrom'] ?? '';
+    	$host = Request::Host();
+    	$self = self::$instance;
+        $tokenFrom = $self->config[$host]['tokenFrom'] ?? '';
         if( ''==$tokenFrom )
         {
             return '';
         }
 
-        $tokenKey  = self::$_config[Request::Host()]['tokenKey'] ?? self::DEFAULT_TOKEN_KEY;
+        $tokenKey  = $self->config[$host]['tokenKey'] ?? self::DEFAULT_TOKEN_KEY;
         return Request::$tokenFrom( $tokenKey );
     }
 

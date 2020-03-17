@@ -7,6 +7,7 @@
 
 namespace ArrowWorker\Component\Db;
 
+use ArrowWorker\Container;
 use ArrowWorker\Log;
 
 class Mysqli implements DbInterface
@@ -15,20 +16,23 @@ class Mysqli implements DbInterface
     /**
      * @var \mysqli
      */
-    private $_conn;
+    private $conn;
 
     /**
      * @var array
      */
-    private $_config = [];
+    private $config = [];
+    
+    private $container;
 
     /**
-     * Mysqli constructor.
+     * @param Container $container
      * @param array $config
      */
-    public function __construct( array $config )
+    public function __construct( Container $container, array $config )
     {
-        $this->_config = $config;
+    	$this->container = $container;
+        $this->config = $config;
     }
 
     /**
@@ -36,16 +40,16 @@ class Mysqli implements DbInterface
      */
     public function InitConnection()
     {
-        @$this->_conn = new \mysqli( $this->_config['host'],  $this->_config['userName'],  $this->_config['password'],  $this->_config['dbName'],  $this->_config['port'] );
-        if ( $this->_conn->connect_errno )
+	    @$this->conn = $this->container->Make(\mysqli::class,[ $this->config['host'],  $this->config['userName'],  $this->config['password'],  $this->config['dbName'],  $this->config['port'] ] );
+	    if ( $this->conn->connect_errno )
         {
-            Log::Dump( __CLASS__.'::'.__METHOD__."connect failed : " . $this->_conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__."connect failed : " . $this->conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME );
             return false;
         }
 
-        if ( false === $this->_conn->query( "set names '" .  $this->_config['charset'] . "'" ) )
+        if ( false === $this->conn->query( "set names '" .  $this->config['charset'] . "'" ) )
         {
-            Log::Dump( __CLASS__.'::'.__METHOD__."set names({$this->_config['charset']}) failed.", Log::TYPE_WARNING, self::MODULE_NAME  );
+            Log::Dump( __CLASS__.'::'.__METHOD__."set names({$this->config['charset']}) failed.", Log::TYPE_WARNING, self::MODULE_NAME  );
         }
         return true;
     }
@@ -121,8 +125,8 @@ class Mysqli implements DbInterface
     {
         return [
             'result'       => $this->_query( $sql ),
-            'affectedRows' => $this->_conn->affected_rows,
-            'insertId'     => $this->_conn->insert_id
+            'affectedRows' => $this->conn->affected_rows,
+            'insertId'     => $this->conn->insert_id
         ];
     }
 
@@ -135,22 +139,22 @@ class Mysqli implements DbInterface
     {
         $isRetried = false;
         _RETRY:
-        $result = @$this->_conn->query( $sql );
+        $result = @$this->conn->query( $sql );
         if(false !== $result && !is_null($result) )
         {
             Log::Debug( $sql, [], self::SQL_LOG_NAME );
             return $result;
         }
 
-        if( 0!==@$this->_conn->errno && !$isRetried )  //check connection status, reconnect if connection error
+        if( 0!==@$this->conn->errno && !$isRetried )  //check connection status, reconnect if connection error
         {
-            Log::Dump( __CLASS__.'::'.__METHOD__." Mysqli::query Error, error no : {$this->_conn->errno}, error message : {$this->_conn->error}, reconnecting...", Log::TYPE_NOTICE, self::MODULE_NAME );
+            Log::Dump( __CLASS__.'::'.__METHOD__." Mysqli::query Error, error no : {$this->conn->errno}, error message : {$this->conn->error}, reconnecting...", Log::TYPE_NOTICE, self::MODULE_NAME );
             $this->InitConnection();
             $isRetried = true;
             goto _RETRY;
         }
 
-        @Log::Dump( "Sql Error : {$sql}, error no : {$this->_conn->errno}, error message : {$this->_conn->error}", Log::TYPE_WARNING, self::MODULE_NAME );
+        @Log::Dump( "Sql Error : {$sql}, error no : {$this->conn->errno}, error message : {$this->conn->error}", Log::TYPE_WARNING, self::MODULE_NAME );
         return false;
     }
 
@@ -159,14 +163,14 @@ class Mysqli implements DbInterface
      */
     public function Begin()
     {
-        $this->_conn->autocommit( false );
+        $this->conn->autocommit( false );
         for ( $i = 0; $i < 6; $i++ )
         {
-            if ( $this->_conn->begin_transaction() )
+            if ( $this->conn->begin_transaction() )
             {
                 return true;
             }
-            $this->_conn->ping();
+            $this->conn->ping();
         }
         return false;
     }
@@ -179,14 +183,14 @@ class Mysqli implements DbInterface
         $result = false;
         for ( $i = 0; $i < 6; $i++ )
         {
-            $result = $this->_conn->commit();
+            $result = $this->conn->commit();
             if ( $result )
             {
                 break;
             }
-            $this->_conn->ping();
+            $this->conn->ping();
         }
-        $this->_conn->autocommit( true );
+        $this->conn->autocommit( true );
         return $result;
     }
 
@@ -198,13 +202,13 @@ class Mysqli implements DbInterface
         $result = false;
         for ( $i = 0; $i < 6; $i++ )
         {
-            $result = $this->_conn->rollback();
+            $result = $this->conn->rollback();
             if ( $result )
             {
                 break;
             }
         }
-        $this->_conn->autocommit( true );
+        $this->conn->autocommit( true );
         return $result;
     }
 
@@ -214,7 +218,7 @@ class Mysqli implements DbInterface
      */
     public function Autocommit( bool $flag )
     {
-        $this->_conn->autocommit( $flag );
+        $this->conn->autocommit( $flag );
     }
 
 }

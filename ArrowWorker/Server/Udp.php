@@ -6,12 +6,12 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\Container;
 use ArrowWorker\Library\Process;
 use \Swoole\Server;
 
 use ArrowWorker\App;
 use ArrowWorker\Log;
-use ArrowWorker\Component;
 use ArrowWorker\Server\Server as ServerPattern;
 
 
@@ -27,188 +27,191 @@ class Udp extends ServerPattern
     /**
      * @var int|mixed
      */
-    private $_heartbeatCheckInterval = 30;
+    private $heartbeatCheckInterval = 30;
 
 
     /**
      * @var int|mixed
      */
-    private $_heartbeatIdleTime = 60;
+    private $heartbeatIdleTime = 60;
 
     /**
      * @var bool|mixed
      */
-    private $_openEofCheck = true;
+    private $openEofCheck = true;
 
 
     /**
      * @var mixed|string
      */
-    private $_packageEof = '\r\n';
+    private $packageEof = '\r\n';
 
     /**
      * @var mixed|string
      */
-    private $_openEofSplit = '\r\n';
+    private $openEofSplit = '\r\n';
 
     /**
      * @var string
      */
-    private $_handlerConnect = '';
+    private $handlerConnect = '';
 
     /**
      * @var string
      */
-    private $_handlerReceive = '';
+    private $handlerReceive = '';
 
     /**
      * @var string
      */
-    private $_handlerClose = '';
+    private $handlerClose = '';
 
     /**
      * @var bool
      */
-    private $_isUdp6 = false;
+    private $isUdp6 = false;
 
     /**
-     * @param array $config
+     * @return void
      */
-    public static function Start( array $config )
+    public function Start( )
     {
-        $server = new self( $config );
-        $server->_initServer();
-        $server->_initComponent(App::TYPE_UDP);
-        $server->_setConfig();
-        $server->_onStart();
-        $server->_onWorkerStart();
-
-        $server->_onConnect();
-        $server->_onReceive();
-        $server->_onClose();
-        $server->_start();
+        $this->initServer();
+	    $this->initComponent(App::TYPE_UDP);
+	    $this->setConfig();
+	    $this->onStart();
+	    $this->onWorkerStart();
+	
+	    $this->onConnect();
+	    $this->onReceive();
+	    $this->onClose();
+	    $this->startServer();
     }
 
     /**
      * Http constructor.
+     * @param Container $container
+     * @param Log $logger
      * @param array $config
      */
-    private function __construct( array $config )
+    public function __construct( Container $container, Log $logger, array $config )
     {
-        $this->_port             = $config[ 'port' ] ?? 8083;
-        $this->_reactorNum       = $config[ 'reactorNum' ] ?? 2;
-        $this->_workerNum        = $config[ 'workerNum' ] ?? 2;
-        $this->_enableCoroutine  = $config[ 'enableCoroutine' ] ?? true;
-        $this->_user             = $config[ 'user' ] ?? 'root';
-        $this->_group            = $config[ 'group' ] ?? 'root';
-        $this->_backlog          = $config[ 'backlog ' ] ?? 1024 * 100;
-        $this->_maxCoroutine     = $config[ 'maxCoroutine' ] ?? 1000;
-        $this->_pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->_socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->_maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
+    	$this->container = $container;
+	    $this->logger    = $logger;
+    	
+        $this->port             = $config[ 'port' ] ?? 8083;
+        $this->reactorNum       = $config[ 'reactorNum' ] ?? 2;
+        $this->workerNum        = $config[ 'workerNum' ] ?? 2;
+        $this->enableCoroutine  = $config[ 'enableCoroutine' ] ?? true;
+        $this->user             = $config[ 'user' ] ?? 'root';
+        $this->group            = $config[ 'group' ] ?? 'root';
+        $this->backlog          = $config[ 'backlog ' ] ?? 1024 * 100;
+        $this->maxCoroutine     = $config[ 'maxCoroutine' ] ?? 1000;
+        $this->pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
+        $this->maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
 
-        $this->_heartbeatCheckInterval = $config[ 'heartbeatCheckInterval' ] ?? 60;
-        $this->_heartbeatIdleTime      = $config[ 'heartbeatIdleTime' ] ?? 30;
-        $this->_openEofCheck           = $config[ 'openEofCheck' ] ?? false;
-        $this->_openEofSplit           = $config[ 'openEofSplit' ] ?? false;
-        $this->_packageEof             = $config[ 'packageEof' ] ?? '\r\n';
+        $this->heartbeatCheckInterval = $config[ 'heartbeatCheckInterval' ] ?? 60;
+        $this->heartbeatIdleTime      = $config[ 'heartbeatIdleTime' ] ?? 30;
+        $this->openEofCheck           = $config[ 'openEofCheck' ] ?? false;
+        $this->openEofSplit           = $config[ 'openEofSplit' ] ?? false;
+        $this->packageEof             = $config[ 'packageEof' ] ?? '\r\n';
 
-        $this->_components = $config[ 'components' ] ?? [];
+        $this->components = $config[ 'components' ] ?? [];
 
-        $controller = App::GetController();
-        $this->_handlerConnect = $controller.($config[ 'handler' ]['connect'] ?? '');
-        $this->_handlerReceive = $controller.($config[ 'handler' ]['receive'] ?? '');
-        $this->_handlerClose   = $controller.($config[ 'handler' ]['close'] ?? '');
+        $this->handlerConnect = $config[ 'callback' ]['connect'] ?? '';
+        $this->handlerReceive = $config[ 'callback' ]['receive'] ?? '';
+        $this->handlerClose   = $config[ 'callback' ]['close'] ?? '';
 
-        $this->_isUdp6 = $config[ 'isUdp6' ] ?? false;
+        $this->isUdp6 = $config[ 'isUdp6' ] ?? false;
 	
-	    $this->_identity         = $config['identity'];
+	    $this->identity         = $config['identity'];
 	
     }
 
-    private function _start()
+    private function startServer()
     {
-        $this->_server->start();
+        $this->server->start();
     }
 
-    private function _initServer()
+    private function initServer()
     {
-        $this->_server = new Server(
-            $this->_host,
-            $this->_port,
-            $this->_mode,
-            (bool)$this->_isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP );
+        $this->server = new Server(
+            $this->host,
+            $this->port,
+            $this->mode,
+            (bool)$this->isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP );
     }
 
-    private function _onStart()
+    private function onStart()
     {
-        $this->_server->on( 'start', function ( $server )
+        $this->server->on( 'start', function ( $server )
         {
-	        Process::SetName("{$this->_identity}_Udp:{$this->_port} Manager");
-	        Log::Dump( "listening at port {$this->_port}", Log::TYPE_DEBUG, self::MODULE_NAME );
+	        Process::SetName("{$this->identity}_Udp:{$this->port} Manager");
+	        Log::Dump( "listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME );
         } );
     }
 
-    private function _onConnect()
+    private function onConnect()
     {
-        $this->_server->on( 'connect', function ( Server $server, int $fd )
+        $this->server->on( 'connect', function ( Server $server, int $fd )
         {
-            $this->_component->InitCommon();
-            ($this->_handlerConnect)( $server, $fd );
-            $this->_component->Release();
+            $this->component->Init();
+            ($this->handlerConnect)( $server, $fd );
+            $this->component->Release();
         } );
     }
 
-    private function _onReceive()
+    private function onReceive()
     {
-        $this->_server->on( 'receive', function ( Server $server, int $fd, int $reactor_id, string $data )
+        $this->server->on( 'receive', function ( Server $server, int $fd, int $reactor_id, string $data )
         {
-            $this->_component->InitCommon();
-            ($this->_handlerReceive)( $server, $fd, $data );
-            $this->_component->Release();
+            $this->component->Init();
+            ($this->handlerReceive)( $server, $fd, $data );
+            $this->component->Release();
         } );
     }
 
-    private function _onClose()
+    private function onClose()
     {
-        $this->_server->on( 'close', function ( Server $server, int $fd )
+        $this->server->on( 'close', function ( Server $server, int $fd )
         {
-            $this->_component->InitCommon();
-            ($this->_handlerClose)( $server, $fd );
-            $this->_component->Release();
+            $this->component->Init();
+            ($this->handlerClose)( $server, $fd );
+            $this->component->Release();
         } );
     }
 
-    private function _onWorkerStart()
+    private function onWorkerStart()
     {
-        $this->_server->on( 'WorkerStart', function ()
+        $this->server->on( 'WorkerStart', function ()
         {
-	        Process::SetName("{$this->_identity}_Udp:{$this->_port} Worker");
-	        $this->_component->InitPool( $this->_components );
+	        Process::SetName("{$this->identity}_Udp:{$this->port} Worker");
+	        $this->component->InitPool( $this->components );
         } );
     }
 
-    private function _setConfig()
+    private function setConfig()
     {
-        $this->_server->set( [
-            'mode'                     => $this->_mode,
-            'worker_num'               => $this->_workerNum,
+        $this->server->set( [
+            'mode'                     => $this->mode,
+            'worker_num'               => $this->workerNum,
             'daemonize'                => false,
-            'backlog'                  => $this->_backlog,
-            'user'                     => $this->_user,
-            'group'                    => $this->_group,
-            'package_max_length'       => $this->_maxContentLength,
-            'reactor_num'              => $this->_reactorNum,
-            'pipe_buffer_size'         => $this->_pipeBufferSize,
-            'socket_buffer_size'       => $this->_socketBufferSize,
-            'enable_coroutine'         => $this->_enableCoroutine,
-            'max_coroutine'            => $this->_maxCoroutine,
-            'log_file'                 => Log::GetStdOutFilePath(),
-            'heartbeat_check_interval' => $this->_heartbeatCheckInterval,
-            'heartbeat_idle_time'      => $this->_heartbeatIdleTime,
-            'open_eof_check'           => $this->_openEofCheck,
-            'package_eof'              => $this->_packageEof,
-            'open_eof_split'           => $this->_openEofSplit,
+            'backlog'                  => $this->backlog,
+            'user'                     => $this->user,
+            'group'                    => $this->group,
+            'package_max_length'       => $this->maxContentLength,
+            'reactor_num'              => $this->reactorNum,
+            'pipe_buffer_size'         => $this->pipeBufferSize,
+            'socket_buffer_size'       => $this->socketBufferSize,
+            'enable_coroutine'         => $this->enableCoroutine,
+            'max_coroutine'            => $this->maxCoroutine,
+            'log_file'                 => $this->logger->GetStdOutFilePath(),
+            'heartbeat_check_interval' => $this->heartbeatCheckInterval,
+            'heartbeat_idle_time'      => $this->heartbeatIdleTime,
+            'open_eof_check'           => $this->openEofCheck,
+            'package_eof'              => $this->packageEof,
+            'open_eof_split'           => $this->openEofSplit,
         ] );
     }
 

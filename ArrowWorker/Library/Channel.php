@@ -4,6 +4,7 @@
 namespace ArrowWorker\Library;
 
 
+use ArrowWorker\Container;
 use \Swoole\Coroutine\Channel as SwChan;
 
 /**
@@ -15,31 +16,34 @@ class Channel
     /**
      * @var int
      */
-    private $_size = 10;
+    private $size = 10;
     /**
      * @var SwChan
      */
-    private $_instance;
+    private $swChan;
+    
+    private $container;
 
     /**
+     * @param Container $container
      * @param int $size
-     *
      * @return Channel
      */
-    public static function Init(int $size)
+    public static function Init(Container $container, int $size)
     {
-        return new self($size);
+        return new self($container, $size);
     }
 
     /**
      * Channel constructor.
-     *
+     * @param Container $container
      * @param int $size
      */
-    private function __construct(int $size)
+    public function __construct(Container $container, int $size)
     {
-        $this->_size = $size;
-        $this->_instance = new SwChan($size);
+    	$this->container = $container;
+        $this->size     = $size;
+        $this->swChan    = $container->Make(SwChan::class, [$size]);
     }
 
     /**
@@ -50,12 +54,12 @@ class Channel
      */
     public function Push($data, $timeout=1)
     {
-        return $this->_instance->push($data, $timeout);
+        return $this->swChan->push($data, $timeout);
     }
 
     public function GetErrorCode()
     {
-        return $this->_instance->errCode;
+        return $this->swChan->errCode;
     }
 
     /**
@@ -64,7 +68,7 @@ class Channel
      */
     public function Pop(float $timeout=1)
     {
-        return $this->_instance->pop($timeout);
+        return $this->swChan->pop($timeout);
     }
 
     /**
@@ -72,7 +76,7 @@ class Channel
      */
     public function Length()
     {
-        return $this->_instance->length();
+        return $this->swChan->length();
     }
 
     /**
@@ -80,7 +84,7 @@ class Channel
      */
     public function Close()
     {
-        return $this->_instance->close();
+        return $this->swChan->close();
 
     }
 
@@ -89,7 +93,7 @@ class Channel
      */
     public function IsEmpty()
     {
-        return $this->_instance->isEmpty();
+        return $this->swChan->isEmpty();
     }
 
     /**
@@ -97,7 +101,7 @@ class Channel
      */
     public function IsFull()
     {
-        return $this->_instance->isFull();
+        return $this->swChan->isFull();
     }
 
 }
