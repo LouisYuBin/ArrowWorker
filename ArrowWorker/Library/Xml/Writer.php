@@ -20,20 +20,18 @@ class Writer
      * @param string $charset
      * @param string|null $stylePath
      */
-    public function __construct(bool $hasHeader=false, string $version='1.0', string $charset='UTF-8', string $stylePath = null)
+    public function __construct(bool $hasHeader = false, string $version = '1.0', string $charset = 'UTF-8', string $stylePath = null)
     {
         $this->writer = new \XMLWriter;
         $this->writer->openMemory();
         $this->writer->setIndent(false);
         $this->writer->setIndentString(' ');
-        if( $hasHeader )
-        {
+        if ($hasHeader) {
             $this->writer->startDocument($version, $charset);
         }
 
-        if( !is_null($stylePath) )
-        {
-            $this->writer->writePI($this->writer,'xml-stylesheet', 'type="text/xsl" href="'.$stylePath.'"');
+        if (!is_null($stylePath)) {
+            $this->writer->writePI($this->writer, 'xml-stylesheet', 'type="text/xsl" href="' . $stylePath . '"');
         }
     }
 
@@ -55,26 +53,20 @@ class Writer
      * @param string $parentIndex
      * @return $this
      */
-    public function makeFromArray(array $elementArray, string $parentIndex='')
+    public function makeFromArray(array $elementArray, string $parentIndex = '')
     {
-        foreach ($elementArray as $index => $element)
-        {
-            if(is_array($element))
-            {
+        foreach ($elementArray as $index => $element) {
+            if (is_array($element)) {
                 $key = !is_int($index) ? $index : $parentIndex;
-                $isNewNode = !( isset($element[0]) && !is_int($index) );
-                if( $isNewNode )
-                {
+                $isNewNode = !(isset($element[0]) && !is_int($index));
+                if ($isNewNode) {
                     $this->writer->startElement($key);
                 }
                 $this->makeFromArray($element, $index);
-                if( $isNewNode )
-                {
+                if ($isNewNode) {
                     $this->writer->endElement();
                 }
-            }
-            else
-            {
+            } else {
                 $this->setElement($index, $element);
             }
         }
@@ -90,7 +82,7 @@ class Writer
     public function getXml()
     {
         $this->writer->endDocument();
-        return  $this->writer->outputMemory();
+        return $this->writer->outputMemory();
     }
 
 

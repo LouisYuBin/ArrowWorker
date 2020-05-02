@@ -6,6 +6,6 @@ return [
         'port'     => 4436,
         'isSsl'    => false,
         'uri'      => '/',
-        'poolSize' => 2
-    ]
+        'poolSize' => 2,
+    ],
 ];

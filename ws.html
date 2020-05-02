@@ -8,17 +8,17 @@
 
         var ws = new WebSocket("ws://127.0.0.1:8081/order/message");
 
-        ws.onopen = function(evt) {
+        ws.onopen = function (evt) {
             console.log("Connection open ...");
             ws.send("Hello WebSockets!");
         };
 
-        ws.onmessage = function(evt) {
+        ws.onmessage = function (evt) {
             console.log('onmessage');
             console.log(evt.data);
         };
 
-        ws.onclose = function(evt) {
+        ws.onclose = function (evt) {
             console.log("Connection closed.");
 
         }

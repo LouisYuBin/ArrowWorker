@@ -12,54 +12,49 @@ use ArrowWorker\Config;
 
 class CryptoArrow
 {
-	static $factor = "";
-	static $defaultFactor = "Louis";
+    static $factor = "";
+    static $defaultFactor = "Louis";
 
-	static function Init(string $factor="")
+    static function Init(string $factor = "")
     {
-        if( !empty($factor))
-        {
+        if (!empty($factor)) {
             static::$factor = $factor;
-            return ;
+            return;
         }
 
-	    if( !empty(static::$factor) )
-        {
-            return ;
+        if (!empty(static::$factor)) {
+            return;
         }
 
         $config = Config::Get("Cryto");
-        if( !$config )
-        {
+        if (!$config) {
             static::$factor = static::$defaultFactor;
-            return ;
+            return;
         }
 
-        if( !isset($config['factor']) )
-        {
+        if (!isset($config['factor'])) {
             static::$factor = static::$defaultFactor;
-            return ;
+            return;
         }
         static::$factor = $config['factor'];
 
     }
 
-	static function Encrypt(string $plaintext, string $factor="") : string
-	{
-	    static::Init($factor);
+    static function Encrypt(string $plaintext, string $factor = ""): string
+    {
+        static::Init($factor);
         $plaintext = $plaintext ^ static::$factor;
-		return base64_encode($plaintext);
-	}
+        return base64_encode($plaintext);
+    }
 
-	static function Decrypt(string $ciphertext,  string $factor="") : string
-	{
+    static function Decrypt(string $ciphertext, string $factor = ""): string
+    {
         static::Init($factor);
         $plaintext = base64_decode($ciphertext);
-		if( $plaintext )
-        {
+        if ($plaintext) {
             return $plaintext ^ static::$factor;
         }
         return false;
-	}
+    }
 
 }

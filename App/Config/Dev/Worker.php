@@ -7,12 +7,12 @@ return [
     'group'  => 'www',
     'worker' => [
         [
-            'name'        => 'producer',
+            'name'            => 'producer',
             'callback'        => [
-	            \App\Controller\Demo\Demo::class,
-	            'Demo'
+                \App\Controller\Demo\Demo::class,
+                'Demo',
             ],
-            'argv'            => [ 100 ],
+            'argv'            => [100],
             'processQuantity' => 1,
             'coQuantity'      => 5,
             'components'      => [
@@ -28,10 +28,10 @@ return [
         [
             'name'            => 'consumer_1',
             'callback'        => [
-            	\App\Controller\Demo\Demo::class,
-	            'channelApp'
+                \App\Controller\Demo\Demo::class,
+                'channelApp',
             ],
-            'argv'            => [ 100 ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
@@ -44,12 +44,12 @@ return [
             ],
         ],
         [
-            'name'        => 'consumer_2',
+            'name'            => 'consumer_2',
             'callback'        => [
-	            \App\Controller\Demo\Demo::class,
-	            'channelArrow'
+                \App\Controller\Demo\Demo::class,
+                'channelArrow',
             ],
-            'argv'            => [ 100 ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
@@ -62,12 +62,12 @@ return [
             ],
         ],
         [
-            'name'        => 'consumer_3',
+            'name'            => 'consumer_3',
             'callback'        => [
-	            \App\Controller\Demo\Demo::class,
-	            'channeltest'
+                \App\Controller\Demo\Demo::class,
+                'channeltest',
             ],
-            'argv'            => [ 100 ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [

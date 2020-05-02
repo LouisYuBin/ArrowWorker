@@ -46,21 +46,21 @@ class App
     /**
      *
      */
-    const CONTROLLER_NAMESPACE = '\\' . APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
-    
+    const CONTROLLER_NAMESPACE = APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
+
     /**
      * @var Container
      */
     private $container;
-    
+
     public function __construct(Container $container)
     {
-    	$this->container = $container;
+        $this->container = $container;
     }
-    
+
     public function Run()
     {
-	    $console = $this->container->Get(Console::class, [$this->container] );
+        $console = $this->container->Get(Console::class, [$this->container]);
         $this->initOptions();
         $console->Execute();
     }
@@ -68,22 +68,19 @@ class App
     private function initOptions()
     {
         $options = Config::Get('Global');
-        if( !is_array($options) )
-        {
-            return ;
+        if (!is_array($options)) {
+            return;
         }
 
-        foreach ($options as $option=>$value)
-        {
-            if( false===ini_set($option,$value) )
-            {
+        foreach ($options as $option => $value) {
+            if (false === ini_set($option, $value)) {
                 Log::Hint("ini_set({$option}, {$value}) failed.");
             }
         }
         Exception::Init();
     }
 
-    public static function GetController()
+    public function GetController()
     {
         return self::CONTROLLER_NAMESPACE;
     }

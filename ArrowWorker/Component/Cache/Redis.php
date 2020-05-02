@@ -19,14 +19,14 @@ class Redis implements CacheInterface
      * @var array
      */
     private $config = [];
-    
+
     private $container;
 
     /**
      * @param Container $container
      * @param array $config
      */
-    public function __construct( Container $container, array $config )
+    public function __construct(Container $container, array $config)
     {
         $this->config = $config;
         $this->container = $container;
@@ -35,57 +35,51 @@ class Redis implements CacheInterface
     /**
      * @return bool
      */
-    public function InitConnection() : bool
+    public function InitConnection(): bool
     {
-        @$this->_conn = $this->container->Make( \Redis::class, []);
+        @$this->_conn = $this->container->Make(\Redis::class, []);
 
-        try
-        {
-            if ( false === @$this->_conn->connect( $this->config['host'], $this->config['port'] ) )
-            {
-                Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$this->_conn->getLastError()." config : ".json_encode($this->config),Log::TYPE_WARNING, self::MODULE_NAME );
+        try {
+            if (false === @$this->_conn->connect($this->config['host'], $this->config['port'])) {
+                Log::Dump(__CLASS__ . '::' . __METHOD__ . " connect failed, error message : " . $this->_conn->getLastError() . " config : " . json_encode($this->config), Log::TYPE_WARNING, self::MODULE_NAME);
                 return false;
             }
-        }
-        catch (\RedisException $e)
-        {
-            Log::Dump( __CLASS__.'::'.__METHOD__." connect failed, error message : ".$e->getMessage()." config : ".json_encode($this->config), Log::TYPE_WARNING, self::MODULE_NAME );
+        } catch (\RedisException $e) {
+            Log::Dump(__CLASS__ . '::' . __METHOD__ . " connect failed, error message : " . $e->getMessage() . " config : " . json_encode($this->config), Log::TYPE_WARNING, self::MODULE_NAME);
             return false;
         }
 
-        if( ''==$this->config['password'] )
-        {
+        if ('' == $this->config['password']) {
             return true;
         }
 
-        if( !$this->_conn->auth( $this->config['password'] ) )
-        {
+        if (!$this->_conn->auth($this->config['password'])) {
             return false;
         }
 
         return true;
     }
 
-	/**
-	 * Db 选择数据库
-	 * @param int $dbName
-	 * @return bool
-	 */
-	public function Db(int $dbName) : bool
+    /**
+     * Db 选择数据库
+     * @param int $dbName
+     * @return bool
+     */
+    public function Db(int $dbName): bool
     {
-         return $this->_exec('select','');
+        return $this->_exec('select', '');
     }
 
 
-	/**
-	 * Set : write cache
-	 * @param $key
-	 * @param $val
-	 * @return bool
-	 */
-	public function Set(string $key, string $val) : bool
+    /**
+     * Set : write cache
+     * @param $key
+     * @param $val
+     * @return bool
+     */
+    public function Set(string $key, string $val): bool
     {
-        return $this->_exec('set', $key, $val );
+        return $this->_exec('set', $key, $val);
     }
 
     /**
@@ -93,9 +87,9 @@ class Redis implements CacheInterface
      * @param $val
      * @return bool
      */
-    public function SetNx(string $key, string $val) : bool
+    public function SetNx(string $key, string $val): bool
     {
-        return $this->_exec('setnx', $key, $val );
+        return $this->_exec('setnx', $key, $val);
     }
 
     /**
@@ -104,18 +98,18 @@ class Redis implements CacheInterface
      * @param int $ttl
      * @return bool
      */
-    public function SetEx(string $key, string $val, int $ttl) : bool
+    public function SetEx(string $key, string $val, int $ttl): bool
     {
-        return $this->_exec('setex', $key, $val, $ttl );
+        return $this->_exec('setex', $key, $val, $ttl);
     }
 
 
-	/**
-	 * Get : read cache
-	 * @param string $key
-	 * @return string|false
-	 */
-	public function Get(string $key)
+    /**
+     * Get : read cache
+     * @param string $key
+     * @return string|false
+     */
+    public function Get(string $key)
     {
         return $this->_exec('get', $key);
     }
@@ -124,12 +118,12 @@ class Redis implements CacheInterface
      * @param string $key
      * @return string|false
      */
-    public function Del(string $key) : bool
+    public function Del(string $key): bool
     {
         return $this->_exec('del', $key);
     }
 
-    public function Exists( string $key) : bool
+    public function Exists(string $key): bool
     {
         return $this->_exec('exists', $key);
     }
@@ -139,7 +133,7 @@ class Redis implements CacheInterface
      * @param string $value
      * @return mixed
      */
-    public function Append( string $key, string $value)
+    public function Append(string $key, string $value)
     {
         return $this->_exec('append', $key, $value);
     }
@@ -148,7 +142,7 @@ class Redis implements CacheInterface
      * @param int $option
      * @return mixed
      */
-    public function Multi( int $option=\Redis::MULTI)
+    public function Multi(int $option = \Redis::MULTI)
     {
         return $this->_exec('multi', $option);
     }
@@ -156,7 +150,7 @@ class Redis implements CacheInterface
     /**
      * Watches a key for modifications by another client. If the key is modified between WATCH and EXEC,
      * the MULTI/EXEC transaction will fail (return FALSE). unwatch cancels all the watching of all keys by this client.
-     * @param string | array $key: a list of keys
+     * @param string | array $key : a list of keys
      * @return void
      * @link    https://redis.io/commands/watch
      * @example
@@ -175,97 +169,97 @@ class Redis implements CacheInterface
     }
 
 
-	/**
-	 * Lpush : Adds the string values to the head (left) of the list. Creates the list if the key didn't exist.
+    /**
+     * Lpush : Adds the string values to the head (left) of the list. Creates the list if the key didn't exist.
      * If the key exists and is not a list, FALSE is returned
-	 * @param string $queue
-	 * @param string $val
-	 * @return int|false
-	 */
-	public function LPush(string $queue, string $val)
+     * @param string $queue
+     * @param string $val
+     * @return int|false
+     */
+    public function LPush(string $queue, string $val)
     {
-        return $this->_exec('lPush',$queue, $val);
+        return $this->_exec('lPush', $queue, $val);
     }
 
 
-	/**
-	 * Rpush : Adds the string values to the tail (right) of the list. Creates the list if the key didn't exist.
+    /**
+     * Rpush : Adds the string values to the tail (right) of the list. Creates the list if the key didn't exist.
      * If the key exists and is not a list, FALSE is returned.
-	 * @param string $queue
-	 * @param string $val
-	 * @return int|false
-	 */
-	public function RPush(string $queue, string $val)
+     * @param string $queue
+     * @param string $val
+     * @return int|false
+     */
+    public function RPush(string $queue, string $val)
     {
         return $this->_exec('rPush', $queue, $val);
     }
 
 
-	/**
-	 * Rpop : Returns and removes the last element of the list.
-	 * @param  string $queue
-	 * @return string|false
-	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
-	 */
-	public function RPop(string $queue)
+    /**
+     * Rpop : Returns and removes the last element of the list.
+     * @param string $queue
+     * @return string|false
+     * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
+     */
+    public function RPop(string $queue)
     {
         return $this->_exec('rPop', $queue);
     }
 
-	/**
-	 * Lpop : Returns and removes the first element of the list.
-	 * @param string $queue
-	 * @return string|false
-	 * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
-	 */
-	public function LPop(string $queue)
+    /**
+     * Lpop : Returns and removes the first element of the list.
+     * @param string $queue
+     * @return string|false
+     * Return value：STRING if command executed successfully BOOL FALSE in case of failure (empty list)
+     */
+    public function LPop(string $queue)
     {
         return $this->_exec('lPop', $queue);
     }
 
 
-	/**
-	 * BrPop : Is a blocking rPop primitive. If at least one of the lists contains at least one element,
+    /**
+     * BrPop : Is a blocking rPop primitive. If at least one of the lists contains at least one element,
      * the element will be popped from the head of the list and returned to the caller.
      * Il all the list identified by the keys passed in arguments are empty, brPop will
      * block during the specified timeout until an element is pushed to one of those lists. T
      * his element will be popped.
-	 * @param string $queue
-	 * @param int $timeout
-	 * @return array
-	 *  Return value ：ARRAY array('listName', 'element')
-	 */
-	public function BrPop( string $queue, int $timeout )
+     * @param string $queue
+     * @param int $timeout
+     * @return array
+     *  Return value ：ARRAY array('listName', 'element')
+     */
+    public function BrPop(string $queue, int $timeout)
     {
         return $this->_exec('brPop', $queue, $timeout);
     }
 
-	/**
-	 * BlPop : Is a blocking lPop primitive. If at least one of the lists contains at least one element,
+    /**
+     * BlPop : Is a blocking lPop primitive. If at least one of the lists contains at least one element,
      * the element will be popped from the head of the list and returned to the caller.
      * Il all the list identified by the keys passed in arguments are empty, blPop will block
      * during the specified timeout until an element is pushed to one of those lists. This element will be popped.
-	 * @param string|array $queue
-	 *    Parameters：ARRAY Array containing the keys of the lists INTEGER Timeout Or STRING Key1 STRING Key2 STRING Key3 ... STRING Keyn INTEGER Timeout
-	 * @param int $timeout
-	 * @return mixed
-	 * 	  ARRAY array('listName', 'element')
-	 */
-	public function BlPop(string $queue, int $timeout)
+     * @param string|array $queue
+     *    Parameters：ARRAY Array containing the keys of the lists INTEGER Timeout Or STRING Key1 STRING Key2 STRING Key3 ... STRING Keyn INTEGER Timeout
+     * @param int $timeout
+     * @return mixed
+     *      ARRAY array('listName', 'element')
+     */
+    public function BlPop(string $queue, int $timeout)
     {
         return $this->_exec('blPop', $queue, $timeout);
 
     }
 
-	/**
-	 * Hset hash table 写入
-	 * @param string $key
-	 * @param string $hashKey
-	 * @param string $value
-	 * @return mixed
-	 *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
-	 */
-	public function HSet(string $key, string $hashKey, string $value)
+    /**
+     * Hset hash table 写入
+     * @param string $key
+     * @param string $hashKey
+     * @param string $value
+     * @return mixed
+     *       LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
+     */
+    public function HSet(string $key, string $hashKey, string $value)
     {
         return $this->_exec('hSet', $key, $hashKey, $value);
     }
@@ -276,7 +270,7 @@ class Redis implements CacheInterface
      * @param string $value
      * @return mixed
      */
-    public function HSetNx( string $key, string $hashKey, string $value)
+    public function HSetNx(string $key, string $hashKey, string $value)
     {
         return $this->_exec('hSetNx', $hashKey, $value);
     }
@@ -306,26 +300,26 @@ class Redis implements CacheInterface
         return $this->_exec('hMGet', $key, ...$hashKeys);
     }
 
-	/**
-	 * Hget hashTable 读取
-	 * @param $key
-	 * @param $hashKey
-	 * @return mixed
-	 * 		STRING The value, if the command executed successfully BOOL FALSE in case of failure
-	 */
-	public function HGet(string $key, string $hashKey)
+    /**
+     * Hget hashTable 读取
+     * @param $key
+     * @param $hashKey
+     * @return mixed
+     *        STRING The value, if the command executed successfully BOOL FALSE in case of failure
+     */
+    public function HGet(string $key, string $hashKey)
     {
         return $this->_exec('hGet', $key, $hashKey);
     }
 
 
-	/**
-	 * Hlen hashTable 长度
-	 * @param string $key
-	 * @return mixed
-	 *     LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
-	 */
-	public function HLen(string $key)
+    /**
+     * Hlen hashTable 长度
+     * @param string $key
+     * @return mixed
+     *     LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
+     */
+    public function HLen(string $key)
     {
         return $this->_exec('hLen', $key);
     }
@@ -334,7 +328,7 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool
      */
-    public function HExists( string $key, string $hashKey) : bool
+    public function HExists(string $key, string $hashKey): bool
     {
         return $this->_exec('hExists', $key, $hashKey);
     }
@@ -344,7 +338,7 @@ class Redis implements CacheInterface
      * @param string $hashKey
      * @return bool
      */
-    public function HDel( string $key, string $hashKey) : bool
+    public function HDel(string $key, string $hashKey): bool
     {
         return $this->_exec('hDel', $key, $hashKey);
     }
@@ -353,7 +347,7 @@ class Redis implements CacheInterface
      * @param string $key
      * @return mixed
      */
-    public function HIncrBy( string $key, int $step)
+    public function HIncrBy(string $key, int $step)
     {
         return $this->_exec('hIncrBy', $key, $step);
     }
@@ -362,7 +356,7 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool|array
      */
-    public function HKeys( string $key)
+    public function HKeys(string $key)
     {
         return $this->_exec('hKeys', $key);
     }
@@ -371,7 +365,7 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool|array
      */
-    public function HVals( string $key)
+    public function HVals(string $key)
     {
         return $this->_exec('hVals', $key);
     }
@@ -380,7 +374,7 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool|array
      */
-    public function HGetAll( string $key)
+    public function HGetAll(string $key)
     {
         return $this->_exec('hGetAll', $key);
     }
@@ -390,17 +384,17 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool|int
      */
-    public function Decr( string $key)
+    public function Decr(string $key)
     {
         return $this->_exec('decr', $key);
     }
 
     /**
      * @param string $key
-     * @param int    $step
+     * @param int $step
      * @return bool|int
      */
-    public function DecrBy( string $key, int $step)
+    public function DecrBy(string $key, int $step)
     {
         return $this->_exec('decrBy', $key, $step);
     }
@@ -410,17 +404,17 @@ class Redis implements CacheInterface
      * @param string $key
      * @return bool|int
      */
-    public function Incr( string $key)
+    public function Incr(string $key)
     {
         return $this->_exec('incr', $key);
     }
 
     /**
      * @param string $key
-     * @param int    $step
+     * @param int $step
      * @return bool|int
      */
-    public function IncrBy( string $key, int $step)
+    public function IncrBy(string $key, int $step)
     {
         return $this->_exec('incrBy', $key, $step);
     }
@@ -431,17 +425,17 @@ class Redis implements CacheInterface
      * @param string $msg
      * @return mixed
      */
-    public function Publish( string $channel, string $msg)
+    public function Publish(string $channel, string $msg)
     {
         return $this->_exec('publish', $channel, $msg);
     }
 
-	/**
-	 * Ping
-	 * @return mixed
-	 * 		STRING: +PONG on success. Throws a RedisException object on connectivity error, as described above.
-	 */
-	public function Ping()
+    /**
+     * Ping
+     * @return mixed
+     *        STRING: +PONG on success. Throws a RedisException object on connectivity error, as described above.
+     */
+    public function Ping()
     {
         return $this->_exec('ping', '');
     }
@@ -472,11 +466,11 @@ class Redis implements CacheInterface
     }
 
 
-	/**
-	 * close 关闭连接
-	 * @return void
-	 */
-	public function Close()
+    /**
+     * close 关闭连接
+     * @return void
+     */
+    public function Close()
     {
         $this->_conn->close();
     }
@@ -488,14 +482,12 @@ class Redis implements CacheInterface
      * @param string ...$values
      * @return mixed
      */
-    private function _exec( string $function, string $key, string ...$values)
+    private function _exec(string $function, string $key, string ...$values)
     {
         $isRetried = false;
         START:
-        try
-        {
-            switch ($function)
-            {
+        try {
+            switch ($function) {
                 case 'dbSize':
                 case 'flushDB':
                 case 'flushAll':
@@ -520,17 +512,17 @@ class Redis implements CacheInterface
                     break;
                 case 'lPush':  //done
                 case 'rPush':  //done
-                    $result = $this->_conn->$function( $key, $values[0] );
+                    $result = $this->_conn->$function($key, $values[0]);
                     break;
                 case 'rPop':   //done
                 case 'lPop':   //done
                 case 'brPop':  //done
                 case 'blPop':  //done
-                    $result = $this->_conn->$function( $key, (int)$values[0] );
+                    $result = $this->_conn->$function($key, (int)$values[0]);
                     break;
                 case 'hSet':    //done
                 case 'hSetNx':  //done
-                    $result = $this->_conn->$function( $key, $values[0], $values[1]);
+                    $result = $this->_conn->$function($key, $values[0], $values[1]);
                     break;
                 case 'hGet':     //done
                 case 'publish':  //done
@@ -538,11 +530,11 @@ class Redis implements CacheInterface
                 case 'rPushx':
                 case 'append':   //done
                 case 'setnx':    //done
-                    $result = $this->_conn->$function( $key, $values[0]);
+                    $result = $this->_conn->$function($key, $values[0]);
                     break;
                 case 'decrBy':  //done
                 case 'incrBy':  //done
-                    $result = $this->_conn->$function( $key, (int)$values[0]);
+                    $result = $this->_conn->$function($key, (int)$values[0]);
                     break;
                 case 'hDel':   //done
                 case 'hMGet':  //done
@@ -555,16 +547,13 @@ class Redis implements CacheInterface
                     $result = $this->_conn->$function($key, (int)$values[1], $values[0]);
                     break;
                 case 'multi':    //done
-                    $result = $this->_conn->$function( (int)$key );
+                    $result = $this->_conn->$function((int)$key);
                     break;
                 default:
                     return false;
             }
-        }
-        catch(\RedisException $exception)
-        {
-            if( !$isRetried )
-            {
+        } catch (\RedisException $exception) {
+            if (!$isRetried) {
                 $this->_handleException($exception, $function);
                 $isRetried = true;
                 goto START;
@@ -578,21 +567,16 @@ class Redis implements CacheInterface
     {
         $isRetried = false;
         START:
-        try
-        {
-            switch ($function)
-            {
+        try {
+            switch ($function) {
                 case 'hMSet': //单独处理
                     $result = $this->_conn->$function($key, $values);
                     break;
                 default:
                     return false;
             }
-        }
-        catch(\RedisException $exception)
-        {
-            if( !$isRetried )
-            {
+        } catch (\RedisException $exception) {
+            if (!$isRetried) {
                 $this->_handleException($exception, $function);
                 $isRetried = true;
                 goto START;
@@ -604,16 +588,15 @@ class Redis implements CacheInterface
 
     /**
      * @param \RedisException $exception
-     * @param string          $function
+     * @param string $function
      */
-    private function _handleException( \RedisException $exception, string $function)
+    private function _handleException(\RedisException $exception, string $function)
     {
-        Log::Warning(__CLASS__.'::'.$function." failed, ".$exception->getMessage(), self::LOG_NAME);
-        if(
-            false!==strpos($exception->getMessage(), 'server went away') ||
-            false!==strpos($exception->getMessage(), 'Connection lost')
-        )
-        {
+        Log::Warning(__CLASS__ . '::' . $function . " failed, " . $exception->getMessage(), self::LOG_NAME);
+        if (
+            false !== strpos($exception->getMessage(), 'server went away') ||
+            false !== strpos($exception->getMessage(), 'Connection lost')
+        ) {
             Log::Warning('Trying to reconnect.', self::LOG_NAME);
             $this->InitConnection();
         }

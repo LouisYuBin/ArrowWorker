@@ -5,7 +5,7 @@ namespace ArrowWorker\Library;
 
 
 use ArrowWorker\Container;
-use \Swoole\Coroutine\Channel as SwChan;
+use Swoole\Coroutine\Channel as SwChan;
 
 /**
  * Class Channel
@@ -21,7 +21,7 @@ class Channel
      * @var SwChan
      */
     private $swChan;
-    
+
     private $container;
 
     /**
@@ -41,9 +41,9 @@ class Channel
      */
     public function __construct(Container $container, int $size)
     {
-    	$this->container = $container;
-        $this->size     = $size;
-        $this->swChan    = $container->Make(SwChan::class, [$size]);
+        $this->container = $container;
+        $this->size = $size;
+        $this->swChan = $container->Make(SwChan::class, [$size]);
     }
 
     /**
@@ -52,7 +52,7 @@ class Channel
      *
      * @return mixed
      */
-    public function Push($data, $timeout=1)
+    public function Push($data, $timeout = 1)
     {
         return $this->swChan->push($data, $timeout);
     }
@@ -66,7 +66,7 @@ class Channel
      * @param float $timeout
      * @return mixed
      */
-    public function Pop(float $timeout=1)
+    public function Pop(float $timeout = 1)
     {
         return $this->swChan->pop($timeout);
     }

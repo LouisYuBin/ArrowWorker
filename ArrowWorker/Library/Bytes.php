@@ -11,17 +11,15 @@ class Bytes
     /**
      * convert string to byte array
      * @param string $string
-     * @param bool   $isToHex
+     * @param bool $isToHex
      * @return array
      */
     public static function StringToBytes(string $string, bool $isToHex = false): array
     {
         $bytes = [];
         $strLen = strlen($string);
-        for ($i = 0; $i < $strLen; $i++)
-        {
-            if ($isToHex)
-            {
+        for ($i = 0; $i < $strLen; $i++) {
+            if ($isToHex) {
                 $bytes[] = dechex(ord($string[$i]));
                 continue;
             }
@@ -29,16 +27,16 @@ class Bytes
         }
         return $bytes;
     }
+
     /**
      * convert byte array to string
      * @param array $bytes
-     * @param bool  $isFromHex
+     * @param bool $isFromHex
      * @return string
      */
     public static function BytesToString(array $bytes, bool $isFromHex = false): string
     {
-        if ($isFromHex)
-        {
+        if ($isFromHex) {
             $bytes = array_map('hexdec', $bytes);
         }
         $bytes = array_map('chr', $bytes);
@@ -64,7 +62,7 @@ class Bytes
      * @param int $short
      * @return array
      */
-    public static function ShortToBytes(int $short) : array
+    public static function ShortToBytes(int $short): array
     {
         $bytes = array();
         $bytes[1] = ($short & 0xff);

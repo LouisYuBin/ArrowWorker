@@ -11,25 +11,25 @@ interface CacheInterface
     /**
      *
      */
-    const LOG_NAME          = 'Cache';
+    const LOG_NAME = 'Cache';
 
     /**
      * @param Container $container
      * @param array $config
      */
-    public function __construct( Container $container, array $config );
+    public function __construct(Container $container, array $config);
 
     /**
      * @return bool
      */
-    public function InitConnection() : bool;
+    public function InitConnection(): bool;
 
     /**
      * Db 选择数据库
      * @param int $dbName
      * @return bool
      */
-    public function Db(int $dbName) : bool;
+    public function Db(int $dbName): bool;
 
 
     /**
@@ -38,7 +38,7 @@ interface CacheInterface
      * @param $val
      * @return bool
      */
-    public function Set(string $key, string $val) : bool;
+    public function Set(string $key, string $val): bool;
 
 
     /**

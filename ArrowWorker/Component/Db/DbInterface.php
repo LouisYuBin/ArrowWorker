@@ -13,7 +13,7 @@ interface DbInterface
     /**
      *
      */
-    const MODULE_NAME     = 'Db';
+    const MODULE_NAME = 'Db';
 
     /**
      *
@@ -21,7 +21,7 @@ interface DbInterface
     const SQL_LOG_NAME = 'Sql';
 
 
-    public function __construct( Container $container, array $config );
+    public function __construct(Container $container, array $config);
 
     /**
      * @return bool
@@ -34,14 +34,14 @@ interface DbInterface
      * @param string $sql
      * @return array|bool
      */
-    public function Query( string $sql );
+    public function Query(string $sql);
 
     /**
      * execute 写入或更新
      * @param string $sql
      * @return array
      */
-    public function Execute( string $sql );
+    public function Execute(string $sql);
 
 
     /**
@@ -64,6 +64,6 @@ interface DbInterface
      * Autocommit 是否自动提交
      * @param bool $flag
      */
-    public function Autocommit( bool $flag );
+    public function Autocommit(bool $flag);
 
 }

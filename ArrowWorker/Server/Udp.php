@@ -6,13 +6,12 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\App;
 use ArrowWorker\Container;
 use ArrowWorker\Library\Process;
-use \Swoole\Server;
-
-use ArrowWorker\App;
 use ArrowWorker\Log;
 use ArrowWorker\Server\Server as ServerPattern;
+use Swoole\Server;
 
 
 /**
@@ -22,8 +21,8 @@ use ArrowWorker\Server\Server as ServerPattern;
 class Udp extends ServerPattern
 {
 
-	const MODULE_NAME = 'Udp Server';
-	
+    const MODULE_NAME = 'Udp Server';
+
     /**
      * @var int|mixed
      */
@@ -54,17 +53,7 @@ class Udp extends ServerPattern
     /**
      * @var string
      */
-    private $handlerConnect = '';
-
-    /**
-     * @var string
-     */
-    private $handlerReceive = '';
-
-    /**
-     * @var string
-     */
-    private $handlerClose = '';
+    private $callback = '';
 
     /**
      * @var bool
@@ -74,18 +63,18 @@ class Udp extends ServerPattern
     /**
      * @return void
      */
-    public function Start( )
+    public function Start()
     {
         $this->initServer();
-	    $this->initComponent(App::TYPE_UDP);
-	    $this->setConfig();
-	    $this->onStart();
-	    $this->onWorkerStart();
-	
-	    $this->onConnect();
-	    $this->onReceive();
-	    $this->onClose();
-	    $this->startServer();
+        $this->initComponent(App::TYPE_UDP);
+        $this->setConfig();
+        $this->onStart();
+        $this->onWorkerStart();
+
+        $this->onConnect();
+        $this->onReceive();
+        $this->onClose();
+        $this->startServer();
     }
 
     /**
@@ -94,39 +83,37 @@ class Udp extends ServerPattern
      * @param Log $logger
      * @param array $config
      */
-    public function __construct( Container $container, Log $logger, array $config )
+    public function __construct(Container $container, Log $logger, array $config)
     {
-    	$this->container = $container;
-	    $this->logger    = $logger;
-    	
-        $this->port             = $config[ 'port' ] ?? 8083;
-        $this->reactorNum       = $config[ 'reactorNum' ] ?? 2;
-        $this->workerNum        = $config[ 'workerNum' ] ?? 2;
-        $this->enableCoroutine  = $config[ 'enableCoroutine' ] ?? true;
-        $this->user             = $config[ 'user' ] ?? 'root';
-        $this->group            = $config[ 'group' ] ?? 'root';
-        $this->backlog          = $config[ 'backlog ' ] ?? 1024 * 100;
-        $this->maxCoroutine     = $config[ 'maxCoroutine' ] ?? 1000;
-        $this->pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
+        $this->container = $container;
+        $this->logger = $logger;
 
-        $this->heartbeatCheckInterval = $config[ 'heartbeatCheckInterval' ] ?? 60;
-        $this->heartbeatIdleTime      = $config[ 'heartbeatIdleTime' ] ?? 30;
-        $this->openEofCheck           = $config[ 'openEofCheck' ] ?? false;
-        $this->openEofSplit           = $config[ 'openEofSplit' ] ?? false;
-        $this->packageEof             = $config[ 'packageEof' ] ?? '\r\n';
+        $this->port = $config['port'] ?? 8083;
+        $this->reactorNum = $config['reactorNum'] ?? 2;
+        $this->workerNum = $config['workerNum'] ?? 2;
+        $this->enableCoroutine = $config['enableCoroutine'] ?? true;
+        $this->user = $config['user'] ?? 'root';
+        $this->group = $config['group'] ?? 'root';
+        $this->backlog = $config['backlog '] ?? 1024 * 100;
+        $this->maxCoroutine = $config['maxCoroutine'] ?? 1000;
+        $this->pipeBufferSize = $config['pipeBufferSize'] ?? 1024 * 1024 * 100;
+        $this->socketBufferSize = $config['socketBufferSize'] ?? 1024 * 1024 * 100;
+        $this->maxContentLength = $config['maxContentLength'] ?? 1024 * 1024 * 10;
 
-        $this->components = $config[ 'components' ] ?? [];
+        $this->heartbeatCheckInterval = $config['heartbeatCheckInterval'] ?? 60;
+        $this->heartbeatIdleTime = $config['heartbeatIdleTime'] ?? 30;
+        $this->openEofCheck = $config['openEofCheck'] ?? false;
+        $this->openEofSplit = $config['openEofSplit'] ?? false;
+        $this->packageEof = $config['packageEof'] ?? '\r\n';
 
-        $this->handlerConnect = $config[ 'callback' ]['connect'] ?? '';
-        $this->handlerReceive = $config[ 'callback' ]['receive'] ?? '';
-        $this->handlerClose   = $config[ 'callback' ]['close'] ?? '';
+        $this->components = $config['components'] ?? [];
 
-        $this->isUdp6 = $config[ 'isUdp6' ] ?? false;
-	
-	    $this->identity         = $config['identity'];
-	
+        $this->callback = $config['callback'] ?? '';
+
+        $this->isUdp6 = $config['isUdp6'] ?? false;
+
+        $this->identity = $config['identity'];
+
     }
 
     private function startServer()
@@ -140,60 +127,55 @@ class Udp extends ServerPattern
             $this->host,
             $this->port,
             $this->mode,
-            (bool)$this->isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP );
+            (bool)$this->isUdp6 ? SWOOLE_SOCK_UDP6 : SWOOLE_SOCK_UDP);
     }
 
     private function onStart()
     {
-        $this->server->on( 'start', function ( $server )
-        {
-	        Process::SetName("{$this->identity}_Udp:{$this->port} Manager");
-	        Log::Dump( "listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME );
-        } );
+        $this->server->on('start', function ($server) {
+            Process::SetName("{$this->identity}_Udp:{$this->port} Manager");
+            Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
+        });
     }
 
     private function onConnect()
     {
-        $this->server->on( 'connect', function ( Server $server, int $fd )
-        {
+        $this->server->on('connect', function (Server $server, int $fd) {
             $this->component->Init();
-            ($this->handlerConnect)( $server, $fd );
+            ("{$this->callback}::Connect")($server, $fd);
             $this->component->Release();
-        } );
+        });
     }
 
     private function onReceive()
     {
-        $this->server->on( 'receive', function ( Server $server, int $fd, int $reactor_id, string $data )
-        {
+        $this->server->on('receive', function (Server $server, int $fd, int $reactor_id, string $data) {
             $this->component->Init();
-            ($this->handlerReceive)( $server, $fd, $data );
+            ("{$this->callback}::Receive")($server, $fd, $data);
             $this->component->Release();
-        } );
+        });
     }
 
     private function onClose()
     {
-        $this->server->on( 'close', function ( Server $server, int $fd )
-        {
+        $this->server->on('close', function (Server $server, int $fd) {
             $this->component->Init();
-            ($this->handlerClose)( $server, $fd );
+            ("{$this->callback}::Close")($server, $fd);
             $this->component->Release();
-        } );
+        });
     }
 
     private function onWorkerStart()
     {
-        $this->server->on( 'WorkerStart', function ()
-        {
-	        Process::SetName("{$this->identity}_Udp:{$this->port} Worker");
-	        $this->component->InitPool( $this->components );
-        } );
+        $this->server->on('WorkerStart', function () {
+            Process::SetName("{$this->identity}_Udp:{$this->port} Worker");
+            $this->component->InitPool($this->components);
+        });
     }
 
     private function setConfig()
     {
-        $this->server->set( [
+        $this->server->set([
             'mode'                     => $this->mode,
             'worker_num'               => $this->workerNum,
             'daemonize'                => false,
@@ -212,7 +194,7 @@ class Udp extends ServerPattern
             'open_eof_check'           => $this->openEofCheck,
             'package_eof'              => $this->packageEof,
             'open_eof_split'           => $this->openEofSplit,
-        ] );
+        ]);
     }
 
 }

@@ -68,19 +68,16 @@ class Process
     /**
      * @param string $name
      */
-    public static function SetName( string $name)
+    public static function SetName(string $name)
     {
-        if( PHP_OS=='Darwin')
-        {
-            return ;
+        if (PHP_OS == 'Darwin') {
+            return;
         }
 
-        if(function_exists('cli_set_process_title'))
-        {
+        if (function_exists('cli_set_process_title')) {
             @cli_set_process_title($name);
         }
-        if(extension_loaded('proctitle') && function_exists('setproctitle'))
-        {
+        if (extension_loaded('proctitle') && function_exists('setproctitle')) {
             @setproctitle($name);
         }
     }
@@ -88,7 +85,7 @@ class Process
     /**
      * @return int
      */
-    public static function Id() : int
+    public static function Id(): int
     {
         return posix_getpid();
     }
@@ -104,9 +101,9 @@ class Process
     /**
      * @param int $seconds
      */
-    public static function SetAlarm( int $seconds)
+    public static function SetAlarm(int $seconds)
     {
-        pcntl_alarm( $seconds );
+        pcntl_alarm($seconds);
     }
 
     /**
@@ -114,7 +111,7 @@ class Process
      * @param int $options
      * @return int
      */
-    public static function Wait( int &$status, int $options=WUNTRACED) : int
+    public static function Wait(int &$status, int $options = WUNTRACED): int
     {
         return pcntl_wait($status, $options);
     }
@@ -125,22 +122,19 @@ class Process
      * @param bool $isForceNotify
      * @return bool
      */
-    public static function Kill( int $pid, int $signal, bool $isForceNotify=false) : bool
+    public static function Kill(int $pid, int $signal, bool $isForceNotify = false): bool
     {
-        if( $isForceNotify )
-        {
+        if ($isForceNotify) {
             goto KILL;
         }
 
-        if( self::IsKillNotified($pid.$signal) )
-        {
+        if (self::IsKillNotified($pid . $signal)) {
             return true;
         }
 
         KILL:
-        if( posix_kill( $pid, $signal ) )
-        {
-            self::$_killNotificationPidMap[] = $pid.$signal;
+        if (posix_kill($pid, $signal)) {
+            self::$_killNotificationPidMap[] = $pid . $signal;
             return true;
         }
         return false;
@@ -150,23 +144,21 @@ class Process
      * @param string $pidSignal
      * @return bool
      */
-    public static function IsKillNotified( string $pidSignal)
+    public static function IsKillNotified(string $pidSignal)
     {
         return in_array($pidSignal, self::$_killNotificationPidMap);
     }
 
-    public static function SignalName(int $signal) : string
+    public static function SignalName(int $signal): string
     {
-        if( 0==count(self::$_signalMap) )
-        {
-            self::$_signalMap =  PHP_OS=='Darwin' ?
+        if (0 == count(self::$_signalMap)) {
+            self::$_signalMap = PHP_OS == 'Darwin' ?
                 array_merge(self::SIGNAL_COMMON_MAP, self::SIGNAL_MAC_MAP) :
                 array_merge(self::SIGNAL_COMMON_MAP, self::SIGNAL_LINUX_MAP);
         }
 
-        $key = 's'.$signal;
-        if( !isset( self::$_signalMap[$key] ) )
-        {
+        $key = 's' . $signal;
+        if (!isset(self::$_signalMap[$key])) {
             return 'unknown';
         }
         return self::$_signalMap[$key];
@@ -175,7 +167,7 @@ class Process
     /**
      * @param int $seconds
      */
-    public static function Sleep( int $seconds)
+    public static function Sleep(int $seconds)
     {
         sleep($seconds);
     }
@@ -184,19 +176,17 @@ class Process
      * @param string $group
      * @param string $user
      */
-    public static function SetExecGroupUser( string $group, string $user)
+    public static function SetExecGroupUser(string $group, string $user)
     {
-        $user  = posix_getpwnam( $user );
-        $group = posix_getgrnam( $group );
+        $user = posix_getpwnam($user);
+        $group = posix_getgrnam($group);
 
-        if( !$user || !$group )
-        {
-            Log::Dump(__CLASS__.'::'.__METHOD__.", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！",Log::TYPE_NOTICE, self::MODULE_NAME );
+        if (!$user || !$group) {
+            Log::Dump(__CLASS__ . '::' . __METHOD__ . ", posix_getpwnam({$user})/posix_getgrnam({$group}) failed！", Log::TYPE_NOTICE, self::MODULE_NAME);
         }
 
-        if( !posix_setgid($group['gid']) || !posix_setuid($user['uid']) )
-        {
-            Log::Dump(__CLASS__.'::'.__METHOD__.",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！", Log::TYPE_NOTICE, self::MODULE_NAME);
+        if (!posix_setgid($group['gid']) || !posix_setuid($user['uid'])) {
+            Log::Dump(__CLASS__ . '::' . __METHOD__ . ",  posix_setuid({$user['uid']})/posix_setgid({$group['gid']}) failed！", Log::TYPE_NOTICE, self::MODULE_NAME);
         }
     }
 

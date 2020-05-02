@@ -26,8 +26,7 @@ class View
     public static function init($config)
     {
 
-        if(!self::$ViewObj)
-        {
+        if (!self::$ViewObj) {
             self::$ViewObj = new self($config);
         }
         return self::$ViewObj;
@@ -36,31 +35,30 @@ class View
     //初始化引擎
     private function initEngine()
     {
-        if(!self::$tplObj)
-        {
-            $driver       = "ArrowWorker\\Driver\\View\\".self::$config['driver'];
+        if (!self::$tplObj) {
+            $driver = "ArrowWorker\\Driver\\View\\" . self::$config['driver'];
             self::$tplObj = new $driver;
-            $TplPath      = APP_PATH.APP_TPL_DIR.DIRECTORY_SEPARATOR;
+            $TplPath = APP_PATH . APP_TPL_DIR . DIRECTORY_SEPARATOR;
 
-            self::$tplObj -> template_dir = $TplPath;
-            self::$tplObj -> compile_dir  = $TplPath.'Compile';
-            self::$tplObj -> html_dir     = $TplPath.'Html';
-            self::$tplObj -> cache_dir    = $TplPath.'Cache';
+            self::$tplObj->template_dir = $TplPath;
+            self::$tplObj->compile_dir = $TplPath . 'Compile';
+            self::$tplObj->html_dir = $TplPath . 'Html';
+            self::$tplObj->cache_dir = $TplPath . 'Cache';
         }
     }
 
     //传递参数
-    public function assign($key,$value)
+    public function assign($key, $value)
     {
-        $this -> initEngine();
-        self::$tplObj -> assign($key,$value);
+        $this->initEngine();
+        self::$tplObj->assign($key, $value);
     }
 
     //映射fetch方法
     public function fetch($tplName)
     {
-        $this -> initEngine();
-        return self::$tplObj -> fetch($tplName.self::$config['tplExt']);
+        $this->initEngine();
+        return self::$tplObj->fetch($tplName . self::$config['tplExt']);
     }
 
 }

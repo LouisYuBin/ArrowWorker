@@ -15,12 +15,10 @@ class Image
      */
     public static function Open(string $file)
     {
-        if( extension_loaded('imagick') )
-        {
+        if (extension_loaded('imagick')) {
             return ImageMagick::Open($file);
         }
-        if( extension_loaded('gd') )
-        {
+        if (extension_loaded('gd')) {
             return Gd::Open($file);
         }
         return false;
@@ -31,15 +29,13 @@ class Image
      * @return bool|Gd|ImageMagick
      * @throws \Exception
      */
-    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
+    public static function Create(int $width, int $height, array $bg = [255, 255, 255, 1], string $type = 'GIF')
     {
-        if( extension_loaded('imagick') )
-        {
-            return ImageMagick::Create($width,$height,$bg,$type);
+        if (extension_loaded('imagick')) {
+            return ImageMagick::Create($width, $height, $bg, $type);
         }
-        if( extension_loaded('gd') )
-        {
-            return Gd::Create($width,$height,$bg,$type);
+        if (extension_loaded('gd')) {
+            return Gd::Create($width, $height, $bg, $type);
         }
         return false;
     }

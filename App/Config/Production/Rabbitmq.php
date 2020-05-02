@@ -17,6 +17,6 @@ return [
         //路由
         'route'    => 'routeName',
         //队列名
-        'queue'    => 'queueName'
-    ]
+        'queue'    => 'queueName',
+    ],
 ];

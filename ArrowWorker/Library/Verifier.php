@@ -311,8 +311,7 @@ class Verifier
      */
     public static function IsJson(string $string): bool
     {
-        if( json_decode($string) !==null && ( strpos($string,'[')!==false || strpos($string,'{')!==false ) )
-        {
+        if (json_decode($string) !== null && (strpos($string, '[') !== false || strpos($string, '{') !== false)) {
             return true;
         }
         return false;
@@ -336,14 +335,12 @@ class Verifier
      * @param array $normalArray
      * @return mixed
      */
-    public static function ReplaceSpecialSymbol($data, array $symbolArray=[], array $normalArray=[])
+    public static function ReplaceSpecialSymbol($data, array $symbolArray = [], array $normalArray = [])
     {
-        if( count($symbolArray)==0 )
-        {
+        if (count($symbolArray) == 0) {
             $symbolArray = static::$specialSymbol[0];
         }
-        if( count($normalArray)==0 )
-        {
+        if (count($normalArray) == 0) {
             $normalArray = static::$specialSymbol[1];
         }
         return trim(str_replace($symbolArray, $normalArray, $data));
@@ -353,23 +350,22 @@ class Verifier
      * @param string $oraString
      * @return string
      */
-    public static function Html2Normal(string $oraString) : string
+    public static function Html2Normal(string $oraString): string
     {
-        $oraString =  htmlspecialchars($oraString,ENT_QUOTES);
-        return str_replace([PHP_EOL,'\b','\r\n', '\n', '\r'],'',$oraString);
+        $oraString = htmlspecialchars($oraString, ENT_QUOTES);
+        return str_replace([PHP_EOL, '\b', '\r\n', '\n', '\r'], '', $oraString);
     }
 
     /**
      * @param  $price
      * @return bool
      */
-    public static function IsPrice(string $price ): bool
+    public static function IsPrice(string $price): bool
     {
         $result = preg_match(static::$pricePattern, $price);
         if ($result === 1) {
             $priceFloat = (float)$price;
-            if($priceFloat<0 && $priceFloat>99999999)
-            {
+            if ($priceFloat < 0 && $priceFloat > 99999999) {
                 return false;
             }
             return true;
@@ -397,8 +393,7 @@ class Verifier
     public static function IsXml(string $data): bool
     {
         $xmlParser = xml_parser_create();
-        if( !xml_parse($xmlParser, $data, true) )
-        {
+        if (!xml_parse($xmlParser, $data, true)) {
             return false;
         }
         return true;
@@ -409,9 +404,9 @@ class Verifier
      * @param string $data
      * @return string
      */
-    public static function ReplaceLineBreak(string $data) : string
+    public static function ReplaceLineBreak(string $data): string
     {
-        return preg_replace(['/'.PHP_EOL.'/','/\\\{1,}n/','/\\\{1,}r/'],["l_i_n_e__b_r_e_a_k_1",'l_i_n_e__b_r_e_a_k_2','l_i_n_e__b_r_e_a_k_3'],$data);
+        return preg_replace(['/' . PHP_EOL . '/', '/\\\{1,}n/', '/\\\{1,}r/'], ["l_i_n_e__b_r_e_a_k_1", 'l_i_n_e__b_r_e_a_k_2', 'l_i_n_e__b_r_e_a_k_3'], $data);
     }
 
     /**
@@ -419,9 +414,9 @@ class Verifier
      * @param string $data
      * @return string
      */
-    public static function RecoveryLineBreak(string $data) : string
+    public static function RecoveryLineBreak(string $data): string
     {
-        return preg_replace(['/l_i_n_e__b_r_e_a_k_1/','/l_i_n_e__b_r_e_a_k_2/','/l_i_n_e__b_r_e_a_k_3/'], [PHP_EOL, '\n', '\r'], $data);
+        return preg_replace(['/l_i_n_e__b_r_e_a_k_1/', '/l_i_n_e__b_r_e_a_k_2/', '/l_i_n_e__b_r_e_a_k_3/'], [PHP_EOL, '\n', '\r'], $data);
     }
 
 }

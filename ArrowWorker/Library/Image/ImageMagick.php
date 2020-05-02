@@ -49,14 +49,14 @@ class ImageMagick implements ImageInterface
      */
 
     const BOTTOM_RIGHT = 'bottom-right';
-    const IMAGETYPE_GIF  = 'GIF';
+    const IMAGETYPE_GIF = 'GIF';
     const IMAGETYPE_JPEG = 'JPEG';
     const IMAGETYPE_PNG = 'PNG';
 
     /*
      * font path
      */
-    const FONT_PATh = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Font/';
+    const FONT_PATh = APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . '/Font/';
 
     /**
      * image object
@@ -65,11 +65,11 @@ class ImageMagick implements ImageInterface
     /**
      * image file path.
      */
-    private $file   = '';
+    private $file = '';
     /**
      * image file width.
      */
-    private $width  = 0;
+    private $width = 0;
     /**
      * image file height
      */
@@ -77,7 +77,7 @@ class ImageMagick implements ImageInterface
     /**
      * image file type
      */
-    private $type   = 0;
+    private $type = 0;
     /**
      * image file block
      */
@@ -96,14 +96,14 @@ class ImageMagick implements ImageInterface
      * @param int $height
      * @param int $type
      */
-    private function __construct(\Imagick $img, string $imageFile, int $width, int $height, string $type, $blocks = '', bool $animated = false )
+    private function __construct(\Imagick $img, string $imageFile, int $width, int $height, string $type, $blocks = '', bool $animated = false)
     {
-        $this->img    = $img;
-        $this->file   = $imageFile;
-        $this->width  = $width;
+        $this->img = $img;
+        $this->file = $imageFile;
+        $this->width = $width;
         $this->height = $height;
-        $this->type   = $type;
-        $this->blocks   = $blocks;
+        $this->type = $type;
+        $this->blocks = $blocks;
         $this->animated = $animated;
     }
 
@@ -112,13 +112,13 @@ class ImageMagick implements ImageInterface
      * @param string $imageFile
      * @return Gd
      */
-    public static function Open(string $imageFile) : self
+    public static function Open(string $imageFile): self
     {
-        if ( !file_exists( $imageFile ) ) {
-            throw new \Exception( sprintf('Could not open image file "%s"', $imageFile) );
+        if (!file_exists($imageFile)) {
+            throw new \Exception(sprintf('Could not open image file "%s"', $imageFile));
         }
 
-        $imagick = new \Imagick( $imageFile );
+        $imagick = new \Imagick($imageFile);
         $animated = false;
         if ($imagick->getImageIterations() > 0) {
             $animated = true;
@@ -147,37 +147,35 @@ class ImageMagick implements ImageInterface
      * @return $this
      * @throws \Exception
      */
-    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255,1], string $position='center' )
+    public function Resize(int $newWidth, int $newHeight, string $mode = 'fit', array $color = [255, 255, 255, 1], string $position = 'center')
     {
-        $resizeWidth  = $this->width;
+        $resizeWidth = $this->width;
         $resizeHeight = $this->height;
-        switch ($mode)
-        {
+        switch ($mode) {
             case 'exact':
-                $resizeWidth  = $newWidth;
+                $resizeWidth = $newWidth;
                 $resizeHeight = $newHeight;
                 break;
             case 'fill':
                 //return $this->Resize($newWidth, $newHeight)->fill($newWidth, $newHeight, $position, $color);
                 return $this->fill($newWidth, $newHeight, $position, $color);
 
-            break;
+                break;
             case 'width':
                 $resizeWidth = $newWidth;
-                $resizeHeight = $this->height/($this->width/$newWidth);
+                $resizeHeight = $this->height / ($this->width / $newWidth);
                 break;
             case 'height':
                 $resizeHeight = $newHeight;
-                $resizeWidth = $this->width/($this->height/$newHeight);
+                $resizeWidth = $this->width / ($this->height / $newHeight);
                 break;
             case 'fit':
-                $ratio  = $this->width / $this->height;
-                $resizeWidth  = $newWidth;
+                $ratio = $this->width / $this->height;
+                $resizeWidth = $newWidth;
                 $resizeHeight = round($newWidth / $ratio);
-                if( ($resizeWidth > $newWidth) || ($resizeHeight > $newHeight) )
-                {
+                if (($resizeWidth > $newWidth) || ($resizeHeight > $newHeight)) {
                     $resizeHeight = $newHeight;
-                    $resizeWidth  = $newHeight * $ratio;
+                    $resizeWidth = $newHeight * $ratio;
                 }
                 break;
             default:
@@ -198,25 +196,21 @@ class ImageMagick implements ImageInterface
      */
     public function _resize(int $newWidth, int $newHeight, int $targetX = 0, int $targetY = 0, int $srcX = 0, int $srcY = 0)
     {
-        if ( $this->type==static::IMAGETYPE_GIF )
-        {
+        if ($this->type == static::IMAGETYPE_GIF) {
             $imagick = $this->img->coalesceImages();
             foreach ($imagick as $frame) {
                 $frame->resizeImage($newWidth, $newHeight, \Imagick::FILTER_BOX, 1, false);
                 $frame->setImagePage($newWidth, $newHeight, 0, 0);
             }
             $this->img = $imagick->deconstructImages();
-        }
-        else
-        {
+        } else {
             $result = $this->img->resizeImage($newWidth, $newHeight, \Imagick::FILTER_LANCZOS, 1, false);
-            if( !$result )
-            {
+            if (!$result) {
                 throw new \Exception('resizeImage failed');
             }
         }
 
-        $this->width  = $newWidth;
+        $this->width = $newWidth;
         $this->height = $newHeight;
         return $this;
     }
@@ -232,16 +226,14 @@ class ImageMagick implements ImageInterface
      * @param array $color ： available if $model='fill'
      * @return $this
      */
-    public function fill($fillWidth, $fillHeight, $position = 'center', array $color=[255,255,255,1])
+    public function fill($fillWidth, $fillHeight, $position = 'center', array $color = [255, 255, 255, 1])
     {
         $newImg = new \Imagick();
-        list($x, $y) = $this->getPosition($fillWidth,$fillHeight, $this->width, $this->height, $position);
+        list($x, $y) = $this->getPosition($fillWidth, $fillHeight, $this->width, $this->height, $position);
 
-        if( $this->type==static::IMAGETYPE_GIF )
-        {
+        if ($this->type == static::IMAGETYPE_GIF) {
             $imagick = $this->img->coalesceImages();
-            foreach($imagick as $frame)
-            {
+            foreach ($imagick as $frame) {
                 $draw = new \ImagickDraw();
                 $draw->composite(
                     $frame->getImageCompose(),
@@ -252,14 +244,12 @@ class ImageMagick implements ImageInterface
                     $frame
                 );
                 $eachPage = new \Imagick();
-                $eachPage->newImage($fillWidth, $fillHeight,"rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
+                $eachPage->newImage($fillWidth, $fillHeight, "rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
                 $eachPage->drawImage($draw);
                 $newImg->addImage($eachPage);
                 $newImg->setImageFormat(static::IMAGETYPE_GIF);
             }
-        }
-        else
-        {
+        } else {
             $draw = new \ImagickDraw();
             $draw->composite(
                 $this->img->getImageCompose(),
@@ -270,11 +260,11 @@ class ImageMagick implements ImageInterface
                 $this->img
             );
 
-            $newImg->newImage($fillWidth, $fillHeight,"rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
+            $newImg->newImage($fillWidth, $fillHeight, "rgba({$color[0]},{$color[1]},{$color[2]},{$color[3]})");
             $newImg->drawImage($draw);
             $newImg->setImageFormat($this->type);
         }
-        $this->width  = $fillWidth;
+        $this->width = $fillWidth;
         $this->height = $fillHeight;
         $this->img = $newImg;
         return $this;
@@ -291,10 +281,10 @@ class ImageMagick implements ImageInterface
      * @param int $offsetY
      * @return $this
      */
-    public function AddWatermark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
+    public function AddWatermark(string $waterImg, string $position = 'bottom-right', int $offsetX = 0, int $offsetY = 0)
     {
         $waterMark = new \Imagick($waterImg);
-        list($x,$y) = $this->getPosition($this->width,$this->height,$waterMark->getImageWidth(),$waterMark->getImageHeight(),$position);
+        list($x, $y) = $this->getPosition($this->width, $this->height, $waterMark->getImageWidth(), $waterMark->getImageHeight(), $position);
         $draw = new \ImagickDraw();
         $draw->composite(
             $waterMark->getImageCompose(),
@@ -304,17 +294,13 @@ class ImageMagick implements ImageInterface
             $waterMark->getimageheight(),
             $waterMark
         );
-        if( $this->type==static::IMAGETYPE_GIF )
-        {
+        if ($this->type == static::IMAGETYPE_GIF) {
             $imagick = $this->img->coalesceImages();
-            foreach($imagick as $frame)
-            {
+            foreach ($imagick as $frame) {
                 $frame->drawImage($draw);
             }
             $this->img = $imagick->deconstructImages();
-        }
-        else
-        {
+        } else {
             $this->img->drawImage($draw);
         }
         return $this;
@@ -333,29 +319,24 @@ class ImageMagick implements ImageInterface
      * @return $this
      * @throws \Exception
      */
-    public function WriteText(string $text, int $x=20, int $y=50, string $font='cn_PianPianQingShuShouXie.ttf', int $size=20, array $color=[255,255,255,1], int $direction=0)
+    public function WriteText(string $text, int $x = 20, int $y = 50, string $font = 'cn_PianPianQingShuShouXie.ttf', int $size = 20, array $color = [255, 255, 255, 1], int $direction = 0)
     {
-        if(count($color)<4)
-        {
+        if (count($color) < 4) {
             throw new \Exception('color data illegal');
         }
         $draw = new \ImagickDraw();
-        $draw->setFont(static::FONT_PATh.$font);
+        $draw->setFont(static::FONT_PATh . $font);
         $draw->setFillColor(new \ImagickPixel("rgba({$color[0]}, {$color[1]}, {$color[2]}, {$color[3]})"));
         $draw->setFontSize($size);
         $draw->annotation($x, $y, $text);
 
-        if( $this->type==static::IMAGETYPE_GIF )
-        {
+        if ($this->type == static::IMAGETYPE_GIF) {
             $imagick = $this->img->coalesceImages();
-            foreach($imagick as $frame)
-            {
+            foreach ($imagick as $frame) {
                 $frame->drawImage($draw);
             }
             $this->img = $imagick->deconstructImages();
-        }
-        else
-        {
+        } else {
             $this->img->drawImage($draw);
         }
         return $this;
@@ -366,27 +347,22 @@ class ImageMagick implements ImageInterface
      * @param int $delayTime
      * @return $this
      */
-    public function AddFrame( $frame, int $delayTime=500)
+    public function AddFrame($frame, int $delayTime = 500)
     {
-        if( $this->type !=static::IMAGETYPE_GIF )
-        {
+        if ($this->type != static::IMAGETYPE_GIF) {
             return $this;
         }
 
-        if( $frame->type==static::IMAGETYPE_GIF )
-        {
+        if ($frame->type == static::IMAGETYPE_GIF) {
             $frames = $frame->img->coalesceImages();
-            foreach($frames as $eachFrame)
-            {
+            foreach ($frames as $eachFrame) {
                 $tmpImagick = new \Imagick();
                 $tmpImagick->readImageBlob($eachFrame);
                 $this->img->addImage($tmpImagick);
-                $this->img->setImageDelay( $tmpImagick->getImageDelay() );
+                $this->img->setImageDelay($tmpImagick->getImageDelay());
                 $tmpImagick->destroy();
             }
-        }
-        else
-        {
+        } else {
             $this->img->addImage($frame->img);
             $this->img->setImageDelay($delayTime);
             $this->img->setImageFormat(static::IMAGETYPE_GIF);
@@ -401,40 +377,34 @@ class ImageMagick implements ImageInterface
      * @param int $delayTime
      * @return $this
      */
-    public function AddFrontFrame( $frame, int $delayTime=500)
+    public function AddFrontFrame($frame, int $delayTime = 500)
     {
-        if( $this->type != static::IMAGETYPE_GIF )
-        {
+        if ($this->type != static::IMAGETYPE_GIF) {
             return $this;
         }
         $newGif = new \Imagick();
 
-        if( $frame->type==static::IMAGETYPE_GIF )
-        {
+        if ($frame->type == static::IMAGETYPE_GIF) {
             $frames = $frame->img->coalesceImages();
-            foreach($frames as $eachFrame)
-            {
+            foreach ($frames as $eachFrame) {
                 $tmpImagick = new \Imagick();
                 $tmpImagick->readImageBlob($eachFrame);
                 $newGif->addImage($tmpImagick);
-                $newGif->setImageDelay( $tmpImagick->getImageDelay() );
-                $newGif->setImageFormat( static::IMAGETYPE_GIF );
+                $newGif->setImageDelay($tmpImagick->getImageDelay());
+                $newGif->setImageFormat(static::IMAGETYPE_GIF);
                 $tmpImagick->destroy();
             }
-        }
-        else
-        {
+        } else {
             $newGif->addImage($frame->img);
             $newGif->setImageDelay($delayTime);
         }
 
         $frames = $this->img->coalesceImages();
-        foreach($frames as $eachFrame)
-        {
+        foreach ($frames as $eachFrame) {
             $tmpImagick = new \Imagick();
             $tmpImagick->readImageBlob($eachFrame);
             $newGif->addImage($tmpImagick);
-            $newGif->setImageDelay( $tmpImagick->getImageDelay() );
+            $newGif->setImageDelay($tmpImagick->getImageDelay());
             $tmpImagick->destroy();
         }
 
@@ -453,18 +423,16 @@ class ImageMagick implements ImageInterface
      * @return ImageMagick
      * @throws \Exception
      */
-    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIF')
+    public static function Create(int $width, int $height, array $bg = [255, 255, 255, 1], string $type = 'GIF')
     {
         $type = strtoupper($type);
-        if( count($bg)<4 )
-        {
+        if (count($bg) < 4) {
             throw new \Exception('background color format illegal!');
         }
         $img = new \Imagick();
 
-        if( $type!=static::IMAGETYPE_GIF )
-        {
-            $img->newImage($width,$height,"rgba({$bg[0]},{$bg[1]},{$bg[2]},{$bg[3]})", $type);
+        if ($type != static::IMAGETYPE_GIF) {
+            $img->newImage($width, $height, "rgba({$bg[0]},{$bg[1]},{$bg[2]},{$bg[3]})", $type);
         }
 
         return new self(
@@ -487,35 +455,29 @@ class ImageMagick implements ImageInterface
      */
     public function Crop(int $x, int $y, $width, $height)
     {
-        if( $this->type==static::IMAGETYPE_GIF )
-        {
+        if ($this->type == static::IMAGETYPE_GIF) {
             $newImg = new \Imagick();
             $newImg->setFormat(static::IMAGETYPE_GIF);
 
             $imagick = $this->img->coalesceImages();
-            foreach($imagick as $frame)
-            {
-                if( !$frame->cropImage($width,$height,$x,$y) )
-                {
+            foreach ($imagick as $frame) {
+                if (!$frame->cropImage($width, $height, $x, $y)) {
                     throw new \Exception('cropImage error');
                 }
                 $frame->setImagePage($width, $height, 0, 0);
                 $eachPage = new \Imagick();
                 $eachPage->readImageBlob($frame);
                 $newImg->addImage($eachPage);
-                $newImg->setImageDelay( $eachPage->getImageDelay() );
+                $newImg->setImageDelay($eachPage->getImageDelay());
             }
             $this->img->destroy();
             $this->img = $newImg;
-        }
-        else
-        {
-            if( !$this->img->cropImage($width,$height,$x,$y) )
-            {
+        } else {
+            if (!$this->img->cropImage($width, $height, $x, $y)) {
                 throw new \Exception('cropImage error');
             }
         }
-        $this->width  = $width;
+        $this->width = $width;
         $this->height = $height;
         return $this;
     }
@@ -535,14 +497,12 @@ class ImageMagick implements ImageInterface
         if (false === is_dir($targetDir))  // Check if $file's directory exist
         {
             // Create and set default perms to 0755
-            if( !mkdir($targetDir, $permission, true) )
-            {
-                throw new \Exception('Cannot create '.$targetDir);
+            if (!mkdir($targetDir, $permission, true)) {
+                throw new \Exception('Cannot create ' . $targetDir);
             }
         }
 
-        switch ( $this->type )
-        {
+        switch ($this->type) {
             case static::IMAGETYPE_GIF :
                 $this->img->writeImages($newFile, true); // Support animated image. Eg. GIF
                 break;
@@ -575,12 +535,11 @@ class ImageMagick implements ImageInterface
      * @return array
      * @throws \Exception
      */
-    private function getPosition(int $bgWidth, int $bgHeight, int $imageWidth, int $imageHeight, string $position='center') :array
+    private function getPosition(int $bgWidth, int $bgHeight, int $imageWidth, int $imageHeight, string $position = 'center'): array
     {
         $x = 0;
         $y = 0;
-        switch ($position)
-        {
+        switch ($position) {
             case self::TOP_LEFT:
                 $x = 0;
                 $y = 0;
@@ -618,7 +577,7 @@ class ImageMagick implements ImageInterface
                 $y = (int)round(($bgHeight / 2) - ($imageHeight / 2));
                 break;
             default:
-                throw new \Exception('Invalid position '. $position);
+                throw new \Exception('Invalid position ' . $position);
 
         }
 

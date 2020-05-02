@@ -8,7 +8,8 @@ return [
         'password'  => 'louis',
         'poolSize'  => '100',
         'timeout'   => -1,
-        'tokenFrom' => 'get',        //get, post, cookie
+        'tokenFrom' => 'get',
+        //get, post, cookie
         'tokenKey'  => 'token',
     ],
 

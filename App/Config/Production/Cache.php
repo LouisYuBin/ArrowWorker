@@ -9,6 +9,6 @@ return [
         //端口
         'port'     => 6679,
         //密码
-        'password' => '3XXteCf{QEr3q%]>m2,rvwqd'
-    ]
+        'password' => '3XXteCf{QEr3q%]>m2,rvwqd',
+    ],
 ];

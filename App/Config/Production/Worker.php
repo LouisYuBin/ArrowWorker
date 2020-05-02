@@ -7,9 +7,12 @@ return [
     'group'  => 'www',
     'worker' => [
         [
-            'name'        => 'producer',
-            'function'        => 'Demo\\Demo@Demo',
-            'argv'            => [ 100 ],
+            'name'            => 'producer',
+            'callback'        => [
+                \App\Controller\Demo\Demo::class,
+                'Demo',
+            ],
+            'argv'            => [100],
             'processQuantity' => 1,
             'coQuantity'      => 5,
             'components'      => [
@@ -23,9 +26,12 @@ return [
 
         ],
         [
-            'name'        => 'consumer_1',
-            'function'        => 'Demo\\Demo@channelApp',
-            'argv'            => [ 100 ],
+            'name'            => 'consumer_1',
+            'callback'        => [
+                \App\Controller\Demo\Demo::class,
+                'channelApp',
+            ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
@@ -38,9 +44,12 @@ return [
             ],
         ],
         [
-            'name'        => 'consumer_2',
-            'function'        => 'Demo\\Demo@channelArrow',
-            'argv'            => [ 100 ],
+            'name'            => 'consumer_2',
+            'callback'        => [
+                \App\Controller\Demo\Demo::class,
+                'channelArrow',
+            ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [
@@ -53,9 +62,12 @@ return [
             ],
         ],
         [
-            'name'        => 'consumer_3',
-            'function'        => 'Demo\\Demo@channeltest',
-            'argv'            => [ 100 ],
+            'name'            => 'consumer_3',
+            'callback'        => [
+                \App\Controller\Demo\Demo::class,
+                'channeltest',
+            ],
+            'argv'            => [100],
             'processQuantity' => 2,
             'coQuantity'      => 100,
             'components'      => [

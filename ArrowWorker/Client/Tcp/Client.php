@@ -2,8 +2,8 @@
 
 namespace ArrowWorker\Client\Tcp;
 
-use \swoole\client as SwClient;
 use ArrowWorker\Log;
+use swoole\client as SwClient;
 
 
 class Client
@@ -41,31 +41,31 @@ class Client
 
     /**
      * @param string $host
-     * @param int    $port
-     * @param float  $timeout
-     * @param int    $connRetryTimes
+     * @param int $port
+     * @param float $timeout
+     * @param int $connRetryTimes
      * @return
      */
-    public static function Init( string $host, int $port, float $timeout = 3, int $connRetryTimes = 3 )
+    public static function Init(string $host, int $port, float $timeout = 3, int $connRetryTimes = 3)
     {
-        return new self( $host, $port, $timeout, $connRetryTimes );
+        return new self($host, $port, $timeout, $connRetryTimes);
     }
 
     /**
      * Tcp constructor.
      *
      * @param string $host
-     * @param int    $port
-     * @param float  $timeout
-     * @param int    $connTryTimes
+     * @param int $port
+     * @param float $timeout
+     * @param int $connTryTimes
      */
-    public function __construct( string $host, int $port, float $timeout, int $connTryTimes = 3 )
+    public function __construct(string $host, int $port, float $timeout = 3, int $connTryTimes = 3)
     {
-        $this->_host    = $host;
-        $this->_port    = $port;
+        $this->_host = $host;
+        $this->_port = $port;
         $this->_timeout = $timeout;
 
-        $this->InitClient( $connTryTimes );
+        $this->InitClient($connTryTimes);
     }
 
     /**
@@ -73,27 +73,22 @@ class Client
      *
      * @return bool
      */
-    public function InitClient( int $connTryTimes = 3 )
+    public function InitClient(int $connTryTimes = 3)
     {
-        $this->_client = new SwClient( SWOOLE_SOCK_TCP );
+        $this->_client = new SwClient(SWOOLE_SOCK_TCP);
 
-        for ( $i = 0; $i < $connTryTimes; $i++ )
-        {
-            try
-            {
-                if( @$this->_client->connect( $this->_host, $this->_port, $this->_timeout ) )
-                {
+        for ($i = 0; $i < $connTryTimes; $i++) {
+            try {
+                if (@$this->_client->connect($this->_host, $this->_port, $this->_timeout)) {
                     return true;
                 }
 
-            }
-            catch ( \Exception $e )
-            {
-                Log::Error( "connect failed : {host}:{}, error code : {code}", [
-                	'host' => $this->_host,
-	                'port' => $this->_port,
-	                'code' => $this->_client->errCode
-                ], $this->_logName );
+            } catch (\Exception $e) {
+                Log::Error("connect failed : {host}:{}, error code : {code}", [
+                    'host' => $this->_host,
+                    'port' => $this->_port,
+                    'code' => $this->_client->errCode
+                ], $this->_logName);
             }
         }
 
@@ -103,10 +98,9 @@ class Client
     /**
      * @return bool
      */
-    public function IsConnected() : bool
+    public function IsConnected(): bool
     {
-        if ( $this->_client->errCode > 0 )
-        {
+        if ($this->_client->errCode > 0) {
             return false;
         }
 
@@ -115,39 +109,32 @@ class Client
 
     /**
      * @param string $data
-     * @param int    $retryTimes
+     * @param int $retryTimes
      *
      * @return bool
      */
-    public function Send( string $data, int $retryTimes = 3 )
+    public function Send(string $data, int $retryTimes = 3)
     {
-        if ( !$this->IsConnected() )
-        {
-            if ( !$this->InitClient( $retryTimes ) )
-            {
+        if (!$this->IsConnected()) {
+            if (!$this->InitClient($retryTimes)) {
                 return false;
             }
         }
 
-        for ( $i = 0; $i < $retryTimes; $i++ )
-        {
-            try
-            {
-                $result = @$this->_client->send( $data );
-            }
-            catch ( \Exception $e )
-            {
-                Log::Error( "send data failed : {host}:{port}, error code : {code} , data : {$data}", [
-                	'host' => $this->_host,
-	                'port' => $this->_port,
-	                'code' => $this->_client->errCode
-                ], $this->_logName );
-                $this->InitClient( $retryTimes );
+        for ($i = 0; $i < $retryTimes; $i++) {
+            try {
+                $result = @$this->_client->send($data);
+            } catch (\Exception $e) {
+                Log::Error("send data failed : {host}:{port}, error code : {code} , data : {$data}", [
+                    'host' => $this->_host,
+                    'port' => $this->_port,
+                    'code' => $this->_client->errCode
+                ], $this->_logName);
+                $this->InitClient($retryTimes);
                 $result = false;
             }
 
-            if ( true == $result )
-            {
+            if (true == $result) {
                 return true;
             }
         }
@@ -160,8 +147,7 @@ class Client
      */
     public function Receive()
     {
-        if ( !$this->IsConnected() )
-        {
+        if (!$this->IsConnected()) {
             false;
         }
 

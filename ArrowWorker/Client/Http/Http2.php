@@ -67,13 +67,12 @@ class Http2
      * Http constructor.
      *
      * @param string $url
-     * @param int    $timeout
+     * @param int $timeout
      */
     public function __construct(string $url, int $timeout = 1)
     {
         $this->_parseUrl($url);
-        if ($this->_statusCode == static::ERROR_URL)
-        {
+        if ($this->_statusCode == static::ERROR_URL) {
             return;
         }
         $this->_client = new Client($this->_host, $this->_port, $this->_scheme == 'https' ? true : false);
@@ -88,8 +87,7 @@ class Http2
     private function _parseUrl(string $url)
     {
         $parsedUrl = parse_url($url);
-        if (!isset($parsedUrl['scheme']) || !isset($parsedUrl['host']))
-        {
+        if (!isset($parsedUrl['scheme']) || !isset($parsedUrl['host'])) {
             $this->_statusCode = static::ERROR_URL;
             $this->_responseMsg = static::ERROR_MSG;
 
@@ -105,15 +103,14 @@ class Http2
     }
 
     /**
-     * @param array  $data
+     * @param array $data
      * @param string $path
      *
      * @return array
      */
     public function Post(array $data, string $path = ''): array
     {
-        if ($this->_statusCode == static::ERROR_URL)
-        {
+        if ($this->_statusCode == static::ERROR_URL) {
             return $this->_errorUrl();
         }
         $this->_client->setHeaders($this->_header);
@@ -129,8 +126,7 @@ class Http2
      */
     public function Get(string $path = ''): array
     {
-        if ($this->_statusCode == static::ERROR_URL)
-        {
+        if ($this->_statusCode == static::ERROR_URL) {
             return $this->_errorUrl();
         }
         $this->_client->setHeaders($this->_header);
@@ -158,10 +154,8 @@ class Http2
      */
     public function AddFile(array $files)
     {
-        foreach ($files as $formKeyName => $fileInfo)
-        {
-            if (!is_array($fileInfo) && !isset($fileInfo['path']))
-            {
+        foreach ($files as $formKeyName => $fileInfo) {
+            if (!is_array($fileInfo) && !isset($fileInfo['path'])) {
                 continue;
             }
 

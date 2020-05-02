@@ -7,18 +7,15 @@
 
 namespace ArrowWorker\Server;
 
+use ArrowWorker\App;
 use ArrowWorker\Container;
 use ArrowWorker\Library\Process;
+use ArrowWorker\Log;
+use ArrowWorker\Server\Server as ServerPattern;
+use ArrowWorker\Web\Dispatcher;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\Http\Server;
-
-use ArrowWorker\Server\Server as ServerPattern;
-use ArrowWorker\Web\Router;
-
-use ArrowWorker\Log;
-use ArrowWorker\App;
-
 
 
 /**
@@ -27,8 +24,8 @@ use ArrowWorker\App;
  */
 class Http extends ServerPattern
 {
-	
-	const MODULE_NAME = 'Http Server';
+
+    const MODULE_NAME = 'Http Server';
 
     /**
      * @var string
@@ -71,9 +68,9 @@ class Http extends ServerPattern
     private $isEnableHttp2 = false;
 
     /**
-     * @var Router
+     * @var Dispatcher
      */
-    private $router;
+    private $dispatcher;
 
     /**
      * @return void
@@ -81,13 +78,13 @@ class Http extends ServerPattern
     public function Start()
     {
         $this->initServer();
-	    $this->initComponent(App::TYPE_HTTP);
-	    $this->initRouter();
-	    $this->setConfig();
-	    $this->onStart();
-	    $this->onWorkerStart();
-	    $this->onRequest();
-	    $this->startServer();
+        $this->initComponent(App::TYPE_HTTP);
+        $this->initRouter();
+        $this->setConfig();
+        $this->onStart();
+        $this->onWorkerStart();
+        $this->onRequest();
+        $this->startServer();
     }
 
     /**
@@ -96,33 +93,33 @@ class Http extends ServerPattern
      * @param Log $logger
      * @param array $config
      */
-    public function __construct( Container $container, Log $logger, array $config )
+    public function __construct(Container $container, Log $logger, array $config)
     {
-    	$this->container = $container;
-    	$this->logger    = $logger;
-    	
-        $this->port            = $config[ 'port' ] ?? 8080;
-        $this->mode            = $config['mode'] ?? SWOOLE_PROCESS;
-        $this->reactorNum      = $config[ 'reactorNum' ] ?? 2;
-        $this->workerNum       = $config[ 'workerNum' ] ?? 2;
-        $this->enableCoroutine = $config[ 'enableCoroutine' ] ?? true;
-        $this->page404             = $config[ '404' ] ?? '';
-        $this->user            = $config[ 'user' ] ?? 'root';
-        $this->group           = $config[ 'group' ] ?? 'root';
-        $this->backlog         = $config[ 'backlog ' ] ?? 1024 * 100;
-        $this->isEnableStatic  = $config[ 'isEnableStatic' ] ?? false;
-        $this->documentRoot    = $config[ 'documentRoot' ] ?? '';
-        $this->sslCertFile     = $config[ 'sslCertFile' ] ?? '';
-        $this->sslKeyFile      = $config[ 'sslKeyFile' ] ?? '';
-        $this->maxRequest      = $config[ 'maxRequest' ] ?? 1000;
-        $this->maxCoroutine    = $config[ 'maxCoroutine' ] ?? 1000;
-        $this->isEnableCORS    = $config[ 'isEnableCORS' ] ?? true;;
-        $this->isEnableHttp2   = $config[ 'isEnableHttp2' ] ?? false;;
-        $this->pipeBufferSize   = $config[ 'pipeBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->socketBufferSize = $config[ 'socketBufferSize' ] ?? 1024 * 1024 * 100;
-        $this->maxContentLength = $config[ 'maxContentLength' ] ?? 1024 * 1024 * 10;
-        $this->components       = $config[ 'components' ] ?? [];
-        $this->identity         = $config['identity'];
+        $this->container = $container;
+        $this->logger = $logger;
+
+        $this->port = $config['port'] ?? 8080;
+        $this->mode = $config['mode'] ?? SWOOLE_PROCESS;
+        $this->reactorNum = $config['reactorNum'] ?? 2;
+        $this->workerNum = $config['workerNum'] ?? 2;
+        $this->enableCoroutine = $config['enableCoroutine'] ?? true;
+        $this->page404 = $config['404'] ?? '';
+        $this->user = $config['user'] ?? 'root';
+        $this->group = $config['group'] ?? 'root';
+        $this->backlog = $config['backlog '] ?? 1024 * 100;
+        $this->isEnableStatic = $config['isEnableStatic'] ?? false;
+        $this->documentRoot = $config['documentRoot'] ?? '';
+        $this->sslCertFile = $config['sslCertFile'] ?? '';
+        $this->sslKeyFile = $config['sslKeyFile'] ?? '';
+        $this->maxRequest = $config['maxRequest'] ?? 1000;
+        $this->maxCoroutine = $config['maxCoroutine'] ?? 1000;
+        $this->isEnableCORS = $config['isEnableCORS'] ?? true;;
+        $this->isEnableHttp2 = $config['isEnableHttp2'] ?? false;;
+        $this->pipeBufferSize = $config['pipeBufferSize'] ?? 1024 * 1024 * 100;
+        $this->socketBufferSize = $config['socketBufferSize'] ?? 1024 * 1024 * 100;
+        $this->maxContentLength = $config['maxContentLength'] ?? 1024 * 1024 * 10;
+        $this->components = $config['components'] ?? [];
+        $this->identity = $config['identity'];
     }
 
     private function startServer()
@@ -132,10 +129,9 @@ class Http extends ServerPattern
 
     private function initServer()
     {
-        if ( !file_exists( $this->sslCertFile ) || !file_exists( $this->sslKeyFile ) )
-        {
+        if (!file_exists($this->sslCertFile) || !file_exists($this->sslKeyFile)) {
             $this->sslCertFile = '';
-            $this->sslKeyFile  = '';
+            $this->sslKeyFile = '';
         }
 
         $this->server = new Server(
@@ -148,7 +144,7 @@ class Http extends ServerPattern
 
     private function initRouter()
     {
-        $this->router = $this->container->Make(Router::class, [$this->page404] );
+        $this->dispatcher = $this->container->Make(Dispatcher::class, [$this->container, $this->page404]);
     }
 
     /**
@@ -156,8 +152,7 @@ class Http extends ServerPattern
      */
     private function isSsl()
     {
-        if ( !file_exists( $this->sslCertFile ) || !file_exists( $this->sslKeyFile ) )
-        {
+        if (!file_exists($this->sslCertFile) || !file_exists($this->sslKeyFile)) {
             return false;
         }
         return true;
@@ -165,30 +160,27 @@ class Http extends ServerPattern
 
     private function onStart()
     {
-        $this->server->on( 'start', function ( $server )
-        {
-	        Process::SetName("{$this->identity}_Http:{$this->port} Manager");
-            Log::Dump( "listening at port {$this->port}",Log::TYPE_DEBUG, self::MODULE_NAME );
-        } );
+        $this->server->on('start', function ($server) {
+            Process::SetName("{$this->identity}_Http:{$this->port} Manager");
+            Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
+        });
     }
 
     private function onWorkerStart()
     {
-        $this->server->on( 'WorkerStart', function ()
-        {
-        	Process::SetName("{$this->identity}_Http:{$this->port} Worker");
-            $this->component->InitWebWorkerStart( $this->components, (bool)$this->isEnableCORS );
-        } );
+        $this->server->on('WorkerStart', function () {
+            Process::SetName("{$this->identity}_Http:{$this->port} Worker");
+            $this->component->InitWebWorkerStart($this->components, (bool)$this->isEnableCORS);
+        });
     }
 
     private function onRequest()
     {
-        $this->server->on( 'request', function ( SwRequest $request, SwResponse $response )
-        {
-            $this->component->InitRequest( $request, $response );
-            $this->router->Go();
+        $this->server->on('request', function (SwRequest $request, SwResponse $response) {
+            $this->component->InitRequest($request, $response);
+            $this->dispatcher->Go();
             $this->component->Release();
-        } );
+        });
     }
 
     private function setConfig()
@@ -215,13 +207,12 @@ class Http extends ServerPattern
         ];
 
 
-        if ( $this->isEnableStatic && file_exists( $this->documentRoot ) )
-        {
-            $options[ 'enable_static_handler' ] = $this->isEnableStatic;
-            $options[ 'document_root' ]         = $this->documentRoot;
+        if ($this->isEnableStatic && file_exists($this->documentRoot)) {
+            $options['enable_static_handler'] = $this->isEnableStatic;
+            $options['document_root'] = $this->documentRoot;
         }
 
-        $this->server->set( $options );
+        $this->server->set($options);
     }
 
 }

@@ -10,7 +10,6 @@ namespace App\Model;
 
 
 use ArrowWorker\Component\Db\Query;
-use ArrowWorker\Db;
 
 /**
  * Class ArrowWorker
@@ -19,29 +18,39 @@ use ArrowWorker\Db;
 class ArrowWorker
 {
 
-	/**
-	 * 查询单条记录
-	 * @return array
-	 */
-	public static function GetOne()
+    /**
+     * 查询单条记录
+     * @return array
+     */
+    public static function GetOne()
     {
-        $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Query::Table("project")->Where('id>1')->Column($column)->Limit(0,1)->Get();
+        $column = [
+            'itemName',
+            'itemIntro',
+            'author',
+            'authorIntro',
+        ];
+        return Query::Table("project")->Where('id>1')->Column($column)->Limit(0, 1)->Get();
     }
 
     //查询单条记录
     public static function GetList()
     {
-        $column = ['itemName', 'itemIntro','author', 'authorIntro'];
-        return Query::Table("project")->Where('id>0')->Column($column)->Limit(0,2)->Find();
+        $column = [
+            'itemName',
+            'itemIntro',
+            'author',
+            'authorIntro',
+        ];
+        return Query::Table("project")->Where('id>0')->Column($column)->Limit(0, 2)->Find();
     }
 
     //写入数据
     public function Insert()
     {
         $data = [
-            'itemName' => 'ArrowWorker',
-            'itemIntro' => "An efficient and easy-using php daemon framework."
+            'itemName'  => 'ArrowWorker',
+            'itemIntro' => "An efficient and easy-using php daemon framework.",
         ];
         return Query::Table("project")->Where('id>0')->Insert($data);
     }
@@ -50,8 +59,8 @@ class ArrowWorker
     public function UpdateById($id)
     {
         $data = [
-            'itemName' => 'ArrowWorker',
-            'itemIntro' => "A php demonize framework "
+            'itemName'  => 'ArrowWorker',
+            'itemIntro' => "A php demonize framework ",
         ];
         return Query::Table("project")->Where("id={$id}")->Update($data);
     }

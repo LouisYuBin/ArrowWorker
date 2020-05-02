@@ -54,7 +54,7 @@ class Gd implements ImageInterface
     /*
      * font path
      * */
-    const FONT_PATh = APP_PATH.DIRECTORY_SEPARATOR.APP_RUNTIME_DIR.'/Font/';
+    const FONT_PATh = APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR . '/Font/';
     /**
      * image object
      */
@@ -62,11 +62,11 @@ class Gd implements ImageInterface
     /**
      * image file path.
      */
-    private $file   = '';
+    private $file = '';
     /**
      * image file width.
      */
-    private $width  = 0;
+    private $width = 0;
     /**
      * image file height
      */
@@ -74,7 +74,7 @@ class Gd implements ImageInterface
     /**
      * image file type
      */
-    private $type   = 0;
+    private $type = 0;
     /**
      * image file block
      */
@@ -92,28 +92,27 @@ class Gd implements ImageInterface
      * @param int $height
      * @param int $type
      */
-    private function __construct($img, string $imageFile, int $width, int $height, int $type, $blocks = '', bool $animated = false )
+    private function __construct($img, string $imageFile, int $width, int $height, int $type, $blocks = '', bool $animated = false)
     {
-        $this->img    = $img;
-        $this->file   = $imageFile;
-        $this->width  = $width;
+        $this->img = $img;
+        $this->file = $imageFile;
+        $this->width = $width;
         $this->height = $height;
-        $this->type   = $type;
-        $this->blocks   = $blocks;
+        $this->type = $type;
+        $this->blocks = $blocks;
         $this->animated = $animated;
     }
 
     /**
      * GetImgInfo
      * @param string $imgPath
-     * @throws \Exception
      * @return int
+     * @throws \Exception
      */
     public static function getImgInfo(string $imgPath)
     {
         $info = getimagesize($imgPath);
-        if( false==$info )
-        {
+        if (false == $info) {
             throw new \Exception("getimagesize ({$imgPath}) error.");
         }
         return $info[2];
@@ -124,25 +123,23 @@ class Gd implements ImageInterface
      * @param string $imageFile
      * @return Gd
      */
-    public static function Open(string $imageFile) : self
+    public static function Open(string $imageFile): self
     {
-        if( !file_exists($imageFile) )
-        {
+        if (!file_exists($imageFile)) {
             throw new \Exception("image file : {$imageFile} does not exists");
         }
-        switch( static::getImgInfo($imageFile) )
-        {
+        switch (static::getImgInfo($imageFile)) {
             case IMAGETYPE_GIF :
-                return static::createGif( $imageFile );
+                return static::createGif($imageFile);
             case IMAGETYPE_JPEG :
-                return static::createJpeg( $imageFile );
+                return static::createJpeg($imageFile);
             case IMAGETYPE_PNG :
-                return static::createPng( $imageFile );
+                return static::createPng($imageFile);
             case IMAGETYPE_WBMP :
-                return static::createWbmp( $imageFile );
+                return static::createWbmp($imageFile);
 
         }
-        throw new \Exception('Could not open '.$imageFile.'. File type not supported.');
+        throw new \Exception('Could not open ' . $imageFile . '. File type not supported.');
     }
 
     /**
@@ -151,15 +148,14 @@ class Gd implements ImageInterface
      * @param string $type
      * @return Gd
      */
-    public static function Create(int $width, int $height, array $bg=[255,255,255,1], string $type='GIf') : self
+    public static function Create(int $width, int $height, array $bg = [255, 255, 255, 1], string $type = 'GIf'): self
     {
         $type = static::ImageStringTypeToInt($type);
         $image = imagecreatetruecolor($width, $height);
-        if( $type==IMAGETYPE_PNG )
-        {
+        if ($type == IMAGETYPE_PNG) {
             static::alphaSetting($image, true);
         }
-        return new self( $image, '', $width, $height, IMAGETYPE_JPEG );
+        return new self($image, '', $width, $height, IMAGETYPE_JPEG);
     }
 
     /**
@@ -167,7 +163,7 @@ class Gd implements ImageInterface
      * @param int $delayTime
      * @return $this
      */
-    public function AddFrame(Gd $frame, int $delayTime=500)
+    public function AddFrame(Gd $frame, int $delayTime = 500)
     {
         return $this;
     }
@@ -177,7 +173,7 @@ class Gd implements ImageInterface
      * @param int $delayTime
      * @return $this
      */
-    public function AddFrontFrame(Gd $frame, int $delayTime=500)
+    public function AddFrontFrame(Gd $frame, int $delayTime = 500)
     {
         return $this;
     }
@@ -186,19 +182,14 @@ class Gd implements ImageInterface
      * @param string $type
      * @return int
      */
-    private static function ImageStringTypeToInt(string $type) : int
+    private static function ImageStringTypeToInt(string $type): int
     {
         $type = strtoupper($type);
-        if($type=='PNG')
-        {
+        if ($type == 'PNG') {
             return IMAGETYPE_PNG;
-        }
-        else if ( $type=='JPEG')
-        {
+        } else if ($type == 'JPEG') {
             return IMAGETYPE_JPEG;
-        }
-        else if ( $type=='GIF')
-        {
+        } else if ($type == 'GIF') {
             return IMAGETYPE_GIF;
         }
         return 0;
@@ -212,14 +203,15 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    private static function createJpeg( string $imageFile ){
-        $img = @imagecreatefromjpeg( $imageFile );
+    private static function createJpeg(string $imageFile)
+    {
+        $img = @imagecreatefromjpeg($imageFile);
 
-        if( !$img ){
-            throw new \Exception( 'Could not open '.$imageFile.' Not a valid '.IMAGETYPE_JPEG.' file.' );
+        if (!$img) {
+            throw new \Exception('Could not open ' . $imageFile . ' Not a valid ' . IMAGETYPE_JPEG . ' file.');
         }
 
-        return new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_JPEG );
+        return new self($img, $imageFile, imagesx($img), imagesy($img), IMAGETYPE_JPEG);
     }
 
     /**
@@ -230,16 +222,15 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    private static function createPng( string $imageFile )
+    private static function createPng(string $imageFile)
     {
-        $img = @imagecreatefrompng( $imageFile );
+        $img = @imagecreatefrompng($imageFile);
 
-        if( !$img )
-        {
-            throw new \Exception( 'Could not open '.$imageFile.'. Not a valid PNG file.' );
+        if (!$img) {
+            throw new \Exception('Could not open ' . $imageFile . '. Not a valid PNG file.');
         }
 
-        $gd = new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_PNG);
+        $gd = new self($img, $imageFile, imagesx($img), imagesy($img), IMAGETYPE_PNG);
         static::alphaSetting($img, true);
         return $gd;
     }
@@ -251,7 +242,7 @@ class Gd implements ImageInterface
      * @param array $color
      * @param int $alpha
      */
-    private static function alphaSetting($img, bool $flag, array $color=[255,255,255], int $alpha=127)
+    private static function alphaSetting($img, bool $flag, array $color = [255, 255, 255], int $alpha = 127)
     {
         $newtransparentcolor = imagecolorallocatealpha(
             $img,
@@ -260,12 +251,11 @@ class Gd implements ImageInterface
             $color[2],
             $alpha
         );
-        imagefill( $img, 0, 0, $newtransparentcolor );
-        imagecolortransparent( $img, $newtransparentcolor );
-        imagealphablending( $img, false );
-        imagesavealpha( $img, $flag );
+        imagefill($img, 0, 0, $newtransparentcolor);
+        imagecolortransparent($img, $newtransparentcolor);
+        imagealphablending($img, false);
+        imagesavealpha($img, $flag);
     }
-
 
 
     /**
@@ -276,16 +266,15 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    private static function createWbmp( string $imageFile )
+    private static function createWbmp(string $imageFile)
     {
-        $img = @imagecreatefromwbmp( $imageFile );
+        $img = @imagecreatefromwbmp($imageFile);
 
-        if( !$img )
-        {
-            throw new \Exception( 'Could not open '.$imageFile.' Not a valid WEBMP file.' );
+        if (!$img) {
+            throw new \Exception('Could not open ' . $imageFile . ' Not a valid WEBMP file.');
         }
 
-        return new self( $img, $imageFile, imagesx( $img ), imagesy( $img ), IMAGETYPE_WBMP );
+        return new self($img, $imageFile, imagesx($img), imagesy($img), IMAGETYPE_WBMP);
     }
 
     /**
@@ -296,28 +285,26 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    private static function createGif( string $imageFile )
+    private static function createGif(string $imageFile)
     {
-        $gift     = new GifHelper();
-        $bytes    = $gift->open($imageFile);
+        $gift = new GifHelper();
+        $bytes = $gift->open($imageFile);
         $animated = $gift->isAnimated($bytes);
-        $blocks   = '';
-        if( $animated )
-        {
+        $blocks = '';
+        if ($animated) {
             $blocks = $gift->decode($bytes);
         }
-        $img = @imagecreatefromgif( $imageFile );
+        $img = @imagecreatefromgif($imageFile);
 
-        if( !$img )
-        {
-            throw new \Exception('Could not open '.$imageFile.'. Not a valid GIF file.' );
+        if (!$img) {
+            throw new \Exception('Could not open ' . $imageFile . '. Not a valid GIF file.');
         }
 
         return new self(
             $img,
             $imageFile,
-            imagesx( $img ),
-            imagesy( $img ),
+            imagesx($img),
+            imagesy($img),
             IMAGETYPE_GIF,
             $blocks,
             $animated
@@ -339,14 +326,13 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    public function Resize(int $newWidth, int $newHeight, string $mode='fit', array $color=[255,255,255,1], string $position='center' )
+    public function Resize(int $newWidth, int $newHeight, string $mode = 'fit', array $color = [255, 255, 255, 1], string $position = 'center')
     {
-        $resizeWidth  = $this->width;
+        $resizeWidth = $this->width;
         $resizeHeight = $this->height;
-        switch ($mode)
-        {
+        switch ($mode) {
             case 'exact':
-                $resizeWidth  = $newWidth;
+                $resizeWidth = $newWidth;
                 $resizeHeight = $newHeight;
                 break;
             case 'fill':
@@ -354,20 +340,19 @@ class Gd implements ImageInterface
                 break;
             case 'width':
                 $resizeWidth = $newWidth;
-                $resizeHeight = $this->height/($this->width/$newWidth);
+                $resizeHeight = $this->height / ($this->width / $newWidth);
                 break;
             case 'height':
                 $resizeHeight = $newHeight;
-                $resizeWidth = $this->width/($this->height/$newHeight);
+                $resizeWidth = $this->width / ($this->height / $newHeight);
                 break;
             case 'fit':
-                $ratio  = $this->width / $this->height;
-                $resizeWidth  = $newWidth;
+                $ratio = $this->width / $this->height;
+                $resizeWidth = $newWidth;
                 $resizeHeight = round($newWidth / $ratio);
-                if( ($resizeWidth > $newWidth) || ($resizeHeight > $newHeight) )
-                {
+                if (($resizeWidth > $newWidth) || ($resizeHeight > $newHeight)) {
                     $resizeHeight = $newHeight;
-                    $resizeWidth  = $newHeight * $ratio;
+                    $resizeWidth = $newHeight * $ratio;
                 }
                 break;
             default:
@@ -388,17 +373,13 @@ class Gd implements ImageInterface
      */
     public function _resize(int $newWidth, int $newHeight, int $targetX = 0, int $targetY = 0, int $srcX = 0, int $srcY = 0)
     {
-        if ( $this->animated )
-        {
+        if ($this->animated) {
             // Animated GIF
             $gift = new GifHelper();
             $this->blocks = $gift->resize($this->blocks, $newWidth, $newHeight);
-        }
-        else
-        {
+        } else {
             $newImage = imagecreatetruecolor($newWidth, $newHeight);
-            if( IMAGETYPE_PNG === $this->type )
-            {
+            if (IMAGETYPE_PNG === $this->type) {
                 static::alphaSetting($newImage, true);
             }
 
@@ -415,11 +396,11 @@ class Gd implements ImageInterface
                 $this->height
             );
             // Free old of tmp resource
-            imagedestroy( $this->img );
+            imagedestroy($this->img);
             $this->img = $newImage;
         }
 
-        $this->width  = $newWidth;
+        $this->width = $newWidth;
         $this->height = $newHeight;
         return $this;
     }
@@ -435,16 +416,15 @@ class Gd implements ImageInterface
      * @param array $color ： available if $model='fill'
      * @return Gd
      */
-    public function fill($fillWidth, $fillHeight, $position = 'center', array $color=[255,255,255])
+    public function fill($fillWidth, $fillHeight, $position = 'center', array $color = [255, 255, 255])
     {
-        if($this->type==IMAGETYPE_GIF)
-        {
+        if ($this->type == IMAGETYPE_GIF) {
             return $this;
         }
 
         $newImage = imagecreatetruecolor($fillWidth, $fillHeight);
         static::alphaSetting($newImage, true, $color);
-        list($x,$y) = $this->GetPosition(
+        list($x, $y) = $this->GetPosition(
             $fillWidth,
             $fillHeight,
             $this->width,
@@ -467,7 +447,7 @@ class Gd implements ImageInterface
         imagedestroy($this->img);
 
         $this->img = $newImage;
-        $this->width  = $fillWidth;
+        $this->width = $fillWidth;
         $this->height = $fillHeight;
 
         return $this;
@@ -484,18 +464,17 @@ class Gd implements ImageInterface
      * @param int $offsetY
      * @return Gd
      */
-    public function AddWatermark(string $waterImg, string $position='bottom-right', int $offsetX=0, int $offsetY=0)
+    public function AddWatermark(string $waterImg, string $position = 'bottom-right', int $offsetX = 0, int $offsetY = 0)
     {
-        if($this->type==IMAGETYPE_GIF)
-        {
+        if ($this->type == IMAGETYPE_GIF) {
             return $this;
         }
 
         $waterImg = $this->getImg($waterImg);
-        $waterImgWidth  = imagesx($waterImg);
+        $waterImgWidth = imagesx($waterImg);
         $waterImgHeight = imagesy($waterImg);
-        list($x,$y) = static::getPosition($this->width,$this->height, $waterImgWidth, $waterImgHeight, $position);
-        imagecopy($this->img, $waterImg, $x-$offsetX, $y-$offsetY, 0, 0, $waterImgWidth, $waterImgHeight);
+        list($x, $y) = static::getPosition($this->width, $this->height, $waterImgWidth, $waterImgHeight, $position);
+        imagecopy($this->img, $waterImg, $x - $offsetX, $y - $offsetY, 0, 0, $waterImgWidth, $waterImgHeight);
         imagedestroy($waterImg);
         return $this;
     }
@@ -512,19 +491,17 @@ class Gd implements ImageInterface
      * @return Gd
      * @throws \Exception
      */
-    public function WriteText(string $text, int $x=20, int $y=50, string $font='cn_PianPianQingShuShouXie.ttf.ttf', int $size=20, array $color=[255,255,255], int $direction=0)
+    public function WriteText(string $text, int $x = 20, int $y = 50, string $font = 'cn_PianPianQingShuShouXie.ttf.ttf', int $size = 20, array $color = [255, 255, 255], int $direction = 0)
     {
-        if($this->type==IMAGETYPE_GIF)
-        {
+        if ($this->type == IMAGETYPE_GIF) {
             return $this;
         }
 
-        if( count($color)<3 )
-        {
+        if (count($color) < 3) {
             throw new \Exception("color data error");
         }
-        $color = imagecolorallocate($this->img,(int)$color[0],(int)$color[1],(int)$color[2]);
-        imagettftext($this->img,$size,$direction,$x,$y,$color,static::FONT_PATh.$font,$text);
+        $color = imagecolorallocate($this->img, (int)$color[0], (int)$color[1], (int)$color[2]);
+        imagettftext($this->img, $size, $direction, $x, $y, $color, static::FONT_PATh . $font, $text);
         return $this;
     }
 
@@ -538,13 +515,12 @@ class Gd implements ImageInterface
      */
     public function Crop(int $x, int $y, $width, $height)
     {
-        if($this->type==IMAGETYPE_GIF)
-        {
+        if ($this->type == IMAGETYPE_GIF) {
             return $this;
         }
 
         $newImage = imagecreatetruecolor($width, $height);
-        static::alphaSetting($newImage, true, [255,255,255]);
+        static::alphaSetting($newImage, true, [255, 255, 255]);
         imagecopyresampled(
             $newImage,
             $this->img,
@@ -560,7 +536,7 @@ class Gd implements ImageInterface
         imagedestroy($this->img);
 
         $this->img = $newImage;
-        $this->width  = $width;
+        $this->width = $width;
         $this->height = $height;
         return $this;
     }
@@ -573,8 +549,7 @@ class Gd implements ImageInterface
      */
     private function getImg(string $waterImg)
     {
-        switch( self::getImgInfo($waterImg) )
-        {
+        switch (self::getImgInfo($waterImg)) {
             case IMAGETYPE_PNG:
                 $img = imagecreatefrompng($waterImg);
                 static::alphaSetting($img, true);
@@ -606,24 +581,19 @@ class Gd implements ImageInterface
         if (false === is_dir($targetDir))  // Check if $file's directory exist
         {
             // Create and set default perms to 0755
-            if( !mkdir($targetDir, $permission, true) )
-            {
-                throw new \Exception('Cannot create '.$targetDir);
+            if (!mkdir($targetDir, $permission, true)) {
+                throw new \Exception('Cannot create ' . $targetDir);
             }
         }
 
-        switch ( $this->type )
-        {
+        switch ($this->type) {
             case IMAGETYPE_GIF :
-                if( $this->animated )
-                {
+                if ($this->animated) {
                     $blocks = $this->blocks;
                     $gift = new GifHelper();
                     $hex = $gift->encode($blocks);
                     file_put_contents($newFile, pack('H*', $hex));
-                }
-                else
-                {
+                } else {
                     imagegif($this->img, $newFile);
                 }
                 break;
@@ -652,12 +622,11 @@ class Gd implements ImageInterface
      * @return array
      * @throws \Exception
      */
-    private function getPosition(int $bgWidth, int $bgHeight, int $imageWidth, int $imageHeight, string $position='center') :array
+    private function getPosition(int $bgWidth, int $bgHeight, int $imageWidth, int $imageHeight, string $position = 'center'): array
     {
         $x = 0;
         $y = 0;
-        switch ($position)
-        {
+        switch ($position) {
             case self::TOP_LEFT:
                 $x = 0;
                 $y = 0;
@@ -695,7 +664,7 @@ class Gd implements ImageInterface
                 $y = (int)round(($bgHeight / 2) - ($imageHeight / 2));
                 break;
             default:
-                throw new \Exception('Invalid position '. $position);
+                throw new \Exception('Invalid position ' . $position);
 
         }
 

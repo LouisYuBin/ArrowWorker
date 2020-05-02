@@ -1,9 +1,38 @@
 <?php
 
+use App\Controller\Demo\Index;
+use App\Middleware\Authorization;
+
 return [
-    'api.dugujiujian.com, 127.0.0.1' => [
-        '/manager/*' =>  [
-	        App\Middleware\Authorization::class
-        ]
-    ]
+    'http'   => [
+        'api.dugujiujian.com, ws.com, web.com, arrow.com' => [
+            '/manager/*' => [
+                '*' => [
+                    Authorization::class,
+                ],
+            ],
+        ],
+    ],
+    'class'  => [
+        Index::class => [
+            Authorization::class,
+        ],
+
+    ],
+    'method' => [
+        [
+            Index::class,
+            'index',
+            [
+                Authorization::class,
+            ],
+        ],
+        [
+            Index::class,
+            'index',
+            [
+                Authorization::class,
+            ],
+        ],
+    ],
 ];

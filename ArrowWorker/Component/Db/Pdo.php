@@ -10,7 +10,7 @@ use ArrowWorker\Container;
 class Pdo implements DbInterface
 {
 
-    public function __construct( Container $container, array $config )
+    public function __construct(Container $container, array $config)
     {
 
     }
@@ -29,7 +29,7 @@ class Pdo implements DbInterface
      * @param string $sql
      * @return array|bool
      */
-    public function Query( string $sql )
+    public function Query(string $sql)
     {
 
     }
@@ -39,7 +39,7 @@ class Pdo implements DbInterface
      * @param string $sql
      * @return array
      */
-    public function Execute( string $sql )
+    public function Execute(string $sql)
     {
 
     }
@@ -74,7 +74,7 @@ class Pdo implements DbInterface
      * Autocommit 是否自动提交
      * @param bool $flag
      */
-    public function Autocommit( bool $flag )
+    public function Autocommit(bool $flag)
     {
 
     }

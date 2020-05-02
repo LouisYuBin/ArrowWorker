@@ -117,17 +117,17 @@ class Server
      * @var Component
      */
     protected $component;
-    
+
     protected $identity = 0;
-	
-	/**
-	 * @var Container
-	 */
+
+    /**
+     * @var Container
+     */
     protected $container;
-	
-	/**
-	 * @var Log
-	 */
+
+    /**
+     * @var Log
+     */
     protected $logger;
 
     /**
@@ -135,7 +135,7 @@ class Server
      */
     protected function initComponent(int $type)
     {
-        $this->_component = $this->container->Make(Component::class, [ $this->container, $this->logger, $type ]);
+        $this->component = $this->container->Make(Component::class, [$this->container, $this->logger, $type]);
     }
 
 }

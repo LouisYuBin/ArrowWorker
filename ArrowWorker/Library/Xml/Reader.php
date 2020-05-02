@@ -18,7 +18,7 @@ class Reader
      * Reader constructor.
      * @param string $url
      */
-    public function __construct(string $url='')
+    public function __construct(string $url = '')
     {
         $this->reader = new \XMLReader();
         $this->reader->open($url);
@@ -29,11 +29,11 @@ class Reader
      * toArray : make final array
      * @return array
      */
-    public function toArray() : array
+    public function toArray(): array
     {
-        $nodeList  = $this->reader->expand()->childNodes;
+        $nodeList = $this->reader->expand()->childNodes;
         $nodeArray = $this->expandChildNode($nodeList);
-        return  [ $this->reader->localName => $nodeArray];
+        return [$this->reader->localName => $nodeArray];
 
     }
 
@@ -45,15 +45,12 @@ class Reader
     public function expandChildNode(\DOMNodeList $nodeList)
     {
         $data = [];
-        foreach ($nodeList as $node )
-        {
+        foreach ($nodeList as $node) {
             $content = $node->textContent;
-            if ( $node->hasChildNodes() )
-            {
+            if ($node->hasChildNodes()) {
                 $content = $this->expandChildNode($node->childNodes);
             }
-            if ( $node->nodeName=='#text' )
-            {
+            if ($node->nodeName == '#text') {
                 $data = $content;
                 continue;
             }

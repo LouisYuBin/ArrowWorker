@@ -1,22 +1,22 @@
 <?php
 
 return [
-    'default' =>[
+    'default' => [
         'size'   => 10000,
         'column' => [
             'id'        => 'int',
             'token'     => 'string',
             'name'      => 'string',
-            'loginTime' => 'string'
-        ]
+            'loginTime' => 'string',
+        ],
     ],
-    'clients' =>[
+    'clients' => [
         'size'   => 100000,
         'column' => [
             'id'        => 'int',
             'token'     => 'string',
             'name'      => 'string',
-            'loginTime' => 'string'
-        ]
-    ]
+            'loginTime' => 'string',
+        ],
+    ],
 ];

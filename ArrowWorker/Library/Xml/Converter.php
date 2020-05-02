@@ -25,9 +25,8 @@ class Converter
      */
     public function __construct(string $xml)
     {
-        if( !Verifier::IsXml($xml) )
-        {
-            return ;
+        if (!Verifier::IsXml($xml)) {
+            return;
         }
         $this->_xmlObject = simplexml_load_string($xml);
     }
@@ -37,11 +36,10 @@ class Converter
      */
     public function ToArray()
     {
-        if( empty($this->_xmlObject) )
-        {
+        if (empty($this->_xmlObject)) {
             return false;
         }
-        return json_decode( json_encode( $this->_xmlObject ),true);
+        return json_decode(json_encode($this->_xmlObject), true);
     }
 
     /**
@@ -49,8 +47,7 @@ class Converter
      */
     public function ToObject()
     {
-        if( empty($this->_xmlObject) )
-        {
+        if (empty($this->_xmlObject)) {
             return false;
         }
         return $this->_xmlObject;
