@@ -17,7 +17,7 @@ class Config
     /**
      * @var array
      */
-    protected array $validateEnvironment = [
+    protected $validateEnvironment = [
         Environment::TYPE_DEV,
         Environment::TYPE_TEST,
         Environment::TYPE_PRODUCTION,
