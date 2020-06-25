@@ -39,7 +39,7 @@ class Container
 
     public function Make(string $class, array $parameters = [])
     {
-        return class_exists($class) ? new $class(...$parameters) : false;
+        return class_exists($class) ? new $class(...$parameters) : null;
     }
 
     public static function GetInstance()

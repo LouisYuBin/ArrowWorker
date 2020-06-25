@@ -25,7 +25,6 @@ use Swoole\Http\Server;
 class Http extends ServerPattern
 {
 
-    const MODULE_NAME = 'Http Server';
 
     /**
      * @var string
@@ -162,7 +161,7 @@ class Http extends ServerPattern
     {
         $this->server->on('start', function ($server) {
             Process::SetName("{$this->identity}_Http:{$this->port} Manager");
-            Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
+            Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, __METHOD__);
         });
     }
 
@@ -178,7 +177,7 @@ class Http extends ServerPattern
     {
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
             $this->component->InitRequest($request, $response);
-            $this->dispatcher->Go();
+            $this->dispatcher->Run();
             $this->component->Release();
         });
     }

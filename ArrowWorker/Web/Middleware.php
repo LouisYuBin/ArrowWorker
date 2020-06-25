@@ -11,6 +11,7 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Library\Http;
 use ArrowWorker\Log;
+use ArrowWorker\Web\Router\MatchResult;
 
 /**
  * Class Middleware
@@ -208,15 +209,16 @@ class Middleware
     }
 
     /**
-     * @param string $host
-     * @param string $uri
-     * @param string $requestMethod
-     * @param string $class
-     * @param string $method
+     * @param MatchResult $matchResult
      * @return array
      */
-    public function GetMiddlewareList(string $host, string $uri, string $requestMethod, string $class, string $method): array
+    public function GetList(MatchResult $matchResult): array
     {
+        $host = $matchResult->getServerName();
+        $uri  = $matchResult->getUri();
+        $requestMethod = $matchResult->getRequestMethod();
+        $class = $matchResult->getController();
+        $method = $matchResult->getMethod();
         $middlewareList = [];
         if (isset($this->httpMiddleware[$host][$uri][$requestMethod])) {
             $middlewareList = $this->httpMiddleware[$host][$uri][$requestMethod];

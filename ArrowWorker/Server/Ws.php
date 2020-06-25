@@ -204,7 +204,7 @@ class Ws extends ServerPattern
     {
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
             $this->component->InitRequest($request, $response);
-            $this->dispatcher->Go();
+            $this->dispatcher->Run();
             $this->component->Release();;
         });
     }

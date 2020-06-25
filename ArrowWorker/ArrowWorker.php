@@ -67,7 +67,7 @@ class ArrowWorker
     {
         $this->setAutoLoad();
         $this->initContainer();
-        $this->container->Get(App::class, [$this->container])->Run();
+        $this->container->Get(Console::class, [$this->container])->Run();
     }
 
     private function initContainer()

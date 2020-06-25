@@ -10,8 +10,10 @@ namespace ArrowWorker\Web;
 
 use ArrowWorker\Console;
 use ArrowWorker\Container;
+use ArrowWorker\Web\Router\MatchResult;
 use ArrowWorker\Web\Router\PathRouter;
 use ArrowWorker\Web\Router\RestRouter;
+use ArrowWorker\Web\Router\RouterInterface;
 
 /**
  * Class Router
@@ -19,10 +21,6 @@ use ArrowWorker\Web\Router\RestRouter;
  */
 class Dispatcher
 {
-    /**
-     *
-     */
-    const MODULE_NAME = 'Dispatcher';
 
     /**
      * @var string
@@ -64,7 +62,7 @@ class Dispatcher
         $this->container = $container;
         $this->initRouters();
         $this->init404($page404);
-        $this->isDebug = $container->Get(Console::class)->IsDebug();
+        $this->isDebug    = $container->Get(Console::class)->IsDebug();
         $this->middleware = $container->Get(Middleware::class, [$container, $container->Get(RestRouter::class)->GetConfig()]);
     }
 
@@ -75,18 +73,24 @@ class Dispatcher
         }
     }
 
-    public function Go()
+    public function Run()
     {
-        $result = false;
+        $result = null;
+        /**
+         * @var RouterInterface $router
+         */
         foreach ($this->routers as $router) {
+            /**
+             * @var MatchResult $result
+             */
             $result = $router->Match();
-            if (false !== $result) {
+            if ($result instanceof MatchResult) {
                 break;
             }
         }
 
         // 404
-        if (false === $result) {
+        if (is_null($result)) {
             $result = $this->page404;
         }
 
@@ -94,16 +98,16 @@ class Dispatcher
     }
 
     /**
-     * @param $matchResult
+     * @param MatchResult $matchResult
      */
-    private function dispatch($matchResult)
+    private function dispatch(MatchResult $matchResult)
     {
         $body = '';
         if (is_array($matchResult)) {
-            [$host, $uri, $requestMethod, $controller, $method] = $matchResult;
-            $this->middleware->GetMiddlewareList($host, $uri, $requestMethod, $controller, $method);
-
-            $response = (new $controller)->$method();
+            $this->middleware->GetList($matchResult);
+            $controller = $matchResult->getController();
+            $method     = $matchResult->getMethod();
+            $response   = (new $controller)->$method();
             if (is_string($response)) {
                 $body = $response;
             }

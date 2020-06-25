@@ -17,26 +17,33 @@ class Console
 
     private $entryFile = '';
 
-    private $application = '';
+    private $runType = '';
 
-    private $action = '';
+    private $runEnv = '';
 
-    private $env = '';
+    private $actionName = '';
 
     private $isDebug = false;
+
+    private $actionAlias = [
+        'stop'    => 'stop',
+        'start'   => 'start',
+        'status'  => 'getStatus',
+        'restart' => 'restart'
+    ];
 
 
     public function __construct(Container $container)
     {
         $this->container = $container;
         $this->checkStartEnv();
-        $this->parseArgv();
-        $this->_checkExtension();
+        $this->parseCommandArgv();
+        $this->checkExtension();
 
-        $this->container->Get(Config::class, [$this->GetEnv()]);
+        $this->container->Get(Config::class, [ $this->GetEnv()]);
     }
 
-    private function _stop()
+    private function stop()
     {
         $pid = Daemon::GetPid();
         if (0 === $pid) {
@@ -64,40 +71,23 @@ class Console
         }
     }
 
-    public function Execute(): void
+    public function Run(): void
     {
-        switch ($this->action) {
-            case 'stop':
-                $this->_stop();
-                break;
-            case 'start':
-                $this->_start();
-                break;
-            case 'status':
-                $this->_getStatus();
-                break;
-            case 'restart':
-                $this->_restart();
-                break;
-            case 'gen':
-                break;
-            default:
-                Log::Hint("Oops! Unknown operation. please use \"php {$this->entryFile} start/stop/status/restart\" to start/stop/restart the service");
+        $action = $this->actionAlias[$this->actionName] ?? null;
+        if (is_null($this->actionAlias[$this->actionName])) {
+            Log::Hint("Oops! Unknown operation. please use \"php {$this->entryFile} start/stop/status/restart\" to start/stop/restart the service");
+            return;
         }
-        return;
+        $this->$action();
     }
 
-    private function _start()
+    private function start()
     {
-        Log::Hint("starting ...{$this->application}({$this->env})");
-        $this->container->Get(Daemon::class, [
-            $this->container,
-            $this->application,
-            $this->isDebug,
-        ])->Start();
+        Log::Hint("starting ...{$this->runType}({$this->runEnv})");
+        $this->container->Get(App::class,[ $this->container ])->Run();
     }
 
-    private function _getStatus()
+    private function getStatus()
     {
         $keyword = PHP_OS == 'Darwin' ? $this->entryFile : Daemon::APP_NAME . '_' . Daemon::GetPid();
         $commend = "ps -e -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
@@ -107,28 +97,28 @@ class Console
         echo $output . PHP_EOL;
     }
 
-    private function _restart()
+    private function restart()
     {
-        if ($this->_stop()) {
-            $this->_start();
+        if ($this->stop()) {
+            $this->start();
         }
     }
 
-    private function parseArgv()
+    private function parseCommandArgv()
     {
         global $argv;
         $this->argv = $argv;
         if (count($this->argv) < 2) {
-            Log::DumpExit('Parameter missed');
+            Log::DumpExit('Parameter needed');
         }
 
         [
             $this->entryFile,
-            $this->action,
+            $this->actionName,
         ] = $argv;
 
-        $this->application = $argv[2] ?? 'server';
-        $this->env = $argv[3] ?? 'Dev';
+        $this->runEnv = $argv[3] ?? 'dev';
+        $this->runType = $argv[2] ?? 'server';
         $this->isDebug = isset($argv[4]) && 'true' === trim($argv[4]) ? true : false;
     }
 
@@ -138,9 +128,8 @@ class Console
             Log::DumpExit("Arrow hint : only run in command line mode");
         }
     }
-
-
-    private function _checkExtension()
+    
+    private function checkExtension()
     {
         if (!extension_loaded('swoole')) {
             Log::DumpExit('extension swoole is not installed/loaded.');
@@ -156,7 +145,6 @@ class Console
 
     }
 
-
     public function IsDebug()
     {
         return $this->isDebug;
@@ -164,6 +152,7 @@ class Console
 
     public function GetEnv()
     {
-        return ucfirst($this->env);
+        return ucfirst($this->runEnv);
     }
+
 }

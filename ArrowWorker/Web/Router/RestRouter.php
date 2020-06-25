@@ -11,10 +11,9 @@ use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Log;
 use ArrowWorker\Web\Request;
 
-class RestRouter
+class RestRouter implements RouterInterface
 {
 
-    const MODULE_NAME = 'Rest Router';
     /**
      * @var array
      */
@@ -39,11 +38,11 @@ class RestRouter
     {
         $config = Config::Get('WebRouter');
         if (false === $config) {
-            Log::Dump("Load rest api configuration failed", Log::TYPE_WARNING, self::MODULE_NAME);
+            Log::Dump("Load rest api configuration failed", Log::TYPE_WARNING, __METHOD__);
             return;
         }
         if (!is_array($config)) {
-            Log::Dump(" rest api configuration format is incorrect.", Log::TYPE_WARNING, self::MODULE_NAME);
+            Log::Dump(" rest api configuration format is incorrect.", Log::TYPE_WARNING, __METHOD__);
             return;
         }
 
@@ -101,7 +100,7 @@ class RestRouter
                 list($class, $method) = $classMethod;
                 $isSettingCorrect = ClassMethodChecker::IsClassMethodExists($class, $method);
                 if (!$isSettingCorrect) {
-                    Log::Dump("{$class} or {$method} does not exists", Log::TYPE_WARNING, self::MODULE_NAME);
+                    Log::Dump("{$class} or {$method} does not exists", Log::TYPE_WARNING, __METHOD__);
                     continue;
                 }
 
@@ -207,11 +206,11 @@ class RestRouter
         return (false === $colonPos) ? $uri : substr($uri, 0, $colonPos - 1);
     }
 
-    public function Match()
+    public function Match(): ?MatchResult
     {
         $serverName = Request::Host();
         if (!isset($this->config[$serverName])) {
-            return false;
+            return null;
         }
 
         [$uri, $params] = $this->getUriKeyAndParameters($serverName);
@@ -219,15 +218,24 @@ class RestRouter
         $serverName = Request::Host();
 
         if (empty($uri)) {
-            return false;
+            return null;
         }
 
         if (!isset($this->config[$serverName][$uri][$requestMethod])) {
-            return false;
+            return null;
         }
 
         Request::SetParams($params, 'REST');
-        return array_merge([$serverName, $uri, $requestMethod], $this->config[$serverName][$uri][$requestMethod]);
+        return $this->container->Make(
+            MatchResult::class,
+            [
+                $serverName,
+                $uri,
+                $requestMethod,
+                $this->config[$serverName][$uri][$requestMethod][0],
+                $this->config[$serverName][$uri][$requestMethod][1]
+            ]
+        );
     }
 
 }

@@ -10,7 +10,7 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Web\Request;
 
-class PathRouter
+class PathRouter implements RouterInterface
 {
 
     private $controller;
@@ -31,14 +31,14 @@ class PathRouter
         Request::SetParams([], 'PATH');
 
         if ($pathLen < 3) {
-            return false;
+            return null;
         }
 
         if ($pathLen == 4 && $pathInfo[1] != '' && $pathInfo[2] != '' && $pathInfo[3] != '') {
             $class = $this->controller . $pathInfo[1] . '\\' . $pathInfo[2];
             $method = $pathInfo[3];
             if (ClassMethodChecker::IsClassMethodExists($class, $method)) {
-                return [Request::Host(), $uri, Request::Method(), $class, $method];
+                return $this->container->Make(MatchResult::class, [Request::Host(), $uri, Request::Method(), $class, $method]);
             }
         }
 
@@ -46,10 +46,10 @@ class PathRouter
             $class = $this->controller . $pathInfo[1];
             $method = $pathInfo[2];
             if (ClassMethodChecker::IsClassMethodExists($class, $method)) {
-                return [Request::Host(), $uri, Request::Method(), $class, $method];
+                return $this->container->Make(MatchResult::class, [Request::Host(), $uri, Request::Method(), $class, $method]);
             }
         }
 
-        return false;
+        return null;
     }
 }

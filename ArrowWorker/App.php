@@ -43,10 +43,11 @@ class App
      */
     const TYPE_WORKER = 6;
 
-    /**
-     *
-     */
-    const CONTROLLER_NAMESPACE = APP_DIR . '\\' . APP_CONTROLLER_DIR . '\\';
+    const ENV_DEV = 'Dev';
+
+    const ENV_TEST = 'Test';
+
+    const ENV_PRODUCTION = 'Production';
 
     /**
      * @var Container
@@ -58,14 +59,22 @@ class App
         $this->container = $container;
     }
 
-    public function Run()
+    public function Run(string $appType, bool $isDebug=true)
     {
-        $console = $this->container->Get(Console::class, [$this->container]);
         $this->initOptions();
-        $console->Execute();
+        $this->runDaemon($appType, $isDebug);
     }
 
-    private function initOptions()
+    public function runDaemon(string $appType, bool $isDebug=true)
+    {
+        $this->container->Get(Daemon::class, [
+            $this->container,
+            $appType,
+            $isDebug,
+        ])->Start();
+    }
+
+    public function initOptions()
     {
         $options = Config::Get('Global');
         if (!is_array($options)) {
@@ -80,9 +89,5 @@ class App
         Exception::Init();
     }
 
-    public function GetController()
-    {
-        return self::CONTROLLER_NAMESPACE;
-    }
 
 }

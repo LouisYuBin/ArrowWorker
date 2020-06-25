@@ -51,6 +51,7 @@ class Config
         ]) ? $env : self::ENV_DEV;
         $this->path = $this->path . $this->env . DIRECTORY_SEPARATOR;
         self::$instance = $this;
+        $this->load();
     }
 
 
@@ -91,7 +92,7 @@ class Config
         if (isset($this->config[$name])) {
             return $this->config[$name];
         }
-        return $this->load($name);
+        return false;
     }
 
     /**
@@ -103,20 +104,24 @@ class Config
         $this->config[$name] = $value;
     }
 
-    /**
-     * Load
-     * @param string $name
-     * @return mixed
-     */
-    private function load(string $name)
+    private function load(string $path)
     {
-        $path = $this->path . $name . self::EXT;
-        if (!file_exists($path)) {
-            Log::Dump("file : {$path} not found.", Log::TYPE_WARNING, self::MODULE_NAME);
-            return false;
+        $files = scandir($path);
+        if (false === $files) {
+            return;
         }
-        $this->config[$name] = require($path);
-        return $this->config[$name];
+
+        foreach ($files as $fileName) {
+            $filePath = $path . $fileName;
+            if (is_file($filePath)) {
+                $configName = substr($fileName, 0, strrpos($fileName, '.'));
+                $this->config[$configName] = require($filePath);
+            }
+
+            if (is_dir($filePath)) {
+                $this->load($filePath . DIRECTORY_SEPARATOR);
+            }
+        }
     }
 
 }
