@@ -8,6 +8,7 @@ namespace ArrowWorker;
 
 
 use ArrowWorker\Web\Response;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Exception

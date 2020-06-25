@@ -4,6 +4,7 @@ namespace ArrowWorker;
 
 use ArrowWorker\Library\Process;
 use ArrowWorker\Library\System\LoadAverage;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Console
@@ -126,7 +127,7 @@ class Console
     private function start(): void
     {
         Log::Hint("starting ...{$this->runType}({$this->runEnv})");
-        $this->container->Get(App::class, [$this->container])->Run();
+        $this->container->Get(App::class, [$this->container])->Run($this->runType, $this->isDebug);
     }
 
     /**
@@ -176,7 +177,7 @@ class Console
     /**
      *
      */
-    private function checkStartEnv()
+    private function checkStartEnv() : void
     {
         if (php_sapi_name() !== "cli") {
             Log::DumpExit("Arrow hint : only run in command line mode");

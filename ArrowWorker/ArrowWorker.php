@@ -7,6 +7,8 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Log\Log;
+
 //ArrowWorker framework folder
 defined('ArrowWorker') or define('ArrowWorker', __DIR__);
 

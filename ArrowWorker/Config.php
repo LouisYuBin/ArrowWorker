@@ -112,20 +112,26 @@ class Config
     private function load(string $path): void
     {
         $files = scandir($path);
+
         if (false === $files) {
             return;
         }
 
         foreach ($files as $fileName) {
+            if(in_array($fileName, ['.','..'])) {
+                continue;
+            }
             $filePath = $path . $fileName;
+
+            if (is_dir($filePath)) {
+                $this->load($filePath . DIRECTORY_SEPARATOR);
+            }
+
             if (is_file($filePath)) {
                 $configName                = substr($fileName, 0, strrpos($fileName, '.'));
                 $this->config[$configName] = require($filePath);
             }
 
-            if (is_dir($filePath)) {
-                $this->load($filePath . DIRECTORY_SEPARATOR);
-            }
         }
     }
 

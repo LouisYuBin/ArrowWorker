@@ -6,6 +6,8 @@
 
 namespace ArrowWorker;
 
+use ArrowWorker\Log\Log;
+
 /**
  * Class App
  * @package ArrowWorker
@@ -43,10 +45,19 @@ class App
      */
     const TYPE_WORKER = 6;
 
+    /**
+     *
+     */
     const ENV_DEV = 'Dev';
 
+    /**
+     *
+     */
     const ENV_TEST = 'Test';
 
+    /**
+     *
+     */
     const ENV_PRODUCTION = 'Production';
 
     /**
@@ -54,18 +65,30 @@ class App
      */
     private $container;
 
+    /**
+     * App constructor.
+     * @param Container $container
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
     }
 
+    /**
+     * @param string $appType
+     * @param bool $isDebug
+     */
     public function Run(string $appType, bool $isDebug=true)
     {
         $this->initOptions();
         $this->runDaemon($appType, $isDebug);
     }
 
-    public function runDaemon(string $appType, bool $isDebug=true)
+    /**
+     * @param string $appType
+     * @param bool $isDebug
+     */
+    public function runDaemon(string $appType, bool $isDebug=true):void
     {
         $this->container->Get(Daemon::class, [
             $this->container,
@@ -74,6 +97,9 @@ class App
         ])->Start();
     }
 
+    /**
+     *
+     */
     public function initOptions()
     {
         $options = Config::Get('Global');

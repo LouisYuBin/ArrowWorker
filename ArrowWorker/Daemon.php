@@ -8,6 +8,7 @@ use ArrowWorker\Server\Http;
 use ArrowWorker\Server\Tcp;
 use ArrowWorker\Server\Udp;
 use ArrowWorker\Server\Ws;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Daemon : demonize process
@@ -73,16 +74,16 @@ class Daemon
      * $pid : pid file for monitor process
      * @var mixed|string
      */
-    const PID = self::PID_DIR . self::APP_NAME . '.pid';
+    private const PID = self::PID_DIR . self::APP_NAME . '.pid';
 
     /**
      * @var string
      */
     public static $identity = '';
 
-    private static $_isDebug = false;
+    private static $isDebug = false;
 
-    private static $_application = [];
+    private static $application = [];
 
     private $serverClassAlias = [
         self::PROCESS_HTTP      => Http::class,
@@ -137,12 +138,12 @@ class Daemon
 
     public function setDemonize(bool $isDebug)
     {
-        self::$_isDebug = $isDebug;
+        self::$isDebug = $isDebug;
     }
 
     public function setStartApp(string $apps)
     {
-        $appList = explode(':', $apps);
+        $appList = explode('|', $apps);
         foreach ($appList as $app) {
             $app = strtolower($app);
             if (!in_array($app, [
@@ -151,31 +152,30 @@ class Daemon
             ])) {
                 continue;
             }
-            self::$_application[] = $app;
+            self::$application[] = $app;
         }
 
-        if (0 == count(self::$_application)) {
-            self::$_application = [self::APP_SERVER];
+        if (0 == count(self::$application)) {
+            self::$application = [self::APP_SERVER];
         }
     }
 
     private function initComponent()
     {
-        $this->logger = $this->container->Get(Chan::class, [$this->container]);
         $this->logger = $this->container->Get(Log::class, [$this->container]);
         $this->container->Get(Memory::class, [$this->container]);
     }
 
-    private function startProcess()
+    private function startProcess() : void 
     {
         $this->_startLogProcess();
 
-        rsort(self::$_application);
-        foreach (self::$_application as $appType) {
-            if ($appType == self::APP_SERVER) {
-                $this->_startSwooleServer();
-            } else if ($appType == self::APP_WORKER) {
-                $this->_startWorkerProcess();
+        rsort(self::$application);
+        foreach (self::$application as $appType) {
+            if ($appType === self::APP_SERVER) {
+                $this->startSwooleServer();
+            } else if ($appType === self::APP_WORKER) {
+                $this->startWorkerProcess();
             }
         }
 
@@ -201,7 +201,7 @@ class Daemon
 
     }
 
-    private function _startWorkerProcess()
+    private function startWorkerProcess() : void
     {
         $pid = Process::Fork();
         if ($pid == 0) {
@@ -221,7 +221,7 @@ class Daemon
     /**
      * @param int $pointedIndex
      */
-    private function _startSwooleServer(int $pointedIndex = 0)
+    private function startSwooleServer(int $pointedIndex = 0) : void 
     {
         $configs = Config::Get('Server');
         if (false === $configs || !is_array($configs)) {
@@ -328,10 +328,10 @@ class Daemon
             if ($appType == self::PROCESS_LOG) {
                 $this->_startLogProcess();
             } else if ($appType == 'worker') {
-                $this->_startWorkerProcess();
+                $this->startWorkerProcess();
             } else if ($appType == 'server') {
                 usleep(100000);
-                $this->_startSwooleServer($index);
+                $this->startSwooleServer($index);
             }
         }
     }
@@ -425,7 +425,7 @@ class Daemon
 
     private function demonize()
     {
-        if (self::$_isDebug) {
+        if (self::$isDebug) {
             return;
         }
 
