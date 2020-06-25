@@ -5,6 +5,10 @@ namespace ArrowWorker;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Library\System\LoadAverage;
 
+/**
+ * Class Console
+ * @package ArrowWorker
+ */
 class Console
 {
 
@@ -13,18 +17,39 @@ class Console
      */
     private $container;
 
+    /**
+     * @var array
+     */
     private $argv = [];
 
+    /**
+     * @var string
+     */
     private $entryFile = '';
 
+    /**
+     * @var string
+     */
     private $runType = '';
 
+    /**
+     * @var string
+     */
     private $runEnv = '';
 
+    /**
+     * @var string
+     */
     private $actionName = '';
 
+    /**
+     * @var bool
+     */
     private $isDebug = false;
 
+    /**
+     * @var array
+     */
     private $actionAlias = [
         'stop'    => 'stop',
         'start'   => 'start',
@@ -33,17 +58,24 @@ class Console
     ];
 
 
+    /**
+     * Console constructor.
+     * @param Container $container
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
         $this->checkStartEnv();
         $this->parseCommandArgv();
         $this->checkExtension();
-
-        $this->container->Get(Config::class, [ $this->GetEnv()]);
+        Environment::setType($this->GetEnv());
+        $this->container->Get(Config::class);
     }
 
-    private function stop()
+    /**
+     * @return bool
+     */
+    private function stop(): bool
     {
         $pid = Daemon::GetPid();
         if (0 === $pid) {
@@ -52,7 +84,7 @@ class Console
         }
 
         for ($i = 1; $i > 0; $i++) {
-            if ($i == 1) {
+            if ($i === 1) {
                 if (Process::Kill($pid, SIGTERM)) {
                     echo('Arrow stopping');
                 } else {
@@ -63,14 +95,20 @@ class Console
                 if (!Process::Kill($pid, SIGTERM, true)) {
                     Log::Hint('stopped successfully.');
                     return true;
-                } else {
-                    echo '.';
-                    sleep(1);
                 }
+
+                echo '.';
+                sleep(1);
+
             }
         }
+        return false;
     }
 
+    /**
+     *
+     * @return void
+     */
     public function Run(): void
     {
         $action = $this->actionAlias[$this->actionName] ?? null;
@@ -78,25 +116,35 @@ class Console
             Log::Hint("Oops! Unknown operation. please use \"php {$this->entryFile} start/stop/status/restart\" to start/stop/restart the service");
             return;
         }
+
         $this->$action();
     }
 
-    private function start()
+    /**
+     *
+     */
+    private function start(): void
     {
         Log::Hint("starting ...{$this->runType}({$this->runEnv})");
-        $this->container->Get(App::class,[ $this->container ])->Run();
+        $this->container->Get(App::class, [$this->container])->Run();
     }
 
+    /**
+     *
+     */
     private function getStatus()
     {
-        $keyword = PHP_OS == 'Darwin' ? $this->entryFile : Daemon::APP_NAME . '_' . Daemon::GetPid();
+        $keyword = PHP_OS === 'Darwin' ? $this->entryFile : Daemon::APP_NAME . '_' . Daemon::GetPid();
         $commend = "ps -e -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
-        $output = 'user | pid | ppid | cpu usage | memory usage | process name' . PHP_EOL;
+        $output  = 'user | pid | ppid | cpu usage | memory usage | process name' . PHP_EOL;
         $results = LoadAverage::Exec($commend);
-        $output .= implode(PHP_EOL, $results);
+        $output  .= implode(PHP_EOL, $results);
         echo $output . PHP_EOL;
     }
 
+    /**
+     *
+     */
     private function restart()
     {
         if ($this->stop()) {
@@ -104,6 +152,9 @@ class Console
         }
     }
 
+    /**
+     *
+     */
     private function parseCommandArgv()
     {
         global $argv;
@@ -117,18 +168,24 @@ class Console
             $this->actionName,
         ] = $argv;
 
-        $this->runEnv = $argv[3] ?? 'dev';
+        $this->runEnv  = $argv[3] ?? 'dev';
         $this->runType = $argv[2] ?? 'server';
-        $this->isDebug = isset($argv[4]) && 'true' === trim($argv[4]) ? true : false;
+        $this->isDebug = isset($argv[4]) && 'true' === trim($argv[4]);
     }
 
+    /**
+     *
+     */
     private function checkStartEnv()
     {
-        if (php_sapi_name() != "cli") {
+        if (php_sapi_name() !== "cli") {
             Log::DumpExit("Arrow hint : only run in command line mode");
         }
     }
-    
+
+    /**
+     *
+     */
     private function checkExtension()
     {
         if (!extension_loaded('swoole')) {
@@ -145,12 +202,18 @@ class Console
 
     }
 
-    public function IsDebug()
+    /**
+     * @return bool
+     */
+    public function IsDebug() : bool
     {
         return $this->isDebug;
     }
 
-    public function GetEnv()
+    /**
+     * @return string
+     */
+    public function GetEnv() : string
     {
         return ucfirst($this->runEnv);
     }

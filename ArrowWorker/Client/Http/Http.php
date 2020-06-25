@@ -15,53 +15,53 @@ class Http
     /**
      *
      */
-    const ERROR_URL = -200;
+    public const ERROR_URL = -200;
 
     /**
      *
      */
-    const ERROR_MSG = 'url incorrect';
+    public const ERROR_MSG = 'url incorrect';
 
     /**
      * @var string
      */
-    private $_host = '127.0.0.1';
+    private $host = '127.0.0.1';
 
     /**
      * @var int
      */
-    private $_port = 80;
+    private $port = 80;
 
     /**
      * @var string
      */
-    private $_path = '/';
+    private $path = '/';
 
     /**
      * @var array
      */
-    private $_header = [];
+    private $header = [];
 
 
     /**
      * @var null|Client
      */
-    private $_client = null;
+    private $client = null;
 
     /**
      * @var string
      */
-    private $_scheme = 'http';
+    private $scheme = 'http';
 
     /**
      * @var int
      */
-    private $_statusCode = 200;
+    private $statusCode = 200;
 
     /**
      * @var int
      */
-    private $_responseMsg = '';
+    private $responseMsg = '';
 
     /**
      * Http constructor.
@@ -71,34 +71,33 @@ class Http
      */
     public function __construct(string $url, int $timeout = 1)
     {
-        $this->_parseUrl($url);
-        if ($this->_statusCode == static::ERROR_URL) {
+        $this->parseUrl($url);
+        if ($this->statusCode === static::ERROR_URL) {
             return;
         }
-        $this->_client = new Client($this->_host, $this->_port, $this->_scheme == 'https' ? true : false);
-        $this->_header = [
-            'Host' => in_array($this->_port, [80, 443]) ? $this->_host : "{$this->_host}:{$this->_port}",
+        $this->client = new Client($this->host, $this->port, $this->scheme === 'https');
+        $this->header = [
+            'Host' => in_array($this->port, [80, 443]) ? $this->host : "{$this->host}:{$this->port}",
         ];
     }
 
     /**
      * @param string $url
      */
-    private function _parseUrl(string $url)
+    private function parseUrl(string $url): void
     {
         $parsedUrl = parse_url($url);
-        if (!isset($parsedUrl['scheme']) || !isset($parsedUrl['host'])) {
-            $this->_statusCode = static::ERROR_URL;
-            $this->_responseMsg = static::ERROR_MSG;
+        if (!isset($parsedUrl['scheme'],$parsedUrl['host'])) {
+            $this->statusCode  = self::ERROR_URL;
+            $this->responseMsg = self::ERROR_MSG;
 
             return;
         }
 
-        $this->_port = isset($parsedUrl['port']) ? $parsedUrl['port'] : ($parsedUrl['scheme'] == 'https' ? 443 : 80);
-
-        $this->_path = isset($parsedUrl['path']) ? $parsedUrl['path'] : '/';
-        $this->_scheme = $parsedUrl['scheme'];
-        $this->_host = $parsedUrl['host'];
+        $this->port   = isset($parsedUrl['port']) && $parsedUrl['scheme'] === 'https' ? 443 : 80;
+        $this->path   = $parsedUrl['path'] ?? $this->path;
+        $this->scheme = $parsedUrl['scheme'];
+        $this->host   = $parsedUrl['host'];
 
     }
 
@@ -110,13 +109,13 @@ class Http
      */
     public function Post(array $data, string $path = ''): array
     {
-        if ($this->_statusCode == static::ERROR_URL) {
-            return $this->_errorUrl();
+        if ($this->statusCode === static::ERROR_URL) {
+            return $this->errorUrl();
         }
-        $this->_client->setHeaders($this->_header);
-        $this->_client->Post($path == '' ? $this->_path : $path, $data);
+        $this->client->setHeaders($this->header);
+        $this->client->Post($path === '' ? $this->path : $path, $data);
 
-        return $this->_Response();
+        return $this->response();
     }
 
     /**
@@ -126,13 +125,13 @@ class Http
      */
     public function Get(string $path = ''): array
     {
-        if ($this->_statusCode == static::ERROR_URL) {
-            return $this->_errorUrl();
+        if ($this->statusCode === static::ERROR_URL) {
+            return $this->errorUrl();
         }
-        $this->_client->setHeaders($this->_header);
-        $this->_client->get($path == '' ? $this->_path : $path);
+        $this->client->setHeaders($this->header);
+        $this->client->get($path === '' ? $this->path : $path);
 
-        return $this->_Response();
+        return $this->response();
     }
 
     /**
@@ -140,9 +139,9 @@ class Http
      *
      * @return $this
      */
-    public function Header(array $header)
+    public function Header(array $header): self
     {
-        $this->_header = array_merge($this->_header, $header);
+        $this->header = array_merge($this->header, $header);
 
         return $this;
     }
@@ -152,17 +151,22 @@ class Http
      *
      * @return $this
      */
-    public function AddFile(array $files)
+    public function AddFile(array $files): self
     {
         foreach ($files as $formKeyName => $fileInfo) {
             if (!is_array($fileInfo) && !isset($fileInfo['path'])) {
                 continue;
             }
 
-            $this->_client->addFile($fileInfo['path'], $formKeyName, isset($fileInfo['mimeType']) ?
-                $fileInfo['mimeType'] : null, isset($fileInfo['filename']) ? $fileInfo['filename'] :
-                null, isset($fileInfo['offset']) ? (int)$fileInfo['offset'] : 0, isset($fileInfo['length']) ?
-                (int)$fileInfo['length'] : -1);
+            $this->client->addFile(
+                $fileInfo['path'], 
+                $formKeyName, 
+                $fileInfo['mimeType'] ?? null,  
+                $fileInfo['filename'] ?? null, 
+                isset($fileInfo['offset']) ? (int)$fileInfo['offset'] : 0, 
+                isset($fileInfo['length']) ?
+                (int)$fileInfo['length'] : -1
+            );
         }
 
         return $this;
@@ -171,17 +175,17 @@ class Http
     /**
      * @return array
      */
-    private function _Response()
+    private function response(): array
     {
         return [
-            'httpCode' => $this->_client->statusCode, 'data' => (string)$this->_client->body,
+            'httpCode' => $this->client->statusCode, 'data' => (string)$this->client->body,
         ];
     }
 
     /**
      * @return array
      */
-    private function _errorUrl(): array
+    private function errorUrl(): array
     {
         return [
             'httpCode' => static::ERROR_URL, 'data' => 'request url is incorrect.',
@@ -194,9 +198,9 @@ class Http
      *
      * @return $this
      */
-    public function Method(string $method)
+    public function Method(string $method): self
     {
-        $this->_client->setMethod($method);
+        $this->client->setMethod($method);
 
         return $this;
     }
@@ -207,9 +211,9 @@ class Http
      *
      * @return $this
      */
-    public function Cookies(array $cookies)
+    public function Cookies(array $cookies): self
     {
-        $this->_client->setCookies($cookies);
+        $this->client->setCookies($cookies);
 
         return $this;
     }
@@ -219,9 +223,9 @@ class Http
      *
      * @return $this
      */
-    public function SetData(array $data)
+    public function SetData(array $data): self
     {
-        $this->_client->setData($data);
+        $this->client->setData($data);
 
         return $this;
     }
@@ -231,22 +235,22 @@ class Http
      *
      * @return array
      */
-    public function Execute(string $path)
+    public function Execute(string $path): array
     {
-        $this->_client->execute($path);
+        $this->client->execute($path);
 
         return [
-            'httpCode' => $this->_client->statusCode, 'data' => (string)$this->_client->body,
+            'httpCode' => $this->client->statusCode, 'data' => (string)$this->client->body,
         ];
     }
 
     /**
      *
      */
-    public function Close()
+    public function Close(): void
     {
-        $this->_client->close();
-        unset($this->_client);
+        $this->client->close();
+        unset($this->client);
     }
 
 }

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection AccessModifierPresentedInspection */
 
 namespace ArrowWorker;
 
@@ -9,15 +9,19 @@ namespace ArrowWorker;
 class Config
 {
 
-    const ENV_DEV = 'Dev';
+    /**
+     *
+     */
+    protected const EXT = '.php';
 
-    const ENV_TEST = 'Test';
-
-    const ENV_PRODUCTION = 'Production';
-
-    const MODULE_NAME = 'Config';
-
-    const EXT = '.php';
+    /**
+     * @var array
+     */
+    protected array $validateEnvironment = [
+        Environment::TYPE_DEV,
+        Environment::TYPE_TEST,
+        Environment::TYPE_PRODUCTION,
+    ];
 
     /**
      * @var string
@@ -35,6 +39,9 @@ class Config
      */
     private $config = [];
 
+    /**
+     * @var Config
+     */
     private static $instance;
 
 
@@ -42,16 +49,11 @@ class Config
      * Config constructor.
      * @param string $env
      */
-    public function __construct(string $env)
+    public function __construct()
     {
-        $this->env = in_array($env, [
-            self::ENV_DEV,
-            self::ENV_TEST,
-            self::ENV_PRODUCTION,
-        ]) ? $env : self::ENV_DEV;
-        $this->path = $this->path . $this->env . DIRECTORY_SEPARATOR;
+        $this->path     .= Environment::getType() . DIRECTORY_SEPARATOR;
         self::$instance = $this;
-        $this->load();
+        $this->load($this->path);
     }
 
 
@@ -61,7 +63,7 @@ class Config
      */
     public static function Get(string $name = APP_CONFIG_FILE)
     {
-        return self::$instance->_get($name);
+        return self::$instance->getConfig($name);
     }
 
     /**
@@ -71,14 +73,14 @@ class Config
      */
     public static function Set(string $name, $value)
     {
-        self::$instance->_set($name, $value);
+        self::$instance->setConfig($name, $value);
         return $value;
     }
 
     /**
      * @return Config
      */
-    public static function GetInstance()
+    public static function GetInstance(): Config
     {
         return self::$instance;
     }
@@ -87,7 +89,7 @@ class Config
      * @param string $name
      * @return mixed
      */
-    private function _get(string $name)
+    private function getConfig(string $name)
     {
         if (isset($this->config[$name])) {
             return $this->config[$name];
@@ -99,12 +101,15 @@ class Config
      * @param string $name
      * @param        $value
      */
-    private function _set(string $name, $value)
+    private function setConfig(string $name, $value): void
     {
         $this->config[$name] = $value;
     }
 
-    private function load(string $path)
+    /**
+     * @param string $path
+     */
+    private function load(string $path): void
     {
         $files = scandir($path);
         if (false === $files) {
@@ -114,7 +119,7 @@ class Config
         foreach ($files as $fileName) {
             $filePath = $path . $fileName;
             if (is_file($filePath)) {
-                $configName = substr($fileName, 0, strrpos($fileName, '.'));
+                $configName                = substr($fileName, 0, strrpos($fileName, '.'));
                 $this->config[$configName] = require($filePath);
             }
 

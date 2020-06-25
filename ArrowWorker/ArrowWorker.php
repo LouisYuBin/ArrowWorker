@@ -72,7 +72,7 @@ class ArrowWorker
 
     private function initContainer()
     {
-        $this->container = $container = new Container();
+        $this->container = new Container();
     }
 
     private function setAutoLoad()
