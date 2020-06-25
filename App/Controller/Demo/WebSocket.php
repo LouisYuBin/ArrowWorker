@@ -5,7 +5,7 @@
 
 namespace App\Controller\Demo;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use ArrowWorker\Memory;
 use Swoole\WebSocket\Frame as WebSocketFrame;
 use Swoole\WebSocket\Server as WebSocketServer;

@@ -3,7 +3,7 @@
 namespace ArrowWorker\Component\Cache;
 
 use ArrowWorker\Container;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 class Redis implements CacheInterface
 {

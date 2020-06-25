@@ -5,7 +5,7 @@
 
 namespace ArrowWorker\Library;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 
 /**

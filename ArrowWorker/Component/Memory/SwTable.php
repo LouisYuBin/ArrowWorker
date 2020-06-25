@@ -3,7 +3,7 @@
 namespace ArrowWorker\Component\Memory;
 
 use ArrowWorker\Container;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use Swoole\Table;
 
 class SwTable

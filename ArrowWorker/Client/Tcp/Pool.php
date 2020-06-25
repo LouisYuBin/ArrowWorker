@@ -10,7 +10,7 @@ use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Library\Context;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use ArrowWorker\PoolExtend;
 use ArrowWorker\PoolInterface as ConnPool;
 
@@ -33,18 +33,12 @@ class Pool extends PoolExtend implements ConnPool
 
     public function initConfig(array $aliasConfig, array $userConfig = [])
     {
-        if (count($userConfig) > 0) {
-            $config = $userConfig;
-            goto INIT;
-        }
-
-        $config = Config::Get(self::CONFIG_NAME);
+        $config = count($userConfig) > 0 ? $userConfig : Config::Get(self::CONFIG_NAME);
         if (!is_array($config) || count($config) == 0) {
             Log::Dump('load config file failed', Log::TYPE_WARNING, self::MODULE_NAME);
             return;
         }
 
-        INIT:
         foreach ($config as $index => $value) {
             if (!isset($aliasConfig[$index])) {
                 continue;

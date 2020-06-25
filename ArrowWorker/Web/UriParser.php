@@ -6,7 +6,7 @@
 namespace ArrowWorker\Web;
 
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 class UriParser
 {

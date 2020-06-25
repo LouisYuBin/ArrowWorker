@@ -2,7 +2,7 @@
 
 namespace ArrowWorker\Component\Channel;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 class Queue
 {

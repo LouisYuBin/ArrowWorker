@@ -8,7 +8,7 @@ namespace ArrowWorker\Web;
 
 use ArrowWorker\Config;
 use ArrowWorker\Library\Coroutine;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Upload

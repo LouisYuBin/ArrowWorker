@@ -8,7 +8,7 @@
 
 namespace ArrowWorker\Client\Ws;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use Swoole\Coroutine\Http\Client as SwHttpClient;
 
 

@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Library\Context;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 

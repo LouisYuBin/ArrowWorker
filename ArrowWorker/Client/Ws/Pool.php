@@ -9,7 +9,7 @@ use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Library\Context;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use ArrowWorker\PoolExtend;
 use ArrowWorker\PoolInterface as ConnPool;
 

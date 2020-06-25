@@ -10,7 +10,7 @@ namespace ArrowWorker\Web;
 use ArrowWorker\Component\Cache\Pool;
 use ArrowWorker\Config;
 use ArrowWorker\Container;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 
 /**

@@ -5,7 +5,7 @@
 
 namespace App\Controller\Demo;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use Swoole\Server as server;
 
 class Tcp

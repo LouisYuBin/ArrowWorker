@@ -8,7 +8,7 @@ namespace ArrowWorker\Server;
 
 use ArrowWorker\Component;
 use ArrowWorker\Container;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Server

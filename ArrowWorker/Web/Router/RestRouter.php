@@ -8,7 +8,7 @@ namespace ArrowWorker\Web\Router;
 use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use ArrowWorker\Web\Request;
 
 class RestRouter implements RouterInterface

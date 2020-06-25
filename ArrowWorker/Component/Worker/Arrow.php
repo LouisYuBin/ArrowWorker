@@ -9,7 +9,7 @@ use ArrowWorker\Container;
 use ArrowWorker\Daemon;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 class Arrow
 {

@@ -4,7 +4,7 @@
  * Time: 18-6-10 上午1:16
  */
 
-namespace ArrowWorker;
+namespace ArrowWorker\Log;
 
 use ArrowWorker\Client\Tcp\Client as Tcp;
 use ArrowWorker\Component\Cache\Redis;

@@ -8,7 +8,7 @@
 namespace ArrowWorker\Web;
 
 use ArrowWorker\Library\Context;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Response

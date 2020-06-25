@@ -2,7 +2,7 @@
 
 namespace ArrowWorker\Client\Tcp;
 
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use swoole\client as SwClient;
 
 

@@ -10,7 +10,7 @@ use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Library\Http;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 use ArrowWorker\Web\Router\MatchResult;
 
 /**

@@ -8,7 +8,7 @@
 namespace ArrowWorker\Component\Db;
 
 use ArrowWorker\Container;
-use ArrowWorker\Log;
+use ArrowWorker\Log\Log;
 
 class Mysqli implements DbInterface
 {
