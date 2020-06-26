@@ -11,6 +11,7 @@ use ArrowWorker\Client\Ws\Pool as WsPool;
 use ArrowWorker\Component\Cache\Pool as CachePool;
 use ArrowWorker\Component\Db\Pool as DbPool;
 use ArrowWorker\Library\Coroutine;
+use ArrowWorker\Log\Log;
 use ArrowWorker\Web\Request;
 use ArrowWorker\Web\Response;
 use ArrowWorker\Web\Session;

@@ -16,6 +16,7 @@ use ArrowWorker\Library\Process;
 use ArrowWorker\Container;
 use ArrowWorker\Chan;
 use ArrowWorker\Config;
+use ArrowWorker\Console;
 
 /**
  * Class Log
@@ -24,17 +25,17 @@ use ArrowWorker\Config;
 class Log
 {
 
-    const TYPE_WARNING = 'Warning';
+    public const TYPE_WARNING = 'Warning';
 
-    const TYPE_NOTICE = 'Notice';
+    public const TYPE_NOTICE = 'Notice';
 
-    const TYPE_DEBUG = 'Debug';
+    public const TYPE_DEBUG = 'Debug';
 
-    const TYPE_ERROR = 'Error';
+    public const TYPE_ERROR = 'Error';
 
-    const TYPE_EMERGENCY = 'Emergency';
+    public const TYPE_EMERGENCY = 'Emergency';
 
-    const TYPE_EXCEPTION = 'Exception';
+    public const TYPE_EXCEPTION = 'Exception';
 
     /**
      * write log to file

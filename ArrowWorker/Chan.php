@@ -3,6 +3,7 @@
 namespace ArrowWorker;
 
 use ArrowWorker\Component\Channel\Queue;
+use ArrowWorker\Log\Log;
 
 /**
  * Class Message
@@ -15,7 +16,6 @@ class Chan
      */
     const CONFIG_NAME = 'Chan';
 
-    const MODULE_NAME = 'Chan';
 
     /**
      * default config for each channel
@@ -37,14 +37,18 @@ class Chan
      */
     protected $container;
 
-    protected $class;
-
+    /**
+     * @var Chan
+     */
     private static $instance;
 
+    /**
+     * Chan constructor.
+     * @param Container $container
+     */
     public function __construct(Container $container)
     {
-        self::$instance = $this;
-        $this->class = __CLASS__;
+        self::$instance  = $this;
         $this->container = $container;
     }
 
@@ -67,14 +71,19 @@ class Chan
         return $channels->initQueue($alias, $userConfig);
     }
 
+    /**
+     * @param string $alias
+     * @param array $userConfig
+     * @return Queue|bool
+     */
     private function initQueue(string $alias, array $userConfig)
     {
-        if (0 == count($userConfig)) {
+        if (empty($userConfig)) {
             $configs = Config::Get(self::CONFIG_NAME);
             if (isset($configs[$alias]) && is_array($configs[$alias])) {
                 $userConfig = $configs[$alias];
             } else {
-                Log::Dump("{$alias} config does not exists/is not array.", Log::TYPE_WARNING, self::MODULE_NAME);
+                Log::Dump("{$alias} config does not exists/is not array.", Log::TYPE_WARNING, __METHOD__);
                 return false;
             }
         }
@@ -94,11 +103,11 @@ class Chan
      * Close 关闭管道
      * @author Louis
      */
-    public static function Close()
+    public static function Close(): void
     {
         $channels = self::$instance;
         foreach ($channels->alias as $eachQueue) {
-            Log::Dump("msg_remove_queue result : " . $eachQueue->Close(), Log::TYPE_DEBUG, self::MODULE_NAME);
+            Log::Dump("msg_remove_queue result : " . $eachQueue->Close(), Log::TYPE_DEBUG, __METHOD__);
         }
     }
 
