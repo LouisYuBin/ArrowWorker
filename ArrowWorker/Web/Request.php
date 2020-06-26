@@ -30,7 +30,7 @@ class Request
      * @param SwRequest $request
      * @param SwResponse $response
      */
-    public static function Init(SwRequest $request, ?SwResponse $response)
+    public static function Init(SwRequest $request, ?SwResponse $response):void
     {
         Context::Set(self::class, $request);
         Context::Set(Response::class, $response);
@@ -52,8 +52,7 @@ class Request
         if (substr($raw, 0, 1) != '{') {
             parse_str($raw, $postParam);
             $request->post = $postParam;
-        } else // json data
-        {
+        } else {
             $postParam = json_decode($raw, true);
             if (is_array($postParam)) {
                 $request->post = $postParam;

@@ -18,47 +18,32 @@ class App
     /**
      *
      */
-    const TYPE_HTTP = 1;
+    public const TYPE_HTTP = 1;
 
     /**
      *
      */
-    const TYPE_WEBSOCKET = 2;
+    public const TYPE_WEBSOCKET = 2;
 
     /**
      *
      */
-    const TYPE_TCP = 3;
+    public const TYPE_TCP = 3;
 
     /**
      *
      */
-    const TYPE_UDP = 4;
+    public const TYPE_UDP = 4;
 
     /**
      *
      */
-    const TYPE_BASE = 5;
+    public const TYPE_BASE = 5;
 
     /**
      *
      */
-    const TYPE_WORKER = 6;
-
-    /**
-     *
-     */
-    const ENV_DEV = 'Dev';
-
-    /**
-     *
-     */
-    const ENV_TEST = 'Test';
-
-    /**
-     *
-     */
-    const ENV_PRODUCTION = 'Production';
+    public const TYPE_WORKER = 6;
 
     /**
      * @var Container
@@ -78,7 +63,7 @@ class App
      * @param string $appType
      * @param bool $isDebug
      */
-    public function Run(string $appType, bool $isDebug=true)
+    public function Run(string $appType, bool $isDebug = true):void
     {
         $this->initOptions();
         $this->runDaemon($appType, $isDebug);
@@ -88,7 +73,7 @@ class App
      * @param string $appType
      * @param bool $isDebug
      */
-    public function runDaemon(string $appType, bool $isDebug=true):void
+    public function runDaemon(string $appType, bool $isDebug = true): void
     {
         $this->container->Get(Daemon::class, [
             $this->container,
@@ -100,7 +85,7 @@ class App
     /**
      *
      */
-    public function initOptions()
+    public function initOptions(): void
     {
         $options = Config::Get('Global');
         if (!is_array($options)) {
@@ -113,6 +98,11 @@ class App
             }
         }
         Exception::Init();
+    }
+
+    public function getDirName() :string
+    {
+        return APP_DIR;
     }
 
 

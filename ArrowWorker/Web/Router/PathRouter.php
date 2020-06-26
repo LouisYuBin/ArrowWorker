@@ -19,31 +19,40 @@ class PathRouter implements RouterInterface
 
     public function __construct(Container $container)
     {
-        $this->container = $container;
-        $this->controller = $container->Get(App::class)->GetController();
+        $this->container  = $container;
+        $this->controller = $container->Get(App::class)->getDirName().'\\'.APP_CONTROLLER_DIR.'\\';
     }
 
-    public function Match()
+    public function Match(): ?MatchResult
     {
-        $uri = Request::Uri();
+        $uri      = Request::Uri();
         $pathInfo = explode('/', $uri);
-        $pathLen = count($pathInfo);
+        $pathLen  = count($pathInfo);
         Request::SetParams([], 'PATH');
 
         if ($pathLen < 3) {
             return null;
         }
 
-        if ($pathLen == 4 && $pathInfo[1] != '' && $pathInfo[2] != '' && $pathInfo[3] != '') {
-            $class = $this->controller . $pathInfo[1] . '\\' . $pathInfo[2];
+        if (
+            $pathLen === 4 &&
+            $pathInfo[1] !== '' &&
+            $pathInfo[2] !== '' &&
+            $pathInfo[3] !== ''
+        ) {
+            $class  = $this->controller . $pathInfo[1] . '\\' . $pathInfo[2];
             $method = $pathInfo[3];
             if (ClassMethodChecker::IsClassMethodExists($class, $method)) {
                 return $this->container->Make(MatchResult::class, [Request::Host(), $uri, Request::Method(), $class, $method]);
             }
         }
 
-        if ($pathLen >= 3 && $pathInfo[1] != '' && $pathInfo[2] != '') {
-            $class = $this->controller . $pathInfo[1];
+        if (
+            $pathLen === 3 &&
+            $pathInfo[1] !== '' &&
+            $pathInfo[2] !== ''
+        ) {
+            $class  = $this->controller . $pathInfo[1];
             $method = $pathInfo[2];
             if (ClassMethodChecker::IsClassMethodExists($class, $method)) {
                 return $this->container->Make(MatchResult::class, [Request::Host(), $uri, Request::Method(), $class, $method]);

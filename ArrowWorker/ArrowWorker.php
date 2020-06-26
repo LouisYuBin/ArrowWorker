@@ -72,12 +72,12 @@ class ArrowWorker
         $this->container->Get(Console::class, [$this->container])->Run();
     }
 
-    private function initContainer()
+    private function initContainer(): void
     {
         $this->container = new Container();
     }
 
-    private function setAutoLoad()
+    private function setAutoLoad(): void
     {
         spl_autoload_register([
             $this,
@@ -89,7 +89,7 @@ class ArrowWorker
     /**
      * Start : frame start method
      */
-    public static function Start()
+    public static function Start(): self
     {
         new self;
     }
@@ -122,7 +122,7 @@ class ArrowWorker
      * @param string $class
      * @return string
      */
-    private function frameClassPath(string $class)
+    private function frameClassPath(string $class): string
     {
         return ArrowWorker .
             str_replace([
@@ -136,7 +136,7 @@ class ArrowWorker
 
     }
 
-    private function appClassPath(string $class)
+    private function appClassPath(string $class): string
     {
         return dirname(ArrowWorker) . DIRECTORY_SEPARATOR . str_replace('\\', "/", $class) . self::EXT;
 

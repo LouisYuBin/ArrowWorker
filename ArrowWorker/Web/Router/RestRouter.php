@@ -50,7 +50,7 @@ class RestRouter implements RouterInterface
             if (!is_array($restMap)) {
                 continue;
             }
-            $restAlias = $this->rebuildGroup($restMap);
+            $restAlias      = $this->rebuildGroup($restMap);
             $serverNameList = explode(',', $serverNames);
             foreach ($serverNameList as $serverName) {
                 $this->config[trim($serverName)] = $restAlias;
@@ -58,12 +58,12 @@ class RestRouter implements RouterInterface
         }
     }
 
-    public function GetConfig()
+    public function GetConfig():array
     {
         return $this->config;
     }
 
-    private function rebuildGroup(array $restMap)
+    private function rebuildGroup(array $restMap): array
     {
         $restAlias = [];
         foreach ($restMap as $uri => $alias) {
@@ -97,7 +97,7 @@ class RestRouter implements RouterInterface
                     continue;
                 }
 
-                list($class, $method) = $classMethod;
+                [$class, $method] = $classMethod;
                 $isSettingCorrect = ClassMethodChecker::IsClassMethodExists($class, $method);
                 if (!$isSettingCorrect) {
                     Log::Dump("{$class} or {$method} does not exists", Log::TYPE_WARNING, __METHOD__);
@@ -105,7 +105,7 @@ class RestRouter implements RouterInterface
                 }
 
                 $restAlias[$uri][$requestMethod] = [$class, $method];
-                $isGroup = false;
+                $isGroup                         = false;
                 continue;
 
             }
@@ -115,7 +115,7 @@ class RestRouter implements RouterInterface
             }
 
             $subAlias = $this->rebuildGroup($alias);
-            if (0 == count($subAlias)) {
+            if (empty($subAlias)) {
                 continue;
             }
 
@@ -127,7 +127,7 @@ class RestRouter implements RouterInterface
     }
 
 
-    private function buildRegularPattern()
+    private function buildRegularPattern(): void
     {
         foreach ($this->config as $serverName => $restMap) {
             foreach ($restMap as $uri => $alias) {
@@ -141,7 +141,7 @@ class RestRouter implements RouterInterface
 
                 $this->regularPatternAndParams[$serverName][$this->getUriKey($uri)]["/^{$matchExpression}$/"] = [
                     'uri'    => $uri,
-                    'params' => $this->getParameterPositionAndName($uri),
+                    'params' => $this->getUriParameterPositionAndName($uri),
                 ];
             }
         }
@@ -153,8 +153,8 @@ class RestRouter implements RouterInterface
      */
     private function getUriKeyAndParameters(string $serverName): array
     {
-        $uri = Request::Uri();
-        $nodes = explode('/', $uri);
+        $uri     = Request::Uri();
+        $nodes   = explode('/', $uri);
         $nodeLen = count($nodes);
 
         for ($i = $nodeLen; $i > 1; $i--) {
@@ -186,9 +186,9 @@ class RestRouter implements RouterInterface
         ];
     }
 
-    private function getParameterPositionAndName(string $uri)
+    private function getUriParameterPositionAndName(string $uri): array
     {
-        $params = [];
+        $params    = [];
         $pathNodes = explode('/', $uri);
 
         foreach ($pathNodes as $index => $param) {
@@ -200,7 +200,7 @@ class RestRouter implements RouterInterface
         return $params;
     }
 
-    public function getUriKey(string $uri)
+    public function getUriKey(string $uri): string
     {
         $colonPos = strpos($uri, ':');
         return (false === $colonPos) ? $uri : substr($uri, 0, $colonPos - 1);
@@ -215,7 +215,7 @@ class RestRouter implements RouterInterface
 
         [$uri, $params] = $this->getUriKeyAndParameters($serverName);
         $requestMethod = Request::Method();
-        $serverName = Request::Host();
+        $serverName    = Request::Host();
 
         if (empty($uri)) {
             return null;

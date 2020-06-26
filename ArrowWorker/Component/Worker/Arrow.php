@@ -15,24 +15,19 @@ class Arrow
 {
 
     /**
-     *
-     */
-    const MODULE_NAME = 'Worker';
-
-    /**
      * process life time
      */
-    const LIFE_CYCLE = 60;
+    private const LIFE_CYCLE = 60;
 
     /**
      * concurrence coroutine
      */
-    const COROUTINE_QUANTITY = 3;
+    private const COROUTINE_QUANTITY = 3;
 
     /**
      * default process name
      */
-    const PROCESS_NAME = 'unnamed';
+    private const PROCESS_NAME = 'unnamed';
 
     protected $config = [];
 
@@ -96,11 +91,11 @@ class Arrow
      */
     public function __construct(Container $container, Log $logger)
     {
-        $this->user = $config['user'] ?? 'root';
-        $this->group = $config['group'] ?? 'root';
-        $this->config = $this->getConfig();
+        $this->user      = $config['user'] ?? 'root';
+        $this->group     = $config['group'] ?? 'root';
+        $this->config    = $this->getConfig();
         $this->container = $container;
-        $this->logger = $logger;
+        $this->logger    = $logger;
     }
 
     private function getConfig()
@@ -114,7 +109,7 @@ class Arrow
         if (!is_array($config) ||
             !isset($config['worker']) ||
             !is_array($config['worker']) ||
-            count($config['worker']) == 0) {
+            count($config['worker']) === 0) {
             Log::DumpExit("daemon processor configuration is not correct");
             usleep(1000000);
         }
@@ -128,7 +123,7 @@ class Arrow
      * @author Louis
      *
      */
-    private function setSignalHandler(string $type = 'parentsQuit')
+    private function setSignalHandler(string $type = 'parentsQuit'): void
     {
         // SIGTSTP have to be ignored on mac os
         switch ($type) {
@@ -200,7 +195,7 @@ class Arrow
      * @author Louis
      *
      */
-    public function signalHandler(int $signal)
+    public function signalHandler(int $signal): void
     {
         //Log::Dump(static::MODULE_NAME . "got a signal {$signal} : " . Process::SignalName($signal));
         switch ($signal) {
@@ -231,7 +226,7 @@ class Arrow
      * @author Louis
      *
      */
-    private function setProcessName(string $proName)
+    private function setProcessName(string $proName): void
     {
         Process::SetName(Daemon::$identity . '_Worker_' . $proName);
     }
@@ -239,10 +234,11 @@ class Arrow
     /**
      * @param int $processGroupId
      * @param int $lifecycle
+     * @return void
      */
-    private function setAlarm(int $processGroupId, int $lifecycle)
+    private function setAlarm(int $processGroupId, int $lifecycle): void
     {
-        Process::SetAlarm(mt_rand(($processGroupId + 1) * $lifecycle, ($processGroupId + 2) * $lifecycle));
+        Process::SetAlarm(random_int(($processGroupId + 1) * $lifecycle, ($processGroupId + 2) * $lifecycle));
     }
 
 
@@ -250,13 +246,13 @@ class Arrow
      * start 挂载信号处理、生成任务worker、开始worker监控
      * @author Louis
      */
-    public function Start()
+    public function Start(): void
     {
 
         $this->jobNum = count($this->jobs, 0);
 
-        if ($this->jobNum == 0) {
-            Log::Dump('please add one task at least.', Log::TYPE_WARNING, self::MODULE_NAME,);
+        if ($this->jobNum === 0) {
+            Log::Dump('please add one task at least.', Log::TYPE_WARNING, __METHOD__);
             $this->exitMonitor();
         }
         $this->setSignalHandler('monitorHandler');
@@ -267,7 +263,7 @@ class Arrow
     /**
      * @param int $headGroupId
      */
-    private function exitWorkers(int $headGroupId)
+    private function exitWorkers(int $headGroupId): void
     {
         foreach ($this->pidMap as $pid => $groupId) {
             if ($groupId != $headGroupId) {
@@ -286,7 +282,7 @@ class Arrow
      * exitWorkers 开启worker监控
      * @author Louis
      */
-    private function startMonitor()
+    private function startMonitor(): void
     {
         while (1) {
             if ($this->terminateFlag) {
@@ -297,7 +293,7 @@ class Arrow
                 //等待进程退出
                 $this->waitToBeExitedProcess($toBeExitedGroupId);
 
-                if (0 == count($this->pidMap)) {
+                if (empty($this->pidMap)) {
                     //退出监控进程相关操作
                     $this->exitMonitor();
                 } else {
@@ -323,7 +319,7 @@ class Arrow
     private function calcToBeExitedGroup(): int
     {
         $groups = array_unique(array_values($this->pidMap));
-        if (0 == count($groups)) {
+        if (empty($groups)) {
             return 0;
         }
         sort($groups);
@@ -373,7 +369,7 @@ class Arrow
         $taskId = $this->pidMap[$pid];
         unset($this->pidMap[$pid]);
 
-        Log::Dump("{$this->jobs[ $taskId ]["processName"]}({$pid}) exited at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump("{$this->jobs[ $taskId ]["processName"]}({$pid}) exited at status {$status}", Log::TYPE_DEBUG, __METHOD__);
         usleep(0 == $status ? 10 : 10000);
 
         //监控进程收到退出信号时则无需开启新的worker
@@ -425,7 +421,7 @@ class Arrow
             $this->jobs[$index]['processName'] .
             '(' .
             Process::Id() .
-            ')', Log::TYPE_DEBUG, self::MODULE_NAME);
+            ')', Log::TYPE_DEBUG, __METHOD__);
         $this->setSignalHandler('workerHandler');
         $this->setAlarm($index, $lifecycle);
         $this->setProcessName($this->jobs[$index]['processName']);
@@ -451,7 +447,7 @@ class Arrow
     {
         $timeStart = time();
 
-        Log::Dump("{$this->jobs[ $index ]['processName']} started.", Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump("{$this->jobs[ $index ]['processName']} started.", Log::TYPE_DEBUG, __METHOD__);
 
         while ($this->jobs[$index]['coCount'] < $this->jobs[$index]['coQuantity']) {
             Coroutine::Create(function () use ($index, $timeStart) {
@@ -482,7 +478,7 @@ class Arrow
 
         Coroutine::Wait();
         $execTimeSpan = time() - $timeStart;
-        Log::Dump("{$this->jobs[ $index ]['processName']} finished {$this->execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump("{$this->jobs[ $index ]['processName']} finished {$this->execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, __METHOD__);
         exit(0);
 
     }
@@ -492,7 +488,7 @@ class Arrow
      */
     private function exitMonitor()
     {
-        Log::Dump("exited", Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump("exited", Log::TYPE_DEBUG, __METHOD__);
         exit(0);
     }
 
@@ -509,16 +505,16 @@ class Arrow
             Log::DumpExit("one Task at least is needed ");
         }
 
-        $job['coCount'] = 0;
-        $job['coQuantity'] = (isset($job['coQuantity']) &&
+        $job['coCount']         = 0;
+        $job['coQuantity']      = (isset($job['coQuantity']) &&
             (int)$job['coQuantity'] > 0) ? (int)$job['coQuantity'] :
             self::COROUTINE_QUANTITY;
         $job['processQuantity'] = (isset($job['processQuantity']) &&
             (int)$job['processQuantity'] > 0) ? (int)$job['processQuantity'] :
             1;
-        $job['processName'] = (isset($job['name']) &&
+        $job['processName']     = (isset($job['name']) &&
             !empty($job['name'])) ? $job['name'] : self::PROCESS_NAME;
-        $job['components'] = isset($job['components']) &&
+        $job['components']      = isset($job['components']) &&
         is_array($job['components']) ? $job['components'] : [];
 
         $this->jobs[] = $job;
@@ -528,7 +524,7 @@ class Arrow
     {
         foreach ($config['worker'] as $item) {
             if (!is_array($item) || !isset($item['callback'])) {
-                Log::Dump("some processor configuration is not correct", Log::TYPE_WARNING, self::MODULE_NAME);
+                Log::Dump("some processor configuration is not correct", Log::TYPE_WARNING, __METHOD__);
                 continue;
             }
 
@@ -536,20 +532,20 @@ class Arrow
             if (!is_array($callback) || count($callback) < 2) {
                 Log::Dump(" processor configuration : " .
                     json_encode($item) .
-                    " is not correct", Log::TYPE_WARNING, self::MODULE_NAME);
+                    " is not correct", Log::TYPE_WARNING, __METHOD__);
                 continue;
             }
 
             $class = $callback[0];
             if (!class_exists($class)) {
-                Log::Dump("worker class : {$class} does not exists.", Log::TYPE_WARNING, self::MODULE_NAME);
+                Log::Dump("worker class : {$class} does not exists.", Log::TYPE_WARNING, __METHOD__);
                 continue;
             }
 
-            $method = (string)$callback[1];
+            $method   = (string)$callback[1];
             $instance = new $class;
             if (!method_exists($instance, $method)) {
-                Log::Dump("worker method : {$class}->{$method} does not exists.", Log::TYPE_WARNING, self::MODULE_NAME);
+                Log::Dump("worker method : {$class}->{$method} does not exists.", Log::TYPE_WARNING, __METHOD__);
                 continue;
             }
             $item['callback'] = [
