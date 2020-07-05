@@ -16,17 +16,18 @@ class Writer
 
     /**
      * Writer constructor.
+     * @param bool $isWithHeader
      * @param string $version
      * @param string $charset
      * @param string|null $stylePath
      */
-    public function __construct(bool $hasHeader = false, string $version = '1.0', string $charset = 'UTF-8', string $stylePath = null)
+    public function __construct(bool $isWithHeader = false, string $version = '1.0', string $charset = 'UTF-8', string $stylePath = null)
     {
         $this->writer = new \XMLWriter;
         $this->writer->openMemory();
         $this->writer->setIndent(false);
         $this->writer->setIndentString(' ');
-        if ($hasHeader) {
+        if ($isWithHeader) {
             $this->writer->startDocument($version, $charset);
         }
 
@@ -53,11 +54,11 @@ class Writer
      * @param string $parentIndex
      * @return $this
      */
-    public function makeFromArray(array $elementArray, string $parentIndex = '')
+    public function makeFromArray(array $elementArray, string $parentIndex = ''): self
     {
         foreach ($elementArray as $index => $element) {
             if (is_array($element)) {
-                $key = !is_int($index) ? $index : $parentIndex;
+                $key       = !is_int($index) ? $index : $parentIndex;
                 $isNewNode = !(isset($element[0]) && !is_int($index));
                 if ($isNewNode) {
                     $this->writer->startElement($key);
@@ -79,7 +80,7 @@ class Writer
      * @param null
      * @return string Xml document
      */
-    public function getXml()
+    public function getXml(): string
     {
         $this->writer->endDocument();
         return $this->writer->outputMemory();

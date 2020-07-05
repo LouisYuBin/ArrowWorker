@@ -10,9 +10,11 @@ use ArrowWorker\Client\Tcp\Pool as TcpPool;
 use ArrowWorker\Client\Ws\Pool as WsPool;
 use ArrowWorker\Component\Cache\Pool as CachePool;
 use ArrowWorker\Component\Db\Pool as DbPool;
+use ArrowWorker\Library\Context;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Request\Request;
+use ArrowWorker\Web\Request\RequestInterface;
 use ArrowWorker\Web\Response;
 use ArrowWorker\Web\Session;
 use ArrowWorker\Web\Upload;
@@ -29,7 +31,7 @@ class Component
     /**
      *
      */
-    private $poolAlias = [
+    private array $poolAlias = [
         'DB'           => DbPool::class,
         'CACHE'        => CachePool::class,
         'TCP_CLIENT'   => TcpPool::class,
@@ -52,29 +54,45 @@ class Component
      */
     private $logger;
 
+    /**
+     * Component constructor.
+     * @param Container $container
+     * @param Log $logger
+     * @param int $type
+     */
     public function __construct(Container $container, Log $logger, int $type)
     {
         $this->container = $container;
-        $this->logger = $logger;
+        $this->logger    = $logger;
     }
 
+    /**
+     *
+     */
     public function Init()
     {
-        $this->logger->Init();
+        Log::InitId();
         Coroutine::Init();
     }
 
-    public function InitRequest(SwRequest $request, ?SwResponse $response)
+    /**
+     * @param SwRequest $request
+     * @param SwResponse|null $response
+     */
+    public function InitRequest(SwRequest $request, ?SwResponse $response): void
     {
         $this->Init();
-        Request::Init($request, $response);
+        Context::Set(RequestInterface::class, $this->container->Make(Request::class, [$request, $response]));
     }
 
+    /**
+     * @param array $components
+     * @param bool $isEnableCORS
+     */
     public function InitWebWorkerStart(array $components, bool $isEnableCORS)
     {
         $this->InitPool($components);
         $this->container->Get(Session::class, [$this->container]);
-        Upload::Init();
         Response::SetCORS($isEnableCORS);
     }
 
@@ -83,7 +101,7 @@ class Component
      */
     public function InitPool(array $components)
     {
-        $this->logger->Init();
+        Log::InitId();
         foreach ($components as $key => $config) {
             $component = $this->poolAlias[strtoupper($key)] ?? '';
             if ('' === $component) {
@@ -94,6 +112,9 @@ class Component
         }
     }
 
+    /**
+     *
+     */
     public function Release()
     {
         foreach ($this->components as $component) {

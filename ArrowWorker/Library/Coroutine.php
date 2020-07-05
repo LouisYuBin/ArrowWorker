@@ -20,12 +20,12 @@ class Coroutine
     /**
      * @var array
      */
-    private static $_startTime = [];
+    private static array $startTime = [];
 
     /**
      * @return int
      */
-    public static function Id()
+    public static function Id():int
     {
         return (int)Co::getuid();
     }
@@ -39,9 +39,9 @@ class Coroutine
     }
 
     /**
-     * @param int $seconds
+     * @param float $seconds
      */
-    public static function Sleep(float $seconds)
+    public static function Sleep(float $seconds):void
     {
         Co::sleep($seconds);
     }
@@ -49,7 +49,7 @@ class Coroutine
     /**
      *
      */
-    public static function Wait()
+    public static function Wait():void
     {
         Event::wait();
     }
@@ -57,17 +57,17 @@ class Coroutine
     /**
      *
      */
-    public static function Init()
+    public static function Init():void
     {
-        self::$_startTime[self::Id()] = time();
+        self::$startTime[self::Id()] = time();
     }
 
     /**
      *
      */
-    public static function Release()
+    public static function Release():void
     {
-        unset(self::$_startTime[self::Id()]);
+        unset(self::$startTime[self::Id()]);
     }
 
     /**
@@ -80,11 +80,11 @@ class Coroutine
                 $currentTime = time();
                 foreach (Co::list() as $eachCo) {
                     var_dump($eachCo);
-                    if ($eachCo < 2 || !isset(self::$_startTime[$eachCo])) {
+                    if ($eachCo < 2 || !isset(self::$startTime[$eachCo])) {
                         continue;
                     }
 
-                    if (1 > ($currentTime - self::$_startTime[$eachCo])) {
+                    if (1 > ($currentTime - self::$startTime[$eachCo])) {
                         continue;
                     }
 
@@ -101,7 +101,7 @@ class Coroutine
         });
     }
 
-    public static function Enable(bool $isEnable = true, int $flag = SWOOLE_HOOK_ALL)
+    public static function Enable(bool $isEnable = true, int $flag = SWOOLE_HOOK_ALL):void
     {
         Runtime::enableCoroutine($isEnable, $flag);
     }

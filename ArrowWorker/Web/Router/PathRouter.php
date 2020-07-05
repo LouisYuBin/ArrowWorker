@@ -8,7 +8,7 @@ namespace ArrowWorker\Web\Router;
 use ArrowWorker\App;
 use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
-use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Request\Request;
 
 class PathRouter implements RouterInterface
 {

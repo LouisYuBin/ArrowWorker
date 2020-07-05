@@ -21,11 +21,6 @@ class Middleware
 {
 
     /**
-     *
-     */
-    const MODULE = 'Middleware';
-
-    /**
      * @var array
      */
     private $config = [
@@ -34,6 +29,9 @@ class Middleware
         'method' => []
     ];
 
+    /**
+     * @var array
+     */
     private $httpMiddleware = [];
 
     /**
@@ -56,17 +54,17 @@ class Middleware
     /**
      *
      */
-    private function initConfig()
+    private function initConfig(): void
     {
         $config = Config::Get('Middleware');
         if (!is_array($config)) {
-            Log::Dump('config is incorrect', Log::TYPE_WARNING, self::MODULE);
+            Log::Dump('config is incorrect', Log::TYPE_WARNING, __METHOD__);
             return;
         }
 
         foreach ($this->config as $type => $setting) {
             if (!isset($config[$type]) || !is_array($config[$type])) {
-                Log::Dump("config({$type}) is incorrect : " . json_encode($config), Log::TYPE_WARNING, self::MODULE);
+                Log::Dump("config({$type}) is incorrect : " . json_encode($config), Log::TYPE_WARNING, __METHOD__);
                 $config[$type] = [];
             }
         }
@@ -102,14 +100,14 @@ class Middleware
      * @param array $config
      * @return array
      */
-    private function parseEachHostConfig(array $config)
+    private function parseEachHostConfig(array $config): array
     {
         $parsedConfig = [];
         foreach ($config as $uri => $uriConfig) {
             if (!is_array($uriConfig)) {
                 continue;
             }
-            $uri = str_replace(['*', '/'], ['.*', '\/'], $uri);
+            $uri                        = str_replace(['*', '/'], ['.*', '\/'], $uri);
             $parsedConfig["/^{$uri}$/"] = $this->parseEachUriConfig($uriConfig);
         }
         return $parsedConfig;
@@ -119,7 +117,7 @@ class Middleware
      * @param array $config
      * @return array
      */
-    private function parseEachUriConfig(array $config)
+    private function parseEachUriConfig(array $config): array
     {
         $parsedConfig = [];
         foreach ($config as $methods => &$middleware) {
@@ -130,7 +128,7 @@ class Middleware
 
             $methodList = explode('|', $methods);
             foreach ($methodList as $index => &$method) {
-                $method = trim(strtoupper($method));
+                $method = strtoupper(trim($method));
                 if ('*' === $method) {
                     foreach (Http::METHODS as $legalMethod) {
                         $methodList[] = $legalMethod;
@@ -214,15 +212,13 @@ class Middleware
      */
     public function GetList(MatchResult $matchResult): array
     {
-        $host = $matchResult->getServerName();
-        $uri  = $matchResult->getUri();
-        $requestMethod = $matchResult->getRequestMethod();
-        $class = $matchResult->getController();
-        $method = $matchResult->getMethod();
-        $middlewareList = [];
-        if (isset($this->httpMiddleware[$host][$uri][$requestMethod])) {
-            $middlewareList = $this->httpMiddleware[$host][$uri][$requestMethod];
-        }
+        $host           = $matchResult->getServerName();
+        $uri            = $matchResult->getUri();
+        $class          = $matchResult->getController();
+        $method         = $matchResult->getMethod();
+        $requestMethod  = $matchResult->getRequestMethod();
+
+        $middlewareList = $this->httpMiddleware[$host][$uri][$requestMethod]??[];
 
         if (isset($this->config['class'][$class])) {
             $middlewareList = array_merge($middlewareList, $this->config['class'][$class]);
@@ -236,7 +232,10 @@ class Middleware
         return $middlewareList;
     }
 
-    private function matchRouterConfig(array $routerConfig)
+    /**
+     * @param array $routerConfig
+     */
+    private function matchRouterConfig(array $routerConfig):void
     {
         foreach ($this->config['http'] as $middlewareServerName => $middlewareUriConfig) {
             if (!isset($routerConfig[$middlewareServerName])) {

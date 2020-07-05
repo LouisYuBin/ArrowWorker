@@ -85,22 +85,22 @@ class Daemon
     /**
      * @var string
      */
-    public static $identity = '';
+    public static string $identity = '';
 
     /**
      * @var bool
      */
-    private static $isDebug = false;
+    private static bool $isDebug = false;
 
     /**
      * @var array
      */
-    private static $application = [];
+    private static array $application = [];
 
     /**
      * @var array
      */
-    private $serverClassAlias = [
+    private array $serverClassAlias = [
         self::PROCESS_HTTP      => Http::class,
         self::PROCESS_WEBSOCKET => Ws::class,
         self::PROCESS_TCP       => Tcp::class,
@@ -110,25 +110,25 @@ class Daemon
     /**
      * @var $container Container
      */
-    private $container;
+    private Container $container;
 
     /**
      * @var $logger Log
      */
-    private $logger;
+    private Log $logger;
 
 
     /**
      * pidMap : child process name
      * @var array
      */
-    private $pidMap = [];
+    private array $pidMap = [];
 
     /**
      * terminate : is terminate process
      * @var bool
      */
-    private $_terminate = false;
+    private bool $terminate = false;
 
 
     /**
@@ -229,7 +229,7 @@ class Daemon
             if ($pid == 0) {
                 Log::Dump('starting log process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME);
                 $this->setProcessName(static::PROCESS_LOG);
-                $this->logger->Start();
+                $this->logger->getProcess()->Start();
             } else {
                 $this->pidMap[] = [
                     'pid'   => $pid,
@@ -325,7 +325,7 @@ class Daemon
     {
         Log::Dump('starting monitor process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME);
         while (1) {
-            if ($this->_terminate) {
+            if ($this->terminate) {
                 //exit sequence: server -> worker -> log
                 if ($this->exitWorkerProcess('server')) {
                     if ($this->exitWorkerProcess('worker')) {
@@ -364,7 +364,7 @@ class Daemon
 
             unset($this->pidMap[$key]);
 
-            if ($this->_terminate) {
+            if ($this->terminate) {
                 Log::Dump("{$appType} process : {$pid} exited at status : {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
                 return;
             }
@@ -586,12 +586,12 @@ class Daemon
         //Log::Dump(static::MODULE_NAME."got a signal {$signal} : ".Process::SignalName($signal));
         switch ($signal) {
             case SIGUSR1:
-                $this->_terminate = true;
+                $this->terminate = true;
                 break;
             case SIGTERM:
             case SIGINT:
             case SIGQUIT:
-                $this->_terminate = true;
+                $this->terminate = true;
                 break;
             default:
                 return false;

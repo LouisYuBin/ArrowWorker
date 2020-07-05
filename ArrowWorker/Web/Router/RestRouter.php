@@ -9,7 +9,7 @@ use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Request\Request;
 
 class RestRouter implements RouterInterface
 {

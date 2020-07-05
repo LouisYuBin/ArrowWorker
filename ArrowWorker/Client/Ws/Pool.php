@@ -16,12 +16,7 @@ use ArrowWorker\PoolInterface as ConnPool;
 class Pool extends PoolExtend implements ConnPool
 {
 
-    const LOG_NAME = 'WsClient';
-
     const CONFIG_NAME = 'WsClient';
-
-    const MODULE_NAME = 'WsPool';
-
 
     public function __construct(Container $container, array $presetConfig, array $userConfig = [])
     {
@@ -44,7 +39,7 @@ class Pool extends PoolExtend implements ConnPool
 
         $config = Config::Get(self::CONFIG_NAME);
         if (!is_array($config) || count($config) == 0) {
-            Log::Dump('incorrect config file', Log::TYPE_WARNING, self::MODULE_NAME);
+            Log::Dump('incorrect config file', Log::TYPE_WARNING, __METHOD__);
             return;
         }
 
@@ -61,13 +56,12 @@ class Pool extends PoolExtend implements ConnPool
                 !isset($value['isSsl'])
             ) {
                 Log::Dump("configuration for {$index} is incorrect. config : " .
-                    json_encode($value), Log::TYPE_WARNING, self::MODULE_NAME);
+                    json_encode($value), Log::TYPE_WARNING, __METHOD__);
                 continue;
             }
 
-            $value['poolSize'] = (int)$presetConfig[$index] >
-            0 ? $presetConfig[$index] : self::DEFAULT_POOL_SIZE;
-            $value['connectedNum'] = 0;
+            $value['poolSize'] = (int)($presetConfig[$index] ?? self::DEFAULT_POOL_SIZE);
+            $value['connectedCount'] = 0;
 
             $this->config[$index] = $value;
             $this->pool[$index] = $this->container->Make(SwChan::class, [
@@ -79,30 +73,33 @@ class Pool extends PoolExtend implements ConnPool
 
 
     /**
-     * initialize connection pool
+     *
+     * @param string $targetAlias
      */
-    public function InitPool()
+    private function initConnection(string $targetAlias)
     {
-        foreach ($this->config as $index => $config) {
-            for ($i = $config['connectedNum']; $i < $config['poolSize']; $i++) {
-                $wsClient = $this->container->Make(
-                    Client::class,
-                    [
-                        $config['host'],
-                        $config['port'],
-                        $config['uri'],
-                        $config['isSsl'],
-                    ]
-                );
-                $upgrade = $wsClient->Upgrade();
-                if (false === $upgrade) {
-                    Log::Dump("initialize connection failed, config : {$index}=>" .
-                        json_encode($config), Log::TYPE_WARNING, self::MODULE_NAME);
-                    continue;
-                }
-                $this->config[$index]['connectedNum']++;
-                $this->pool[$index]->Push($wsClient);
+        foreach ($this->config as $alias => $config) {
+            if($targetAlias!==$alias) {
+                continue;
             }
+
+            $client = $this->container->Make(
+                Client::class,
+                [
+                    $config['host'],
+                    $config['port'],
+                    $config['uri'],
+                    $config['isSsl'],
+                ]
+            );
+            $upgrade = $client->Upgrade();
+            if (false === $upgrade) {
+                Log::Dump("initialize connection failed, config : {$alias}=>" .
+                    json_encode($config), Log::TYPE_WARNING, __METHOD__);
+                continue;
+            }
+            $this->config[$alias]['connectedCount']++;
+            $this->pool[$alias]->Push($client);
         }
     }
 
@@ -118,7 +115,7 @@ class Pool extends PoolExtend implements ConnPool
             return $conn;
         }
 
-        return self::$instance->GetConnection($class, $alias);;
+        return self::$instance->GetConnection($alias);;
     }
 
     public function getConnection(string $alias)
@@ -128,24 +125,25 @@ class Pool extends PoolExtend implements ConnPool
         }
 
         $retryTimes = 0;
-        _RETRY:
+        RETRY:
         $conn = $this->pool[$alias]->Pop(0.2);
         if (false === $conn) {
-            if ($this->config[$alias]['connectedNum'] < $this->config[$alias]['poolSize']) {
-                $this->InitPool();
+            if ($this->config[$alias]['connectedCount'] < $this->config[$alias]['poolSize']) {
+                $this->initConnection($alias);
+                goto RETRY;
             }
 
             if ($retryTimes <= 2) {
                 $retryTimes++;
-                Log::Critical("get ( {alias} : {retryTimes} ) connection failed, retrying", [
+                Log::Warning("get ( {alias} : {retryTimes} ) connection failed, retrying", [
                     'alias'      => $alias,
                     'retryTimes' => $retryTimes,
-                ], self::LOG_NAME);
-                goto _RETRY;
+                ], __METHOD__);
+                goto RETRY;
             }
         }
 
-        Context::SetSub(__CLASS__, $alias, $conn);
+        Context::SubSet(__CLASS__, $alias, $conn);
         return $conn;
     }
 

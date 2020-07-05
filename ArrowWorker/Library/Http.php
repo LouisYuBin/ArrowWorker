@@ -9,6 +9,6 @@ namespace ArrowWorker\Library;
 class Http
 {
 
-    const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'];
+    public const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'];
 
 }

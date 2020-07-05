@@ -22,9 +22,9 @@ use ArrowWorker\Log\Log;
 class Upload
 {
     /**
-     * default configuraion
+     * @var array $config
      */
-    private static $config = [
+    private static array $config = [
         'savePath'  => APP_PATH . '/Runtime/Upload/',
         'extension' => [
             'jpg',
@@ -36,22 +36,27 @@ class Upload
     ];
 
     /**
-     * file : file information
-     * @var
+     * @var bool
      */
-    private $_file;
+    private static bool $isConfigInitialized = false;
+
+    /**
+     * file : file information
+     * @var array
+     */
+    private array $file;
 
     /**
      * _newFileName : file name for saving
      * @var string
      */
-    private $_newFileName = '';
+    private string $newFileName = '';
 
     /**
      * extension : upload file extension
      * @var string
      */
-    private $_extension = '';
+    private string $extension = '';
 
     /**
      * Upload constructor.
@@ -59,21 +64,28 @@ class Upload
      */
     public function __construct(array $file)
     {
-        $this->_file = $file;
-        $this->_setExt();
+        $this->file = $file;
+        $this->initConfig();
+        $this->setExt();
     }
 
-    public static function Init()
+    /**
+     *
+     */
+    private function initConfig(): void
     {
+        if(self::$isConfigInitialized) {
+            return ;
+        }
+        
         $config = Config::Get('Upload');
         if (false === $config) {
-            Log::Warning("Config::Get('Upload') failed");
+            Log::Warning("Config::Get('Upload') failed", [], __METHOD__);
         }
         self::$config = array_merge(self::$config, $config);
     }
 
     /**
-     * IsExtAllowed : check if the upload file extension is allowed
      * @return bool
      */
     private function IsExtAllowed(): bool
@@ -84,90 +96,83 @@ class Upload
     }
 
     /**
-     * _setExt : get file extension
+     * @return void
      */
-    private function _setExt()
+    private function setExt(): void
     {
-        $pathNode = explode('.', $this->_file['name']);
+        $pathNode = explode('.', $this->file['name']);
         $nodeCount = count($pathNode);
-        if ($nodeCount == 1) {
-            $this->_extension = '';
+        if ($nodeCount === 1) {
+            $this->extension = '';
             return;
         }
-        $this->_extension = strtolower($pathNode[$nodeCount - 1]);
+        $this->extension = strtolower($pathNode[$nodeCount - 1]);
     }
 
     /**
-     * GetExt : return file extension
      * @return string
      */
     public function GetExt(): string
     {
-        return $this->_extension;
+        return $this->extension;
     }
 
     /**
-     * Attr
      * @return array
      */
-    public function Attr(): array
+    public function getAttribute(): array
     {
-        return $this->_file;
+        return $this->file;
     }
 
     /**
-     * GetTmpName
      * @return string
      */
     public function GetTmpName(): string
     {
-        return (string)$this->_file['tmp_name'];
+        return (string)$this->file['tmp_name'];
     }
 
     /**
-     * GetOraName
      * @return string
      */
     public function GetOraName(): string
     {
-        return (string)$this->_file['name'];
+        return (string)$this->file['name'];
     }
 
     /**
-     * GetNewName
      * @return string
      */
     public function GetNewName(): string
     {
-        return $this->_newFileName;
+        return $this->newFileName;
     }
 
     /**
-     * SetNewName
      * @param string $name
      * @return $this
      */
     public function SetNewName(string $name = '')
     {
         if (!empty($name)) {
-            $this->_newFileName = $name;
+            $this->newFileName = $name;
         }
         return $this;
     }
 
     /**
-     * Save :save upload file
      * @param string $savePath
      * @return bool
      */
-    public function Save(string $savePath = '')
+    public function Save(string $savePath = ''): bool
     {
-        if (empty($this->_newFileName)) {
-            $this->_newFileName = dechex(Coroutine::Id()) . dechex(time()) . dechex(mt_rand(100, 999));
+        if (empty($this->newFileName)) {
+            $this->newFileName = dechex(Coroutine::Id()) . dechex(time()) . dechex(mt_rand(100, 999));
         }
         $savePath = empty($savePath) ? self::$config['savePath'] : $savePath;
 
-        return move_uploaded_file($this->_file['tmp_name'], $savePath . $this->_newFileName . '.' . $this->_extension);
+        return move_uploaded_file($this->file['tmp_name'], $savePath . $this->newFileName . '.' . $this->extension);
     }
 
 

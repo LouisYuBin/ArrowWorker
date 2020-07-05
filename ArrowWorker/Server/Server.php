@@ -20,22 +20,22 @@ class Server
     /**
      *
      */
-    const TYPE_HTTP = 'Http';
+    public const TYPE_HTTP = 'Http';
 
     /**
      *
      */
-    const TYPE_WEBSOCKET = 'Ws';
+    public const TYPE_WEBSOCKET = 'Ws';
 
     /**
      *
      */
-    const TYPE_TCP = 'Tcp';
+    public const TYPE_TCP = 'Tcp';
 
     /**
      *
      */
-    const TYPE_UDP = 'Udp';
+    public const TYPE_UDP = 'Udp';
 
     /**
      * @var string
@@ -133,7 +133,7 @@ class Server
     /**
      * @param int $type
      */
-    protected function initComponent(int $type)
+    protected function initComponent(int $type): void
     {
         $this->component = $this->container->Make(Component::class, [$this->container, $this->logger, $type]);
     }

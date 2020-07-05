@@ -11,7 +11,7 @@ use App\Model\ArrowWorker;
 use ArrowWorker\Component\Cache\Pool as Cache;
 use ArrowWorker\Log\Log;
 use ArrowWorker\Memory;
-use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Request\Request;
 use ArrowWorker\Web\Response;
 use ArrowWorker\Web\Session;
 

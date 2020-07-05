@@ -100,8 +100,8 @@ class Pool extends PoolExtend implements ConnPool
             return $conn;
         }
 
-        $conn = self::$instance->getConnection($class, $alias);
-        Context::SetSub($class, $alias, $conn);
+        $conn = self::$instance->getConnection($alias);
+        Context::SubSet($class, $alias, $conn);
         return $conn;
     }
 

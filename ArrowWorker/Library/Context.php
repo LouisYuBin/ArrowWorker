@@ -25,7 +25,7 @@ class Context
         return Co::getContext()[$key][] = $value;
     }
 
-    public static function SetSub(string $key, string $subKey, $value)
+    public static function SubSet(string $key, string $subKey, $value)
     {
         return Co::getContext()[$key][$subKey] = $value;
     }

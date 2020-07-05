@@ -6,7 +6,7 @@
 namespace App\Controller\Admin;
 
 use ArrowWorker\Client\Ws\Client as Ws;
-use ArrowWorker\Web\Request;
+use ArrowWorker\Web\Request\Request;
 
 class Index
 {

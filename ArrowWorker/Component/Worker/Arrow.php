@@ -454,7 +454,7 @@ class Arrow
                 while (true) {
                     pcntl_signal_dispatch();
 
-                    $this->logger->Init();
+                    Log::InitId();
                     if (isset($this->jobs[$index]['argv'])) {
                         $result = call_user_func_array($this->jobs[$index]['callback'], $this->jobs[$index]['argv']);
                     } else {
