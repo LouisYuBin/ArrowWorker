@@ -11,6 +11,7 @@ use ArrowWorker\Component\Cache\Pool;
 use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Log\Log;
+use ArrowWorker\Web\Request\Request;
 
 
 /**
@@ -65,7 +66,6 @@ class Session
                 ]
             );
             $this->pool->InitConfig($poolSize, $poolConfig);
-            $this->pool->InitPool();
         }
     }
 

@@ -168,7 +168,7 @@ class Ws extends ServerPattern
     private function onOpen()
     {
         $this->server->on('open', function (Server $server, SwRequest $request) {
-            $this->component->InitRequest($request, null);
+            $this->component->Init($request, null);
             ("{$this->callback}::Open")($server, $request->fd);
             $this->component->Release();
         });
@@ -203,7 +203,7 @@ class Ws extends ServerPattern
     private function onRequest()
     {
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
-            $this->component->InitRequest($request, $response);
+            $this->component->Init($request, $response);
             $this->dispatcher->Run();
             $this->component->Release();;
         });

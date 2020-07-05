@@ -173,7 +173,7 @@ class Http extends ServerPattern
     private function onRequest(): void
     {
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
-            $this->component->InitRequest($request, $response);
+            $this->component->Init($request, $response);
             $this->dispatcher->Run();
             $this->component->Release();
         });

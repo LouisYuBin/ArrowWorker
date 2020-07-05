@@ -15,7 +15,8 @@ use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Log\Log;
 use ArrowWorker\Web\Request\Request;
 use ArrowWorker\Web\Request\RequestInterface;
-use ArrowWorker\Web\Response;
+use ArrowWorker\Web\Response\Response;
+use ArrowWorker\Web\Response\ResponseInterface;
 use ArrowWorker\Web\Session;
 use ArrowWorker\Web\Upload;
 use Swoole\Http\Request as SwRequest;
@@ -66,23 +67,19 @@ class Component
         $this->logger    = $logger;
     }
 
+
     /**
-     *
+     * @param SwRequest|null $request
+     * @param SwResponse|null $response
      */
-    public function Init()
+    public function Init(?SwRequest $request=null, ?SwResponse $response=null)
     {
         Log::InitId();
         Coroutine::Init();
-    }
-
-    /**
-     * @param SwRequest $request
-     * @param SwResponse|null $response
-     */
-    public function InitRequest(SwRequest $request, ?SwResponse $response): void
-    {
-        $this->Init();
-        Context::Set(RequestInterface::class, $this->container->Make(Request::class, [$request, $response]));
+        if(!is_null($request)) {
+            Context::Set(RequestInterface::class, $this->container->Make(Request::class, [$request]));
+            Context::Set(ResponseInterface::class, $this->container->Make(Response::class, [$response]));
+        }
     }
 
     /**
@@ -93,7 +90,6 @@ class Component
     {
         $this->InitPool($components);
         $this->container->Get(Session::class, [$this->container]);
-        Response::SetCORS($isEnableCORS);
     }
 
     /**
@@ -113,9 +109,9 @@ class Component
     }
 
     /**
-     *
+     * @return void
      */
-    public function Release()
+    public function Release():void
     {
         foreach ($this->components as $component) {
             $component->Release();

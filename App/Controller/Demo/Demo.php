@@ -9,7 +9,6 @@ namespace App\Controller\Demo;
 
 use App\Model\ArrowWorker;
 use ArrowWorker\Chan;
-use ArrowWorker\Lib\Coroutine;
 use ArrowWorker\Log\Log;
 
 

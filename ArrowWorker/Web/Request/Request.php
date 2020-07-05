@@ -15,6 +15,7 @@ use ArrowWorker\Log\Log;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use ArrowWorker\Web\Upload;
+use ArrowWorker\Web\RequestInterface;
 
 
 /**
@@ -28,13 +29,13 @@ class Request implements RequestInterface
 
     private $class;
 
-    public function __construct(SwRequest $request, ?SwResponse $response)
+    private SwRequest $swRequest;
+
+    public function __construct(SwRequest $request)
     {
         $this->class = __CLASS__;
-        Context::Set(self::class, $request);
-        Context::Set(Response::class, $response);
+        $this->swRequest = $request;
         $this->initUrlPostParams($request);
-
     }
 
 
@@ -64,7 +65,7 @@ class Request implements RequestInterface
      */
     public function getMethod(): string
     {
-        return Context::Get($this->class)->server['request_method'];
+        return $this->swRequest->server['request_method'];
     }
 
     /**
@@ -72,7 +73,7 @@ class Request implements RequestInterface
      */
     public function getUri(): string
     {
-        return Context::Get($this->class)->server['request_uri'];
+        return $this->swRequest->server['request_uri'];
     }
 
     /**
@@ -80,7 +81,7 @@ class Request implements RequestInterface
      */
     public function getRaw(): string
     {
-        return Context::Get($this->class)->rawContent();
+        return $this->swRequest->rawContent();
     }
 
     /**
@@ -96,7 +97,7 @@ class Request implements RequestInterface
      */
     public function getQueryString(): string
     {
-        return Context::Get($this->class)->server['query_string'];
+        return $this->swRequest->server['query_string'];
     }
 
     /**
@@ -104,7 +105,7 @@ class Request implements RequestInterface
      */
     public function getUserAgent(): string
     {
-        return Context::Get($this->class)->header['user-agent'];
+        return $this->swRequest->header['user-agent'];
     }
 
 
@@ -113,7 +114,7 @@ class Request implements RequestInterface
      */
     public function getClientIp(): string
     {
-        return Context::Get($this->class)->server['remote_addr'];
+        return $this->swRequest->server['remote_addr'];
     }
 
     /**
@@ -123,7 +124,7 @@ class Request implements RequestInterface
      */
     public function Get(string $key, string $default = ''): string
     {
-        return Context::Get($this->class)->get[$key] ?? $default;
+        return $this->swRequest->get[$key] ?? $default;
     }
 
     /**
@@ -133,12 +134,12 @@ class Request implements RequestInterface
      */
     public function Post(string $key, string $default = ''): string
     {
-        return Context::Get($this->class)->post[$key] ?? $default;
+        return $this->swRequest->post[$key] ?? $default;
     }
 
     public function Cookie(string $key, string $default = ''): string
     {
-        return Context::Get($this->class)->cookie[$key] ?? $default;
+        return $this->swRequest->cookie[$key] ?? $default;
     }
 
     /**
@@ -167,12 +168,12 @@ class Request implements RequestInterface
      */
     public function getHeader(string $key, string $default = ''): string
     {
-        return Context::Get($this->class)->header[$key] ?? $default;
+        return $this->swRequest->header[$key] ?? $default;
     }
 
     public function getHost(): string
     {
-        return Context::Get($this->class)->header['host'] ?? '';
+        return $this->swRequest->header['host'] ?? '';
     }
 
     /**
@@ -180,7 +181,7 @@ class Request implements RequestInterface
      */
     public function getHeaders(): array
     {
-        return (array)Context::Get($this->class)->header;
+        return (array)$this->swRequest->header;
     }
 
     /**
@@ -189,7 +190,7 @@ class Request implements RequestInterface
      */
     public function Gets(): array
     {
-        return (array)Context::Get($this->class)->get;
+        return (array)$this->swRequest->get;
     }
 
     /**
@@ -197,7 +198,7 @@ class Request implements RequestInterface
      */
     public function Posts(): array
     {
-        return (array)Context::Get($this->class)->post;
+        return (array)$this->swRequest->post;
     }
 
     /**
@@ -206,7 +207,7 @@ class Request implements RequestInterface
      */
     public function getServer(string $key): string
     {
-        return Context::Get($this->class)->server[$key] ?? '';
+        return $this->swRequest->server[$key] ?? '';
     }
 
     /**
@@ -214,7 +215,7 @@ class Request implements RequestInterface
      */
     public function getServers():array
     {
-        return (array)Context::Get($this->class)->server;
+        return (array)$this->swRequest->server;
     }
 
     /**
@@ -223,7 +224,7 @@ class Request implements RequestInterface
      */
     public function getFile(string $name): ?Upload
     {
-        $file = Context::Get(__CLASS__)->files[$name]??null;
+        $file = $this->swRequest->files[$name]??null;
         if( null===$file) {
             return $file;
         }
@@ -235,7 +236,7 @@ class Request implements RequestInterface
      */
     public function getFiles(): array
     {
-        return (array)Context::Get($this->class)->files;
+        return (array)$this->swRequest->files;
     }
 
     /**
@@ -251,7 +252,7 @@ class Request implements RequestInterface
 
     private function log():void
     {
-        $request = Context::Get($this->class);
+        $request = $this->swRequest;
 
         Log::Debug(' Request : {uri}[{method}], {request}',
             [
@@ -259,7 +260,7 @@ class Request implements RequestInterface
                 'method'  => $request->server['request_method'],
                 'request' => json_encode($request, JSON_UNESCAPED_UNICODE),
             ]
-            , self::LOG_NAME);
+            , __METHOD__);
     }
 
 }

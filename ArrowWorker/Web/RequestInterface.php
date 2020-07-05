@@ -3,7 +3,7 @@
  * By yubin at 2020-06-26 12:50.
  */
 
-namespace ArrowWorker\Web\Request;
+namespace ArrowWorker\Web;
 
 use ArrowWorker\Web\Upload;
 
