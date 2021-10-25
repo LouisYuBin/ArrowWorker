@@ -39,9 +39,6 @@ defined('APP_CONFIG_DIR') or define('APP_CONFIG_DIR', 'Config');
 //folder name for application language
 defined('APP_LANG_DIR') or define('APP_LANG_DIR', 'Lang');
 
-//folder name for application view-tpl
-defined('APP_TPL_DIR') or define('APP_TPL_DIR', 'Tpl');
-
 //file name for default configuration
 defined('APP_CONFIG_FILE') or define('APP_CONFIG_FILE', 'App');
 
@@ -60,28 +57,34 @@ class ArrowWorker
     /**
      * @var $container Container
      */
-    private $container;
+    private Container $container;
 
     /**
      * ArrowWorker constructor.
      */
     private function __construct()
     {
-        $this->setAutoLoad();
+        $this->initAutoLoad();
         $this->initContainer();
-        $this->container->Get(Console::class, [$this->container])->Run();
+        $this->container->get(Console::class, [$this->container])->run();
     }
 
+    /**
+     * 初始化容器
+     */
     private function initContainer(): void
     {
         $this->container = new Container();
     }
 
-    private function setAutoLoad(): void
+    /**
+     * 初始化自动加载
+     */
+    private function initAutoLoad(): void
     {
         spl_autoload_register([
             $this,
-            'LoadClass',
+            'loadClass',
         ]);
     }
 
@@ -89,32 +92,33 @@ class ArrowWorker
     /**
      * Start : frame start method
      */
-    public static function Start(): self
+    public static function start(): self
     {
-        new self;
+        return new self;
     }
 
 
     /**
-     * LoadClass : auto-load class method
+     * loadClass : auto-load class method
      * @param string $class
      * @author Louis
+     * @return void
      */
-    public function LoadClass(string $class)
+    public function loadClass(string $class):void
     {
-        $frameClass = $this->frameClassPath($class);
-        if (file_exists($frameClass)) {
-            $class = $frameClass;
-            goto LOAD;
+        $arrowClass = $this->getArrowClassPath($class);
+        if (file_exists($arrowClass)) {
+            $class = $arrowClass;
+            goto LOAD_CLASS;
         }
 
-        $class = $this->appClassPath($class);
+        $class = $this->getAppClassPath($class);
         if (!file_exists($class)) {
             Log::Dump("{$class} not found ", Log::TYPE_NOTICE, 'AutoLoad');
             return;
         }
-        LOAD:
-        require $class;
+        LOAD_CLASS:
+        require_once $class;
     }
 
 
@@ -122,7 +126,7 @@ class ArrowWorker
      * @param string $class
      * @return string
      */
-    private function frameClassPath(string $class): string
+    private function getArrowClassPath(string $class): string
     {
         return ArrowWorker .
             str_replace([
@@ -136,7 +140,11 @@ class ArrowWorker
 
     }
 
-    private function appClassPath(string $class): string
+    /**
+     * @param string $class
+     * @return string
+     */
+    private function getAppClassPath(string $class): string
     {
         return dirname(ArrowWorker) . DIRECTORY_SEPARATOR . str_replace('\\', "/", $class) . self::EXT;
 

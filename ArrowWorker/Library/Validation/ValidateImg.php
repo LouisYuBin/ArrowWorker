@@ -3,7 +3,7 @@
 namespace ArrowWorker\Library\Validation;
 
 use ArrowWorker\Config;
-use ArrowWorker\Web\Response;
+use ArrowWorker\HttpServer\Response;
 
 /**
  * Class ValidateImg
@@ -81,7 +81,7 @@ class ValidateImg
      */
     private function __construct()
     {
-        $config = Config::Get('ValidationCode');
+        $config = Config::get('ValidationCode');
         if (!$config) {
             return;
         }

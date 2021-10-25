@@ -37,7 +37,7 @@ class Redis implements CacheInterface
      */
     public function InitConnection(): bool
     {
-        @$this->_conn = $this->container->Make(\Redis::class, []);
+        @$this->_conn = $this->container->make(\Redis::class, []);
 
         try {
             if (false === @$this->_conn->connect($this->config['host'], $this->config['port'])) {
@@ -592,12 +592,12 @@ class Redis implements CacheInterface
      */
     private function _handleException(\RedisException $exception, string $function)
     {
-        Log::Warning(__CLASS__ . '::' . $function . " failed, " . $exception->getMessage(), self::LOG_NAME);
+        Log::warning(__CLASS__ . '::' . $function . " failed, " . $exception->getMessage(), self::LOG_NAME);
         if (
             false !== strpos($exception->getMessage(), 'server went away') ||
             false !== strpos($exception->getMessage(), 'Connection lost')
         ) {
-            Log::Warning('Trying to reconnect.', self::LOG_NAME);
+            Log::warning('Trying to reconnect.', self::LOG_NAME);
             $this->InitConnection();
         }
     }

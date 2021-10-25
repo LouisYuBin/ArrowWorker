@@ -5,11 +5,12 @@
  * Date:   18-1-1
  */
 
-namespace ArrowWorker\Web\Response;
+namespace ArrowWorker\HttpServer;
 
 use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\ResponseInterface;
+use ArrowWorker\Std\Http\ResponseInterface;
+use Swoole\Http\Response as SwResponse;
 
 /**
  * Class Response
@@ -23,13 +24,17 @@ class Response implements ResponseInterface
      */
     private bool $isAllowCORS = false;
 
+    private SwResponse $response;
+
     /**
      * Response constructor.
+     * @param SwResponse $swResponse
      * @param bool $isAllowCORS
      */
-    public function __construct(bool $isAllowCORS)
+    public function __construct(SwResponse $swResponse, bool $isAllowCORS=true)
     {
         $this->isAllowCORS = $isAllowCORS;
+        $this->response = $swResponse;
     }
 
     /**
@@ -48,24 +53,24 @@ class Response implements ResponseInterface
     public function writeJson(int $code, array $data = [], string $msg = ''):void
     {
         $this->setHeader("content-type", "application/json;charset=utf-8");
-        $this->Write(json_encode([
+        $this->write(json_encode([
             'code' => $code,
             'data' => $data,
             'msg'  => $msg,
-        ]));
+        ], JSON_UNESCAPED_UNICODE));
     }
 
     /**
      * @param string $msg
      */
-    public function Write(string $msg):void
+    public function write(string $msg):void
     {
         if ($this->isAllowCORS) {
             $this->setCorsHeader();
         }
         $this->setHeader('Server', 'Arrow, Louis!');
-        Context::Get(__CLASS__)->end($msg);
-        Log::Debug("Response : {$msg}", [], __METHOD__);
+        $this->response->end($msg);
+        Log::debug("Response : {$msg}", [], __METHOD__);
     }
 
     /**
@@ -75,7 +80,7 @@ class Response implements ResponseInterface
      */
     public function setHeader(string $key, string $val):void
     {
-        Context::Get(__CLASS__)->header($key, $val);
+        $this->response->header($key, $val);
     }
 
     /**
@@ -83,7 +88,7 @@ class Response implements ResponseInterface
      */
     public function setStatus(int $status):void
     {
-        Context::Get(__CLASS__)->status($status);
+        $this->response->status($status);
     }
 
     /**
@@ -92,7 +97,7 @@ class Response implements ResponseInterface
      */
     public function setHeaders(array $data):void
     {
-        $response = Context::Get(__CLASS__);
+        $response = Context::get(__CLASS__);
         foreach ($data as $key => $val) {
             $response->header($key, $val);
         }
@@ -111,8 +116,8 @@ class Response implements ResponseInterface
      */
     public function setCookie(string $name, string $val, int $expire = 0, string $path = '/', string $domain = null, bool $secure = false, bool $httpOnly = true):void
     {
-        $expire = ($expire == 0) ? 0 : time() + $expire;
-        Context::Get(__CLASS__)->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
+        $expire = ($expire === 0) ? 0 : time() + $expire;
+        $this->response->cookie($name, $val, $expire, $path, $domain, $secure, $httpOnly);
     }
 
     /**

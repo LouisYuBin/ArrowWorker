@@ -3,7 +3,7 @@
 use App\Controller\Admin\Index;
 
 return [
-    'ws.com, web.com, arrow.com' => [
+    'ws.com, web.com, arrow.com:8083' => [
         '/'         => [
             'get'    => APP_PATH . '/Static/Web/index.html',
             'put'    => [

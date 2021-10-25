@@ -3,7 +3,7 @@
  * By yubin at 2020-03-20 11:10.
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\HttpServer;
 
 
 use ArrowWorker\Log\Log;

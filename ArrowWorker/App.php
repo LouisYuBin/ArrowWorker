@@ -63,7 +63,7 @@ class App
      * @param string $appType
      * @param bool $isDebug
      */
-    public function Run(string $appType, bool $isDebug = true):void
+    public function run(string $appType, bool $isDebug = true): void
     {
         $this->initOptions();
         $this->runDaemon($appType, $isDebug);
@@ -75,11 +75,11 @@ class App
      */
     public function runDaemon(string $appType, bool $isDebug = true): void
     {
-        $this->container->Get(Daemon::class, [
+        $this->container->get(Daemon::class, [
             $this->container,
             $appType,
             $isDebug,
-        ])->Start();
+        ])->start();
     }
 
     /**
@@ -87,7 +87,7 @@ class App
      */
     public function initOptions(): void
     {
-        $options = Config::Get('Global');
+        $options = Config::get('Global');
         if (!is_array($options)) {
             return;
         }
@@ -97,10 +97,13 @@ class App
                 Log::Hint("ini_set({$option}, {$value}) failed.");
             }
         }
-        Exception::Init();
+        Exception::init();
     }
 
-    public function getDirName() :string
+    /**
+     * @return string
+     */
+    public function getDirName(): string
     {
         return APP_DIR;
     }

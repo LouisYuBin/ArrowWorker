@@ -25,7 +25,7 @@ class Coroutine
     /**
      * @return int
      */
-    public static function Id():int
+    public static function id():int
     {
         return (int)Co::getuid();
     }
@@ -33,7 +33,7 @@ class Coroutine
     /**
      * @param callable $function
      */
-    public static function Create(callable $function)
+    public static function create(callable $function)
     {
         Co::create($function);
     }
@@ -41,7 +41,7 @@ class Coroutine
     /**
      * @param float $seconds
      */
-    public static function Sleep(float $seconds):void
+    public static function sleep(float $seconds):void
     {
         Co::sleep($seconds);
     }
@@ -49,7 +49,7 @@ class Coroutine
     /**
      *
      */
-    public static function Wait():void
+    public static function wait():void
     {
         Event::wait();
     }
@@ -57,56 +57,35 @@ class Coroutine
     /**
      *
      */
-    public static function Init():void
+    public static function init():void
     {
-        self::$startTime[self::Id()] = time();
+        self::$startTime[self::id()] = time();
     }
 
     /**
      *
      */
-    public static function Release():void
+    public static function release():void
     {
-        unset(self::$startTime[self::Id()]);
+        unset(self::$startTime[self::id()]);
     }
 
     /**
-     *
+     * @param bool $isEnable
+     * @param int $flag
      */
-    public static function DumpSlow()
-    {
-        Co::create(function () {
-            while (true) {
-                $currentTime = time();
-                foreach (Co::list() as $eachCo) {
-                    var_dump($eachCo);
-                    if ($eachCo < 2 || !isset(self::$startTime[$eachCo])) {
-                        continue;
-                    }
-
-                    if (1 > ($currentTime - self::$startTime[$eachCo])) {
-                        continue;
-                    }
-
-                    $backTrace = Co::getBackTrace($eachCo);
-                    if (false == $backTrace) {
-                        continue;
-                    }
-                    var_dump($backTrace);
-
-                }
-                self::Sleep(1);
-            }
-
-        });
-    }
-
-    public static function Enable(bool $isEnable = true, int $flag = SWOOLE_HOOK_ALL):void
+    public static function enable(bool $isEnable = true, int $flag = SWOOLE_HOOK_ALL):void
     {
         Runtime::enableCoroutine($isEnable, $flag);
     }
 
-    public static function FileWrite($handle, string $data, $length = null): bool
+    /**
+     * @param $handle
+     * @param string $data
+     * @param null $length
+     * @return bool
+     */
+    public static function writeFile($handle, string $data, $length = null): bool
     {
         for ($i = 0; $i < 3; $i++) {
             if (Co::fwrite($handle, $data, $length)) {

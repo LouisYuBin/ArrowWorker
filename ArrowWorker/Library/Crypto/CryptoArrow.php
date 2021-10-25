@@ -26,7 +26,7 @@ class CryptoArrow
             return;
         }
 
-        $config = Config::Get("Cryto");
+        $config = Config::get("Cryto");
         if (!$config) {
             static::$factor = static::$defaultFactor;
             return;

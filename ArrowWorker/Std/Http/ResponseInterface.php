@@ -3,12 +3,12 @@
  * By yubin at 2020/7/5 7:05 下午.
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\Std\Http;
 
 
 /**
  * Interface ResponseInterface
- * @package ArrowWorker\Web\Response
+ * @package ArrowWorker\HttpServer\Response
  */
 interface ResponseInterface
 {

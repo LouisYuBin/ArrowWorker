@@ -4,7 +4,7 @@
  * Time: 18-5-11 上午10:34
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\HttpServer;
 
 use ArrowWorker\Config;
 use ArrowWorker\Library\Coroutine;
@@ -78,9 +78,9 @@ class Upload
             return ;
         }
         
-        $config = Config::Get('Upload');
+        $config = Config::get('Upload');
         if (false === $config) {
-            Log::Warning("Config::Get('Upload') failed", [], __METHOD__);
+            Log::warning("Config::get('Upload') failed", [], __METHOD__);
         }
         self::$config = array_merge(self::$config, $config);
     }
@@ -168,7 +168,7 @@ class Upload
     public function Save(string $savePath = ''): bool
     {
         if (empty($this->newFileName)) {
-            $this->newFileName = dechex(Coroutine::Id()) . dechex(time()) . dechex(mt_rand(100, 999));
+            $this->newFileName = dechex(Coroutine::id()) . dechex(time()) . dechex(random_int(100, 999));
         }
         $savePath = empty($savePath) ? self::$config['savePath'] : $savePath;
 

@@ -2,20 +2,20 @@
 
 namespace ArrowWorker;
 
-class PoolExtend
+class PoolCommon
 {
 
     /**
      * @var array
      */
-    protected $pool = [];
+    protected array $pool = [];
 
     /**
      * @var array
      */
-    protected $config = [];
+    protected array $config = [];
 
-    protected $container;
+    protected Container $container;
 
     protected static $instance;
 }

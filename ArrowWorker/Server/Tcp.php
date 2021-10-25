@@ -62,7 +62,7 @@ class Tcp extends ServerPattern
     /**
      * @return void
      */
-    public function Start()
+    public function start():void
     {
         $this->initServer();
         $this->initComponent(App::TYPE_TCP);
@@ -84,26 +84,26 @@ class Tcp extends ServerPattern
     public function __construct(Container $container, Log $logger, array $config)
     {
         $this->container = $container;
-        $this->logger = $logger;
+        $this->logger    = $logger;
 
-        $this->port = $config['port'] ?? 8082;
-        $this->mode = $config['mode'] ?? SWOOLE_PROCESS;
-        $this->reactorNum = $config['reactorNum'] ?? 2;
-        $this->workerNum = $config['workerNum'] ?? 2;
-        $this->enableCoroutine = $config['enableCoroutine'] ?? true;
-        $this->user = $config['user'] ?? 'root';
-        $this->group = $config['group'] ?? 'root';
-        $this->backlog = $config['backlog '] ?? 1024 * 100;
-        $this->maxCoroutine = $config['maxCoroutine'] ?? 1000;
-        $this->pipeBufferSize = $config['pipeBufferSize'] ?? 1024 * 1024 * 100;
+        $this->port             = $config['port'] ?? 8082;
+        $this->mode             = $config['mode'] ?? SWOOLE_PROCESS;
+        $this->reactorNum       = $config['reactorNum'] ?? 2;
+        $this->workerNum        = $config['workerNum'] ?? 2;
+        $this->enableCoroutine  = $config['enableCoroutine'] ?? true;
+        $this->user             = $config['user'] ?? 'root';
+        $this->group            = $config['group'] ?? 'root';
+        $this->backlog          = $config['backlog '] ?? 1024 * 100;
+        $this->maxCoroutine     = $config['maxCoroutine'] ?? 1000;
+        $this->pipeBufferSize   = $config['pipeBufferSize'] ?? 1024 * 1024 * 100;
         $this->socketBufferSize = $config['socketBufferSize'] ?? 1024 * 1024 * 100;
         $this->maxContentLength = $config['maxContentLength'] ?? 1024 * 1024 * 10;
 
         $this->heartbeatCheckInterval = $config['heartbeatCheckInterval'] ?? 60;
-        $this->heartbeatIdleTime = $config['heartbeatIdleTime'] ?? 30;
-        $this->openEofCheck = $config['openEofCheck'] ?? false;
-        $this->openEofSplit = $config['openEofSplit'] ?? false;
-        $this->packageEof = $config['packageEof'] ?? '\r\n';
+        $this->heartbeatIdleTime      = $config['heartbeatIdleTime'] ?? 30;
+        $this->openEofCheck           = $config['openEofCheck'] ?? false;
+        $this->openEofSplit           = $config['openEofSplit'] ?? false;
+        $this->packageEof             = $config['packageEof'] ?? '\r\n';
 
         $this->components = $config['components'] ?? [];
 
@@ -142,7 +142,7 @@ class Tcp extends ServerPattern
     private function onStart()
     {
         $this->server->on('start', function ($server) {
-            Process::SetName("{$this->identity}_Tcp:{$this->port} Manager");
+            Process::setName("{$this->identity}_Tcp:{$this->port} Manager");
             Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
         });
     }
@@ -153,9 +153,9 @@ class Tcp extends ServerPattern
     private function onConnect()
     {
         $this->server->on('connect', function (Server $server, int $fd) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Connect")($server, $fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
@@ -165,9 +165,9 @@ class Tcp extends ServerPattern
     private function onReceive()
     {
         $this->server->on('receive', function (Server $server, int $fd, int $reactor_id, string $data) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Receive")($server, $fd, $data);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
@@ -177,9 +177,9 @@ class Tcp extends ServerPattern
     private function onClose()
     {
         $this->server->on('close', function (Server $server, int $fd) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Close")($server, $fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
@@ -189,8 +189,8 @@ class Tcp extends ServerPattern
     private function onWorkerStart()
     {
         $this->server->on('WorkerStart', function () {
-            Process::SetName("{$this->identity}_Tcp:{$this->port} Worker");
-            $this->component->InitPool($this->components);
+            Process::setName("{$this->identity}_Tcp:{$this->port} Worker");
+            $this->component->initPool($this->components);
         });
     }
 

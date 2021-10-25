@@ -5,13 +5,10 @@
  * Time: 19-10-17 下午12:38
  */
 
-namespace ArrowWorker\Server;
+namespace ArrowWorker\HttpServer;
 
 use ArrowWorker\App;
 use ArrowWorker\Container;
-use ArrowWorker\HttpServer\Dispatcher;
-use ArrowWorker\HttpServer\Request;
-use ArrowWorker\HttpServer\Response;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Log\Log;
@@ -20,31 +17,31 @@ use ArrowWorker\Std\Http\RequestInterface;
 use ArrowWorker\Std\Http\ResponseInterface;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
-use Swoole\Http\Server;
+use Swoole\Http\Server as SwHttpServer;
 
 
 /**
  * Class Http
  * @package ArrowWorker\Server
  */
-class Http extends ServerPattern
+class Server extends ServerPattern
 {
 
 
     /**
      * @var string
      */
-    private $page404 = '';
+    private string $page404 = '';
 
     /**
      * @var bool
      */
-    private $isEnableStatic = true;
+    private bool $isEnableStatic = true;
 
     /**
      * @var string
      */
-    private $documentRoot = '';
+    private string $documentRoot = '';
 
     /**
      * @var string
@@ -59,22 +56,22 @@ class Http extends ServerPattern
     /**
      * @var int
      */
-    private $maxRequest = 10000;
+    private int $maxRequest = 10000;
 
     /**
      * @var bool
      */
-    private $isEnableCORS = true;
+    private bool $isEnableCORS = true;
 
     /**
      * @var bool
      */
-    private $isEnableHttp2 = false;
+    private bool $isEnableHttp2 = false;
 
     /**
      * @var Dispatcher
      */
-    private $dispatcher;
+    private Dispatcher $dispatcher;
 
     /**
      * @return void
@@ -129,7 +126,7 @@ class Http extends ServerPattern
     /**
      *
      */
-    private function startServer()
+    private function startServer():void
     {
         $this->server->start();
     }
@@ -144,7 +141,7 @@ class Http extends ServerPattern
             $this->sslKeyFile  = '';
         }
 
-        $this->server = new Server(
+        $this->server = new SwHttpServer(
             $this->host,
             $this->port,
             $this->mode,
@@ -198,7 +195,7 @@ class Http extends ServerPattern
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
             Log::initId();
             Context::set(RequestInterface::class, $this->container->make(Request::class, [$request]));
-            Context::set(ResponseInterface::class, $this->container->make(Response::class, [$response]));
+            Context::set(ResponseInterface::class, $this->container->make(Response::class, [$response, $this->isEnableCORS]));
             $this->dispatcher->run();
             $this->component->release();
         });

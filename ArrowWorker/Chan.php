@@ -29,18 +29,18 @@ class Chan
      * channel pool
      * @var array
      */
-    protected $alias = [];
+    protected array $alias = [];
 
     /**
      * channel pool
      * @var Container $container
      */
-    protected $container;
+    protected Container $container;
 
     /**
      * @var Chan
      */
-    private static $instance;
+    private static Chan $instance;
 
     /**
      * Chan constructor.
@@ -59,11 +59,8 @@ class Chan
      * @return Queue|bool
      * @author Louis
      */
-    public static function Get(string $alias = 'default', array $userConfig = [])
+    public static function get(string $alias = 'default', array $userConfig = [])
     {
-        /**
-         * @var Chan $channels
-         */
         $channels = self::$instance;
         if (isset($channels->alias[$alias])) {
             return $channels->alias[$alias];  //channel is already been initialized
@@ -72,18 +69,18 @@ class Chan
     }
 
     /**
-     * @param string $alias
+     * @param string $name
      * @param array $userConfig
      * @return Queue|bool
      */
-    private function initQueue(string $alias, array $userConfig)
+    private function initQueue(string $name, array $userConfig)
     {
         if (empty($userConfig)) {
-            $configs = Config::Get(self::CONFIG_NAME);
-            if (isset($configs[$alias]) && is_array($configs[$alias])) {
-                $userConfig = $configs[$alias];
+            $configs = Config::get(self::CONFIG_NAME);
+            if (isset($configs[$name]) && is_array($configs[$name])) {
+                $userConfig = $configs[$name];
             } else {
-                Log::Dump("{$alias} config does not exists/is not array.", Log::TYPE_WARNING, __METHOD__);
+                Log::Dump("{$name} config does not exists/is not array.", Log::TYPE_WARNING, __METHOD__);
                 return false;
             }
         }
@@ -91,9 +88,9 @@ class Chan
         /**
          * @var Queue $queue
          */
-        $this->alias[$alias] = $queue = $this->container->Make(Queue::class, [
+        $this->alias[$name] = $queue = $this->container->make(Queue::class, [
             array_merge(self::DEFAULT_CONFIG, $userConfig),
-            $alias,
+            $name,
         ]);
 
         return $queue;
@@ -103,11 +100,11 @@ class Chan
      * Close 关闭管道
      * @author Louis
      */
-    public static function Close(): void
+    public static function close(): void
     {
         $channels = self::$instance;
         foreach ($channels->alias as $eachQueue) {
-            Log::Dump("msg_remove_queue result : " . $eachQueue->Close(), Log::TYPE_DEBUG, __METHOD__);
+            Log::Dump("msg_remove_queue result : " . $eachQueue->close(), Log::TYPE_DEBUG, __METHOD__);
         }
     }
 

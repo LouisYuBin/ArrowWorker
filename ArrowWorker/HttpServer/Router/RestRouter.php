@@ -3,30 +3,42 @@
  * By yubin at 2020-03-22 11:16.
  */
 
-namespace ArrowWorker\Web\Router;
+namespace ArrowWorker\HttpServer\Router;
 
 use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
+use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Request\Request;
+use ArrowWorker\Std\Http\RequestInterface;
+use ArrowWorker\Std\Http\RouterInterface;
 
+/**
+ * Class RestRouter
+ * @package ArrowWorker\HttpServer\Router
+ */
 class RestRouter implements RouterInterface
 {
 
     /**
      * @var array
      */
-    private $config = [];
+    private array $config = [];
 
     /**
      * @var array
      */
-    private $regularPatternAndParams = [];
+    private array $regularPatternAndParams = [];
 
-    private $container;
+    /**
+     * @var Container
+     */
+    private Container $container;
 
-
+    /**
+     * RestRouter constructor.
+     * @param Container $container
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
@@ -34,9 +46,12 @@ class RestRouter implements RouterInterface
         $this->buildRegularPattern();
     }
 
-    private function loadConfig()
+    /**
+     *
+     */
+    private function loadConfig(): void
     {
-        $config = Config::Get('WebRouter');
+        $config = Config::get('WebRouter');
         if (false === $config) {
             Log::Dump("Load rest api configuration failed", Log::TYPE_WARNING, __METHOD__);
             return;
@@ -58,11 +73,18 @@ class RestRouter implements RouterInterface
         }
     }
 
-    public function GetConfig():array
+    /**
+     * @return array
+     */
+    public function GetConfig(): array
     {
         return $this->config;
     }
 
+    /**
+     * @param array $restMap
+     * @return array
+     */
     private function rebuildGroup(array $restMap): array
     {
         $restAlias = [];
@@ -98,7 +120,7 @@ class RestRouter implements RouterInterface
                 }
 
                 [$class, $method] = $classMethod;
-                $isSettingCorrect = ClassMethodChecker::IsClassMethodExists($class, $method);
+                $isSettingCorrect = ClassMethodChecker::isClassMethodExists($class, $method);
                 if (!$isSettingCorrect) {
                     Log::Dump("{$class} or {$method} does not exists", Log::TYPE_WARNING, __METHOD__);
                     continue;
@@ -127,6 +149,9 @@ class RestRouter implements RouterInterface
     }
 
 
+    /**
+     *
+     */
     private function buildRegularPattern(): void
     {
         foreach ($this->config as $serverName => $restMap) {
@@ -149,12 +174,12 @@ class RestRouter implements RouterInterface
 
     /**
      * @param string $serverName
+     * @param string $requestUri
      * @return array
      */
-    private function getUriKeyAndParameters(string $serverName): array
+    private function getUriKeyAndParameters(string $serverName, string $requestUri): array
     {
-        $uri     = Request::Uri();
-        $nodes   = explode('/', $uri);
+        $nodes   = explode('/', $requestUri);
         $nodeLen = count($nodes);
 
         for ($i = $nodeLen; $i > 1; $i--) {
@@ -165,7 +190,7 @@ class RestRouter implements RouterInterface
 
             $nodeMap = $this->regularPatternAndParams[$serverName][$key];
             foreach ($nodeMap as $match => $eachNode) {
-                $isMatched = preg_match($match, $uri);
+                $isMatched = preg_match($match, $requestUri);
                 if (false === $isMatched || $isMatched === 0) {
                     continue;
                 }
@@ -186,6 +211,10 @@ class RestRouter implements RouterInterface
         ];
     }
 
+    /**
+     * @param string $uri
+     * @return array
+     */
     private function getUriParameterPositionAndName(string $uri): array
     {
         $params    = [];
@@ -200,42 +229,65 @@ class RestRouter implements RouterInterface
         return $params;
     }
 
+    /**
+     * @param string $uri
+     * @return string
+     */
     public function getUriKey(string $uri): string
     {
         $colonPos = strpos($uri, ':');
         return (false === $colonPos) ? $uri : substr($uri, 0, $colonPos - 1);
     }
 
-    public function Match(): ?MatchResult
+    /**
+     * @return MatchResult|null
+     */
+    public function match(): ?MatchResult
     {
-        $serverName = Request::Host();
+        /**
+         * @var $request RequestInterface
+         */
+        $request    = Context::get(RequestInterface::class);
+        $serverName = $request->getHost();
+        $requestUri = $request->getUri();
         if (!isset($this->config[$serverName])) {
             return null;
         }
 
-        [$uri, $params] = $this->getUriKeyAndParameters($serverName);
-        $requestMethod = Request::Method();
-        $serverName    = Request::Host();
+        [$matchedUri, $params] = $this->getUriKeyAndParameters($serverName, $requestUri);
+        $requestMethod = $request->getMethod();
 
-        if (empty($uri)) {
+        if (empty($matchedUri)) {
             return null;
         }
 
-        if (!isset($this->config[$serverName][$uri][$requestMethod])) {
+        if (!isset($this->config[$serverName][$matchedUri][$requestMethod])) {
             return null;
         }
 
-        Request::SetParams($params, 'REST');
-        return $this->container->Make(
+        $request->setParams($params, 'REST');
+
+        $actionClass  = '';
+        $actionMethod = '';
+        $pageContent = '';
+        if (is_array($this->config[$serverName][$matchedUri][$requestMethod])) {
+            [$actionClass,$actionMethod]  = $this->config[$serverName][$matchedUri][$requestMethod];
+        }
+
+        if(is_string($this->config[$serverName][$matchedUri][$requestMethod])) {
+            $pageContent = $this->config[$serverName][$matchedUri][$requestMethod];
+        }
+
+        $matchedResult = $this->container->make(
             MatchResult::class,
             [
+                $this->container,
                 $serverName,
-                $uri,
+                $matchedUri,
                 $requestMethod,
-                $this->config[$serverName][$uri][$requestMethod][0],
-                $this->config[$serverName][$uri][$requestMethod][1]
             ]
-        );
+        )->setActionClass($actionClass)->setActionMethod($actionMethod)->setPageContent($pageContent);
+        return $matchedResult;
     }
 
 }

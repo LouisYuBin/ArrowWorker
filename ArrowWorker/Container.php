@@ -30,7 +30,7 @@ class Container
      * @param string $name
      * @return bool
      */
-    public function Has(string $name):bool
+    public function has(string $name):bool
     {
         return isset($this->alias[$name]);
     }
@@ -40,12 +40,13 @@ class Container
      * @param array $parameters
      * @return mixed|null
      */
-    public function Get(string $name, array $parameters = [])
+    public function get(string $name, array $parameters = [])
     {
         if (isset($this->alias[$name])) {
             return $this->alias[$name];
         }
-        $this->alias[$name] = $instance = $this->Make($name, $parameters);
+
+        $this->alias[$name] = $instance = $this->make($name, $parameters);
         return $instance;
     }
 
@@ -54,7 +55,7 @@ class Container
      * @param $value
      * @return mixed
      */
-    public function Set(string $name, $value)
+    public function set(string $name, $value)
     {
         $this->alias[$name] = $value;
         return $value;
@@ -65,7 +66,7 @@ class Container
      * @param array $parameters
      * @return mixed
      */
-    public function Make(string $class, array $parameters = [])
+    public function make(string $class, array $parameters = [])
     {
         return class_exists($class) ? new $class(...$parameters) : null;
     }

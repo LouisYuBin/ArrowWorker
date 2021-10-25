@@ -6,23 +6,23 @@ return [
     [
         'type'             => Server::TYPE_HTTP,
         'host'             => '0.0.0.0',
-        'port'             => 80,
-        'workerNum'        => 4,
-        'reactorNum'       => 4,
+        'port'             => 8083,
+        'worker_num'        => 4,
+        'reactor_num'       => 4,
         'backlog'          => 200000,
         'user'             => 'www',
         'group'            => 'www',
-        'pipeBufferSize'   => 1024 * 1024 * 200,
-        'socketBufferSize' => 1024 * 1024 * 200,
-        'maxRequest'       => 100000,
-        'maxCoroutine'     => 50000,
-        'maxContentLength' => 20889600,
-        'isEnableStatic'   => false,
-        'isEnableCORS'     => false,
-        'isEnableHttp2'    => false,
+        'pipe_buffer_size'   => 1024 * 1024 * 5,
+        'socket_buffer_size' => 1024 * 1024 * 5,
+        'max_request'       => 100000,
+        'max_coroutine'     => 50000,
+        'max_content_length' => 20889600,
+        'is_enable_static'   => false,
+        'is_enable_CORS'     => false,
+        'is_enable_http2'    => false,
         //'sslCertFile'      => APP_PATH.'/Runtime/Ssl/dugujiujian.net_bundle.crt',
         //'sslKeyFile'       => APP_PATH.'/Runtime/Ssl/dugujiujian.net.key',
-        'documentRoot'     => APP_PATH . '/Static/Web',
+        'document_root'     => APP_PATH . '/Static/Web',
         '404'              => APP_PATH . '/Static/Web/404.html',
         'components'       => [
             'db'    => [
@@ -75,7 +75,7 @@ return [
             ]
         ]
     ],*/
-    [
+/*    [
         'type'                   => Server::TYPE_TCP,
         'host'                   => '0.0.0.0',
         'port'                   => 9505,
@@ -108,9 +108,9 @@ return [
             ],
             'ws_client' => [
                 'default' => 2
-            ]*/
+            ]
         ],
-    ],
+    ],*/
     /*
         [
             'type'             => Server::SERVER_UDP,

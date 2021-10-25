@@ -16,19 +16,19 @@ class WebSocket
 
     public static function Open(WebSocketServer $server, int $fd)
     {
-        $memory = Memory::Get('default');
+        $memory = Memory::get('default');
         //$memory->Write('spicy',['id'=>3,'token'=>'5566666']);
         $map = $memory->Read('louis');
         $map1 = $memory->Read('spicy');
         //var_dump($map,$map1);
         /*       var_dump( $memory->Write($req->fd, $req->fd) );
                var_dump($memory->IsKeyExists($req->fd));*/
-        Log::Info("connection open: {$fd}");
+        Log::info("connection open: {$fd}");
     }
 
     public static function Message(WebSocketServer $server, WebSocketFrame $frame)
     {
-        $memory = Memory::Get('default');
+        $memory = Memory::get('default');
         $memory->Write('spicy', [
             'id'    => 3,
             'token' => '5566666',
@@ -36,8 +36,8 @@ class WebSocket
         $map = $memory->Read('louis');
         //$memory = Memory::Get('clients');
         //var_dump($memory->IsKeyExists($frame->fd));
-        Log::Info("received message: {$frame->fd}_{$frame->data}");
-        Log::Info($server->push(1, json_encode([
+        Log::info("received message: {$frame->fd}_{$frame->data}");
+        Log::info($server->push(1, json_encode([
             "hello",
             "world",
             mt_rand(1, 10000),
@@ -48,7 +48,7 @@ class WebSocket
 
     public static function Close(WebSocketServer $server, int $fd)
     {
-        Log::Info("connection close: {$fd}");
+        Log::info("connection close: {$fd}");
     }
 
 

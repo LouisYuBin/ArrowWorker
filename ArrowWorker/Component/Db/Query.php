@@ -5,52 +5,52 @@ namespace ArrowWorker\Component\Db;
 class Query
 {
 
-    private $alias = 'default';
+    private string $alias = 'default';
 
     /**
      * @var string
      */
-    private $where = "";
+    private string $where = "";
 
     /**
      * @var string
      */
-    private $column = "*";
+    private string $column = "*";
 
     /**
      * @var string
      */
-    private $table = "";
+    private string $table = "";
 
     /**
      * @var string
      */
-    private $limit = "";
+    private string $limit = "";
 
     /**
      * @var string
      */
-    private $orderBy = "";
+    private string $orderBy = "";
 
     /**
      * @var string
      */
-    private $groupBy = "";
+    private string $groupBy = "";
+
+    /**
+     * @var string string
+     */
+    private string $having = "";
 
     /**
      * @var string
      */
-    private $having = "";
+    private string $join = "";
 
     /**
      * @var string
      */
-    private $join = "";
-
-    /**
-     * @var string
-     */
-    private $forUpdate = "";
+    private string $forUpdate = "";
 
     /**
      * @param string $dbAlias
@@ -60,7 +60,7 @@ class Query
         $this->alias = $dbAlias;
     }
 
-    public static function Table(string $table, string $dbAlias = 'default')
+    public static function table(string $table, string $dbAlias = 'default')
     {
         return (new self($dbAlias))->setTable($table);
     }
@@ -68,9 +68,9 @@ class Query
     /**
      * @return Mysqli|Pdo|false
      */
-    private function _getDb()
+    private function getConn()
     {
-        return Pool::Get($this->alias);
+        return Pool::get($this->alias);
     }
 
 
@@ -78,9 +78,9 @@ class Query
      * @param string $where
      * @return $this
      */
-    public function Where(string $where)
+    public function where(string $where): self
     {
-        $this->where = ($where != '') ? " where {$where} " : '';
+        $this->where = empty($where) ? " where {$where} " : '';
         return $this;
     }
 
@@ -89,7 +89,7 @@ class Query
      * @param string $table
      * @return $this
      */
-    public function setTable(string $table)
+    public function setTable(string $table): self
     {
         $this->table = $table;
         return $this;
@@ -99,20 +99,20 @@ class Query
      * @param array $column
      * @return $this
      */
-    public function Column(array $column)
+    public function column(array $column): self
     {
-        $this->column = ($column == "") ? "*" : implode(',', $column);
+        $this->column = empty($column) ? "*" : implode(',', $column);
         return $this;
     }
 
     /**
-     * @param int $start
      * @param int $num
+     * @param int $offset
      * @return $this
      */
-    public function Limit(int $start, int $num)
+    public function limit(int $num, int $offset=0): self
     {
-        $this->limit = " limit {$start},{$num} ";
+        $this->limit = " limit {$offset},{$num} ";
         return $this;
     }
 
@@ -120,7 +120,7 @@ class Query
      * @param array $join
      * @return $this
      */
-    public function Join(array $join)
+    public function join(array $join): self
     {
         $this->join = implode(' ', $join);
         return $this;
@@ -130,7 +130,7 @@ class Query
      * @param string $orderBy
      * @return $this
      */
-    public function OrderBy(string $orderBy)
+    public function orderBy(string $orderBy): self
     {
         $this->orderBy = $orderBy;
         return $this;
@@ -140,7 +140,7 @@ class Query
      * @param string $groupBy
      * @return $this
      */
-    public function GroupBy(string $groupBy)
+    public function groupBy(string $groupBy): self
     {
         $this->groupBy = ($groupBy != "") ? " group by {$groupBy} " : '';
         return $this;
@@ -150,9 +150,9 @@ class Query
      * @param string $having
      * @return $this
      */
-    public function Having(string $having)
+    public function having(string $having): self
     {
-        $this->having = ($having != "") ? " having {$having} " : '';
+        $this->having = empty($having) ? " having {$having} " : '';
         return $this;
     }
 
@@ -160,7 +160,7 @@ class Query
      * @param bool $isForUpdate
      * @return $this
      */
-    public function ForUpdate(bool $isForUpdate = false)
+    public function forUpdate(bool $isForUpdate = false): self
     {
         $this->forUpdate = $isForUpdate ? ' for update ' : '';
         return $this;
@@ -169,37 +169,37 @@ class Query
     /**
      * @return false|array
      */
-    public function Find()
+    public function find()
     {
-        $conn = $this->_getDb();
+        $conn = $this->getConn();
         if (false === $conn) {
             return false;
         }
-        return $conn->Query($this->_parseSelect());
+        return $conn->Query($this->parseSelect());
     }
 
 
     /**
      * @return false|array
      */
-    public function Get()
+    public function get()
     {
-        $conn = $this->_getDb();
+        $conn = $this->getConn();
         if (false === $conn) {
             return false;
         }
-        $data = $conn->Query($this->_parseSelect());
-        unset($conn);
-        return ($data === false) ? false : (count($data) > 0 ? $data[0] : []);
+        $this->limit(1);
+        $data = $conn->Query($this->parseSelect());
+        return ($data === false) ? false : ($data[0] ?? []);
     }
 
     /**
      * @param array $data
      * @return bool|array
      */
-    public function Insert(array $data)
+    public function insert(array $data)
     {
-        $conn = $this->_getDb();
+        $conn = $this->getConn();
         if (false === $conn) {
             return false;
         }
@@ -213,9 +213,9 @@ class Query
      * @param array $data
      * @return bool|array
      */
-    public function Update(array $data)
+    public function update(array $data)
     {
-        $conn = $this->_getDb();
+        $conn = $this->getConn();
         if (false === $conn) {
             return false;
         }
@@ -225,25 +225,25 @@ class Query
             $update .= is_array($val) && count($val) > 0 ? "{$key}={$key}{$val[0]}, " : "{$key}='{$val}', ";
         }
         $update = substr($update, 0, -1);
-        return $conn->Execute("update {$this->table} set {$update} {$this->where}");
+        return $conn->execute("update {$this->table} set {$update} {$this->where}");
     }
 
     /**
      * @return bool|array
      */
-    public function Delete()
+    public function delete()
     {
-        $conn = $this->_getDb();
+        $conn = $this->getConn();
         if (false === $conn) {
             return false;
         }
-        return $conn->Execute("delete from {$this->table} {$this->where}");
+        return $conn->execute("delete from {$this->table} {$this->where}");
     }
 
     /**
      * @return string
      */
-    public function _parseSelect(): string
+    public function parseSelect(): string
     {
         return trim("select  {$this->column} from {$this->table} {$this->join} {$this->where} {$this->groupBy} {$this->having} {$this->orderBy} {$this->limit} {$this->forUpdate}");
     }

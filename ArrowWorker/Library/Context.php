@@ -7,35 +7,66 @@ namespace ArrowWorker\Library;
 
 use Swoole\Coroutine as Co;
 
+/**
+ * Class Context
+ * @package ArrowWorker\Library
+ */
 class Context
 {
 
-    public static function Set(string $key, $value)
+    /**
+     * @param string $key
+     * @param $value
+     */
+    public static function set(string $key, $value):void
     {
         Co::getContext()[$key] = $value;
     }
 
-    public static function Get(string $key)
+    /**
+     * @param string $key
+     * @return mixed
+     */
+    public static function get(string $key)
     {
         return Co::getContext()[$key];
     }
 
-    public static function Fill(string $key, $value)
+    /**
+     * @param string $key
+     * @param $value
+     * @return mixed
+     */
+    public static function fill(string $key, $value)
     {
         return Co::getContext()[$key][] = $value;
     }
 
-    public static function SubSet(string $key, string $subKey, $value)
+    /**
+     * @param string $key
+     * @param string $subKey
+     * @param $value
+     * @return mixed
+     */
+    public static function subSet(string $key, string $subKey, $value)
     {
         return Co::getContext()[$key][$subKey] = $value;
     }
 
-    public static function GetSub(string $key, string $subKey)
+    /**
+     * @param string $key
+     * @param string $subKey
+     * @return mixed
+     */
+    public static function getSub(string $key, string $subKey)
     {
         return Co::getContext()[$key][$subKey];
     }
 
-    public static function GetInstance()
+    /**
+     * @return mixed
+     */
+    public static function getContext()
     {
         return Co::getContext();
     }

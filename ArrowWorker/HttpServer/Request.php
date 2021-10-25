@@ -8,14 +8,13 @@
 declare(strict_types=1);
 
 
-namespace ArrowWorker\Web\Request;
+namespace ArrowWorker\HttpServer;
 
 use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
 use Swoole\Http\Request as SwRequest;
-use Swoole\Http\Response as SwResponse;
-use ArrowWorker\Web\Upload;
-use ArrowWorker\Web\RequestInterface;
+use ArrowWorker\HttpServer\Upload;
+use ArrowWorker\Std\Http\RequestInterface;
 
 
 /**
@@ -25,15 +24,11 @@ use ArrowWorker\Web\RequestInterface;
 class Request implements RequestInterface
 {
 
-    const LOG_NAME = 'Http';
-
-    private $class;
 
     private SwRequest $swRequest;
 
     public function __construct(SwRequest $request)
     {
-        $this->class = __CLASS__;
         $this->swRequest = $request;
         $this->initUrlPostParams($request);
     }
@@ -89,7 +84,7 @@ class Request implements RequestInterface
      */
     public function getRouteType(): string
     {
-        return Context::Get('routerType') ?? '';
+        return Context::get('routerType') ?? '';
     }
 
     /**
@@ -137,7 +132,7 @@ class Request implements RequestInterface
         return $this->swRequest->post[$key] ?? $default;
     }
 
-    public function Cookie(string $key, string $default = ''): string
+    public function cookie(string $key, string $default = ''): string
     {
         return $this->swRequest->cookie[$key] ?? $default;
     }
@@ -149,7 +144,7 @@ class Request implements RequestInterface
      */
     public function getParam(string $key, string $default = ''): string
     {
-        return Context::Get('urlParameters')[$key] ?? $default;
+        return Context::get('urlParameters')[$key] ?? $default;
     }
 
     /**
@@ -158,7 +153,7 @@ class Request implements RequestInterface
      */
     public function getParams(): array
     {
-        return Context::Get('urlParameters') ?? [];
+        return Context::get('urlParameters') ?? [];
     }
 
     /**
@@ -188,7 +183,7 @@ class Request implements RequestInterface
      * Gets : return all get data
      * @return array
      */
-    public function Gets(): array
+    public function gets(): array
     {
         return (array)$this->swRequest->get;
     }
@@ -196,7 +191,7 @@ class Request implements RequestInterface
     /**
      * @return array
      */
-    public function Posts(): array
+    public function posts(): array
     {
         return (array)$this->swRequest->post;
     }
@@ -243,10 +238,10 @@ class Request implements RequestInterface
      * @param array $params
      * @param string $routeType path/rest
      */
-    public function SetParams(array $params, string $routeType = 'path'):void
+    public function setParams(array $params, string $routeType = 'path'):void
     {
-        Context::Set('urlParameters', $params);
-        Context::Set('routerType', $routeType);
+        Context::set('urlParameters', $params);
+        Context::set('routerType', $routeType);
         $this->log();
     }
 
@@ -254,7 +249,7 @@ class Request implements RequestInterface
     {
         $request = $this->swRequest;
 
-        Log::Debug(' Request : {uri}[{method}], {request}',
+        Log::debug(' Request : {uri}[{method}], {request}',
             [
                 'uri'     => $request->server['request_uri'],
                 'method'  => $request->server['request_method'],

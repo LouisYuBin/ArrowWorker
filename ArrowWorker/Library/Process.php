@@ -18,9 +18,12 @@ class Process
     /**
      *
      */
-    const MODULE_NAME = 'Process';
+    private const MODULE_NAME = 'Process';
 
-    const SIGNAL_COMMON_MAP = [
+    /**
+     *
+     */
+    private const SIGNAL_COMMON_MAP = [
         's1'  => 'SIGHUP',
         's2'  => 'SIGINT',    //Ctrl-C
         's3'  => 'SIGQUIT',
@@ -36,7 +39,10 @@ class Process
         's22' => 'SIGTTOU',
     ];
 
-    const SIGNAL_MAC_MAP = [
+    /**
+     *
+     */
+    private const SIGNAL_MAC_MAP = [
         's10' => 'SIGBUS',
         's30' => 'SIGUSR1',
         's31' => 'SIGUSR2',
@@ -47,7 +53,10 @@ class Process
         's16' => 'SIGURG',
     ];
 
-    const SIGNAL_LINUX_MAP = [
+    /**
+     *
+     */
+    private const SIGNAL_LINUX_MAP = [
         's7'  => 'SIGBUS',
         's10' => 'SIGUSR1',
         's12' => 'SIGUSR2',
@@ -58,19 +67,23 @@ class Process
         's23' => 'SIGURG',
     ];
 
-    private static $_signalMap = [];
+    /**
+     * @var array
+     */
+    private static array $signalMap = [];
 
     /**
      * @var array
      */
-    private static $_killNotificationPidMap = [];
+    private static array $killNotificationPidMap = [];
 
     /**
      * @param string $name
+     * @return void
      */
-    public static function SetName(string $name)
+    public static function setName(string $name): void
     {
-        if (PHP_OS == 'Darwin') {
+        if (PHP_OS === 'Darwin') {
             return;
         }
 
@@ -85,7 +98,7 @@ class Process
     /**
      * @return int
      */
-    public static function Id(): int
+    public static function id(): int
     {
         return posix_getpid();
     }
@@ -93,17 +106,18 @@ class Process
     /**
      * @return int
      */
-    public static function Fork()
+    public static function fork(): int
     {
         return pcntl_fork();
     }
 
     /**
      * @param int $seconds
+     * @return int
      */
-    public static function SetAlarm(int $seconds)
+    public static function setAlarm(int $seconds): int
     {
-        pcntl_alarm($seconds);
+        return pcntl_alarm($seconds);
     }
 
     /**
@@ -111,7 +125,7 @@ class Process
      * @param int $options
      * @return int
      */
-    public static function Wait(int &$status, int $options = WUNTRACED): int
+    public static function wait(int &$status, int $options = WUNTRACED): int
     {
         return pcntl_wait($status, $options);
     }
@@ -122,19 +136,19 @@ class Process
      * @param bool $isForceNotify
      * @return bool
      */
-    public static function Kill(int $pid, int $signal, bool $isForceNotify = false): bool
+    public static function kill(int $pid, int $signal, bool $isForceNotify = false): bool
     {
         if ($isForceNotify) {
             goto KILL;
         }
 
-        if (self::IsKillNotified($pid . $signal)) {
+        if (self::isKillNotified($pid . $signal)) {
             return true;
         }
 
         KILL:
         if (posix_kill($pid, $signal)) {
-            self::$_killNotificationPidMap[] = $pid . $signal;
+            self::$killNotificationPidMap[] = $pid . $signal;
             return true;
         }
         return false;
@@ -144,41 +158,46 @@ class Process
      * @param string $pidSignal
      * @return bool
      */
-    public static function IsKillNotified(string $pidSignal)
+    public static function isKillNotified(string $pidSignal): bool
     {
-        return in_array($pidSignal, self::$_killNotificationPidMap);
+        return in_array($pidSignal, self::$killNotificationPidMap, true);
     }
 
-    public static function SignalName(int $signal): string
+    /**
+     * 获取进程信号名称
+     * @param int $signal
+     * @return string
+     */
+    public static function getSignalName(int $signal): string
     {
-        if (0 == count(self::$_signalMap)) {
-            self::$_signalMap = PHP_OS == 'Darwin' ?
+        if (0 === count(self::$signalMap)) {
+            self::$signalMap = PHP_OS === 'Darwin' ?
                 array_merge(self::SIGNAL_COMMON_MAP, self::SIGNAL_MAC_MAP) :
                 array_merge(self::SIGNAL_COMMON_MAP, self::SIGNAL_LINUX_MAP);
         }
 
         $key = 's' . $signal;
-        if (!isset(self::$_signalMap[$key])) {
+        if (!isset(self::$signalMap[$key])) {
             return 'unknown';
         }
-        return self::$_signalMap[$key];
+        return self::$signalMap[$key];
     }
 
     /**
      * @param int $seconds
      */
-    public static function Sleep(int $seconds)
+    public static function sleep(int $seconds): int
     {
-        sleep($seconds);
+        return sleep($seconds);
     }
 
     /**
      * @param string $group
      * @param string $user
      */
-    public static function SetExecGroupUser(string $group, string $user)
+    public static function setExecGroupUser(string $group, string $user): void
     {
-        $user = posix_getpwnam($user);
+        $user  = posix_getpwnam($user);
         $group = posix_getgrnam($group);
 
         if (!$user || !$group) {

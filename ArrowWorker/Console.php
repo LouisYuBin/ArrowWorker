@@ -16,47 +16,52 @@ class Console
     /**
      * @var Container $container
      */
-    private $container;
+    private Container $container;
 
     /**
      * @var array
      */
-    private $argv = [];
+    private array $argv = [];
 
     /**
      * @var string
      */
-    private $entryFile = '';
+    private string $entryFile = '';
 
     /**
      * @var string
      */
-    private $runType = '';
+    private string $runType = '';
 
     /**
      * @var string
      */
-    private $runEnv = '';
+    private string $runEnv = '';
 
     /**
      * @var string
      */
-    private $actionName = '';
+    private string $actionName = 'start';
 
     /**
      * @var bool
      */
-    private $isDebug = false;
+    private bool $isDebug = false;
 
     /**
      * @var array
      */
-    private $actionAlias = [
+    private array $actionAlias = [
         'stop'    => 'stop',
         'start'   => 'start',
         'status'  => 'getStatus',
         'restart' => 'restart'
     ];
+
+    /**
+     * @var array $toBeCheckedExtensionList
+     */
+    private array $toBeCheckedExtensionList = ['swoole' => 450, 'sysvmsg' => 700];
 
 
     /**
@@ -69,8 +74,8 @@ class Console
         $this->checkStartEnv();
         $this->parseCommandArgv();
         $this->checkExtension();
-        Environment::setType($this->GetEnv());
-        $this->container->Get(Config::class);
+        Environment::setType($this->getEnv());
+        $this->container->get(Config::class);
     }
 
     /**
@@ -86,14 +91,14 @@ class Console
 
         for ($i = 1; $i > 0; $i++) {
             if ($i === 1) {
-                if (Process::Kill($pid, SIGTERM)) {
+                if (Process::kill($pid, SIGTERM)) {
                     echo('Arrow stopping');
                 } else {
                     Log::Hint('Arrow is not running.');
                     return false;
                 }
             } else {
-                if (!Process::Kill($pid, SIGTERM, true)) {
+                if (!Process::kill($pid, SIGTERM, true)) {
                     Log::Hint('stopped successfully.');
                     return true;
                 }
@@ -110,10 +115,10 @@ class Console
      *
      * @return void
      */
-    public function Run(): void
+    public function run(): void
     {
         $action = $this->actionAlias[$this->actionName] ?? null;
-        if (is_null($this->actionAlias[$this->actionName])) {
+        if (is_null($action)) {
             Log::Hint("Oops! Unknown operation. please use \"php {$this->entryFile} start/stop/status/restart\" to start/stop/restart the service");
             return;
         }
@@ -127,13 +132,13 @@ class Console
     private function start(): void
     {
         Log::Hint("starting ...{$this->runType}({$this->runEnv})");
-        $this->container->Get(App::class, [$this->container])->Run($this->runType, $this->isDebug);
+        $this->container->get(App::class, [$this->container])->run($this->runType, $this->isDebug);
     }
 
     /**
      *
      */
-    private function getStatus()
+    private function getStatus(): void
     {
         $keyword = PHP_OS === 'Darwin' ? $this->entryFile : Daemon::APP_NAME . '_' . Daemon::GetPid();
         $commend = "ps -e -o 'user,pid,ppid,pcpu,%mem,args' | grep {$keyword}";
@@ -146,7 +151,7 @@ class Console
     /**
      *
      */
-    private function restart()
+    private function restart(): void
     {
         if ($this->stop()) {
             $this->start();
@@ -156,11 +161,11 @@ class Console
     /**
      *
      */
-    private function parseCommandArgv()
+    private function parseCommandArgv(): void
     {
         global $argv;
         $this->argv = $argv;
-        if (count($this->argv) < 2) {
+        if (count($argv) < 2) {
             Log::DumpExit('Parameter needed');
         }
 
@@ -177,9 +182,9 @@ class Console
     /**
      *
      */
-    private function checkStartEnv() : void
+    private function checkStartEnv(): void
     {
-        if (php_sapi_name() !== "cli") {
+        if (PHP_SAPI !== "cli") {
             Log::DumpExit("Arrow hint : only run in command line mode");
         }
     }
@@ -187,26 +192,24 @@ class Console
     /**
      *
      */
-    private function checkExtension()
+    private function checkExtension(): void
     {
-        if (!extension_loaded('swoole')) {
-            Log::DumpExit('extension swoole is not installed/loaded.');
-        }
+        $toBeCheckedExtensionList = $this->toBeCheckedExtensionList;
+        foreach ($toBeCheckedExtensionList as $extensionName => $version) {
+            if (!extension_loaded($extensionName)) {
+                Log::DumpExit("extension {$extensionName} is not installed/loaded.");
+            }
 
-        if (!extension_loaded('sysvmsg')) {
-            Log::DumpExit('extension sysvmsg is not installed/loaded.');
+            if ((int)str_replace('.', '', (new \ReflectionExtension($extensionName))->getVersion()) < (int)$version) {
+                Log::DumpExit("{$extensionName} version must be newer than {$version}");
+            }
         }
-
-        if ((int)str_replace('.', '', (new \ReflectionExtension('swoole'))->getVersion()) < 400) {
-            Log::DumpExit('swoole version must be newer than 4.0 .');
-        }
-
     }
 
     /**
      * @return bool
      */
-    public function IsDebug() : bool
+    public function isDebug(): bool
     {
         return $this->isDebug;
     }
@@ -214,7 +217,7 @@ class Console
     /**
      * @return string
      */
-    public function GetEnv() : string
+    public function getEnv(): string
     {
         return ucfirst($this->runEnv);
     }

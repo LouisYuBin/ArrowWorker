@@ -30,7 +30,7 @@ class ArrowWorker
             'author',
             'authorIntro',
         ];
-        return Query::Table("project")->Where('id>1')->Column($column)->Limit(0, 1)->Get();
+        return Query::table("project")->where('id>1')->column($column)->limit(0, 1)->get();
     }
 
     //查询单条记录
@@ -42,7 +42,7 @@ class ArrowWorker
             'author',
             'authorIntro',
         ];
-        return Query::Table("project")->Where('id>0')->Column($column)->Limit(0, 2)->Find();
+        return Query::table("project")->where('id>0')->column($column)->limit(0, 2)->find();
     }
 
     //写入数据
@@ -52,7 +52,7 @@ class ArrowWorker
             'itemName'  => 'ArrowWorker',
             'itemIntro' => "An efficient and easy-using php daemon framework.",
         ];
-        return Query::Table("project")->Where('id>0')->Insert($data);
+        return Query::table("project")->where('id>0')->insert($data);
     }
 
     //写入数据
@@ -62,12 +62,12 @@ class ArrowWorker
             'itemName'  => 'ArrowWorker',
             'itemIntro' => "A php demonize framework ",
         ];
-        return Query::Table("project")->Where("id={$id}")->Update($data);
+        return Query::table("project")->where("id={$id}")->update($data);
     }
 
     //删除数据
     public function DeleteById($id)
     {
-        return Query::Table("project")->Where("id={$id}")->Delete();
+        return Query::table("project")->where("id={$id}")->delete();
     }
 }

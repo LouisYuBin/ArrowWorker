@@ -3,7 +3,7 @@
  * By yubin at 2020-03-12 17:31.
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\HttpServer;
 
 
 use ArrowWorker\Config;
@@ -11,11 +11,11 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\ClassMethodChecker;
 use ArrowWorker\Library\Http;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Router\MatchResult;
+use ArrowWorker\HttpServer\Router\MatchResult;
 
 /**
  * Class Middleware
- * @package ArrowWorker\Web
+ * @package ArrowWorker\HttpServer
  */
 class Middleware
 {
@@ -56,7 +56,7 @@ class Middleware
      */
     private function initConfig(): void
     {
-        $config = Config::Get('Middleware');
+        $config = Config::get('Middleware');
         if (!is_array($config)) {
             Log::Dump('config is incorrect', Log::TYPE_WARNING, __METHOD__);
             return;
@@ -151,7 +151,7 @@ class Middleware
     private function filterIllegalMiddleware(array &$middlewareList): void
     {
         foreach ($middlewareList as $index => $eachMiddleware) {
-            if (!is_string($eachMiddleware) || !ClassMethodChecker::IsClassMethodExists($eachMiddleware, 'Process')) {
+            if (!is_string($eachMiddleware) || !ClassMethodChecker::isClassMethodExists($eachMiddleware, 'Process')) {
                 unset($middlewareList[$index]);
             }
         }
@@ -192,12 +192,12 @@ class Middleware
             }
 
             [$class, $method, $middlewareList] = $eachMethodConfig;
-            if (!ClassMethodChecker::IsClassMethodExists($class, $method) || !is_array($middlewareList)) {
+            if (!ClassMethodChecker::isClassMethodExists($class, $method) || !is_array($middlewareList)) {
                 continue;
             }
 
             foreach ($middlewareList as $indexEachMiddleware => $middleware) {
-                if (!ClassMethodChecker::IsClassMethodExists($middleware, 'Process')) {
+                if (!ClassMethodChecker::isClassMethodExists($middleware, 'Process')) {
                     continue;
                 }
                 $parsedConfig["{$class}::{$method}"][] = $middleware;
@@ -210,12 +210,12 @@ class Middleware
      * @param MatchResult $matchResult
      * @return array
      */
-    public function GetList(MatchResult $matchResult): array
+    public function getList(MatchResult $matchResult): array
     {
         $host           = $matchResult->getServerName();
         $uri            = $matchResult->getUri();
-        $class          = $matchResult->getController();
-        $method         = $matchResult->getMethod();
+        $class          = $matchResult->getActionClass();
+        $method         = $matchResult->getActionMethod();
         $requestMethod  = $matchResult->getRequestMethod();
 
         $middlewareList = $this->httpMiddleware[$host][$uri][$requestMethod]??[];

@@ -84,7 +84,7 @@ class Client
                 }
 
             } catch (\Exception $e) {
-                Log::Error("connect failed : {host}:{}, error code : {code}", [
+                Log::error("connect failed : {host}:{}, error code : {code}", [
                     'host' => $this->_host,
                     'port' => $this->_port,
                     'code' => $this->_client->errCode
@@ -125,7 +125,7 @@ class Client
             try {
                 $result = @$this->_client->send($data);
             } catch (\Exception $e) {
-                Log::Error("send data failed : {host}:{port}, error code : {code} , data : {$data}", [
+                Log::error("send data failed : {host}:{port}, error code : {code} , data : {$data}", [
                     'host' => $this->_host,
                     'port' => $this->_port,
                     'code' => $this->_client->errCode

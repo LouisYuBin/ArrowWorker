@@ -40,72 +40,72 @@ class Server
     /**
      * @var string
      */
-    protected $host = '0.0.0.0';
+    protected string $host = '0.0.0.0';
 
     /**
      * @var int
      */
-    protected $port = 8888;
+    protected int $port = 8888;
 
     /**
      * @var int
      */
-    protected $reactorNum = 2;
+    protected int $reactorNum = 2;
 
     /**
      * @var int
      */
-    protected $workerNum = 1;
+    protected int $workerNum = 1;
 
     /**
-     * @var bool
+     * @var string $enableCoroutine
      */
-    protected $enableCoroutine = true;
+    protected string $enableCoroutine = 'On';
 
     /**
      * @var string
      */
-    protected $user = 'www';
+    protected string $user = 'www';
 
     /**
      * @var string
      */
-    protected $group = 'www';
+    protected string $group = 'www';
 
     /**
      * @var int
      */
-    protected $backlog = 1024000;
+    protected int $backlog = 1024000;
 
     /**
      * @var int
      */
-    protected $mode = SWOOLE_PROCESS;
+    protected int $mode = SWOOLE_PROCESS;
 
     /**
      * @var int
      */
-    protected $maxCoroutine = 1000;
+    protected int $maxCoroutine = 1000;
 
     /**
      * @var int
      */
-    protected $pipeBufferSize = 1024 * 1024 * 100;
+    protected int $pipeBufferSize = 1024 * 1024 * 100;
 
     /**
      * @var int
      */
-    protected $socketBufferSize = 1024 * 1024 * 100;
+    protected int $socketBufferSize = 1024 * 1024 * 100;
 
     /**
      * @var int
      */
-    protected $maxContentLength = 1024 * 1024 * 10;
+    protected int $maxContentLength = 1024 * 1024 * 10;
 
     /**
      * @var array
      */
-    protected $components = [];
+    protected array $components = [];
 
     /**
      * @var \Swoole\Http\Server|\Swoole\WebSocket\Server|\Swoole\Server
@@ -116,26 +116,26 @@ class Server
     /**
      * @var Component
      */
-    protected $component;
+    protected Component $component;
 
-    protected $identity = 0;
+    protected string $identity;
 
     /**
      * @var Container
      */
-    protected $container;
+    protected Container $container;
 
     /**
      * @var Log
      */
-    protected $logger;
+    protected Log $logger;
 
     /**
      * @param int $type
      */
     protected function initComponent(int $type): void
     {
-        $this->component = $this->container->Make(Component::class, [$this->container, $this->logger, $type]);
+        $this->component = $this->container->make(Component::class, [$this->container, $this->logger, $type]);
     }
 
 }

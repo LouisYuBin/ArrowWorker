@@ -6,10 +6,19 @@
 namespace ArrowWorker\Library;
 
 
+/**
+ * Class ClassMethodChecker
+ * @package ArrowWorker\Library
+ */
 class ClassMethodChecker
 {
 
-    public static function IsClassMethodExists(string $class, string $method): bool
+    /**
+     * @param string $class
+     * @param string $method
+     * @return bool
+     */
+    public static function isClassMethodExists(string $class, string $method): bool
     {
         if (!class_exists($class)) {
             return false;

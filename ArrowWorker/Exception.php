@@ -6,8 +6,6 @@
 
 namespace ArrowWorker;
 
-
-use ArrowWorker\Web\Response;
 use ArrowWorker\Log\Log;
 
 /**
@@ -17,20 +15,18 @@ use ArrowWorker\Log\Log;
 class Exception
 {
 
-    const MODULE_NAME = 'Exception';
-
     /**
      * init : set handle-function of error/exception
      */
-    static function Init()
+    public static function init():void
     {
         set_error_handler([
             __CLASS__,
-            'Error',
+            'error',
         ]);
         set_exception_handler([
             __CLASS__,
-            'Exception',
+            'exception',
         ]);
     }
 
@@ -42,23 +38,21 @@ class Exception
      * @param string $file
      * @param int $line
      * @param array $parameters
-     * @return false
      */
-    public static function Error(int $code, string $msg, string $file, int $line, array $parameters)
+    public static function error(int $code,  string $msg, string $file, int $line, $parameters=[]):void
     {
-        Log::Dump("code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : " . json_encode($parameters) . ", backtrace : " . json_encode(debug_backtrace()), Log::TYPE_ERROR, self::MODULE_NAME);
-        Response::Status(500);
-        Response::Write('internal server error');
-        return false;
+        Log::Dump("code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, parameters : " . json_encode($parameters) . ", backtrace : " . json_encode(debug_backtrace()), Log::TYPE_ERROR, __METHOD__);
+        sleep(1);
+        exit(0);
     }
 
 
     /**
      * exception : exception function
-     * @param array $exception
+     * @param object $exception
      * @return false
      */
-    public static function Exception(object $exception)
+    public static function exception(object $exception):bool
     {
         $exception = (array)$exception;
         $msg = '';
@@ -86,7 +80,7 @@ class Exception
             }
             $elementNum++;
         }
-        Log::Dump("code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, backtrace : {$backtrace}", Log::TYPE_EXCEPTION, self::MODULE_NAME);
+        Log::Dump("code: {$code}, message: {$msg}, file:{$file} ,line: {$line}, backtrace : {$backtrace}", Log::TYPE_EXCEPTION, __METHOD__);
         return false;
     }
 

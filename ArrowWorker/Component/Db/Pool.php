@@ -10,7 +10,7 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
-use ArrowWorker\PoolInterface as ConnPool;
+use ArrowWorker\Std\Pool\PoolInterface as ConnPool;
 
 
 /**
@@ -24,7 +24,7 @@ class Pool implements ConnPool
     /**
      *
      */
-    const CONFIG_NAME = 'Db';
+    private const CONFIG_NAME = 'Db';
 
 
     /**
@@ -75,16 +75,14 @@ class Pool implements ConnPool
     {
         if (count($userConfig) > 0) {
             $config = $userConfig;
-            goto INIT;
+        } else {
+            $config = Config::get(self::CONFIG_NAME);
+            if (!is_array($config) || empty($config)) {
+                Log::Dump(" incorrect config file", Log::TYPE_WARNING, __METHOD__);
+                return;
+            }
         }
 
-        $config = Config::Get(self::CONFIG_NAME);
-        if (!is_array($config) || count($config) == 0) {
-            Log::Dump(" incorrect config file", Log::TYPE_WARNING, __METHOD__);
-            return;
-        }
-
-        INIT:
         foreach ($config as $index => $value) {
             if (!isset($presetConfig[$index])) {
                 //initialize specified db config only
@@ -111,7 +109,7 @@ class Pool implements ConnPool
             $value['connectedCount'] = 0;
 
             $this->config[$index] = $value;
-            $this->pool[$index]   = $this->container->Make(SwChan::class, [$this->container, $value['poolSize']]);
+            $this->pool[$index]   = $this->container->make(SwChan::class, [$this->container, $value['poolSize']]);
         }
     }
 
@@ -128,7 +126,7 @@ class Pool implements ConnPool
                 continue;
             }
 
-            $conn = $this->container->Make($this->drivers[$config['driver']], [$this->container, $config]);
+            $conn = $this->container->make($this->drivers[$config['driver']], [$this->container, $config]);
             if (false === $conn->InitConnection()) {
                 Log::Dump(" {$config['driver']}->InitConnection connection failed, config : {$alias}=>" . json_encode($config), Log::TYPE_WARNING, __METHOD__);
                 continue;
@@ -142,15 +140,10 @@ class Pool implements ConnPool
      * @param string $alias
      * @return false|Mysqli|Pdo
      */
-    public static function Get(string $alias = 'default')
+    public static function get(string $alias = 'default')
     {
-        $class = __CLASS__;
-        $context = Context::GetInstance();
-        if (isset($context[$class][$alias])) {
-            return $context[$class][$alias];
-        }
-
-        return self::$instance->getConnection($class, $alias);
+        $className = __CLASS__;
+        return Context::getContext()[$className][$alias]??self::$instance->getConnection($className, $alias);
     }
 
     /**
@@ -158,7 +151,7 @@ class Pool implements ConnPool
      * @param string $alias
      * @return bool
      */
-    private function getConnection(string $class, string $alias)
+    private function getConnection(string $class, string $alias) :?bool
     {
         if (!isset($this->pool[$alias])) {
             return false;
@@ -169,7 +162,7 @@ class Pool implements ConnPool
         $conn = $this->pool[$alias]->Pop(0.2);
         if (false === $conn) {
             if ($this->config[$alias]['connectedCount'] < $this->config[$alias]['poolSize']) {
-                self::initConnection($alias);
+                $this->initConnection($alias);
                 goto RETRY;
             }
 
@@ -179,7 +172,7 @@ class Pool implements ConnPool
                 goto RETRY;
             }
         }
-        Context::SubSet($class, $alias, $conn);
+        Context::subSet($class, $alias, $conn);
         return $conn;
     }
 
@@ -188,7 +181,7 @@ class Pool implements ConnPool
      */
     public function Release(): void
     {
-        $coConnections = Context::Get(__CLASS__);
+        $coConnections = Context::get(__CLASS__);
         if (is_null($coConnections)) {
             return;
         }

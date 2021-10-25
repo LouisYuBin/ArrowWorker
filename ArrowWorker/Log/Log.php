@@ -7,13 +7,13 @@
 namespace ArrowWorker\Log;
 
 
+use ArrowWorker\Chan;
 use ArrowWorker\Component\Channel\Queue;
+use ArrowWorker\Config;
+use ArrowWorker\Container;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
-use ArrowWorker\Container;
-use ArrowWorker\Chan;
-use ArrowWorker\Config;
 use ArrowWorker\Log\Process\Process as LogProcess;
 
 /**
@@ -87,7 +87,7 @@ class Log
     /**
      * @var array
      */
-    private array $config=[];
+    private array $config = [];
 
 
     /**
@@ -122,7 +122,7 @@ class Log
      */
     private function initConfig()
     {
-        $config = Config::Get('Log');
+        $config = Config::get('Log');
         if (false === $config || !is_array($config)) {
             return;
         }
@@ -143,7 +143,7 @@ class Log
      */
     private function initMsgInstance()
     {
-        $this->msgInstance = Chan::Get(
+        $this->msgInstance = Chan::get(
             'log',
             [
                 'msgSize' => $this->msgSize,
@@ -160,7 +160,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Info(string $log, array $context = [], string $module = '')
+    public static function info(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'I');
     }
@@ -172,7 +172,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Alert(string $log, array $context = [], string $module = '')
+    public static function alert(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'A');
     }
@@ -183,7 +183,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Debug(string $log, array $context = [], string $module = '')
+    public static function debug(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'D');
     }
@@ -195,7 +195,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Notice(string $log, array $context = [], string $module = '')
+    public static function notice(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'N');
     }
@@ -207,7 +207,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Warning(string $log, array $context = [], string $module = '')
+    public static function warning(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'W');
     }
@@ -219,7 +219,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Error(string $log, array $context = [], string $module = '')
+    public static function error(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'E');
     }
@@ -231,7 +231,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Emergency(string $log, array $context = [], string $module = '')
+    public static function emergency(string $log, array $context = [], string $module = ''): void
     {
         self::rebuildLog($log, $context, $module, 'EM');
     }
@@ -243,7 +243,7 @@ class Log
      * @param string $module
      * @return void
      */
-    public static function Critical(string $log, array $context = [], string $module = '')
+    public static function critical(string $log, array $context = [], string $module = ''): void
     {
         self::Dump($log, self::TYPE_EMERGENCY, $module);
         self::rebuildLog($log, $context, $module, 'C');
@@ -255,9 +255,9 @@ class Log
      * @param string $module
      * @param string $level
      */
-    private static function rebuildLog(string $log, array $context = [], string $module = '', string $level = 'D')
+    private static function rebuildLog(string $log, array $context = [], string $module = '', string $level = 'D'): void
     {
-        Context::Fill(__CLASS__, [
+        Context::fill(__CLASS__, [
             $level,
             $module,
             date('Y-m-d H:i:s'),
@@ -306,13 +306,13 @@ class Log
     /**
      * @param string $logId
      */
-    public static function InitId(string $logId = '')
+    public static function initId(string $logId = ''): void
     {
 
-        Context::Set(
+        Context::set(
             __CLASS__ . '_id',
             '' === $logId ?
-                date('ymdHis') . Process::Id() . Coroutine::Id() . mt_rand(100, 999) :
+                date('ymdHis') . Process::id() . Coroutine::id() . random_int(100, 999) :
                 $logId
         );
     }
@@ -322,7 +322,7 @@ class Log
      */
     public static function GetLogId(): string
     {
-        return Context::Get(__CLASS__ . '_id');
+        return Context::get(__CLASS__ . '_id');
     }
 
     /**
@@ -331,15 +331,15 @@ class Log
     public function Release()
     {
         $class = __CLASS__;
-        $logs = Context::Get($class);
+        $logs  = Context::get($class);
         if (is_null($logs)) {
             return;
         }
 
-        $logId = Context::Get($class . '_id');
+        $logId = Context::get($class . '_id');
         foreach ($logs as $log) {
             $log[5] = $logId;
-            $this->msgInstance->Write($log);
+            $this->msgInstance->write($log);
         }
     }
 

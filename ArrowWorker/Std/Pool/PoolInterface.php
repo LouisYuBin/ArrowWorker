@@ -1,6 +1,8 @@
 <?php
 
-namespace ArrowWorker;
+namespace ArrowWorker\Std\Pool;
+
+use ArrowWorker\Container;
 
 
 interface PoolInterface
@@ -11,13 +13,14 @@ interface PoolInterface
      */
     const DEFAULT_POOL_SIZE = 10;
 
+
+    public function __construct(Container $container, array $presetConfig, array $userConfig = []);
+
     /**
      * @param string $alias
      * @return mixed
      */
     public static function Get(string $alias = 'default');
-
-    public function __construct(Container $container, array $presetConfig, array $userConfig = []);
 
     /**
      * @return void

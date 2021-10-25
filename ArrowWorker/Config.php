@@ -59,9 +59,9 @@ class Config
 
     /**
      * @param string $name
-     * @return bool|mixed
+     * @return mixed
      */
-    public static function Get(string $name = APP_CONFIG_FILE)
+    public static function get(string $name = APP_CONFIG_FILE)
     {
         return self::$instance->getConfig($name);
     }
@@ -71,7 +71,7 @@ class Config
      * @param        $value
      * @return mixed
      */
-    public static function Set(string $name, $value)
+    public static function set(string $name, $value)
     {
         self::$instance->setConfig($name, $value);
         return $value;
@@ -91,10 +91,7 @@ class Config
      */
     private function getConfig(string $name)
     {
-        if (isset($this->config[$name])) {
-            return $this->config[$name];
-        }
-        return false;
+        return $this->config[$name]??false;
     }
 
     /**

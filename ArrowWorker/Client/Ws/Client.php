@@ -79,7 +79,7 @@ class Client
             if (true == $this->_instance->upgrade($this->_uri)) {
                 return true;
             }
-            Log::Error("upgrade failed : {$i}th", [], $this->_logName);
+            Log::error("upgrade failed : {$i}th", [], $this->_logName);
         }
         return false;
     }
@@ -112,7 +112,7 @@ class Client
             if (0 == $i % 2) {
                 $this->Upgrade();
             }
-            Log::Warning("push failed : {$i}", [], $this->_logName);
+            Log::warning("push failed : {$i}", [], $this->_logName);
         }
         return false;
     }

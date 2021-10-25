@@ -3,12 +3,14 @@
 namespace ArrowWorker;
 
 use ArrowWorker\Component\Worker\Arrow as Worker;
+use ArrowWorker\Component\Worker\ArrowCoroutines;
+use ArrowWorker\Component\Worker\ArrowCoroutines as WorkerCoroutines;
+use ArrowWorker\HttpServer\Server as HttpServer;
 use ArrowWorker\Library\Process;
-use ArrowWorker\Server\Http;
+use ArrowWorker\Log\Log;
 use ArrowWorker\Server\Tcp;
 use ArrowWorker\Server\Udp;
 use ArrowWorker\Server\Ws;
-use ArrowWorker\Log\Log;
 
 /**
  * Class Daemon : demonize process
@@ -17,10 +19,6 @@ use ArrowWorker\Log\Log;
 class Daemon
 {
 
-    /**
-     *
-     */
-    const MODULE_NAME = 'Monitor';
 
     /**
      *
@@ -60,9 +58,14 @@ class Daemon
     const APP_SERVER = 'server';
 
     /**
-     *
+     * 进程
      */
     const APP_WORKER = 'worker';
+
+    /**
+     * 进程+写成
+     */
+    const APP_COROUTINES = 'coroutines';
 
     /**
      * path of where pid file will be located
@@ -95,13 +98,13 @@ class Daemon
     /**
      * @var array
      */
-    private static array $application = [];
+    private array $applications = [];
 
     /**
      * @var array
      */
     private array $serverClassAlias = [
-        self::PROCESS_HTTP      => Http::class,
+        self::PROCESS_HTTP      => HttpServer::class,
         self::PROCESS_WEBSOCKET => Ws::class,
         self::PROCESS_TCP       => Tcp::class,
         self::PROCESS_UDP       => Udp::class
@@ -148,7 +151,7 @@ class Daemon
     /**
      *
      */
-    public function Start() :void 
+    public function start(): void
     {
         $this->changeWorkDirectory();
         $this->demonize();
@@ -163,7 +166,7 @@ class Daemon
     /**
      * @param bool $isDebug
      */
-    public function setDemonize(bool $isDebug) :void 
+    public function setDemonize(bool $isDebug): void
     {
         self::$isDebug = $isDebug;
     }
@@ -171,7 +174,7 @@ class Daemon
     /**
      * @param string $apps
      */
-    public function setStartApp(string $apps) :void 
+    public function setStartApp(string $apps): void
     {
         $appList = explode('|', $apps);
         foreach ($appList as $app) {
@@ -179,38 +182,41 @@ class Daemon
             if (!in_array($app, [
                 self::APP_SERVER,
                 self::APP_WORKER,
+                self::APP_COROUTINES
             ])) {
                 continue;
             }
-            self::$application[] = $app;
+            $this->applications[] = $app;
         }
 
-        if (empty(self::$application)) {
-            self::$application = [self::APP_SERVER];
+        if (empty($this->applications)) {
+            $this->applications = [self::APP_SERVER];
         }
     }
 
     /**
      *
      */
-    private function initComponent():void
+    private function initComponent(): void
     {
-        $this->container->Get(Chan::class, [$this->container]);
-        $this->logger = $this->container->Get(Log::class, [$this->container]);
-        $this->container->Get(Memory::class, [$this->container]);
+        $this->container->get(Chan::class, [$this->container]);
+        $this->logger = $this->container->get(Log::class, [$this->container]);
+        $this->container->get(Memory::class, [$this->container]);
     }
 
     /**
      *
      */
-    private function startProcess() : void
+    private function startProcess(): void
     {
         $this->startLogProcess();
 
-        rsort(self::$application);
-        foreach (self::$application as $appType) {
+        rsort($this->applications);
+        foreach ($this->applications as $appType) {
             if ($appType === self::APP_SERVER) {
                 $this->startSwooleServer();
+            } else if ($appType === self::APP_COROUTINES) {
+                $this->startWorkerCoroutineProcess();
             } else if ($appType === self::APP_WORKER) {
                 $this->startWorkerProcess();
             }
@@ -221,15 +227,15 @@ class Daemon
     /**
      *
      */
-    private function startLogProcess() : void 
+    private function startLogProcess(): void
     {
         $processNUm = $this->logger->GetProcessNum();
         for ($i = 0; $i < $processNUm; $i++) {
-            $pid = Process::Fork();
-            if ($pid == 0) {
-                Log::Dump('starting log process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME);
+            $pid = Process::fork();
+            if ($pid === 0) {
+                Log::Dump('starting log process ( ' . Process::id() . ' )', Log::TYPE_DEBUG, __METHOD__);
                 $this->setProcessName(static::PROCESS_LOG);
-                $this->logger->getProcess()->Start();
+                $this->logger->getProcess()->start();
             } else {
                 $this->pidMap[] = [
                     'pid'   => $pid,
@@ -244,13 +250,32 @@ class Daemon
     /**
      *
      */
-    private function startWorkerProcess() : void
+    private function startWorkerCoroutineProcess(): void
     {
-        $pid = Process::Fork();
-        if ($pid == 0) {
-            Log::Dump('starting worker process( ' . Process::Id() . ' )', Log::TYPE_DEBUG, static::MODULE_NAME);
+        $pid = Process::fork();
+        if ($pid === 0) {
+            Log::Dump('starting worker process( ' . Process::id() . ' )', Log::TYPE_DEBUG, __METHOD__);
             $this->setProcessName('Worker-group master');
-            $this->container->Get(Worker::class, [$this->container, $this->logger])->Start();
+            $this->container->get(WorkerCoroutines::class, [$this->container, $this->logger])->start();
+        } else {
+            $this->pidMap[] = [
+                'pid'   => $pid,
+                'type'  => self::APP_COROUTINES,
+                'index' => 0,
+            ];
+        }
+    }
+
+    /**
+     *
+     */
+    private function startWorkerProcess(): void
+    {
+        $pid = Process::fork();
+        if ($pid === 0) {
+            Log::Dump('starting worker process( ' . Process::id() . ' )', Log::TYPE_DEBUG, __METHOD__);
+            $this->setProcessName('Worker-group master');
+            $this->container->get(Worker::class, [$this->container, $this->logger])->start();
         } else {
             $this->pidMap[] = [
                 'pid'   => $pid,
@@ -264,26 +289,24 @@ class Daemon
     /**
      * @param int $pointedIndex
      */
-    private function startSwooleServer(int $pointedIndex = 0) : void 
+    private function startSwooleServer(int $pointedIndex = 0): void
     {
-        $configs = Config::Get('Server');
+        $configs = Config::get('Server');
         if (false === $configs || !is_array($configs)) {
             return;
         }
         foreach ($configs as $index => $config) {
             //必要配置不完整则不开启
-            if (!isset($config['type']) ||
-                !isset($config['port']) ||
-                !isset($this->serverClassAlias[$config['type']])) {
+            if (!isset($config['type'], $config['port'], $this->serverClassAlias[$config['type']])) {
                 continue;
             }
 
-            if ($pointedIndex == 0)  //start all swoole server
+            if ($pointedIndex === 0)  //start all swoole server
             {
                 $this->startPointedSwooleServer($config, $index);
             } else            // start specified swoole server only
             {
-                if ($pointedIndex != $index) {
+                if ($pointedIndex !== $index) {
                     continue;
                 }
                 $this->startPointedSwooleServer($config, $index);
@@ -295,18 +318,18 @@ class Daemon
      * @param array $config
      * @param int $index
      */
-    private function startPointedSwooleServer(array $config, int $index) : void 
+    private function startPointedSwooleServer(array $config, int $index): void
     {
-        $pid = Process::Fork();
+        $pid = Process::fork();
         if ($pid === 0) {
-            $pid = Process::Id();
+            $pid                = Process::id();
             $config['identity'] = self::$identity;
 
             $processName = "{$config['type']}:{$config['port']} Master";
-            Log::Dump("starting {$processName} process ( {$pid} )", Log::TYPE_DEBUG, self::MODULE_NAME);
+            Log::Dump("starting {$processName} process ( {$pid} )", Log::TYPE_DEBUG, __METHOD__);
             $this->setProcessName($processName);
             if (isset($this->serverClassAlias[$config['type']])) {
-                $this->container->Make($this->serverClassAlias[$config['type']], [$this->container, $this->logger, $config])->Start();
+                $this->container->make($this->serverClassAlias[$config['type']], [$this->container, $this->logger, $config])->start();
             }
             exit(0);
         }
@@ -314,16 +337,16 @@ class Daemon
         $this->pidMap[] = [
             'pid'   => $pid,
             'index' => $index,
-            'type'  => 'server',
+            'type'  => self::APP_SERVER,
         ];
     }
 
     /**
      *
      */
-    private function startMonitor() : void 
+    private function startMonitor(): void
     {
-        Log::Dump('starting monitor process ( ' . Process::Id() . ' )', Log::TYPE_DEBUG, self::MODULE_NAME);
+        Log::Dump('starting monitor process ( ' . Process::id() . ' )', Log::TYPE_DEBUG, __METHOD__);
         while (1) {
             if ($this->terminate) {
                 //exit sequence: server -> worker -> log
@@ -340,7 +363,7 @@ class Daemon
 
             $status = 0;
             //returns the process ID of the child which exited, -1 on error or zero if WNOHANG was provided as an option (on wait3-available systems) and no child was available
-            $pid = Process::Wait($status);
+            $pid = Process::wait($status);
             $this->handleExitedProcess($pid, $status);
             pcntl_signal_dispatch();
             usleep(100000);
@@ -352,7 +375,7 @@ class Daemon
      * @param int $pid
      * @param int $status
      */
-    private function handleExitedProcess(int $pid, int $status) : void 
+    private function handleExitedProcess(int $pid, int $status): void
     {
         foreach ($this->pidMap as $key => $eachProcess) {
             if ($eachProcess['pid'] !== $pid) {
@@ -360,22 +383,24 @@ class Daemon
             }
 
             $appType = $eachProcess['type'];
-            $index = $eachProcess['index'];
+            $index   = $eachProcess['index'];
 
             unset($this->pidMap[$key]);
 
             if ($this->terminate) {
-                Log::Dump("{$appType} process : {$pid} exited at status : {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
+                Log::Dump("{$appType} process : {$pid} exited at status : {$status}", Log::TYPE_DEBUG, __METHOD__);
                 return;
             }
 
-            Log::Dump("{$appType} process restarting at status {$status}", Log::TYPE_DEBUG, self::MODULE_NAME);
+            Log::Dump("{$appType} process restarting at status {$status}", Log::TYPE_DEBUG, __METHOD__);
 
             if ($appType === self::PROCESS_LOG) {
                 $this->startLogProcess();
-            } else if ($appType === 'worker') {
+            } else if ($appType === self::APP_COROUTINES) {
+                $this->startWorkerCoroutineProcess();
+            } else if ($appType === self::APP_WORKER) {
                 $this->startWorkerProcess();
-            } else if ($appType === 'server') {
+            } else if ($appType === self::APP_SERVER) {
                 usleep(100000);
                 $this->startSwooleServer($index);
             }
@@ -387,7 +412,7 @@ class Daemon
      * @param string $type
      * @return bool
      */
-    private function exitWorkerProcess(string $type = 'server') : bool
+    private function exitWorkerProcess(string $type = 'server'): bool
     {
         $isExisted = true;
         foreach ($this->pidMap as $eachProcess) {
@@ -403,15 +428,15 @@ class Daemon
      * @param string $appType
      * @param int $pid
      */
-    private function exitProcess(string $appType, int $pid) :void 
+    private function exitProcess(string $appType, int $pid): void
     {
         $signal = SIGTERM;
-        if (!Process::IsKillNotified((string)($pid . $signal))) {
-            Log::Dump("sending SIGTERM signal to {$appType}:{$pid} process", Log::TYPE_DEBUG, self::MODULE_NAME);
+        if (!Process::isKillNotified((string)($pid . $signal))) {
+            Log::Dump("sending SIGTERM signal to {$appType}:{$pid} process", Log::TYPE_DEBUG, __METHOD__);
         }
 
         for ($i = 0; $i < 3; $i++) {
-            if (Process::Kill($pid, $signal)) {
+            if (Process::kill($pid, $signal)) {
                 break;
             }
             usleep(1000);
@@ -421,7 +446,7 @@ class Daemon
     /**
      *
      */
-    private function exitMonitor() : void 
+    private function exitMonitor(): void
     {
         if (!empty($this->pidMap)) {
             return;
@@ -431,9 +456,9 @@ class Daemon
             unlink(self::PID);
         }
 
-        Chan::Close();
+        Chan::close();
 
-        Log::Dump('exited', Log::TYPE_DEBUG, static::MODULE_NAME);
+        Log::Dump('exited', Log::TYPE_DEBUG, __METHOD__);
         exit(0);
     }
 
@@ -453,7 +478,7 @@ class Daemon
      * @param string $application
      * @param bool $isDebug
      */
-    private function initParameter(string $application, bool $isDebug) : void
+    private function initParameter(string $application, bool $isDebug): void
     {
         $this->initPid();
         $this->setStartApp($application);
@@ -463,7 +488,7 @@ class Daemon
     /**
      *
      */
-    private function initFunction()
+    private function initFunction(): void
     {
         if (!function_exists('pcntl_signal_dispatch')) {
             declare(ticks=10);
@@ -482,7 +507,7 @@ class Daemon
     /**
      *
      */
-    private function demonize()
+    private function demonize(): void
     {
         if (self::$isDebug) {
             return;
@@ -490,13 +515,13 @@ class Daemon
 
         umask(self::$umask);
 
-        if (Process::Fork() != 0) {
+        if (Process::fork() !== 0) {
             exit();
         }
 
         posix_setsid();
 
-        if (Process::Fork() != 0) {
+        if (Process::fork() !== 0) {
             exit();
         }
     }
@@ -504,24 +529,24 @@ class Daemon
     /**
      *
      */
-    private function createPidFile() : void
+    private function createPidFile(): void
     {
-        self::$identity = self::APP_NAME . '_' . Process::Id();
+        self::$identity = self::APP_NAME . '_' . Process::id();
 
-        if(  !is_dir(self::PID_DIR) && !mkdir(self::PID_DIR, 0766, true) ) {
-            Log::Dump("failed while creating pid directory", LOg::TYPE_ERROR,__METHOD__);
+        if (!is_dir(self::PID_DIR) && !mkdir(self::PID_DIR, 0766, true) && !is_dir(self::PID_DIR)) {
+            Log::Dump("failed while creating pid directory", LOg::TYPE_ERROR, __METHOD__);
             exit;
         }
 
         $fp = fopen(self::PID, 'w') or die("cannot create pid file" . PHP_EOL);
-        fwrite($fp, Process::Id());
+        fwrite($fp, Process::id());
         fclose($fp);
     }
 
     /**
      *
      */
-    private function initPid() : void
+    private function initPid(): void
     {
         $pidFilePath = self::PID;
         if (!file_exists($pidFilePath)) {
@@ -530,7 +555,7 @@ class Daemon
 
         $pid = (int)file_get_contents($pidFilePath);
 
-        if ($pid > 0 && Process::Kill($pid, 0)) {
+        if ($pid > 0 && Process::kill($pid, 0)) {
             Log::Hint("Arrow Hint : Server is already started.");
             exit;
         }
@@ -541,7 +566,7 @@ class Daemon
     /**
      *
      */
-    private function changeWorkDirectory() : bool
+    private function changeWorkDirectory(): bool
     {
         return chdir(APP_PATH . DIRECTORY_SEPARATOR . APP_RUNTIME_DIR);
     }
@@ -551,7 +576,7 @@ class Daemon
      * setSignalHandler : set handle function for process signal
      * @author Louis
      */
-    private function setSignalHandler() : void
+    private function setSignalHandler(): void
     {
         pcntl_signal(SIGCHLD, [
             $this,
@@ -581,13 +606,11 @@ class Daemon
      * @return bool
      * @author Louis
      */
-    public function SignalHandler(int $signal) : bool
+    public function SignalHandler(int $signal): bool
     {
         //Log::Dump(static::MODULE_NAME."got a signal {$signal} : ".Process::SignalName($signal));
         switch ($signal) {
             case SIGUSR1:
-                $this->terminate = true;
-                break;
             case SIGTERM:
             case SIGINT:
             case SIGQUIT:
@@ -605,9 +628,9 @@ class Daemon
      * @param string $proName
      * @author Louis
      */
-    private function setProcessName(string $proName) : void
+    private function setProcessName(string $proName): void
     {
-        Process::SetName(self::$identity . '_' . $proName);
+        Process::setName(self::$identity . '_' . $proName);
     }
 
 }

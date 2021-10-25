@@ -7,10 +7,10 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
-use ArrowWorker\PoolExtend;
-use ArrowWorker\PoolInterface as ConnPool;
+use ArrowWorker\Std\Pool\PoolCommon;
+use ArrowWorker\Std\Pool\PoolInterface as ConnPool;
 
-class Pool extends PoolExtend implements ConnPool
+class Pool extends PoolCommon implements ConnPool
 {
 
     const CONFIG_NAME = 'Cache';
@@ -24,20 +24,20 @@ class Pool extends PoolExtend implements ConnPool
     {
         self::$instance  = $this;
         $this->container = $container;
-        $this->InitConfig($poolSize, $config);
+        $this->initConfig($poolSize, $config);
     }
 
     /**
      * @param array $poolSize
      * @param array $config
      */
-    public function InitConfig(array $poolSize, array $config = [])
+    public function initConfig(array $poolSize, array $config = [])
     {
         if (count($config) > 0) {
             goto INIT;
         }
 
-        $config = Config::Get(self::CONFIG_NAME);
+        $config = Config::get(self::CONFIG_NAME);
         if (!is_array($config) || count($config) == 0) {
             Log::Dump('incorrect config file', Log::TYPE_WARNING, __METHOD__);
             return;
@@ -65,7 +65,7 @@ class Pool extends PoolExtend implements ConnPool
             $value['connectedCount'] = 0;
 
             $this->config[$index] = $value;
-            $this->pool[$index]   = $this->container->Make(SwChan::class, [$this->container, $value['poolSize']]);
+            $this->pool[$index]   = $this->container->make(SwChan::class, [$this->container, $value['poolSize']]);
 
         }
     }
@@ -82,7 +82,7 @@ class Pool extends PoolExtend implements ConnPool
             if($targetAlias!==$alias) {
                 continue;
             }
-            $conn = $this->container->Make($this->drivers[$config['driver']], [$this->container, $config]);
+            $conn = $this->container->make($this->drivers[$config['driver']], [$this->container, $config]);
             if (false === $conn->InitConnection()) {
                 Log::Dump("InitConnection failed, config : {$alias}=>" . json_encode($config), Log::TYPE_WARNING, __METHOD__);
                 continue;
@@ -99,7 +99,7 @@ class Pool extends PoolExtend implements ConnPool
     public static function Get(string $alias = 'default')
     {
         $class = __CLASS__;
-        $context = Context::GetInstance();
+        $context = Context::getContext();
         if (isset($context[$class][$alias])) {
             return $context[$class][$alias];
         }
@@ -129,7 +129,7 @@ class Pool extends PoolExtend implements ConnPool
             }
         }
 
-        Context::SubSet($class, $alias, $conn);
+        Context::subSet($class, $alias, $conn);
         return $conn;
     }
 
@@ -138,7 +138,7 @@ class Pool extends PoolExtend implements ConnPool
      */
     public function Release(): void
     {
-        $coConnections = Context::Get(__CLASS__);
+        $coConnections = Context::get(__CLASS__);
         if (is_null($coConnections)) {
             return;
         }

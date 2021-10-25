@@ -3,9 +3,9 @@
  * By yubin at 2020-06-26 12:50.
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\Std\Http;
 
-use ArrowWorker\Web\Upload;
+use ArrowWorker\HttpServer\Upload;
 
 interface RequestInterface
 {
@@ -125,6 +125,6 @@ interface RequestInterface
      * @param array $params
      * @param string $routeType path/rest
      */
-    public function SetParams(array $params, string $routeType = 'path'):void;
+    public function setParams(array $params, string $routeType = 'path'):void;
 
 }

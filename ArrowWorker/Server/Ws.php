@@ -11,7 +11,7 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Log\Log;
 use ArrowWorker\Server\Server as ServerPattern;
-use ArrowWorker\Web\Dispatcher;
+use ArrowWorker\HttpServer\Dispatcher;
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 use Swoole\WebSocket\Frame;
@@ -77,7 +77,7 @@ class Ws extends ServerPattern
     /**
      * @return void
      */
-    public function Start()
+    public function start():void
     {
         $this->initServer();
         $this->initComponent(App::TYPE_WEBSOCKET);
@@ -146,7 +146,7 @@ class Ws extends ServerPattern
 
     private function initRouter()
     {
-        $this->dispatcher = $this->container->Make(dispatcher::class, [$this->container, $this->page404]);
+        $this->dispatcher = $this->container->make(dispatcher::class, [$this->container, $this->page404]);
     }
 
     private function isSsl()
@@ -160,7 +160,7 @@ class Ws extends ServerPattern
     private function onStart()
     {
         $this->server->on('start', function ($server) {
-            Process::SetName("{$this->identity}_Ws:{$this->port} Manager");
+            Process::setName("{$this->identity}_Ws:{$this->port} Manager");
             Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
         });
     }
@@ -168,44 +168,44 @@ class Ws extends ServerPattern
     private function onOpen()
     {
         $this->server->on('open', function (Server $server, SwRequest $request) {
-            $this->component->Init($request, null);
+            $this->component->init($request, null);
             ("{$this->callback}::Open")($server, $request->fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onMessage()
     {
         $this->server->on('message', function (Server $server, Frame $frame) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Message")($server, $frame);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onClose()
     {
         $this->server->on('close', function (Server $server, int $fd) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Close")($server, $fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onWorkerStart()
     {
         $this->server->on('WorkerStart', function () {
-            Process::SetName("{$this->identity}_Ws:{$this->port} Worker");
-            $this->component->InitWebWorkerStart($this->components, (bool)$this->isEnableCORS);
+            Process::setName("{$this->identity}_Ws:{$this->port} Worker");
+            $this->component->initOnWebWorkerStart($this->components, (bool)$this->isEnableCORS);
         });
     }
 
     private function onRequest()
     {
         $this->server->on('request', function (SwRequest $request, SwResponse $response) {
-            $this->component->Init($request, $response);
-            $this->dispatcher->Run();
-            $this->component->Release();;
+            $this->component->init($request, $response);
+            $this->dispatcher->run();
+            $this->component->release();;
         });
     }
 

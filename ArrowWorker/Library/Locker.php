@@ -49,7 +49,7 @@ class Locker
     /**
      * @return mixed
      */
-    public function Lock()
+    public function lock()
     {
         return $this->lock->lock();
     }
@@ -57,7 +57,7 @@ class Locker
     /**
      * @return mixed
      */
-    public function Unlock()
+    public function unlock()
     {
         return $this->lock->unlock();
     }
@@ -65,7 +65,7 @@ class Locker
     /**
      * @return mixed
      */
-    public function LockRead()
+    public function lockRead()
     {
         return $this->lock->lock_read();
     }
@@ -74,7 +74,7 @@ class Locker
      * @param float $time
      * @return mixed
      */
-    public function LockWait(float $time)
+    public function lockWait(float $time)
     {
         return $this->lock->lockwait($time);
     }

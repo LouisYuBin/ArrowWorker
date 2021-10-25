@@ -222,7 +222,7 @@ class Process
 
     private function initHandler()
     {
-        $this->toFileChan = $this->container->Make(Channel::class, [$this->container, self::CHAN_SIZE]);
+        $this->toFileChan = $this->container->make(Channel::class, [$this->container, self::CHAN_SIZE]);
 
         foreach ($this->toTypes as $type) {
             switch ($type) {
@@ -230,7 +230,7 @@ class Process
 
                     $config = $this->redisConfig;
                     for ($i = 0; $i < $config['poolSize']; $i++) {
-                        $client = $this->container->Make(Redis::class, [$this->container, [
+                        $client = $this->container->make(Redis::class, [$this->container, [
                             'host'     => $config['host'],
                             'port'     => $config['port'],
                             'password' => $config['password'],
@@ -244,16 +244,16 @@ class Process
                             }
                         }
                     }
-                    $this->toRedisChan = $this->container->Make(Channel::class, [$this->container, self::CHAN_SIZE]);
+                    $this->toRedisChan = $this->container->make(Channel::class, [$this->container, self::CHAN_SIZE]);
 
                     break;
 
                 case self::TO_TCP;
 
-                    $this->toTcpChan = $this->container->Make(Channel::class, [$this->container, self::CHAN_SIZE]);
+                    $this->toTcpChan = $this->container->make(Channel::class, [$this->container, self::CHAN_SIZE]);
                     $config          = $this->tcpConfig;
                     for ($i = 0; $i < $config['poolSize']; $i++) {
-                        $client = $this->container->Make(Tcp::class, [$config['host'], $config['port']]);
+                        $client = $this->container->make(Tcp::class, [$config['host'], $config['port']]);
                         if ($client->IsConnected()) {
                             $this->tcpClient[] = $client;
                         } else {
@@ -280,7 +280,7 @@ class Process
      */
     private function initMsgInstance()
     {
-        $this->msgInstance = Chan::Get(
+        $this->msgInstance = Chan::get(
             'log',
             [
                 'msgSize' => $this->msgSize,
@@ -312,7 +312,7 @@ class Process
         $this->fileHandlerMap[$alias] = $fileRes;
 
         WRITE_LOG:
-        $result = Coroutine::FileWrite($this->fileHandlerMap[$alias], $log);
+        $result = Coroutine::writeFile($this->fileHandlerMap[$alias], $log);
         if (false === $result) {
             Log::Dump("Coroutine::FileWrite failed, log : {$log}", Log::TYPE_EMERGENCY, __METHOD__);
         }
@@ -338,7 +338,7 @@ class Process
                     Log::Dump("make log directory:{$fileDir} failed", Log::TYPE_EMERGENCY, __METHOD__);
                     return false;
                 }
-                Coroutine::Sleep(0.5);
+                Coroutine::sleep(0.5);
                 goto RE_CHECK_DIR;
             }
         }
@@ -390,7 +390,7 @@ class Process
     /**
      * Start : start log process
      */
-    public function Start()
+    public function start()
     {
         $this->initHandler();
         $this->initSignalHandler();
@@ -400,43 +400,43 @@ class Process
 
     private function initCoroutine()
     {
-        Coroutine::Enable();
+        Coroutine::enable();
         for ($i = 0; $i < 64; $i++) {
-            Coroutine::Create(function () {
+            Coroutine::create(function () {
                 $this->WriteToFile();
             });
         }
 
         $tcpClientCount = count($this->tcpClient);
         for ($i = 0; $i < $tcpClientCount; $i++) {
-            Coroutine::Create(function () use ($i) {
+            Coroutine::create(function () use ($i) {
                 $this->WriteToTcp($i);
             });
         }
 
         $redisClientCount = count($this->redisClient);
         for ($i = 0; $i < $redisClientCount; $i++) {
-            Coroutine::Create(function () use ($i) {
+            Coroutine::create(function () use ($i) {
                 $this->WriteToRedis($i);
             });
         }
 
         for ($i = 0; $i < 2; $i++) {
-            Coroutine::Create(function () {
+            Coroutine::create(function () {
                 $this->Dispatch();
             });
         }
 
-        Coroutine::Create(function () {
+        Coroutine::create(function () {
             while (true) {
                 if ($this->isTerminate) {
                     break;
                 }
-                Coroutine::Sleep(0.2);
+                Coroutine::sleep(0.2);
                 pcntl_signal_dispatch();
             }
         });
-        Coroutine::Wait();
+        Coroutine::wait();
     }
 
     public function Dispatch()
@@ -446,7 +446,7 @@ class Process
         while (true) {
             if (
                 $this->isTerminate &&
-                $msgQueue->Status()['msg_qnum'] == 0
+                $msgQueue->status()['msg_qnum'] == 0
             ) {
                 break;
             }
@@ -563,7 +563,7 @@ class Process
             }
 
             if ($data === false) {
-                Coroutine::Sleep(1);
+                Coroutine::sleep(1);
                 continue;
             }
 
@@ -587,7 +587,7 @@ class Process
             }
 
             if ($data === false) {
-                Coroutine::Sleep(1);
+                Coroutine::sleep(1);
                 continue;
             }
 
@@ -608,13 +608,13 @@ class Process
     private function exit()
     {
         Log::Dump(' exited. queue status : ' .
-            json_encode($this->msgInstance->Status()), Log::TYPE_DEBUG, __METHOD__);
+            json_encode($this->msgInstance->status()), Log::TYPE_DEBUG, __METHOD__);
         exit(0);
     }
 
     private function resetStd()
     {
-        if ($this->container->Get(Console::class)->IsDebug()) {
+        if ($this->container->get(Console::class)->isDebug()) {
             return;
         }
 
@@ -690,14 +690,14 @@ class Process
             return;
         }
 
-        Log::InitId();
+        Log::initId();
         $today = date('Ymd');
         foreach ($this->fileHandlerMap as $alias => $handler) {
             $aliasDate = substr($alias, strlen($alias) - 8, 8);
             if ($today != $aliasDate) {
                 fclose($this->fileHandlerMap[$alias]);
                 unset($this->fileHandlerMap[$alias]);
-                Log::Debug("log file handler : {$alias} was cleaned.", [], self::LOG_NAME);
+                Log::debug("log file handler : {$alias} was cleaned.", [], self::LOG_NAME);
             }
         }
     }

@@ -46,7 +46,7 @@ class SwTable
         $this->structure = $structure;
         $this->size = $size;
 
-        $this->table = $this->container->Make(Table::class, [$size]);
+        $this->table = $this->container->make(Table::class, [$size]);
         foreach ($structure as $name => $property) {
             if ($property['type'] == Table::TYPE_FLOAT) {
                 $this->table->column($name, $property['type']);
@@ -62,7 +62,7 @@ class SwTable
     public function Create(): bool
     {
         if (!$this->table->create()) {
-            Log::Error('create memory table failed, config is : {config}', [
+            Log::error('create memory table failed, config is : {config}', [
                 'config' => json_encode($this->structure)
             ], self::LOG_NAME);
             return false;

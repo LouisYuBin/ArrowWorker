@@ -63,7 +63,7 @@ class Udp extends ServerPattern
     /**
      * @return void
      */
-    public function Start()
+    public function start():void
     {
         $this->initServer();
         $this->initComponent(App::TYPE_UDP);
@@ -133,7 +133,7 @@ class Udp extends ServerPattern
     private function onStart()
     {
         $this->server->on('start', function ($server) {
-            Process::SetName("{$this->identity}_Udp:{$this->port} Manager");
+            Process::setName("{$this->identity}_Udp:{$this->port} Manager");
             Log::Dump("listening at port {$this->port}", Log::TYPE_DEBUG, self::MODULE_NAME);
         });
     }
@@ -141,35 +141,35 @@ class Udp extends ServerPattern
     private function onConnect()
     {
         $this->server->on('connect', function (Server $server, int $fd) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Connect")($server, $fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onReceive()
     {
         $this->server->on('receive', function (Server $server, int $fd, int $reactor_id, string $data) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Receive")($server, $fd, $data);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onClose()
     {
         $this->server->on('close', function (Server $server, int $fd) {
-            $this->component->Init();
+            $this->component->init();
             ("{$this->callback}::Close")($server, $fd);
-            $this->component->Release();
+            $this->component->release();
         });
     }
 
     private function onWorkerStart()
     {
         $this->server->on('WorkerStart', function () {
-            Process::SetName("{$this->identity}_Udp:{$this->port} Worker");
-            $this->component->InitPool($this->components);
+            Process::setName("{$this->identity}_Udp:{$this->port} Worker");
+            $this->component->initPool($this->components);
         });
     }
 

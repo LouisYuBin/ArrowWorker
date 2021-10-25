@@ -13,7 +13,7 @@ class Tcp
 
     public static function Connect(server $server, int $fd)
     {
-        Log::Info("{$fd} connected .");
+        Log::info("{$fd} connected .");
     }
 
     public static function Receive(server $server, int $fd, string $data)
@@ -23,7 +23,7 @@ class Tcp
 
     public static function Close(server $server, int $fd)
     {
-        Log::Info("{$fd} closed .");
+        Log::info("{$fd} closed .");
     }
 
 }

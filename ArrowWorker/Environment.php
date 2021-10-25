@@ -39,7 +39,7 @@ class Environment
     /**
      * @var string
      */
-    private static $currentType = self::TYPE_DEV;
+    private static string $currentType = self::TYPE_DEV;
 
     /**
      * @return string
@@ -54,7 +54,7 @@ class Environment
      */
     public static function setType(string $env): void
     {
-        self::$currentType = in_array($env, self::$validateEnv) ? $env : self::TYPE_DEV;
+        self::$currentType = in_array($env, self::$validateEnv, true) ? $env : self::TYPE_DEV;
 
     }
 

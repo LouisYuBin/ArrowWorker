@@ -10,15 +10,17 @@ use ArrowWorker\Client\Tcp\Pool as TcpPool;
 use ArrowWorker\Client\Ws\Pool as WsPool;
 use ArrowWorker\Component\Cache\Pool as CachePool;
 use ArrowWorker\Component\Db\Pool as DbPool;
+
+use ArrowWorker\Std\Http\RequestInterface;
+use ArrowWorker\Std\Http\ResponseInterface;
+
+use ArrowWorker\HttpServer\Request;
+use ArrowWorker\HttpServer\Response;
+use ArrowWorker\HttpServer\Session;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Request\Request;
-use ArrowWorker\Web\Request\RequestInterface;
-use ArrowWorker\Web\Response\Response;
-use ArrowWorker\Web\Response\ResponseInterface;
-use ArrowWorker\Web\Session;
-use ArrowWorker\Web\Upload;
+
 use Swoole\Http\Request as SwRequest;
 use Swoole\Http\Response as SwResponse;
 
@@ -72,13 +74,13 @@ class Component
      * @param SwRequest|null $request
      * @param SwResponse|null $response
      */
-    public function Init(?SwRequest $request=null, ?SwResponse $response=null)
+    public function init(?SwRequest $request = null, ?SwResponse $response = null): void
     {
-        Log::InitId();
-        Coroutine::Init();
-        if(!is_null($request)) {
-            Context::Set(RequestInterface::class, $this->container->Make(Request::class, [$request]));
-            Context::Set(ResponseInterface::class, $this->container->Make(Response::class, [$response]));
+        Log::initId();
+        Coroutine::init();
+        if (!is_null($request)) {
+            Context::set(RequestInterface::class, $this->container->make(Request::class, [$request]));
+            Context::set(ResponseInterface::class, $this->container->make(Response::class, [$response]));
         }
     }
 
@@ -86,32 +88,32 @@ class Component
      * @param array $components
      * @param bool $isEnableCORS
      */
-    public function InitWebWorkerStart(array $components, bool $isEnableCORS)
+    public function initOnWebWorkerStart(array $components, bool $isEnableCORS): void
     {
-        $this->InitPool($components);
-        $this->container->Get(Session::class, [$this->container]);
+        $this->initPool($components);
+        $this->container->get(Session::class, [$this->container]);
     }
 
     /**
      * @param array $components
      */
-    public function InitPool(array $components)
+    public function initPool(array $components): void
     {
-        Log::InitId();
+        Log::initId();
         foreach ($components as $key => $config) {
             $component = $this->poolAlias[strtoupper($key)] ?? '';
             if ('' === $component) {
                 continue;
             }
 
-            $this->components[] = $this->container->Get($component, [$this->container, $config]);
+            $this->components[] = $this->container->get($component, [$this->container, $config]);
         }
     }
 
     /**
      * @return void
      */
-    public function Release():void
+    public function release(): void
     {
         foreach ($this->components as $component) {
             $component->Release();

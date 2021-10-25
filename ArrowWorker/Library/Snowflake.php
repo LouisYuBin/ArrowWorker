@@ -73,7 +73,7 @@ class Snowflake
     /**
      * @return int
      */
-    public function GenerateId()
+    public function generateId()
     {
         $this->lock->Lock();
         $this->initSequence();

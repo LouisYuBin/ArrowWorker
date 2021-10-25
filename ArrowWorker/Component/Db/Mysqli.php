@@ -40,7 +40,7 @@ class Mysqli implements DbInterface
      */
     public function InitConnection()
     {
-        @$this->conn = $this->container->Make(\mysqli::class, [$this->config['host'], $this->config['userName'], $this->config['password'], $this->config['dbName'], $this->config['port']]);
+        @$this->conn = $this->container->make(\mysqli::class, [$this->config['host'], $this->config['userName'], $this->config['password'], $this->config['dbName'], $this->config['port']]);
         if ($this->conn->connect_errno) {
             Log::Dump(__CLASS__ . '::' . __METHOD__ . "connect failed : " . $this->conn->connect_error, Log::TYPE_WARNING, self::MODULE_NAME);
             return false;
@@ -134,7 +134,7 @@ class Mysqli implements DbInterface
         _RETRY:
         $result = @$this->conn->query($sql);
         if (false !== $result && !is_null($result)) {
-            Log::Debug($sql, [], self::SQL_LOG_NAME);
+            Log::debug($sql, [], self::SQL_LOG_NAME);
             return $result;
         }
 

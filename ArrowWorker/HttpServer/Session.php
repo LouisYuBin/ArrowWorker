@@ -5,13 +5,13 @@
  * Date:   17-12-31
  */
 
-namespace ArrowWorker\Web;
+namespace ArrowWorker\HttpServer;
 
 use ArrowWorker\Component\Cache\Pool;
 use ArrowWorker\Config;
 use ArrowWorker\Container;
 use ArrowWorker\Log\Log;
-use ArrowWorker\Web\Request\Request;
+use ArrowWorker\HttpServer\Request\Request;
 
 
 /**
@@ -57,7 +57,7 @@ class Session
             /**
              * @var Pool $pool
              */
-            $this->pool = $this->container->Get(Pool::class,
+            $this->pool = $this->container->get(Pool::class,
                 [
                     $this->container,
                     $poolSize,
@@ -71,7 +71,7 @@ class Session
 
     private function initConfig()
     {
-        $config = Config::Get(self::MODULE_NAME);
+        $config = Config::get(self::MODULE_NAME);
         if (!is_array($config)) {
             Log::Dump('initialize config failed', Log::TYPE_WARNING, self::MODULE_NAME);
             return;

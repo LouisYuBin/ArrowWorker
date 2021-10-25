@@ -6,7 +6,7 @@
 namespace App\Controller\Admin;
 
 use ArrowWorker\Client\Ws\Client as Ws;
-use ArrowWorker\Web\Request\Request;
+use ArrowWorker\HttpServer\Request\Request;
 
 class Index
 {
@@ -18,7 +18,7 @@ class Index
     public function get()
     {
         //$this->_webSocketClient();
-        //Log::Info('hese functions let you read andhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year',[],'ccc');
+        //Log::info('hese functions let you read andhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year and track numberhese functions let you read and manipulate ID3 tags. ID3 tags are used in MP3 files to store title of the song, as well as information about the artist, album, genre, year',[],'ccc');
         return 'rest get' . Request::Server('REQUEST_URI') . json_encode(Request::Params());
     }
 

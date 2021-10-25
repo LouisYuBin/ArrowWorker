@@ -3,14 +3,14 @@
 namespace ArrowWorker;
 
 use ArrowWorker\Component\Memory\SwTable;
+use ArrowWorker\Log\Log;
 
 class Memory
 {
-    const LOG_NAME = 'Memory';
 
-    const CONFIG_NAME = 'Memory';
+    private const CONFIG_NAME = 'Memory';
 
-    const DATA_TYPE_STRUCTURE = [
+    private const DATA_TYPE_STRUCTURE = [
         'int'    => [
             'type' => SwTable::DATA_TYPE_INT,
             'len'  => 8,
@@ -28,43 +28,41 @@ class Memory
     /**
      * @var $container Container
      */
-    private $container;
+    private Container $container;
 
     /**
      * @var array
      */
-    private $tables = [];
+    private array $tables = [];
 
     private static $instance;
 
     public function __construct(Container $container)
     {
         self::$instance = $this;
-        $this->container = $container;
-        $table = Config::Get(self::CONFIG_NAME);
+        $table = Config::get(self::CONFIG_NAME);
         foreach ($table as $name => $definition) {
             if (!is_array($definition) ||
-                !isset($definition['size']) ||
-                !isset($definition['column']) ||
-                count($definition['column']) == 0
+                !isset($definition['size'], $definition['column']) ||
+                count($definition['column']) === 0
             ) {
-                Log::Error("memory Table( {name} : {definition} ) config is incorrect.", [
+                Log::error("memory Table( {name} : {definition} ) config is incorrect.", [
                     'name'       => $name,
                     'definition' => json_encode($definition),
 
-                ], self::LOG_NAME);
+                ], __METHOD__);
                 continue;
             }
 
             $structure = $this->parseTableColumn($definition['column']);
-            if (count($structure) == 0) {
+            if (count($structure) === 0) {
                 continue;
             }
 
             /**
              * @var $swTable SwTable
              */
-            $swTable = $this->container->Make(SwTable::class, [$this->container, $structure, $definition['size']]);
+            $swTable = $container->make(SwTable::class, [$container, $structure, $definition['size']]);
             if ($swTable->Create()) {
                 $this->tables[$name] = $swTable;
             }
@@ -80,7 +78,7 @@ class Memory
         $structure = [];
         foreach ($columns as $name => $type) {
             if (!isset(self::DATA_TYPE_STRUCTURE[$type])) {
-                Log::Error('table column type is incorrect.', [], self::LOG_NAME);
+                Log::error('table column type is incorrect.', [], __METHOD__);
                 continue;
             }
             $structure[$name] = self::DATA_TYPE_STRUCTURE[$type];
@@ -92,7 +90,7 @@ class Memory
      * @param string $name
      * @return false|SwTable
      */
-    public static function Get(string $name)
+    public static function get(string $name)
     {
         $memory = self::$instance;
         if (isset($memory->tables[$name])) {

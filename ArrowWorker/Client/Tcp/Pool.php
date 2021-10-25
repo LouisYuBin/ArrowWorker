@@ -11,10 +11,10 @@ use ArrowWorker\Container;
 use ArrowWorker\Library\Channel as SwChan;
 use ArrowWorker\Library\Context;
 use ArrowWorker\Log\Log;
-use ArrowWorker\PoolExtend;
-use ArrowWorker\PoolInterface as ConnPool;
+use ArrowWorker\Std\Pool\PoolCommon;
+use ArrowWorker\Std\Pool\PoolInterface as ConnPool;
 
-class Pool extends PoolExtend implements ConnPool
+class Pool extends PoolCommon implements ConnPool
 {
 
     const LOG_NAME = 'TcpClient';
@@ -33,7 +33,7 @@ class Pool extends PoolExtend implements ConnPool
 
     public function initConfig(array $aliasConfig, array $userConfig = [])
     {
-        $config = count($userConfig) > 0 ? $userConfig : Config::Get(self::CONFIG_NAME);
+        $config = count($userConfig) > 0 ? $userConfig : Config::get(self::CONFIG_NAME);
         if (!is_array($config) || count($config) == 0) {
             Log::Dump('load config file failed', Log::TYPE_WARNING, self::MODULE_NAME);
             return;
@@ -58,7 +58,7 @@ class Pool extends PoolExtend implements ConnPool
             $value['connectedNum'] = 0;
 
             $this->config[$index] = $value;
-            $this->pool[$index] = $this->container->Make(SwChan::class, [
+            $this->pool[$index] = $this->container->make(SwChan::class, [
                 $this->container,
                 $value['poolSize'],
             ]);
@@ -72,7 +72,7 @@ class Pool extends PoolExtend implements ConnPool
     {
         foreach ($this->config as $index => $config) {
             for ($i = $config['connectedNum']; $i < $config['poolSize']; $i++) {
-                $conn = $this->container->Make(Client::class, [
+                $conn = $this->container->make(Client::class, [
                     $config['host'],
                     $config['port'],
                 ]);
@@ -94,14 +94,14 @@ class Pool extends PoolExtend implements ConnPool
     public static function Get(string $alias = 'default')
     {
         $class = __CLASS__;
-        $conn = Context::GetSub($class, $alias);
+        $conn = Context::getSub($class, $alias);
 
         if (!is_null($conn)) {
             return $conn;
         }
 
         $conn = self::$instance->getConnection($alias);
-        Context::SubSet($class, $alias, $conn);
+        Context::subSet($class, $alias, $conn);
         return $conn;
     }
 
@@ -122,7 +122,7 @@ class Pool extends PoolExtend implements ConnPool
 
             if ($retryTimes <= 2) {
                 $retryTimes++;
-                Log::Warning("get ( {$alias} : {$retryTimes} ) connection failed.", [], self::LOG_NAME);
+                Log::warning("get ( {$alias} : {$retryTimes} ) connection failed.", [], self::LOG_NAME);
                 goto _RETRY;
             }
         }
@@ -135,7 +135,7 @@ class Pool extends PoolExtend implements ConnPool
     public function Release(): void
     {
         $class = __CLASS__;
-        $coConnections = Context::Get($class);
+        $coConnections = Context::get($class);
 
         if (is_null($coConnections)) {
             return;

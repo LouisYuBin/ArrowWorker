@@ -11,7 +11,7 @@ use ArrowWorker\Library\Coroutine;
 use ArrowWorker\Library\Process;
 use ArrowWorker\Log\Log;
 
-class Arrow
+class ArrowCoroutines
 {
 
     /**
@@ -343,7 +343,7 @@ class Arrow
             $status = 0;
             RE_WAIT:
             $pid = Process::wait($status, WUNTRACED);
-            if ($pid === -1) {
+            if ($pid == -1) {
                 goto RE_WAIT;
             }
 
@@ -425,13 +425,13 @@ class Arrow
         $this->setSignalHandler('workerHandler');
         $this->setAlarm($index, $lifecycle);
         $this->setProcessName($this->jobs[$index]['processName']);
-        //$this->initComponent(); 初始化各种连接池
+        $this->initComponent();
         Process::setExecGroupUser($this->group, $this->user);
-        //Coroutine::enable();  //开启协程
-        //Coroutine::create(function () use ($index) {  //初始化基础组件
-        //    $this->component->initPool($this->jobs[$index]['components']);
-        //});
-        Coroutine::wait(); //等待组件初始化完毕
+        Coroutine::enable();
+        Coroutine::create(function () use ($index) {
+            $this->component->initPool($this->jobs[$index]['components']);
+        });
+        Coroutine::wait();
         $this->runProcessTask($index);
     }
 
@@ -449,29 +449,34 @@ class Arrow
 
         Log::Dump("{$this->jobs[ $index ]['processName']} started.", Log::TYPE_DEBUG, __METHOD__);
 
-        while (true) {
-            pcntl_signal_dispatch();
+        while ($this->jobs[$index]['coCount'] < $this->jobs[$index]['coQuantity']) {
+            Coroutine::create(function () use ($index, $timeStart) {
+                while (true) {
+                    pcntl_signal_dispatch();
 
-            if (isset($this->jobs[$index]['argv'])) {
-                $result = call_user_func_array($this->jobs[$index]['callback'], $this->jobs[$index]['argv']);
-            } else {
-                $result = call_user_func($this->jobs[$index]['callback']);
-            }
-            $this->execCount++;
+                    Log::initId();
+                    if (isset($this->jobs[$index]['argv'])) {
+                        $result = call_user_func_array($this->jobs[$index]['callback'], $this->jobs[$index]['argv']);
+                    } else {
+                        $result = call_user_func($this->jobs[$index]['callback']);
+                    }
+                    $this->execCount++;
 
-            //release components resource after finish one work
-            //$this->component->release(); 释放各种连接池
+                    //release components resource after finish one work
+                    $this->component->release();
 
-            pcntl_signal_dispatch();
+                    pcntl_signal_dispatch();
 
-            if ($this->terminateFlag && false == (bool)$result) {
-                break;
-            }
+                    if ($this->terminateFlag && false == (bool)$result) {
+                        break;
+                    }
+                }
+
+            });
+            $this->jobs[$index]['coCount']++;
         }
 
-
-        $this->jobs[$index]['coCount']++;
-
+        Coroutine::wait();
         $execTimeSpan = time() - $timeStart;
         Log::Dump("{$this->jobs[ $index ]['processName']} finished {$this->execCount} times / {$execTimeSpan} S.", Log::TYPE_DEBUG, __METHOD__);
         exit(0);
